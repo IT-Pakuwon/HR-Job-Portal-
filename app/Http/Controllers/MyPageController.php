@@ -173,6 +173,12 @@ class MyPageController extends Controller
         ]);
     }
 
+    // changes whenever the icon files change, so installed apps fetch the new icon instead of a cached one
+    private function iconVersion(): int
+    {
+        return (int) @filemtime(public_path('images/pwa/myapp-512.png'));
+    }
+
     public function manifest()
     {
         return response()->json([
@@ -187,10 +193,10 @@ class MyPageController extends Controller
             'background_color' => '#0b1a6b',
             'theme_color'      => '#0b1a6b',
             'icons'            => [
-                ['src' => asset('images/pwa/myapp-192.png'), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-1080.png'), 'sizes' => '1080x1080', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-maskable-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+                ['src' => asset('images/pwa/myapp-192.png') . '?v=' . $this->iconVersion(), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-512.png') . '?v=' . $this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-1080.png') . '?v=' . $this->iconVersion(), 'sizes' => '1080x1080', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-maskable-512.png') . '?v=' . $this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
             ],
         ], 200, ['Content-Type' => 'application/manifest+json']);
     }

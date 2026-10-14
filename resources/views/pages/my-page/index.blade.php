@@ -412,7 +412,7 @@
 
     {{-- App Lock screen: shown over everything until Face ID / fingerprint succeeds --}}
     <div class="mp-lock" id="mpLock" role="dialog" aria-label="My APP is locked">
-        <img src="{{ asset('images/pwa/myapp-192.png') }}" alt="My APP">
+        <img src="{{ asset('images/pwa/myapp-logo.png') }}?v={{ @filemtime(public_path('images/pwa/myapp-logo.png')) }}" alt="My APP">
         <h2>My APP is locked</h2>
         <p>Use your face or fingerprint to continue.</p>
         <p class="mp-lock-err" id="mpLockErr"></p>
