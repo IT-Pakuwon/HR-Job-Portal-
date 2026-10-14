@@ -24,6 +24,21 @@
         history: "/approval-dashboard/approve-json",
     };
 
+    // My APP only: keep the last list on the phone so the screen is filled instantly while the fresh one loads.
+    const cacheUser = window.approvalCacheUser || null;
+    const painted = {};
+    function cacheGet(name) {
+        if (!cacheUser) return null;
+        try { return JSON.parse(localStorage.getItem("appr_v1_" + cacheUser + "_" + name)); } catch (e) { return null; }
+    }
+    function cacheSet(name, value) {
+        if (!cacheUser) return;
+        try { localStorage.setItem("appr_v1_" + cacheUser + "_" + name, JSON.stringify(value)); } catch (e) {}
+    }
+    // manual refresh / pull-to-refresh skip the server's one-minute cache
+    let forceFresh = false;
+    const freshQs = () => (forceFresh ? "&fresh=1" : "");
+
     const tabIcon = { waiting: "✅", history: "📋" };
     const tabBadgeBg = {
         waiting: "bg-emerald-100 dark:bg-emerald-900/30",
@@ -79,12 +94,14 @@
     // ── Rebuilds the card list on a timer; pausing this while the user's
     // mouse is over the list keeps a mid-click refresh from yanking the
     // Doc ID link out from under them (the "blinking, needs several clicks" bug). ──
-    function performRefresh() {
+    function performRefresh(manual) {
+        forceFresh = manual === true;
         resetCountdown();
-        loadSummary();
         // Preserve the user's current page — this refresh fires on a timer,
         // not from a user action, so it shouldn't yank them back to page 1.
-        loadTab(activeTab, false);
+        const listDone = loadTab(activeTab, false);
+        listDone.finally(() => { forceFresh = false; loadSummary(); });
+        return listDone;
     }
 
     function startCountdown() {
@@ -176,6 +193,12 @@
 
         summaryRequest = new AbortController();
 
+        if (!painted.summary) {
+            const cached = cacheGet("summary");
+            if (cached) renderSummary(cached);
+            painted.summary = true;
+        }
+
         fetch(urls.summary, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
@@ -193,6 +216,7 @@
             })
             .then(res => {
                 renderSummary(res.data || {});
+                cacheSet("summary", res.data || {});
             })
             .catch(err => {
 
@@ -535,9 +559,16 @@
             url = urls.history;
         }
 
-        url += `?doctype=${encodeURIComponent(doctype)}`;
+        url += `?doctype=${encodeURIComponent(doctype)}${freshQs()}`;
 
-        fetch(url, {
+        const cacheName = `list_${tab}_${doctype}`;
+        if (!painted[cacheName]) {
+            const cached = cacheGet(cacheName);
+            if (cached && Array.isArray(cached.rows) && !isHovering) renderCardList(cached.rows, resetPage);
+            painted[cacheName] = true;
+        }
+
+        return fetch(url, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 "Accept": "application/json",
@@ -555,6 +586,7 @@
             .then(res => {
 
                 const rows = res.data || [];
+                cacheSet(cacheName, { rows: rows, at: Date.now() });
 
                 // ── Never swap the table out from under a hovering cursor,
                 // even if this fetch was already in flight before the mouse
@@ -602,7 +634,7 @@
             }
         });
 
-        loadTab(tab);
+        return loadTab(tab);
     }
 
     function bindSearch() {
@@ -710,7 +742,7 @@
             .on("click", () => activateTab("history"));
 
         $("#refreshApproval")
-            .on("click", () => performRefresh());
+            .on("click", () => performRefresh(true));
 
         $("#applyApprovalFilter")
             .on("click", () => loadTab(activeTab));
@@ -753,9 +785,8 @@
 
         bindEvents();
 
-        loadSummary();
-
-        activateTab("waiting");
+        // list first, counters right after it: both need the same heavy lookup, so the second reuses the first's result
+        activateTab("waiting").finally(() => loadSummary());
 
         startCountdown();
 

@@ -1,5 +1,14 @@
 <x-app-layout>
     @push('head')
+        <script>
+            // App Lock: if it is on and the app was left longer than the chosen time ago, start locked so nothing shows first.
+            try {
+                const id = @json((string) auth()->id());
+                const c = JSON.parse(localStorage.getItem('mp_lock_v1_' + id) || 'null');
+                const last = +localStorage.getItem('mp_lock_last_' + id) || 0;
+                if (c && c.cred && last && Date.now() - last > (c.grace || 0) * 60000) document.documentElement.classList.add('mp-locked');
+            } catch (e) {}
+        </script>
         <link rel="manifest" href="{{ route('my-page.manifest') }}">
         <script>
             // Installed app: follow the phone/tablet light/dark setting until the user picks otherwise in Profile.
@@ -11,7 +20,7 @@
         <meta name="theme-color" content="#0b1a6b">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-title" content="My Page">
+        <meta name="apple-mobile-web-app-title" content="My APP">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <link rel="apple-touch-icon" href="{{ asset('images/pwa/myapp-180.png') }}">
     @endpush
@@ -125,9 +134,9 @@
             .dark .mp-wrap #approvalCardList > a { background: #1e293b; border-color: #334155; }
 
             /* filters: search + doctype only; hide the desktop-only controls */
-            .mp-wrap .border-b.p-4, #myActivityRoot .border-b.p-4 { padding: .75rem 0 1.125rem !important; border: 0 !important; }
-            /* a little room between the filter buttons and the first card */
-            .mp-wrap #approvalCardList { padding-top: .25rem; }
+            .mp-wrap .border-b.p-4, #myActivityRoot .border-b.p-4 { padding: .75rem 0 1.5rem !important; border: 0 !important; }
+            /* room between the filter buttons and the first card */
+            .mp-wrap #approvalCardList { padding-top: .75rem; }
             .mp-wrap .lg\:col-span-2:has(#approvalPageSize) { display: none; }
             #myActivityRoot .lg\:col-span-4:has(select[class*="w-24"]) { display: none; }
             .mp-wrap input[type="text"], .mp-wrap select { border-radius: .875rem !important; padding: .625rem .875rem !important; font-size: .8125rem !important; background: #fff; }
@@ -291,11 +300,16 @@
                 });
             })();
         </script>
-        <script>window.approvalCardMode = true; // Approval / History as cards instead of a table</script>
+        <script>
+            window.approvalCardMode = true; // Approval / History as cards instead of a table
+            window.approvalCacheUser = @json((string) auth()->id()); // last list is kept on this phone, per user, so the screen fills instantly
+        </script>
         @include('components.multidashboard.dashboard-approval', ['myPage' => true])
         @include('components.multidashboard.my-activity', ['combined' => false])
         </div>
     </div>
+
+    <div class="mp-ptr" id="mpPtr" aria-hidden="true"><i></i><span>Pull to refresh</span></div>
 
     <nav class="mp-nav" id="mpNav" aria-label="My Page sections">
         <span class="mp-ind" id="mpInd" aria-hidden="true"></span>
@@ -306,13 +320,13 @@
         <button type="button" data-click="btnMpProfile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></button>
     </nav>
 
+    {{-- Profile: native screen (no framed web page). Notification settings / App lock rows keep their ids so their scripts still find them. --}}
     <div id="mpProfileOverlay" class="fixed inset-0 z-50 hidden flex-col bg-gray-100 dark:bg-gray-900">
-        <div class="flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-800"
-            style="padding-top: max(0.5rem, env(safe-area-inset-top));">
+        <div class="mp-doc-bar">
             <button type="button" id="btnMpProfileClose" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-600 dark:text-slate-200">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </button>
-            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Profile</span>
+            <span class="mp-doc-title">Profile</span>
             <div class="flex items-center gap-2">
                 <button id="mpPushBtn" type="button" class="mp-obtn" title="Notifications on this device" aria-label="Notifications on this device" hidden>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -320,15 +334,153 @@
                 <button id="installMyPage" type="button" class="mp-obtn" title="Add to Home Screen" aria-label="Add to Home Screen" hidden>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
                 </button>
-                <form action="{{ route('my-page.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="mp-obtn" title="Logout" aria-label="Logout">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                    </button>
-                </form>
             </div>
         </div>
-        <iframe id="mpProfileFrame" title="Profile" class="w-full flex-1 border-0" src="about:blank"></iframe>
+
+        <div class="mp-prof" id="mpProfileBody">
+            <div class="mp-pcard">
+                <div class="mp-pav">
+                    <img id="mpProfPhoto" src="{{ $mpHeroUser->profile_photo_url }}" alt="{{ $mpHeroUser->name }}">
+                    <button type="button" id="mpProfPhotoBtn" aria-label="Change photo"><i class="fa-solid fa-camera"></i></button>
+                    <input type="file" id="mpProfPhotoInput" accept="image/png,image/jpeg,image/webp" hidden>
+                </div>
+                <div class="mp-pinfo">
+                    <b>{{ $mpHeroUser->name ?? $mpHeroUser->username }}</b>
+                    <span>NPK {{ $mpHeroUser->npk ?? '-' }}</span>
+                    <span>{{ $mpHeroUser->email }}</span>
+                    <span>{{ $originCpnyName ?? '-' }} &middot; {{ $originDepartmentName ?? '-' }}</span>
+                </div>
+            </div>
+
+            <p class="mp-label">Appearance</p>
+            <div class="mp-segc" id="mpThemeChoice" role="radiogroup" aria-label="Appearance">
+                <button type="button" role="radio" data-theme="light"><i class="fa-solid fa-sun"></i> Light</button>
+                <button type="button" role="radio" data-theme="dark"><i class="fa-solid fa-moon"></i> Dark</button>
+                <button type="button" role="radio" data-theme="system"><i class="fa-solid fa-mobile-screen"></i> Device</button>
+            </div>
+
+            <p class="mp-label">Settings</p>
+            <div class="mp-group">
+                <button type="button" id="mpPushSettingsBtn" class="mp-row" hidden>
+                    <i class="fa-solid fa-bell" style="background:linear-gradient(135deg,#f59e0b,#d97706)"></i>
+                    <span class="t"><b>Notifications</b><small>What to push, quiet hours</small></span>
+                    <svg class="mp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" id="mpLockBtn" class="mp-row" hidden>
+                    <i class="fa-solid fa-lock" style="background:linear-gradient(135deg,#34d399,#059669)"></i>
+                    <span class="t"><b>App lock</b><small>Face ID or fingerprint to open the app</small></span>
+                    <svg class="mp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" id="mpPwBtn" class="mp-row">
+                    <i class="fa-solid fa-key" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"></i>
+                    <span class="t"><b>Change password</b><small>Update your sign-in password</small></span>
+                    <svg class="mp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+                <div class="mp-row" id="mpStarsRow" hidden style="cursor:default">
+                    <i class="fa-solid fa-star" style="background:linear-gradient(135deg,#fbbf24,#f97316)"></i>
+                    <span class="t"><b>My trainings &amp; stars</b><small>Earned by attending on time and giving feedback</small></span>
+                    <span class="mp-badge" id="mpStarsBadge">-</span>
+                </div>
+                <button type="button" id="mpFullBtn" class="mp-row">
+                    <i class="fa-solid fa-id-card" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)"></i>
+                    <span class="t"><b>Full profile</b><small>All account details</small></span>
+                    <svg class="mp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('my-page.logout') }}" method="POST" onsubmit="try { Object.keys(localStorage).filter(function (k) { return k.indexOf('appr_v1_') === 0 || k.indexOf('mp_lock_last_') === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}">
+                @csrf
+                <button type="submit" class="mp-signout"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Change password --}}
+    <div id="mpPwSheet" class="mp-sheet-bd" hidden>
+        <form class="mp-sheet" id="mpPwForm" autocomplete="off">
+            <div class="mp-sheet-h">
+                <b>Change password</b>
+                <button type="button" id="mpPwClose" class="mp-obtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+            <label class="mp-fld">Current password<input type="password" name="current_password" autocomplete="current-password" required></label>
+            <label class="mp-fld">New password<input type="password" name="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters.</small></label>
+            <label class="mp-fld">Confirm new password<input type="password" name="password_confirmation" autocomplete="new-password" required></label>
+            <p class="mp-note" id="mpPwNote"></p>
+            <button type="submit" class="mp-btn" id="mpPwSave">Update password</button>
+        </form>
+    </div>
+
+    {{-- App Lock screen: shown over everything until Face ID / fingerprint succeeds --}}
+    <div class="mp-lock" id="mpLock" role="dialog" aria-label="My APP is locked">
+        <img src="{{ asset('images/pwa/myapp-192.png') }}" alt="My APP">
+        <h2>My APP is locked</h2>
+        <p>Use your face or fingerprint to continue.</p>
+        <p class="mp-lock-err" id="mpLockErr"></p>
+        <button type="button" class="mp-lock-go" id="mpLockGo">Unlock</button>
+        <form action="{{ route('my-page.logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="mp-lock-out">Sign out instead</button>
+        </form>
+    </div>
+
+    {{-- App Lock settings (padlock in the Profile bar) --}}
+    <div id="mpLockSheet" class="mp-sheet-bd" hidden>
+        <div class="mp-sheet" role="dialog" aria-label="App lock">
+            <div class="mp-sheet-h">
+                <b>App lock</b>
+                <button type="button" id="mpLockSheetClose" class="mp-obtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+            <p class="mp-sheet-sub">Ask for Face ID or your fingerprint when you open My APP, so nobody else can use it on your phone while you stay signed in.</p>
+            <label class="mp-opt"><span><b>Lock My APP</b><small>Uses this phone's own biometrics</small></span><input type="checkbox" class="mp-sw" id="mpLockOn"></label>
+            <label class="mp-opt" style="display:block"><span><b>Lock after</b><small>How long the app can be away before it asks again</small></span>
+                <select id="mpLockGrace" class="mp-sel">
+                    <option value="0">Immediately</option>
+                    <option value="1">1 minute</option>
+                    <option value="5">5 minutes</option>
+                    <option value="15">15 minutes</option>
+                </select>
+            </label>
+            <p class="mp-note" id="mpLockNote"></p>
+        </div>
+    </div>
+
+    {{-- Review sheet: the document's own page (?embed=1) full screen inside the app, with all of its approve / reject / revise buttons. --}}
+    <div id="mpDocOverlay" class="fixed inset-0 z-50 hidden flex-col bg-gray-100 dark:bg-gray-900" role="dialog" aria-label="Document">
+        <div class="mp-doc-bar">
+            <button type="button" id="btnMpDocClose" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-600 dark:text-slate-200">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+            <span class="mp-doc-title" id="mpDocTitle">Document</span>
+            <button type="button" id="btnMpDocBrowser" class="mp-obtn" title="Open in browser" aria-label="Open in browser">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </button>
+        </div>
+        <div class="mp-doc-body">
+            <div class="mp-spin" id="mpDocSpin" hidden></div>
+            <iframe id="mpDocFrame" title="Document" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    {{-- Notification settings (opened from the gear in the Profile bar) --}}
+    <div id="mpNotifSheet" class="mp-sheet-bd" hidden>
+        <div class="mp-sheet" role="dialog" aria-label="Notification settings">
+            <div class="mp-sheet-h">
+                <b>Notifications</b>
+                <button type="button" id="mpNotifClose" class="mp-obtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            </div>
+            <p class="mp-sheet-sub">Choose what is pushed to your phone.</p>
+
+            <label class="mp-opt"><span><b>Waiting approval</b><small>Documents that need your approval</small></span><input type="checkbox" class="mp-sw" data-k="approvals"></label>
+            <label class="mp-opt"><span><b>Document &amp; ticket updates</b><small>Status changes on your documents, tickets and requests</small></span><input type="checkbox" class="mp-sw" data-k="updates"></label>
+            <label class="mp-opt"><span><b>Comments &amp; mentions</b><small>Someone commented on or mentioned you in a document</small></span><input type="checkbox" class="mp-sw" data-k="comments"></label>
+            <label class="mp-opt"><span><b>Reminders &amp; others</b><small>Voucher expiry, trainings, emails, agreements</small></span><input type="checkbox" class="mp-sw" data-k="others"></label>
+            <label class="mp-opt"><span><b>Quiet hours</b><small>No pushes during this time. They arrive when it ends.</small></span><input type="checkbox" class="mp-sw" id="mpQuietOn"></label>
+            <div class="mp-times" id="mpQuietTimes" hidden>
+                <label>From<input type="time" id="mpQuietFrom" value="22:00"></label>
+                <label>Until<input type="time" id="mpQuietTo" value="07:00"></label>
+            </div>
+            <p class="mp-note" id="mpNotifNote"></p>
+        </div>
     </div>
 
     @php($mpUser = auth()->user())
@@ -375,12 +527,9 @@
                 m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-mp-close]')) hide(m); });
             });
 
-            const overlay = $('mpProfileOverlay'), frame = $('mpProfileFrame');
-            $('btnMpProfile').addEventListener('click', () => {
-                frame.src = @json(route('profile.showx', ['embed' => 1]));
-                show(overlay);
-            });
-            $('btnMpProfileClose').addEventListener('click', () => { hide(overlay); frame.src = 'about:blank'; });
+            const overlay = $('mpProfileOverlay');
+            $('btnMpProfile').addEventListener('click', () => { show(overlay); if (window.mpProfileOpened) window.mpProfileOpened(); });
+            $('btnMpProfileClose').addEventListener('click', () => hide(overlay));
 
             const card = $('mpBusinessCardModal');
             $('btnMpBusinessCard').addEventListener('click', () => {
@@ -466,6 +615,333 @@
             }
         })();
 
+        // ===== Review sheet: a document opens inside the app (its own page, embedded), so it can be read, approved,
+        // rejected or revised without ever leaving the installed app. =====
+        (function () {
+            const $ = id => document.getElementById(id);
+            const overlay = $('mpDocOverlay'), frame = $('mpDocFrame'), titleEl = $('mpDocTitle'), spin = $('mpDocSpin');
+            const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+            const android = /android/i.test(navigator.userAgent);
+
+            const isFile = u => /\.[a-z0-9]{2,5}$/i.test(u.pathname) || u.pathname.indexOf('/storage/') === 0;
+            // a same-site document page (not an uploaded file, not My APP itself) -> its path, else null
+            const asPath = href => {
+                try {
+                    const u = new URL(href, location.href);
+                    if (u.origin !== location.origin || u.pathname.indexOf('/my-page') === 0 || isFile(u)) return null;
+                    return u.pathname + u.search;
+                } catch (e) { return null; }
+            };
+            // Installed Android app: an intent:// URL hands a link to the phone's real browser instead of Chrome's in-app tab.
+            const toBrowser = href => {
+                if (!standalone || !android) return null;
+                try {
+                    const u = new URL(href, location.href);
+                    if (!/^https?:$/.test(u.protocol) || u.pathname.indexOf('/my-page') === 0) return null;
+                    return 'intent://' + u.host + u.pathname + u.search + u.hash + '#Intent;scheme=' + u.protocol.slice(0, -1) + ';action=android.intent.action.VIEW;end';
+                } catch (e) { return null; }
+            };
+
+            let plainUrl = '', pushed = false;
+
+            function open(path, title) {
+                if (typeof path !== 'string' || path[0] !== '/' || path[1] === '/' || path.indexOf('\\') !== -1) return false;
+                const plain = new URL(path, location.origin);
+                if (plain.origin !== location.origin) return false;
+                const framed = new URL(plain.href);
+                framed.searchParams.set('embed', '1');
+
+                plainUrl = plain.href;
+                titleEl.textContent = title || 'Document';
+                spin.hidden = false;
+                frame.src = framed.href;
+                overlay.classList.remove('hidden'); overlay.classList.add('flex');
+                // Android's back button closes the sheet instead of leaving the app
+                if (!pushed) { history.pushState({ mpDoc: 1 }, '', location.href); pushed = true; }
+                return true;
+            }
+
+            function close(fromPop) {
+                if (overlay.classList.contains('hidden')) return;
+                overlay.classList.add('hidden'); overlay.classList.remove('flex');
+                frame.src = 'about:blank';
+                const wasPushed = pushed; pushed = false;
+                if (wasPushed && !fromPop) history.back();
+                const refresh = $('refreshApproval'); // the document may have just been approved / rejected
+                if (refresh) refresh.click();
+            }
+
+            frame.addEventListener('load', () => { if (frame.getAttribute('src') !== 'about:blank') spin.hidden = true; });
+            $('btnMpDocClose').addEventListener('click', () => close(false));
+            window.addEventListener('popstate', () => close(true));
+            $('btnMpDocBrowser').addEventListener('click', () => {
+                const intent = toBrowser(plainUrl);
+                if (intent) window.location.href = intent; else nativeOpen(plainUrl, '_blank');
+            });
+
+            // Tapping a document number anywhere in the app opens the sheet. Uploaded files and other sites still leave the app.
+            document.addEventListener('click', e => {
+                if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
+                const a = e.target.closest && e.target.closest('a[href]');
+                if (!a || a.target !== '_blank') return; // the feedback reminder link has no target, it stays in the app
+                const path = a.closest('.ma-fcell') ? null : asPath(a.href);
+                if (path) { e.preventDefault(); open(path, (a.textContent || '').trim()); return; }
+                const intent = toBrowser(a.href);
+                if (intent) { e.preventDefault(); window.location.href = intent; }
+            }, true);
+
+            const nativeOpen = window.open.bind(window);
+            window.open = (url, ...rest) => {
+                const path = url ? asPath(url) : null;
+                if (path) { open(path, 'Document'); return null; }
+                const intent = url ? toBrowser(url) : null;
+                if (intent) { window.location.href = intent; return null; }
+                return nativeOpen(url, ...rest);
+            };
+            window.mpOpenDoc = open;
+
+            // Deep links from a tapped notification: /my-page?open=<path> (app was closed) or a message from the service worker (app was open).
+            const handleOpen = p => {
+                if (typeof p !== 'string') return;
+                const fb = p.match(/^\/training-list\/feedback\/([A-Za-z0-9]+)/);
+                if (fb && window.openPendingFeedback) { window.openPendingFeedback(fb[1]); return; }
+                open(p, 'Document');
+            };
+            const wanted = new URLSearchParams(location.search).get('open');
+            if (wanted) { history.replaceState(null, '', location.pathname); handleOpen(wanted); }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'mp-open') handleOpen(e.data.path); });
+            }
+        })();
+
+        // ===== Profile screen: appearance, photo, password, stars =====
+        (function () {
+            const $ = id => document.getElementById(id);
+            const csrf = document.querySelector('meta[name="csrf-token"]').content;
+            const toast = (icon, title) => window.Swal && window.Swal.fire({ toast: true, position: 'top', icon, title, showConfirmButton: false, timer: icon === 'error' ? 6000 : 2600, customClass: { container: 'mp-swal-top' } });
+            const root = document.documentElement;
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+            // --- Appearance ---
+            const apply = dark => { root.classList.toggle('dark', dark); root.style.colorScheme = dark ? 'dark' : 'light'; };
+            const current = () => localStorage.getItem('dark-follow-system') === 'true' ? 'system' : (root.classList.contains('dark') ? 'dark' : 'light');
+            const mark = mode => document.querySelectorAll('#mpThemeChoice button').forEach(b => { const on = b.dataset.theme === mode; b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); });
+            mark(current());
+            $('mpThemeChoice').addEventListener('click', e => {
+                const b = e.target.closest('button[data-theme]'); if (!b) return;
+                const mode = b.dataset.theme; mark(mode);
+                if (mode === 'system') { localStorage.setItem('dark-follow-system', 'true'); apply(mq.matches); toast('success', 'Following your device setting'); return; }
+                const dark = mode === 'dark';
+                localStorage.setItem('dark-follow-system', 'false'); localStorage.setItem('dark-mode', dark ? 'true' : 'false'); apply(dark);
+                fetch(@json(route('darkmode.update.custom')), { method: 'POST', credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ is_darkmode: dark ? 1 : 0 }) })
+                    .then(r => toast(r.ok ? 'success' : 'error', r.ok ? 'Theme preference saved' : 'Failed to save theme preference'))
+                    .catch(() => toast('error', 'Failed to save theme preference'));
+            });
+
+            // --- Photo ---
+            const input = $('mpProfPhotoInput');
+            $('mpProfPhotoBtn').addEventListener('click', () => input.click());
+            input.addEventListener('change', async () => {
+                const file = input.files && input.files[0]; if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { toast('error', 'Photo must be 2 MB or smaller'); input.value = ''; return; }
+                const fd = new FormData(); fd.append('photo', file);
+                try {
+                    const res = await fetch(@json(route('profile.photo.update')), { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd });
+                    const j = await res.json().catch(() => ({}));
+                    if (!res.ok || !j.url) throw new Error(j.message || 'Failed');
+                    $('mpProfPhoto').src = j.url; document.querySelectorAll('.mp-avatar').forEach(i => { i.src = j.url; });
+                    toast('success', 'Profile photo updated');
+                } catch (e) { toast('error', 'Could not update the photo'); }
+                input.value = '';
+            });
+
+            // --- Password ---
+            const sheet = $('mpPwSheet'), form = $('mpPwForm'), note = $('mpPwNote'), save = $('mpPwSave');
+            const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
+            $('mpPwBtn').addEventListener('click', () => { form.reset(); say(''); sheet.hidden = false; });
+            $('mpPwClose').addEventListener('click', () => { sheet.hidden = true; });
+            sheet.addEventListener('click', e => { if (e.target === sheet) sheet.hidden = true; });
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const d = Object.fromEntries(new FormData(form));
+                if (d.password !== d.password_confirmation) { say('The new passwords do not match.', 'err'); return; }
+                save.disabled = true; say('Saving…');
+                try {
+                    const res = await fetch(@json(route('password.update.custom')), { method: 'POST', credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify(d) });
+                    const j = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const first = j.errors ? Object.values(j.errors)[0][0] : null;
+                        say(first || j.message || 'Could not change the password.', 'err'); return;
+                    }
+                    sheet.hidden = true; toast('success', j.message || 'Password updated');
+                } catch (err) { say('Could not reach the server. Try again.', 'err'); }
+                finally { save.disabled = false; }
+            });
+
+            // --- Full profile (everything else lives on the web page, opened in the review sheet) ---
+            $('mpFullBtn').addEventListener('click', () => { if (window.mpOpenDoc) window.mpOpenDoc('/settings/account', 'Profile'); });
+
+            // --- Stars (only shown when the account can see trainings) ---
+            let starsLoaded = false;
+            window.mpProfileOpened = () => {
+                mark(current());
+                if (starsLoaded) return; starsLoaded = true;
+                fetch(@json(route('training-list.my-stars')), { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(j => { if (j && j.total_stars != null) { $('mpStarsBadge').textContent = '⭐ ' + j.total_stars; $('mpStarsRow').hidden = false; } })
+                    .catch(() => {});
+            };
+        })();
+
+        // ===== App Lock: Face ID / fingerprint (WebAuthn platform authenticator) guards an already signed-in app.
+        // This is a device-side lock for a lost / borrowed unlocked phone; the sign-in itself is still the password. =====
+        (function () {
+            const uid = @json((string) auth()->id());
+            const uname = @json((string) auth()->user()->username);
+            const KEY = 'mp_lock_v1_' + uid, LAST = 'mp_lock_last_' + uid;
+            const $ = id => document.getElementById(id);
+            const root = document.documentElement;
+            const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            const unb64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+            const rnd = n => crypto.getRandomValues(new Uint8Array(n));
+            const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+            const write = v => { try { v ? localStorage.setItem(KEY, JSON.stringify(v)) : localStorage.removeItem(KEY); } catch (e) {} };
+            const stamp = () => { try { localStorage.setItem(LAST, String(Date.now())); } catch (e) {} };
+            let busy = false;
+
+            const supported = !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+            const btn = $('mpLockBtn'), sheet = $('mpLockSheet');
+
+            // ---- lock / unlock ----
+            const err = t => { $('mpLockErr').textContent = t || ''; };
+            async function unlock() {
+                const c = read();
+                if (!c || !c.cred) { root.classList.remove('mp-locked'); return; }
+                if (busy) return;
+                busy = true; err('');
+                try {
+                    await navigator.credentials.get({ publicKey: {
+                        challenge: rnd(32), timeout: 60000, userVerification: 'required',
+                        allowCredentials: [{ type: 'public-key', id: unb64(c.cred), transports: ['internal'] }],
+                    } });
+                    root.classList.remove('mp-locked'); stamp();
+                } catch (e) {
+                    err(e && e.name === 'NotAllowedError' ? 'Not unlocked. Tap Unlock to try again.' : 'Could not use biometrics on this phone.');
+                } finally { busy = false; }
+            }
+            function lockNow() {
+                const c = read();
+                if (!c || !c.cred || busy) return;
+                root.classList.add('mp-locked'); err('');
+                unlock();
+            }
+            $('mpLockGo').addEventListener('click', unlock);
+
+            // Left the app for longer than the chosen time -> lock when it comes back.
+            document.addEventListener('visibilitychange', () => {
+                const c = read();
+                if (!c || !c.cred) return;
+                if (document.hidden) { stamp(); return; }
+                const last = +localStorage.getItem(LAST) || 0;
+                if (last && Date.now() - last > (c.grace || 0) * 60000) lockNow();
+            });
+            window.addEventListener('pagehide', () => { if (read()) stamp(); });
+            setInterval(() => { if (!document.hidden && !root.classList.contains('mp-locked') && read()) stamp(); }, 15000);
+
+            if (root.classList.contains('mp-locked')) unlock();      // started locked (see the head script)
+            else if (read() && !localStorage.getItem(LAST)) stamp(); // first open after signing in
+
+            // ---- settings ----
+            if (!supported || !btn || !sheet) return;
+            const note = $('mpLockNote'), on = $('mpLockOn'), grace = $('mpLockGrace');
+            const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
+            const show = () => { const c = read(); on.checked = !!(c && c.cred); grace.value = String((c && c.grace) != null ? c.grace : 1); say(''); sheet.hidden = false; };
+
+            PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(ok => { if (ok) btn.hidden = false; }).catch(() => {});
+            btn.addEventListener('click', show);
+            $('mpLockSheetClose').addEventListener('click', () => { sheet.hidden = true; });
+            sheet.addEventListener('click', e => { if (e.target === sheet) sheet.hidden = true; });
+
+            on.addEventListener('change', async () => {
+                if (!on.checked) { write(null); say('App lock is off.'); return; }
+                busy = true;
+                try {
+                    const cred = await navigator.credentials.create({ publicKey: {
+                        rp: { name: 'My APP' },
+                        user: { id: rnd(16), name: uname, displayName: uname },
+                        challenge: rnd(32), timeout: 60000, attestation: 'none',
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' },
+                    } });
+                    write({ cred: b64(cred.rawId), grace: parseInt(grace.value, 10) || 0 });
+                    stamp(); say('App lock is on ✓', 'ok');
+                } catch (e) {
+                    on.checked = false;
+                    say(e && e.name === 'NotAllowedError' ? 'Cancelled. App lock stays off.' : 'This phone could not set up biometrics. Make sure Face ID / fingerprint is set up in your phone settings.', 'err');
+                } finally { busy = false; }
+            });
+            grace.addEventListener('change', () => {
+                const c = read();
+                if (c && c.cred) { c.grace = parseInt(grace.value, 10) || 0; write(c); say('Saved ✓', 'ok'); }
+            });
+        })();
+
+        // Pull down from the top of the list to refresh it (Approval tabs). Skips the server's short cache.
+        (function () {
+            const scroller = document.getElementById('mpScroll'), ptr = document.getElementById('mpPtr');
+            const refresh = document.getElementById('refreshApproval');
+            if (!scroller || !ptr || !refresh) return;
+            const label = ptr.querySelector('span'), spinner = ptr.querySelector('i');
+            const TRIGGER = 70, MAX = 110;
+            let startY = null, dy = 0, busy = false;
+
+            const inApproval = () => ['tab-waiting', 'tab-history'].some(id => { const b = document.getElementById(id); return b && /bg-black|dsh-tab-on/.test(b.className); });
+            const show = (y, text) => {
+                ptr.style.opacity = Math.min(1, y / 40);
+                ptr.style.transform = 'translate(-50%, ' + (y - 64) + 'px)';
+                spinner.style.transform = 'rotate(' + (y * 4) + 'deg)';
+                if (text) label.textContent = text;
+            };
+            const hideIt = () => { ptr.classList.add('snap'); ptr.style.opacity = 0; ptr.style.transform = 'translate(-50%, -4rem)'; setTimeout(() => ptr.classList.remove('snap', 'busy'), 250); };
+
+            scroller.addEventListener('touchstart', e => {
+                startY = (!busy && scroller.scrollTop <= 0 && inApproval() && e.touches.length === 1) ? e.touches[0].clientY : null;
+                dy = 0; ptr.classList.remove('snap');
+            }, { passive: true });
+            scroller.addEventListener('touchmove', e => {
+                if (startY === null) return;
+                dy = e.touches[0].clientY - startY;
+                if (dy <= 0 || scroller.scrollTop > 0) { if (dy <= 0) { startY = null; hideIt(); } return; }
+                const y = Math.min(MAX, dy * 0.5);
+                show(y, y * 2 >= TRIGGER ? 'Release to refresh' : 'Pull to refresh');
+            }, { passive: true });
+            scroller.addEventListener('touchend', () => {
+                if (startY === null) return;
+                const fire = Math.min(MAX, dy * 0.5) * 2 >= TRIGGER;
+                startY = null;
+                if (!fire) { hideIt(); return; }
+                busy = true; ptr.classList.add('snap', 'busy'); show(46, 'Refreshing…');
+                if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+                refresh.click();
+                setTimeout(() => { busy = false; hideIt(); }, 1400);
+            }, { passive: true });
+        })();
+
+        // Home-screen icon badge = how many documents wait for this user's approval.
+        (function () {
+            const el = document.getElementById('waitingCount');
+            if (!el || !navigator.setAppBadge) return;
+            const apply = () => {
+                const n = parseInt(el.textContent, 10) || 0;
+                try { (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch (e) {}
+            };
+            new MutationObserver(apply).observe(el, { childList: true, characterData: true, subtree: true });
+            apply();
+        })();
+
         (function () {
             const h = new Date().getHours();
             document.getElementById('mpGreeting').textContent =
@@ -516,6 +992,47 @@
             btn.hidden = false;
             regP.then(reg => reg.pushManager.getSubscription()).then(sub => render(!!sub && Notification.permission === 'granted')).catch(() => {});
 
+            // ----- Notification settings (what to push, quiet hours) -----
+            const gear = document.getElementById('mpPushSettingsBtn'), sheet = document.getElementById('mpNotifSheet');
+            if (gear && sheet) {
+                gear.hidden = false;
+                const note = document.getElementById('mpNotifNote');
+                const sw = [...sheet.querySelectorAll('.mp-sw[data-k]')];
+                const qOn = document.getElementById('mpQuietOn'), qFrom = document.getElementById('mpQuietFrom'), qTo = document.getElementById('mpQuietTo'), qBox = document.getElementById('mpQuietTimes');
+                const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
+                const sync = () => { qBox.hidden = !qOn.checked; };
+                let timer = null, loaded = false;
+
+                const save = async () => {
+                    const body = { quiet_on: qOn.checked, quiet_from: qFrom.value || '22:00', quiet_to: qTo.value || '07:00', tz: Intl.DateTimeFormat().resolvedOptions().timeZone || null };
+                    sw.forEach(s => { body[s.dataset.k] = s.checked; });
+                    say('Saving…');
+                    try {
+                        const res = await post(@json(route('push.prefs.save')), body);
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        say('Saved ✓', 'ok');
+                    } catch (e) { say('Could not save. Check your connection and try again.', 'err'); }
+                };
+                const queue = () => { sync(); if (!loaded) return; clearTimeout(timer); timer = setTimeout(save, 400); };
+                [...sw, qOn, qFrom, qTo].forEach(el => el.addEventListener('change', queue));
+
+                const openSheet = async () => {
+                    sheet.hidden = false; loaded = false;
+                    say(btn.classList.contains('on') ? '' : 'Notifications are off on this device. Tap the bell to turn them on.');
+                    try {
+                        const p = await (await fetch(@json(route('push.prefs')), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })).json();
+                        sw.forEach(s => { s.checked = !!p[s.dataset.k]; });
+                        qOn.checked = !!p.quiet_on; qFrom.value = p.quiet_from || '22:00'; qTo.value = p.quiet_to || '07:00';
+                        sync();
+                    } catch (e) { say('Could not load your settings.', 'err'); }
+                    loaded = true;
+                };
+                gear.addEventListener('click', openSheet);
+                const closeSheet = () => { sheet.hidden = true; };
+                document.getElementById('mpNotifClose').addEventListener('click', closeSheet);
+                sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+            }
+
             btn.addEventListener('click', async () => {
                 btn.disabled = true;
                 try {
@@ -549,5 +1066,122 @@
             });
         })();
     </script>
-    <style>.mp-swal-top { z-index: 100000 !important; }</style>
+    <style>
+        .mp-swal-top { z-index: 100000 !important; }
+        /* Open All fires one window per document; inside the installed app documents open in the review sheet instead */
+        @media (display-mode: standalone) { #openAllWaiting { display: none !important; } }
+
+        /* ===== Profile (native) ===== */
+        .mp-prof { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; width: 100%; max-width: 40rem; margin: 0 auto;
+            padding: .875rem .875rem calc(1.5rem + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: .875rem; }
+        .mp-pcard { display: flex; align-items: center; gap: .875rem; padding: 1rem; border-radius: 1.25rem; background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px #0f172a0a, 0 10px 22px -16px #0f172a40; }
+        .dark .mp-pcard, .dark .mp-group { background: #1e293b; border-color: #334155; }
+        .mp-pav { position: relative; flex: none; }
+        .mp-pav img { width: 4.5rem; height: 4.5rem; border-radius: 9999px; object-fit: cover; border: 3px solid #fff; box-shadow: 0 6px 16px -6px #0f172a80; background: #fff; }
+        .dark .mp-pav img { border-color: #334155; }
+        .mp-pav button { position: absolute; right: -.125rem; bottom: -.125rem; width: 1.75rem; height: 1.75rem; display: grid; place-items: center; border-radius: 9999px; border: 2px solid #fff; color: #fff; font-size: .6875rem;
+            background: linear-gradient(135deg, #0e7490, #2563eb); cursor: pointer; }
+        .dark .mp-pav button { border-color: #1e293b; }
+        .mp-pinfo { min-width: 0; display: flex; flex-direction: column; gap: .125rem; font-size: .8125rem; color: #64748b; overflow-wrap: anywhere; }
+        .mp-pinfo b { font-size: 1.0625rem; color: #0f172a; line-height: 1.25; }
+        .dark .mp-pinfo b { color: #f1f5f9; } .dark .mp-pinfo { color: #94a3b8; }
+        .mp-label { margin: .25rem .25rem -.375rem; font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; }
+        .mp-group { border-radius: 1.25rem; background: #fff; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 2px #0f172a0a; }
+        .mp-row { display: flex; width: 100%; align-items: center; gap: .75rem; padding: .875rem 1rem; text-align: left; background: transparent; border: 0; color: inherit; cursor: pointer; touch-action: manipulation; min-height: 3.5rem; }
+        .mp-row[hidden] { display: none; }
+        .mp-row:not([hidden]) ~ .mp-row:not([hidden]) { border-top: 1px solid #e2e8f0; }
+        .dark .mp-row:not([hidden]) ~ .mp-row:not([hidden]) { border-color: #334155; }
+        .mp-row:active:not(div) { background: #f1f5f9; } .dark .mp-row:active:not(div) { background: #334155; }
+        .mp-row > i { flex: none; width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: .75rem; color: #fff; font-size: .875rem; }
+        .mp-row .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .125rem; font-size: .875rem; color: #0f172a; }
+        .dark .mp-row .t { color: #f1f5f9; }
+        .mp-row .t small { font-size: .75rem; color: #64748b; } .dark .mp-row .t small { color: #94a3b8; }
+        .mp-chev { flex: none; width: 1.125rem; height: 1.125rem; color: #94a3b8; }
+        .mp-badge { flex: none; padding: .25rem .625rem; border-radius: 9999px; background: #fef3c7; color: #b45309; font-size: .8125rem; font-weight: 700; }
+        .dark .mp-badge { background: #78350f55; color: #fcd34d; }
+        .mp-segc { display: flex; padding: .1875rem; border-radius: 9999px; background: #e2e8f0; }
+        .dark .mp-segc { background: #334155; }
+        .mp-segc button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: .375rem; min-height: 2.5rem; border-radius: 9999px; font-size: .8125rem; font-weight: 600; color: #475569; background: transparent; border: 0; cursor: pointer; transition: all .15s; }
+        .dark .mp-segc button { color: #cbd5e1; }
+        .mp-segc button.on { background: #fff; color: #0e7490; box-shadow: 0 2px 6px #0f172a26; }
+        .dark .mp-segc button.on { background: #1e293b; color: #22d3ee; }
+        .mp-signout { width: 100%; min-height: 3rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 1rem; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; font-size: .9375rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+        .dark .mp-signout { background: rgba(127, 29, 29, .35); color: #fca5a5; border-color: rgba(248, 113, 113, .4); }
+        .mp-fld { display: flex; flex-direction: column; gap: .25rem; margin-top: .875rem; font-size: .75rem; font-weight: 600; color: #64748b; }
+        .mp-fld input { width: 100%; padding: .75rem .875rem; font-size: 16px; color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .875rem; outline: none; }
+        .mp-fld input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #2563eb30; }
+        .dark .mp-fld input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+        .mp-fld small { font-weight: 400; font-size: .6875rem; }
+        .mp-btn { width: 100%; min-height: 3rem; margin-top: .75rem; border: 0; border-radius: .875rem; font-size: .9375rem; font-weight: 700; color: #fff; cursor: pointer; touch-action: manipulation;
+            background: linear-gradient(120deg, #0e7490, #2563eb 60%, #7c3aed); box-shadow: 0 14px 24px -12px #2563eb; }
+        .mp-btn:disabled { opacity: .6; }
+
+        /* ===== App Lock ===== */
+        .mp-lock { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; padding: 2rem 1.5rem; text-align: center; color: #fff;
+            background: linear-gradient(130deg, #0e7490 0%, #2563eb 55%, #7c3aed 100%); }
+        html.mp-locked .mp-lock { display: flex; }
+        html.mp-locked body { overflow: hidden; }
+        .mp-lock img { width: 5rem; height: 5rem; border-radius: 1.375rem; box-shadow: 0 14px 28px -10px #0f172a99; }
+        .mp-lock h2 { margin: .5rem 0 0; font-size: 1.375rem; font-weight: 800; }
+        .mp-lock p { margin: 0; font-size: .875rem; opacity: .85; max-width: 18rem; }
+        .mp-lock .mp-lock-err { min-height: 1.25rem; font-weight: 600; opacity: 1; color: #fecaca; }
+        .mp-lock button { min-height: 3rem; border: 0; border-radius: .875rem; font-size: .9375rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+        .mp-lock .mp-lock-go { width: 100%; max-width: 18rem; margin-top: .75rem; background: #fff; color: #1d4ed8; box-shadow: 0 14px 24px -12px #0f172a99; }
+        .mp-lock .mp-lock-out { background: transparent; color: #fff; opacity: .85; font-weight: 600; text-decoration: underline; }
+        .mp-sel { width: 100%; margin-top: .5rem; padding: .625rem .75rem; font-size: 16px; color: inherit; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .75rem; }
+        .dark .mp-sel { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+
+        /* ===== Pull to refresh ===== */
+        .mp-ptr { position: fixed; z-index: 45; left: 50%; top: calc(env(safe-area-inset-top) + .5rem); display: flex; align-items: center; gap: .5rem; padding: .4375rem .875rem;
+            border-radius: 9999px; background: #fff; color: #334155; border: 1px solid #e2e8f0; box-shadow: 0 10px 24px -10px #0f172a66; font-size: .75rem; font-weight: 600;
+            transform: translate(-50%, -4rem); opacity: 0; pointer-events: none; }
+        .mp-ptr.snap { transition: transform .22s ease, opacity .22s ease; }
+        .mp-ptr i { width: 1rem; height: 1rem; border-radius: 9999px; border: 2px solid #cbd5e1; border-top-color: #2563eb; transition: transform .1s; }
+        .mp-ptr.busy i { animation: mpSpin .8s linear infinite; }
+        .dark .mp-ptr { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+        .dark .mp-ptr i { border-color: #475569; border-top-color: #22d3ee; }
+
+        /* ===== Review sheet (a document's own page, shown inside the app) ===== */
+        .mp-doc-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem .75rem; padding-top: max(.5rem, env(safe-area-inset-top));
+            border-bottom: 1px solid #e2e8f0; background: #fff; }
+        .dark .mp-doc-bar { background: #1e293b; border-color: #334155; }
+        .mp-doc-title { min-width: 0; flex: 1; text-align: center; font-size: .875rem; font-weight: 700; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dark .mp-doc-title { color: #e2e8f0; }
+        .mp-doc-body { position: relative; flex: 1 1 auto; min-height: 0; }
+        .mp-doc-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+        .mp-spin { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; pointer-events: none; }
+        .mp-spin[hidden] { display: none; }
+        .mp-spin::after { content: ""; width: 2.25rem; height: 2.25rem; border-radius: 9999px; border: 3px solid #cbd5e1; border-top-color: #2563eb; animation: mpSpin .8s linear infinite; }
+        @keyframes mpSpin { to { transform: rotate(360deg); } }
+
+        /* ===== Notification settings sheet ===== */
+        .mp-sheet-bd { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; background: #0f172a8c; }
+        .mp-sheet-bd[hidden] { display: none; }
+        .mp-sheet { width: 100%; max-width: 30rem; max-height: 90vh; max-height: 90dvh; overflow-y: auto; border-radius: 1.5rem 1.5rem 0 0; background: #fff; color: #0f172a;
+            padding: 1.125rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom)); box-shadow: 0 -20px 40px -20px #0f172a88; animation: mpUp .25s cubic-bezier(.22, 1, .36, 1); }
+        @keyframes mpUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+        @media (min-width: 640px) { .mp-sheet-bd { align-items: center; } .mp-sheet { border-radius: 1.5rem; } }
+        .dark .mp-sheet { background: #1e293b; color: #f1f5f9; }
+        .mp-sheet-h { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+        .mp-sheet-h b { font-size: 1.0625rem; }
+        .mp-sheet-sub { margin: .25rem 0 .75rem; font-size: .8125rem; color: #64748b; }
+        .dark .mp-sheet-sub, .dark .mp-opt small { color: #94a3b8; }
+        .mp-opt { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-top: 1px solid #e2e8f0; cursor: pointer; }
+        .dark .mp-opt { border-color: #334155; }
+        .mp-opt span { min-width: 0; display: flex; flex-direction: column; gap: .125rem; font-size: .875rem; }
+        .mp-opt small { font-size: .75rem; color: #64748b; }
+        .mp-sw { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 2.875rem; height: 1.625rem; border-radius: 9999px; background: #cbd5e1; cursor: pointer; transition: background .2s; outline: none; }
+        .mp-sw::after { content: ""; position: absolute; top: .1875rem; left: .1875rem; width: 1.25rem; height: 1.25rem; border-radius: 9999px; background: #fff; box-shadow: 0 1px 3px #0f172a55; transition: transform .2s; }
+        .mp-sw:checked { background: linear-gradient(120deg, #0e7490, #2563eb); }
+        .mp-sw:checked::after { transform: translateX(1.25rem); }
+        .dark .mp-sw:not(:checked) { background: #475569; }
+        .mp-times { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: .25rem 0 .5rem; }
+        .mp-times[hidden] { display: none; }
+        .mp-times label { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; font-weight: 600; color: #64748b; }
+        .mp-times input { width: 100%; padding: .625rem .75rem; font-size: 16px; color: inherit; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .75rem; }
+        .dark .mp-times input { background: #0f172a; border-color: #334155; color: #f1f5f9; color-scheme: dark; }
+        .mp-note { margin: .5rem 0 0; font-size: .75rem; color: #64748b; min-height: 1rem; }
+        .mp-note.ok { color: #059669; } .dark .mp-note.ok { color: #34d399; }
+        .mp-note.err { color: #dc2626; } .dark .mp-note.err { color: #f87171; }
+    </style>
 </x-app-layout>

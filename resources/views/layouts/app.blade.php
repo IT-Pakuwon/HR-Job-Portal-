@@ -1,3 +1,4 @@
+@php($isEmbed = request()->boolean('embed') || request()->routeIs('my-page') || request()->header('Sec-Fetch-Dest') === 'iframe')
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -98,6 +99,10 @@
 
     @stack('head')
 
+    @if ($isEmbed)
+        @include('layouts.partials.embed-mobile')
+    @endif
+
     <!-- ================= DARK MODE INIT ================= -->
     <script>
         // localStorage is the per-browser session override (set by the header toggle).
@@ -146,7 +151,7 @@
          it can sit inside another page's <iframe> — e.g. the Project/Team
          subtask "Meeting Room" / "Zoom" booking modal, which embeds
          /meeting and /meetingteams to reuse their create-booking modal. --}}
-    @php($isEmbed = request()->boolean('embed') || request()->routeIs('my-page'))
+    {{-- $isEmbed is set at the top of this file (also true for any page loaded inside an iframe) --}}
 
     @if(!$isEmbed && session('impersonate_original_username'))
         <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">

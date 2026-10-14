@@ -76,45 +76,23 @@
                         <div class="flex items-center gap-3">
                             <span
                                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                                <i class="fa-solid fa-moon text-xs"></i>
+                                <i class="fa-solid fa-circle-half-stroke text-xs"></i>
                             </span>
                             <div>
-                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Use dark mode by default whenever
-                                    you sign in</p>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Appearance</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Light, dark, or match this device's setting</p>
                             </div>
                         </div>
-                        <span
-                            class="bg-linear-to-r has-checked:from-indigo-700 has-checked:to-blue-700 relative inline-flex h-7 w-14 shrink-0 items-center rounded-full from-amber-200 to-amber-100 shadow-inner transition-colors duration-300 dark:from-gray-600 dark:to-gray-600">
-                            <input type="checkbox" id="darkmodeDefaultSwitch"
-                                class="peer absolute inset-0 z-20 cursor-pointer opacity-0"
-                                {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
-                            <i
-                                class="fa-solid fa-sun absolute left-1.75 text-[10px] text-amber-500 transition-opacity duration-300 peer-checked:opacity-0"></i>
-                            <i
-                                class="fa-solid fa-moon absolute right-1.75 text-[10px] text-white opacity-0 transition-opacity duration-300 peer-checked:opacity-100"></i>
-                            <span
-                                class="pointer-events-none relative z-10 inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-8"></span>
-                        </span>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-6 py-4 dark:border-gray-700">
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
-                            <i class="fa-solid fa-mobile-screen text-xs"></i>
-                        </span>
-                        <div>
-                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Follow device setting</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Match this phone or tablet's light/dark
-                                setting automatically (this device only)</p>
+                        <div id="themeChoice" role="radiogroup" aria-label="Appearance"
+                            class="inline-flex rounded-full bg-gray-100 p-1 dark:bg-gray-700">
+                            @foreach (['light' => ['Light', 'fa-sun'], 'dark' => ['Dark', 'fa-moon'], 'system' => ['Device', 'fa-mobile-screen']] as $val => [$label, $icon])
+                                <button type="button" role="radio" data-theme="{{ $val }}"
+                                    class="theme-opt inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 transition dark:text-gray-300">
+                                    <i class="fa-solid {{ $icon }} text-[10px]"></i> {{ $label }}
+                                </button>
+                            @endforeach
                         </div>
                     </div>
-                    <label class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center">
-                        <input type="checkbox" id="followSystemSwitch" class="peer sr-only">
-                        <span class="absolute inset-0 rounded-full bg-gray-300 transition-colors duration-300 peer-checked:bg-blue-600 dark:bg-gray-600"></span>
-                        <span class="pointer-events-none relative z-10 inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-6"></span>
-                    </label>
                 </div>
             </div>
 
@@ -499,58 +477,55 @@
 
         (function () {
             const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const root = document.documentElement;
             const apply = dark => {
-                document.documentElement.classList.toggle('dark', dark);
-                document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-                $('#darkmodeDefaultSwitch').prop('checked', dark);
+                root.classList.toggle('dark', dark);
+                root.style.colorScheme = dark ? 'dark' : 'light';
                 document.querySelectorAll('.light-switch').forEach(el => el.checked = dark);
             };
-            $('#followSystemSwitch').prop('checked', localStorage.getItem('dark-follow-system') === 'true');
-            if (localStorage.getItem('dark-follow-system') === 'true') {
-                $('#darkmodeDefaultSwitch').prop('checked', mq.matches);
-            }
-            $('#followSystemSwitch').on('change', function () {
-                const on = $(this).is(':checked');
-                localStorage.setItem('dark-follow-system', on ? 'true' : 'false');
-                // on: take the device's current setting; off: back to the saved manual choice
-                apply(on ? mq.matches : localStorage.getItem('dark-mode') === 'true');
-                toastr.success(on ? 'Following your device setting' : 'Using your manual setting');
+            const current = () => localStorage.getItem('dark-follow-system') === 'true'
+                ? 'system'
+                : (root.classList.contains('dark') ? 'dark' : 'light');
+            const mark = mode => document.querySelectorAll('#themeChoice .theme-opt').forEach(b => {
+                const on = b.dataset.theme === mode;
+                b.classList.toggle('on', on);
+                b.setAttribute('aria-checked', on ? 'true' : 'false');
+            });
+            mark(current());
+
+            $('#themeChoice').on('click', '.theme-opt', function () {
+                const mode = this.dataset.theme;
+                mark(mode);
+                if (mode === 'system') {
+                    localStorage.setItem('dark-follow-system', 'true');
+                    apply(mq.matches);
+                    toastr.success('Following your device setting');
+                    return;
+                }
+                const isDark = mode === 'dark';
+                localStorage.setItem('dark-follow-system', 'false');
+                localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+                apply(isDark);
+                $.ajax({
+                    url: '{{ route('darkmode.update.custom') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { is_darkmode: isDark ? 1 : 0 },
+                    success: function () { toastr.success('Theme preference saved'); },
+                    error: function () { toastr.error('Failed to save theme preference'); }
+                });
             });
             mq.addEventListener('change', e => {
                 if (localStorage.getItem('dark-follow-system') === 'true') apply(e.matches);
             });
         })();
 
-        $('#darkmodeDefaultSwitch').on('change', function() {
-            const isDark = $(this).is(':checked');
-            localStorage.setItem('dark-follow-system', 'false');
-            $('#followSystemSwitch').prop('checked', false);
-
-            // apply immediately to this session so the toggle previews live
-            document.documentElement.classList.add('**:transition-none!');
-            document.documentElement.classList.toggle('dark', isDark);
-            document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
-            document.querySelectorAll('.light-switch').forEach(el => el.checked = isDark);
-            setTimeout(() => document.documentElement.classList.remove('**:transition-none!'), 1);
-
-            $.ajax({
-                url: '{{ route('darkmode.update.custom') }}',
-                type: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                data: {
-                    is_darkmode: isDark ? 1 : 0
-                },
-                success: function() {
-                    toastr.success('Theme preference saved');
-                },
-                error: function() {
-                    toastr.error('Failed to save theme preference');
-                }
-            });
-        });
+        (function () {
+            const s = document.createElement('style');
+            s.textContent = '#themeChoice .theme-opt.on{background:#fff;color:#4f46e5;box-shadow:0 1px 3px #0f172a26}'
+                + '.dark #themeChoice .theme-opt.on{background:#0f172a;color:#67e8f9}';
+            document.head.appendChild(s);
+        })();
 
         $('#changePasswordForm').submit(function(e) {
             e.preventDefault();

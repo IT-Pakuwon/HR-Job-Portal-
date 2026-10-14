@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\SysPushSubscription;
 use App\Services\PushNotificationFeed;
+use App\Services\PushPreferences;
 use App\Services\WebPushService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -63,34 +64,61 @@ class SendPushNotifications extends Command
             return;
         }
 
-        $new = $items->reject(fn ($i) => in_array($i['key'], $sent, true))->values();
-        if ($new->isEmpty()) return;
+        $prefs = PushPreferences::forUser($username);
 
-        // Group by the origin each device subscribed from, so links point at the right host.
-        foreach ($subs->groupBy('origin') as $origin => $group) {
-            $origin = rtrim((string) ($origin ?: config('app.url')), '/');
+        // Kinds the user switched off are treated as already delivered, so turning them on later doesn't replay a backlog.
+        [$wanted, $muted] = $items->partition(fn ($i) => PushPreferences::allows($prefs, $i['key']));
+        $new = $wanted->reject(fn ($i) => in_array($i['key'], $sent, true))->values();
 
-            if ($new->count() > self::MAX_INDIVIDUAL) {
-                $this->sent += WebPushService::send($group, [
-                    'title' => $new->count() . ' new notifications',
-                    'body'  => $new->take(3)->map(fn ($i) => $i['docid'] ?? '')->filter()->implode(', ') . ', …',
-                    'url'   => $origin . '/my-page',
-                    'tag'   => 'push-summary',
-                ]);
-                continue;
-            }
+        // Quiet hours: hold the new items back (they are NOT marked delivered) and send them once the window ends.
+        $held = PushPreferences::inQuietHours($prefs);
+        if ($held) $new = collect();
 
-            foreach ($new as $i) {
-                $path = $i['href'] ?? (rtrim((string) ($i['url'] ?? ''), '/') . '/' . ($i['hid'] ?? ''));
-                $this->sent += WebPushService::send($group, [
-                    'title' => trim(($i['docid'] ?? 'Notification') . ' · ' . ($i['label'] ?? '')),
-                    'body'  => Str::limit(strip_tags((string) ($i['message'] ?? '')), 160),
-                    'url'   => Str::startsWith($path, ['http://', 'https://']) ? $path : $origin . '/' . ltrim($path, '/'),
-                    'tag'   => $i['key'],
-                ]);
+        $badge = $items->filter(fn ($i) => str_starts_with($i['key'], 'WAITAPPR_'))->count();
+
+        if ($new->isNotEmpty()) {
+            // Group by the origin each device subscribed from, so links point at the right host.
+            foreach ($subs->groupBy('origin') as $origin => $group) {
+                $origin = rtrim((string) ($origin ?: config('app.url')), '/');
+
+                if ($new->count() > self::MAX_INDIVIDUAL) {
+                    $this->sent += WebPushService::send($group, [
+                        'title' => $new->count() . ' new notifications',
+                        'body'  => $new->take(3)->map(fn ($i) => $i['docid'] ?? '')->filter()->implode(', ') . ', …',
+                        'url'   => $origin . '/my-page',
+                        'tag'   => 'push-summary',
+                        'count' => $badge,
+                    ]);
+                    continue;
+                }
+
+                foreach ($new as $i) {
+                    $path = $i['href'] ?? (rtrim((string) ($i['url'] ?? ''), '/') . '/' . ($i['hid'] ?? ''));
+                    $this->sent += WebPushService::send($group, [
+                        'title' => trim(($i['docid'] ?? 'Notification') . ' · ' . ($i['label'] ?? '')),
+                        'body'  => Str::limit(strip_tags((string) ($i['message'] ?? '')), 160),
+                        'url'   => $this->appLink($origin, $path),
+                        'tag'   => $i['key'],
+                        'count' => $badge,
+                    ]);
+                }
             }
         }
 
-        Cache::put($cacheKey, array_slice(array_values(array_unique(array_merge($sent, $keys))), -500), now()->addDays(60));
+        $delivered = $held ? $muted->pluck('key')->all() : $keys;
+        Cache::put($cacheKey, array_slice(array_values(array_unique(array_merge($sent, $delivered))), -500), now()->addDays(60));
+    }
+
+    // Tapping a push lands inside My APP, which opens the document in its own review sheet (/my-page?open=<path>),
+    // so the phone never switches to a browser. A link to another site is left as it is.
+    private function appLink(string $origin, string $path): string
+    {
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            $p = parse_url($path);
+            if (($p['host'] ?? '') !== parse_url($origin, PHP_URL_HOST)) return $path;
+            $path = ($p['path'] ?? '/') . (isset($p['query']) ? '?' . $p['query'] : '');
+        }
+
+        return $origin . '/my-page?open=' . rawurlencode('/' . ltrim($path, '/'));
     }
 }
