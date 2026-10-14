@@ -865,7 +865,7 @@
             if (!supported || !btn || !sheet) return;
             const note = $('mpLockNote'), on = $('mpLockOn'), grace = $('mpLockGrace');
             const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
-            const show = () => { const c = read(); on.checked = !!(c && c.cred); grace.value = String((c && c.grace) != null ? c.grace : 0); // Immediately unless the user picked another time say(''); sheet.hidden = false; };
+            const show = () => { const c = read(); on.checked = !!(c && c.cred); grace.value = String((c && c.grace) != null ? c.grace : 0); say(''); sheet.hidden = false; };
 
             PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(ok => { if (ok) btn.hidden = false; }).catch(() => {});
             btn.addEventListener('click', show);
