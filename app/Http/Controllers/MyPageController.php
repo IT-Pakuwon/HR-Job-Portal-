@@ -225,7 +225,8 @@ self.addEventListener('push', e => {
     if (typeof d.count === 'number' && self.navigator && self.navigator.setAppBadge) {
         jobs.push(d.count > 0 ? self.navigator.setAppBadge(d.count) : self.navigator.clearAppBadge());
     }
-    e.waitUntil(Promise.all(jobs.map(p => Promise.resolve(p).catch(() => {}))));
+    // the notification's own failure is allowed to surface (it is the one that must work); only the badge is best-effort
+    e.waitUntil(Promise.all([jobs[0], ...jobs.slice(1).map(p => Promise.resolve(p).catch(() => {}))]));
 });
 
 // Tapping a notification lands inside the app. If it is already open it is brought forward and told which document to

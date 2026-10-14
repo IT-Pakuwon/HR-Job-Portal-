@@ -137,21 +137,27 @@ class PushSubscriptionController extends Controller
 
         // Record everything that exists right now as "already known" so enabling doesn't blast the backlog, and so a
         // document submitted a moment later is still pushed (seeding here, not on the scheduler's next tick, avoids a race).
+        $waiting = 0;
         try {
-            Cache::put('push_sent_' . $username, PushNotificationFeed::itemsFor($username)->pluck('key')->all(), now()->addDays(60));
+            $items = PushNotificationFeed::itemsFor($username);
+            $waiting = $items->filter(fn ($i) => str_starts_with($i['key'], 'WAITAPPR_'))->count();
+            Cache::put('push_sent_' . $username, $items->pluck('key')->all(), now()->addDays(60));
         } catch (\Throwable $e) {
             Log::warning('Push subscribe: could not seed known notifications', ['err' => $e->getMessage()]);
             Cache::forget('push_sent_' . $username);
         }
 
-        // Confirmation push. If it can't be sent (e.g. OpenSSL not set up on the server) the device is still registered.
+        // Confirmation push. It also says how many approvals are already waiting, because those were just marked as known
+        // and will not be pushed again. If it can't be sent (e.g. OpenSSL not set up on the server) the device is still registered.
         $welcomeSent = false;
         try {
             $welcomeSent = WebPushService::send(collect([$sub]), [
                 'title' => 'Notifications enabled',
-                'body'  => 'You will now get My Page notifications on this device.',
-                'url'   => $sub->origin . '/my-page',
+                'body'  => 'You will now get My APP notifications on this device.'
+                    . ($waiting > 0 ? ' You have ' . $waiting . ' document' . ($waiting > 1 ? 's' : '') . ' waiting for your approval.' : ''),
+                'url'   => rtrim((string) $sub->origin, '/') . '/my-page',
                 'tag'   => 'push-enabled',
+                'count' => $waiting,
             ]) > 0;
         } catch (\Throwable $e) {
             Log::error('Push subscribe: welcome push failed', ['err' => $e->getMessage()]);
