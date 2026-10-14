@@ -203,6 +203,56 @@ class PushSubscriptionController extends Controller
             'message' => $sent > 0 ? 'Test sent to ' . $sent . ' device(s).' : 'The push service did not accept it. See /push/diagnose.']);
     }
 
+    // GET /push/health — a short, human-readable status for the signed-in user, shown under "Send a test notification".
+    // Tells apart: the scheduled job isn't running / the server cache doesn't work / the job runs but finds nothing new.
+    public function health(Request $request)
+    {
+        $username = $this->username($request);
+        $out = [];
+
+        try {
+            $last = Cache::get('push_last_run');
+            $age = $last ? now()->diffInSeconds(\Illuminate\Support\Carbon::parse($last)) : null;
+            $out['scheduler_running'] = $age !== null && $age <= 180;
+            $out['last_run_seconds_ago'] = $age;
+            $out['last_run'] = Cache::get('push_last_run_info');
+        } catch (\Throwable $e) {
+            $out['scheduler_error'] = $e->getMessage();
+        }
+
+        try {
+            $probe = (string) microtime(true);
+            Cache::put('push_probe_' . $username, $probe, 60);
+            $out['cache_ok'] = Cache::get('push_probe_' . $username) === $probe;
+        } catch (\Throwable $e) {
+            $out['cache_ok'] = false;
+            $out['cache_error'] = $e->getMessage();
+        }
+
+        try {
+            $items = PushNotificationFeed::itemsFor($username);
+            $sent = Cache::get('push_sent_' . $username);
+            $out['waiting_found'] = $items->filter(fn ($i) => str_starts_with($i['key'], 'WAITAPPR_'))->count();
+            $out['remembered'] = $sent === null ? null : count($sent);
+            $out['would_push_next'] = $sent === null ? null : $items->reject(fn ($i) => in_array($i['key'], $sent, true))->count();
+            $out['quiet_now'] = PushPreferences::inQuietHours(PushPreferences::forUser($username));
+        } catch (\Throwable $e) {
+            $out['feed_error'] = $e->getMessage();
+        }
+
+        try {
+            $out['devices'] = SysPushSubscription::where('username', $username)->where('status', 'A')->count();
+        } catch (\Throwable $e) {
+            $out['devices'] = null;
+            $out['devices_error'] = 'The push tables are missing or unreachable in this database: ' . \Illuminate\Support\Str::limit($e->getMessage(), 160);
+        }
+
+        // why the scheduled job last failed, if it did
+        $out['last_error'] = Cache::get('push_last_error');
+
+        return response()->json($out);
+    }
+
     // Notification settings shown in My APP > Profile > bell menu.
     public function prefs(Request $request)
     {

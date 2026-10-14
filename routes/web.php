@@ -288,6 +288,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/subscribe', 'subscribe')->name('subscribe');
         Route::post('/unsubscribe', 'unsubscribe')->name('unsubscribe');
         Route::post('/test', 'test')->name('test');
+        Route::get('/health', 'health')->name('health');
         Route::get('/prefs', 'prefs')->name('prefs');
         Route::post('/prefs', 'savePrefs')->name('prefs.save');
     });

@@ -1462,6 +1462,7 @@
                 <label>From<input type="time" id="mpQuietFrom" value="22:00"></label>
                 <label>Until<input type="time" id="mpQuietTo" value="07:00"></label>
             </div>
+            <button type="button" class="mp-btn" id="mpNotifTest" style="background:#f1f5f9;color:#0f172a;box-shadow:none;border:1px solid #e2e8f0">Send a test &amp; check status</button>
             <p class="mp-note" id="mpNotifNote"></p>
         </div>
     </div>
@@ -2497,6 +2498,32 @@
                     loaded = true;
                 };
                 gear.addEventListener('click', openSheet);
+                // Sends one test push to this user's own devices, then reports the server's side in plain words.
+                document.getElementById('mpNotifTest').addEventListener('click', async () => {
+                    const t = document.getElementById('mpNotifTest');
+                    t.disabled = true;
+                    say('Checking…');
+                    try {
+                        const res = await post(@json(route('push.test')), {});
+                        const j = await res.json().catch(() => ({}));
+                        const lines = [j.message || (res.ok ? 'Sent.' : 'Could not send (HTTP ' + res.status + ').')];
+                        try {
+                            const h = await (await fetch(@json(route('push.health')), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })).json();
+                            const mins = h.last_run_seconds_ago == null ? null : Math.round(h.last_run_seconds_ago / 60);
+                            lines.push('Server job: ' + (h.scheduler_running
+                                ? 'running (last run ' + h.last_run_seconds_ago + 's ago' + (h.last_run && h.last_run.sent != null ? ', sent ' + h.last_run.sent : '') + ')'
+                                : 'NOT running' + (mins == null ? ' (it has never run)' : ' (last ran ' + mins + ' min ago)')));
+                            lines.push('Server memory: ' + (h.cache_ok ? 'ok' : 'NOT working'));
+                            lines.push('Waiting approvals found for you: ' + h.waiting_found);
+                            lines.push('Will be pushed on the next run: ' + (h.would_push_next == null ? 'n/a (nothing remembered yet)' : h.would_push_next));
+                            lines.push('Devices registered: ' + h.devices + (h.quiet_now ? ' · quiet hours are on now' : ''));
+                            if (h.last_error) lines.push('Last run FAILED: ' + h.last_error.message);
+                            if (h.feed_error || h.cache_error || h.scheduler_error || h.devices_error) lines.push('Error: ' + (h.feed_error || h.cache_error || h.scheduler_error || h.devices_error));
+                        } catch (e) { lines.push('Could not read the server status.'); }
+                        say(lines.join('\n'), j.success ? 'ok' : 'err');
+                    } catch (e) { say('Could not reach the server.', 'err'); }
+                    finally { t.disabled = false; }
+                });
                 const closeSheet = () => {
                     sheet.hidden = true;
                 };
@@ -2556,9 +2583,14 @@
                     toast('success', 'Notifications turned on');
                 } catch (e) {
                     console.error('Push enable failed', e);
-                    // name the real cause (e.g. "Registration failed - push service error") instead of a generic message
-                    toast('error', (e && e.name ? e.name + ': ' : '') + ((e && e.message) ||
-                        'Could not change notification setting'));
+                    // "Registration failed - push service error" = this phone could not reach Google's push service (the network
+                    // blocks it, Google Play services is missing / restricted, or the date & time are wrong): say what to do about it.
+                    const raw = (e && e.message) || '';
+                    if (/push service error/i.test(raw)) {
+                        toast('error', "This phone can't reach the push service. Try mobile data instead of Wi-Fi, and check that Google Play services is enabled and the date & time are automatic.");
+                    } else {
+                        toast('error', (e && e.name ? e.name + ': ' : '') + (raw || 'Could not change notification setting'));
+                    }
                 } finally {
                     btn.disabled = false;
                 }
@@ -3337,6 +3369,7 @@
         }
 
         .mp-note {
+            white-space: pre-line;
             margin: .5rem 0 0;
             font-size: .75rem;
             color: #64748b;
