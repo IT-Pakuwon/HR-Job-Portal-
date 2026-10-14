@@ -1,4 +1,4 @@
-there is no puch <x-app-layout>
+<x-app-layout>
     @push('head')
         <script>
             // App Lock: if it is on and the app was left longer than the chosen time ago, start locked so nothing shows first.
