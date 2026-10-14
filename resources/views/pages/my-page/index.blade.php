@@ -402,9 +402,9 @@
                 <b>Change password</b>
                 <button type="button" id="mpPwClose" class="mp-obtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             </div>
-            <label class="mp-fld">Current password<input type="password" name="current_password" autocomplete="current-password" required></label>
-            <label class="mp-fld">New password<input type="password" name="password" autocomplete="new-password" minlength="8" required><small>At least 8 characters.</small></label>
-            <label class="mp-fld">Confirm new password<input type="password" name="password_confirmation" autocomplete="new-password" required></label>
+            <label class="mp-fld">Current password<span class="mp-pwbox"><input type="password" name="current_password" autocomplete="current-password" required><button type="button" class="mp-pwtoggle" aria-label="Show password">Show</button></span></label>
+            <label class="mp-fld">New password<span class="mp-pwbox"><input type="password" name="password" autocomplete="new-password" minlength="8" required><button type="button" class="mp-pwtoggle" aria-label="Show password">Show</button></span><small>At least 8 characters.</small></label>
+            <label class="mp-fld">Confirm new password<span class="mp-pwbox"><input type="password" name="password_confirmation" autocomplete="new-password" required><button type="button" class="mp-pwtoggle" aria-label="Show password">Show</button></span></label>
             <p class="mp-note" id="mpPwNote"></p>
             <button type="submit" class="mp-btn" id="mpPwSave">Update password</button>
         </form>
@@ -760,7 +760,14 @@
             // --- Password ---
             const sheet = $('mpPwSheet'), form = $('mpPwForm'), note = $('mpPwNote'), save = $('mpPwSave');
             const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
-            $('mpPwBtn').addEventListener('click', () => { form.reset(); say(''); sheet.hidden = false; });
+            const resetToggles = () => form.querySelectorAll('.mp-pwbox').forEach(b => { b.querySelector('input').type = 'password'; const t = b.querySelector('.mp-pwtoggle'); t.textContent = 'Show'; t.setAttribute('aria-label', 'Show password'); });
+            form.addEventListener('click', e => {
+                const t = e.target.closest('.mp-pwtoggle'); if (!t) return;
+                const input = t.parentElement.querySelector('input'), show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                t.textContent = show ? 'Hide' : 'Show'; t.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            });
+            $('mpPwBtn').addEventListener('click', () => { form.reset(); resetToggles(); say(''); sheet.hidden = false; });
             $('mpPwClose').addEventListener('click', () => { sheet.hidden = true; });
             sheet.addEventListener('click', e => { if (e.target === sheet) sheet.hidden = true; });
             form.addEventListener('submit', async e => {
@@ -858,7 +865,7 @@
             if (!supported || !btn || !sheet) return;
             const note = $('mpLockNote'), on = $('mpLockOn'), grace = $('mpLockGrace');
             const say = (t, c) => { note.textContent = t; note.className = 'mp-note' + (c ? ' ' + c : ''); };
-            const show = () => { const c = read(); on.checked = !!(c && c.cred); grace.value = String((c && c.grace) != null ? c.grace : 1); say(''); sheet.hidden = false; };
+            const show = () => { const c = read(); on.checked = !!(c && c.cred); grace.value = String((c && c.grace) != null ? c.grace : 0); // Immediately unless the user picked another time say(''); sheet.hidden = false; };
 
             PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(ok => { if (ok) btn.hidden = false; }).catch(() => {});
             btn.addEventListener('click', show);
@@ -1112,6 +1119,11 @@
         .mp-fld input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #2563eb30; }
         .dark .mp-fld input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
         .mp-fld small { font-weight: 400; font-size: .6875rem; }
+        .mp-pwbox { position: relative; display: block; }
+        .mp-pwbox input { padding-right: 4.5rem; }
+        .mp-pwtoggle { position: absolute; right: .25rem; top: 50%; transform: translateY(-50%); min-width: 3.5rem; min-height: 2.5rem; padding: 0 .5rem; border: 0; background: transparent;
+            color: #2563eb; font-size: .8125rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+        .dark .mp-pwtoggle { color: #60a5fa; }
         .mp-btn { width: 100%; min-height: 3rem; margin-top: .75rem; border: 0; border-radius: .875rem; font-size: .9375rem; font-weight: 700; color: #fff; cursor: pointer; touch-action: manipulation;
             background: linear-gradient(120deg, #0e7490, #2563eb 60%, #7c3aed); box-shadow: 0 14px 24px -12px #2563eb; }
         .mp-btn:disabled { opacity: .6; }
