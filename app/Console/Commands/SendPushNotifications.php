@@ -27,26 +27,44 @@ class SendPushNotifications extends Command
 
         if (!WebPushService::configured()) {
             $this->warn('VAPID keys are not configured.');
+            $this->remember('VAPID keys are not configured on the server.');
             return self::FAILURE;
         }
 
-        $query = SysPushSubscription::where('status', 'A');
-        if ($u = $this->option('user')) $query->where('username', strtolower(trim($u)));
+        // A run that dies (e.g. the push tables are missing in the database it points at) used to fail silently; the reason
+        // is now kept so the app's "check status" can show it.
+        try {
+            $query = SysPushSubscription::where('status', 'A');
+            if ($u = $this->option('user')) $query->where('username', strtolower(trim($u)));
 
-        $groups = $query->get()->groupBy('username');
+            $groups = $query->get()->groupBy('username');
+        } catch (\Throwable $e) {
+            report($e);
+            $this->error($e->getMessage());
+            $this->remember($e->getMessage());
+            return self::FAILURE;
+        }
 
+        $failed = null;
         foreach ($groups as $username => $subs) {
             try {
                 $this->pushForUser((string) $username, $subs);
             } catch (\Throwable $e) {
                 // a failure for one user must not stop the rest
                 report($e);
+                $failed = $username . ': ' . $e->getMessage();
             }
         }
 
         Cache::forever('push_last_run_info', ['at' => now()->toIso8601String(), 'users' => $groups->count(), 'sent' => $this->sent]);
+        $failed ? $this->remember('At least one user failed - ' . $failed) : Cache::forget('push_last_error');
 
         return self::SUCCESS;
+    }
+
+    private function remember(string $message): void
+    {
+        Cache::forever('push_last_error', ['at' => now()->toIso8601String(), 'message' => Str::limit($message, 300)]);
     }
 
     private function pushForUser(string $username, $subs): void
