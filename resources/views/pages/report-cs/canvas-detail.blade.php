@@ -258,7 +258,10 @@
                 {
                     data: null,
                     className: 'dtr-control',
-                    orderable: false
+                    orderable: false,
+                    searchable: false,
+                    defaultContent: '',
+                    render: function() { return ''; }
                 },
 
                 {
@@ -304,11 +307,28 @@
                     }
                 },
                 {
-                    data: 'ponbr'
+                    data: 'ponbr',
+                    render: function(data, type, row) {
+                        if (type !== 'display') return data || '';
+                        const label = $('<span>').text(data || '').html();
+                        if (!data || !row.po_hash) return label;
+                        return `<a href="/showpo/${encodeURIComponent(row.po_hash)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline dark:text-indigo-400">${label}</a>`;
+                    }
                 },
                 {
                     data: 'bast_number',
-                    defaultContent: '-'
+                    defaultContent: '-',
+                    render: function(data, type, row) {
+                        if (type !== 'display') return data || '';
+                        if (!Array.isArray(row.bast_links) || !row.bast_links.length) {
+                            return $('<span>').text(data || '-').html();
+                        }
+                        return row.bast_links.map(function(document) {
+                            const label = $('<span>').text(document.number || '').html();
+                            if (!document.hash) return label;
+                            return `<a href="/showbast/${encodeURIComponent(document.hash)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline dark:text-indigo-400">${label}</a>`;
+                        }).join(', ');
+                    }
                 },
 
                 {
