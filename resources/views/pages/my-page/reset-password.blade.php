@@ -24,16 +24,29 @@
 
             <div class="field">
                 <label for="password">New password</label>
-                <input id="password" name="password" type="password" autocomplete="new-password" required autofocus>
+                <div class="pw"><input id="password" name="password" type="password" autocomplete="new-password" required autofocus style="padding-right: 4.5rem;"><button type="button" class="pw-toggle" aria-label="Show password">Show</button></div>
                 <p class="hint">At least 8 characters.</p>
             </div>
 
             <div class="field">
                 <label for="password_confirmation">Confirm new password</label>
-                <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required>
+                <div class="pw"><input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required style="padding-right: 4.5rem;"><button type="button" class="pw-toggle" aria-label="Show password">Show</button></div>
             </div>
 
             <button type="submit" class="btn">Update password</button>
         </form>
     @endif
 @endsection
+
+@push('scripts')
+    <script>
+        document.querySelectorAll('.pw-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var input = btn.parentElement.querySelector('input'), show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                btn.textContent = show ? 'Hide' : 'Show';
+                btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            });
+        });
+    </script>
+@endpush

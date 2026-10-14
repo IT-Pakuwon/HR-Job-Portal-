@@ -8,7 +8,7 @@
     html.mp-frame, html.mp-frame body { overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     html.mp-frame main { padding-bottom: calc(.5rem + env(safe-area-inset-bottom)) !important; }
     html.mp-frame img, html.mp-frame video, html.mp-frame canvas { max-width: 100%; height: auto; }
-    html.mp-frame pre, html.mp-frame code { white-space: pre-wrap; overflow-wrap: anywhere; }
+    html.mp-frame pre, html.mp-frame code { white-space: pre-wrap; overflow-wrap: break-word; }
 
     @media (max-width: 1024px) {
         /* iOS zooms the whole page when a field under 16px gets focus, then never zooms back out */
@@ -20,15 +20,25 @@
         html.mp-frame button[type="submit"], html.mp-frame .swal2-styled { min-height: 2.5rem; }
         html.mp-frame button, html.mp-frame [role="button"], html.mp-frame summary { touch-action: manipulation; }
 
-        /* wide tables scroll sideways inside themselves instead of stretching the page */
-        html.mp-frame table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        /* Wide tables keep readable columns and scroll sideways inside themselves (never squeezed to one letter per line).
+           Cells get a minimum width, fixed-layout tables are switched to auto so those minimums are honoured, and words are
+           only ever broken when a single word is longer than the screen (break-word, which unlike "anywhere" does not shrink columns). */
+        html.mp-frame table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; table-layout: auto !important; }
+        /* a table already inside its own scrolling wrapper stays a normal table (fills the width, wrapper scrolls) */
+        html.mp-frame .overflow-x-auto > table, html.mp-frame .overflow-auto > table, html.mp-frame .overflow-x-scroll > table, html.mp-frame .overflow-scroll > table,
+        html.mp-frame .table-responsive > table, html.mp-frame .dataTables_wrapper table { display: table; max-width: none; overflow: visible; }
+        html.mp-frame table th, html.mp-frame table td { min-width: 5.5rem; word-break: normal; overflow-wrap: normal; hyphens: manual; }
+        html.mp-frame table th:first-child, html.mp-frame table td:first-child { min-width: 3rem; }
+        html.mp-frame table td:has(> input[type="checkbox"]):not(:has(*:not(input))), html.mp-frame table th:has(> input[type="checkbox"]):not(:has(*:not(input))) { min-width: 2.5rem; }
+        html.mp-frame table td, html.mp-frame table th { max-width: 28rem; }
         html.mp-frame .dataTables_wrapper { overflow-x: auto; }
         html.mp-frame .dataTables_wrapper .dataTables_length, html.mp-frame .dataTables_wrapper .dataTables_filter,
         html.mp-frame .dataTables_wrapper .dataTables_info, html.mp-frame .dataTables_wrapper .dataTables_paginate { float: none; text-align: left; margin: .25rem 0; }
         html.mp-frame .dataTables_wrapper .dataTables_filter input { width: 100%; margin-left: 0; }
 
-        /* long unbroken values (document numbers, emails, URLs) wrap instead of pushing the layout wide */
-        html.mp-frame main p, html.mp-frame main td, html.mp-frame main th, html.mp-frame main label, html.mp-frame main a, html.mp-frame main span { overflow-wrap: anywhere; }
+        /* a single very long value (email, URL) wraps instead of pushing the page wide; table cells are left alone (see above) */
+        html.mp-frame main p, html.mp-frame main label, html.mp-frame main a, html.mp-frame main span { overflow-wrap: break-word; }
+        html.mp-frame table a, html.mp-frame table span, html.mp-frame table p, html.mp-frame table label { overflow-wrap: normal; }
 
         /* alerts / dialogs fit the screen */
         html.mp-frame .swal2-popup { width: min(34rem, calc(100vw - 1rem)) !important; max-width: calc(100vw - 1rem) !important; padding: 1rem !important; font-size: .9375rem; box-sizing: border-box; }
