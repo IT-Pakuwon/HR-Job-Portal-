@@ -204,6 +204,8 @@
 </div>
 
 <style>
+    /* room between the filter / button row and the document list */
+    #approvalCardList { padding-top: .75rem; }
     #approvalDoctypeWrap .select2-selection--single {
         height: 34px;
         display: flex;

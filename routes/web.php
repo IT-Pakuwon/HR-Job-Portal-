@@ -233,6 +233,10 @@ Route::get('/my-page-sw.js', [\App\Http\Controllers\MyPageController::class, 'se
 Route::get('/my-page', [\App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');
 Route::get('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'loginForm'])->name('my-page.login');
 Route::post('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
+Route::get('/my-page/forgot-password', [\App\Http\Controllers\MyPageController::class, 'forgotForm'])->name('my-page.forgot');
+Route::post('/my-page/forgot-password', [\App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
+Route::get('/my-page/reset-password', [\App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
+Route::post('/my-page/reset-password', [\App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
 Route::post('/my-page/logout', [\App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
 
 Route::get('/login', function () {
@@ -283,6 +287,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/status', 'status')->name('status');
         Route::post('/subscribe', 'subscribe')->name('subscribe');
         Route::post('/unsubscribe', 'unsubscribe')->name('unsubscribe');
+        Route::get('/prefs', 'prefs')->name('prefs');
+        Route::post('/prefs', 'savePrefs')->name('prefs.save');
     });
 
     // Dashboard Approval JSON endpoints

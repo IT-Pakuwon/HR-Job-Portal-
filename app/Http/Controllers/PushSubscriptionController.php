@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SysPushPref;
 use App\Models\SysPushSubscription;
 use App\Services\PushNotificationFeed;
+use App\Services\PushPreferences;
 use App\Services\WebPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -133,6 +135,37 @@ class PushSubscriptionController extends Controller
 
         SysPushSubscription::where('username', $this->username($request))
             ->where('endpoint', $request->input('endpoint'))->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    // Notification settings shown in My APP > Profile > bell menu.
+    public function prefs(Request $request)
+    {
+        return response()->json(PushPreferences::forUser($this->username($request)));
+    }
+
+    public function savePrefs(Request $request)
+    {
+        $data = $request->validate([
+            'approvals'  => 'required|boolean',
+            'updates'    => 'required|boolean',
+            'comments'   => 'required|boolean',
+            'others'     => 'required|boolean',
+            'quiet_on'   => 'required|boolean',
+            'quiet_from' => ['required', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'],
+            'quiet_to'   => ['required', 'regex:/^([01]\d|2[0-3]):[0-5]\d$/'],
+            'tz'         => 'nullable|string|max:64|timezone',
+        ]);
+        $username = $this->username($request);
+
+        try {
+            SysPushPref::updateOrCreate(['username' => $username], $data);
+        } catch (\Throwable $e) {
+            Log::error('Push prefs: could not save', ['err' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'message' => 'Could not save (is the sys_push_pref table created on the server?)'], 500);
+        }
 
         return response()->json(['success' => true]);
     }

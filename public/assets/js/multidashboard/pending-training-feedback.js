@@ -184,8 +184,42 @@
             '.feedbackPrompt-badge{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:999px;background:#111827;color:#fff;font-size:11px;font-weight:600;}',
             '.pendingFeedbackConfirmBtn{background:#111827!important;color:#fff!important;border:none!important;padding:11px 0!important;width:100%;font-size:13px!important;font-weight:600!important;border-radius:8px!important;box-shadow:none!important;}',
             '.pendingFeedbackConfirmBtn:hover{background:#374151!important;}',
-            '.pendingFeedbackCancelBtn{background:transparent!important;color:#6b7280!important;box-shadow:none!important;font-weight:500!important;font-size:12.5px!important;padding:4px 0!important;margin:0!important;}',
-            '.pendingFeedbackCancelBtn:hover{color:#111827!important;text-decoration:underline;}',
+            '.pendingFeedbackCancelBtn{background:#fef2f2!important;color:#b91c1c!important;border:1px solid #fecaca!important;}',
+            '.pendingFeedbackCancelBtn:hover{background:#fee2e2!important;}',
+            '.pendingFeedbackNeutralBtn{background:#f3f4f6!important;color:#374151!important;border:1px solid #e5e7eb!important;}',
+            '.pendingFeedbackNeutralBtn:hover{background:#e5e7eb!important;}',
+            '.pendingFeedbackModalPopup .swal2-actions{gap:8px!important;}',
+            // confirmation popups
+            '.pendingFeedbackAskPopup{width:380px!important;max-width:calc(100vw - 32px)!important;border-radius:16px!important;padding:20px 20px 18px!important;}',
+            '.pendingFeedbackAskPopup .swal2-title{font-size:18px!important;padding:0!important;margin:4px 0 0!important;}',
+            '.pendingFeedbackAskPopup .swal2-html-container{font-size:13.5px!important;margin:8px 0 0!important;padding:0!important;}',
+            '.pendingFeedbackAskActions{flex-direction:column;width:100%;gap:8px;margin:18px 0 0!important;padding:0!important;}',
+            // dark mode
+            '.dark .pendingFeedbackModalPopup{background:#1e293b!important;color:#e2e8f0!important;}',
+            '.dark .pendingFeedbackModalPopup .swal2-actions{border-top-color:#334155;background:#0f172a;}',
+            '.dark .feedbackModal-header{border-bottom-color:#334155;}',
+            '.dark .feedbackModal-icon{background:linear-gradient(135deg,#0e7490,#2563eb);}',
+            '.dark .feedbackModal-title,.dark .feedbackModal-qText{color:#f1f5f9;}',
+            '.dark .feedbackModal-subtitle{color:#94a3b8;}',
+            '.dark .feedbackModal-notice{background:#422006;border-color:#854d0e;color:#fde68a;}',
+            '.dark .feedbackModal-question{background:#0f172a;border-color:#334155;}',
+            '.dark .feedbackModal-qNum{background:#0e7490;}',
+            '.dark .feedbackModal-choice,.dark .feedbackModal-ratingItem{background:#1e293b;border-color:#475569;color:#cbd5e1;}',
+            '.dark .feedbackModal-choice:has(input:checked){border-color:#22d3ee;background:#0e7490;color:#fff;}',
+            '.dark .feedbackModal-ratingItem:has(input:checked){border-color:#f59e0b;background:#78350f;color:#fde68a;}',
+            '.dark .feedbackModal-ratingScale{color:#94a3b8;}',
+            '.dark .feedbackModal-textarea{background:#1e293b;border-color:#475569;color:#f1f5f9;}',
+            '.dark .feedbackModal-textarea:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.18);}',
+            '.dark .feedbackModal-textarea:disabled{background:#0f172a;color:#94a3b8;}',
+            '.dark .pendingFeedbackConfirmBtn{background:#0e7490!important;border-color:#0e7490!important;}',
+            '.dark .pendingFeedbackConfirmBtn:hover{background:#0891b2!important;}',
+            '.dark .pendingFeedbackCancelBtn{background:rgba(127,29,29,.35)!important;color:#fca5a5!important;border-color:rgba(248,113,113,.4)!important;}',
+            '.dark .pendingFeedbackCancelBtn:hover{background:rgba(127,29,29,.55)!important;}',
+            '.dark .pendingFeedbackNeutralBtn{background:#334155!important;color:#e2e8f0!important;border-color:#475569!important;}',
+            '.dark .pendingFeedbackNeutralBtn:hover{background:#475569!important;}',
+            '.dark .pendingFeedbackAskPopup{background:#1e293b!important;color:#e2e8f0!important;}',
+            '.dark .pendingFeedbackAskPopup .swal2-title,.dark .pendingFeedbackAskPopup .swal2-html-container{color:#e2e8f0!important;}',
+            '.dark .pendingFeedbackModalPopup .swal2-validation-message{background:#0f172a;color:#fca5a5;}',
         ].join('\n');
         document.head.appendChild(style);
     }
@@ -217,17 +251,161 @@
             + '</div>';
     }
 
+    function formHtml(row, questions, readOnly) {
+        var questionsHtml = questions.map(function (q) { return renderQuestion(q, readOnly); }).join('');
+        var notice = readOnly
+            ? '<div class="feedbackModal-notice">⚠️ Feedback window is currently closed — showing your submitted answers (read only).</div>'
+            : '';
+
+        return '<div class="feedbackModal-header"><div class="feedbackModal-icon">📝</div><div>'
+            + '<h3 class="feedbackModal-title">' + (readOnly ? 'Feedback' : 'Fill Feedback') + '</h3>'
+            + '<p class="feedbackModal-subtitle">' + esc(row.training_name || '') + '</p>'
+            + '</div></div>'
+            + '<div class="feedbackModal-body">' + notice + '<div>' + questionsHtml + '</div></div>';
+    }
+
+    // What is currently filled in (null = not answered yet)
+    function collectAnswers(questions) {
+        return questions.map(function (q) {
+            var name = 'pending_feedback_q_' + q.question_order;
+            var el = document.querySelector('input[name="' + name + '"]:checked, textarea[name="' + name + '"]');
+            return { question_order: q.question_order, value: el ? el.value : null };
+        });
+    }
+
+    function savedMap(answers) {
+        var map = {};
+        (answers || []).forEach(function (a) {
+            if (a.value !== null && String(a.value).trim() !== '') map[a.question_order] = a.value;
+        });
+        return map;
+    }
+
+    // Questions with the user's unsaved answers put back in, so "Keep editing" / "Review again" loses nothing
+    function withSaved(questions, saved) {
+        return questions.map(function (q) {
+            var copy = Object.assign({}, q);
+            if (saved[q.question_order] !== undefined) {
+                if (q.question_type === 'Rating') copy.answer_number = saved[q.question_order];
+                else copy.answer_text = saved[q.question_order];
+            }
+            return copy;
+        });
+    }
+
+    // Small confirmation popup; resolves true for the main button. `danger` makes the main button red.
+    function confirmAsk(opts) {
+        return window.Swal.fire({
+            icon: opts.danger ? 'warning' : 'question',
+            title: opts.title,
+            text: opts.text,
+            showCancelButton: true,
+            reverseButtons: false,
+            focusCancel: !!opts.danger,
+            allowOutsideClick: false,
+            buttonsStyling: false,
+            confirmButtonText: opts.yes,
+            cancelButtonText: opts.no,
+            customClass: {
+                popup: 'pendingFeedbackAskPopup',
+                actions: 'pendingFeedbackAskActions',
+                confirmButton: opts.danger ? 'pendingFeedbackCancelBtn' : 'pendingFeedbackConfirmBtn',
+                cancelButton: 'pendingFeedbackNeutralBtn',
+            },
+        }).then(function (r) { return !!r.isConfirmed; });
+    }
+
+    function submitFeedback(row, answers) {
+        fetch('/training-list/my/' + row.id + '/feedback', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ answers: answers }),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (subRes) {
+                toast(subRes.success ? 'success' : 'error', subRes.message);
+                if (subRes.success) init();
+            })
+            .catch(function () {
+                toast('error', 'Gagal menyimpan feedback');
+            });
+    }
+
+    // The form. Submit and Cancel are the same size; each asks "are you sure?" before doing anything, and
+    // answering "no" brings the form back with everything still filled in.
+    function showForm(row, questions, saved, restorePath) {
+        window.Swal.fire({
+            html: formHtml(row, withSaved(questions, saved), false),
+            showCancelButton: false,
+            showDenyButton: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            buttonsStyling: false,
+            confirmButtonText: 'Submit',
+            denyButtonText: 'Cancel',
+            customClass: {
+                popup: 'pendingFeedbackModalPopup',
+                confirmButton: 'pendingFeedbackConfirmBtn',
+                denyButton: 'pendingFeedbackCancelBtn',
+            },
+            preConfirm: function () {
+                var answers = collectAnswers(questions);
+                var unanswered = answers.some(function (a) { return a.value === null || String(a.value).trim() === ''; });
+                if (unanswered) {
+                    window.Swal.showValidationMessage('Mohon jawab semua pertanyaan sebelum submit');
+                    return false;
+                }
+                return answers;
+            },
+            preDeny: function () { return collectAnswers(questions); },
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                confirmAsk({
+                    title: 'Submit your feedback?',
+                    text: 'Please make sure your answers are correct before sending.',
+                    yes: 'Yes, submit',
+                    no: 'Review again',
+                }).then(function (ok) {
+                    if (!ok) { showForm(row, questions, savedMap(result.value), restorePath); return; }
+                    restorePath();
+                    submitFeedback(row, result.value);
+                });
+            } else if (result.isDenied) {
+                confirmAsk({
+                    title: 'Discard this feedback?',
+                    text: 'Your answers will not be saved.',
+                    yes: 'Yes, discard',
+                    no: 'Keep editing',
+                    danger: true,
+                }).then(function (ok) {
+                    if (!ok) { showForm(row, questions, savedMap(result.value), restorePath); return; }
+                    restorePath();
+                    toast('info', 'Feedback discarded');
+                });
+            } else {
+                restorePath();
+            }
+        });
+    }
+
     function openInlineFeedbackModal(row) {
         injectStyles();
 
         var originalPath = location.pathname + location.search;
         var targetPath = '/training-list/feedback/' + encodeURIComponent(row.eid);
-        if (location.pathname !== targetPath) {
+        // The installed My APP must never leave /my-page: moving the address outside its scope makes the phone
+        // wrap the app in a browser bar (✕ / URL). So there the address stays as it is.
+        var inMyApp = location.pathname.indexOf('/my-page') === 0;
+        if (!inMyApp && location.pathname !== targetPath) {
             history.pushState({ pendingFeedbackModal: true }, '', targetPath);
         }
 
         var restorePath = function () {
-            if (location.pathname + location.search !== originalPath) {
+            if (!inMyApp && location.pathname + location.search !== originalPath) {
                 history.pushState({}, '', originalPath);
             }
         };
@@ -240,10 +418,15 @@
             .then(function (res) {
                 var readOnly = !res.is_open;
                 var questions = res.questions || [];
-                var questionsHtml = questions.map(function (q) { return renderQuestion(q, readOnly); }).join('');
-                var notice = readOnly
-                    ? '<div class="feedbackModal-notice">⚠️ Feedback window is currently closed — showing your submitted answers (read only).</div>'
-                    : '';
+                if (readOnly) {
+                    window.Swal.fire({
+                        html: formHtml(row, questions, true),
+                        buttonsStyling: false,
+                        confirmButtonText: 'Close',
+                        customClass: { popup: 'pendingFeedbackModalPopup', confirmButton: 'pendingFeedbackConfirmBtn' },
+                    }).then(restorePath);
+                    return;
+                }
 
                 window.Swal.fire({
                     html: '<div class="feedbackModal-header"><div class="feedbackModal-icon">📝</div><div>'
@@ -309,6 +492,26 @@
                 toast('error', 'Gagal memuat feedback');
             });
     }
+
+    // Used by My APP when a notification / link points at a feedback form: refresh the pending list, then open that form.
+    window.openPendingFeedback = function (eid) {
+        var find = function () {
+            return currentRows.filter(function (r) { return String(r.eid) === String(eid); })[0];
+        };
+
+        fetch('/training-list/pending-feedback', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.ok ? r.json() : { data: [] }; })
+            .then(function (res) {
+                currentRows = res.data || [];
+                var container = document.getElementById('pendingFeedbackReminders');
+                if (container) render(container);
+
+                var row = find();
+                if (row) openInlineFeedbackModal(row);
+                else toast('info', 'This feedback is no longer pending');
+            })
+            .catch(function () { toast('error', 'Gagal memuat feedback'); });
+    };
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
