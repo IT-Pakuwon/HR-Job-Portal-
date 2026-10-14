@@ -99,7 +99,8 @@
 
     @stack('head')
 
-    @if ($isEmbed)
+    {{-- only for documents shown inside My APP's review sheet; never on the My APP screens themselves --}}
+    @if ($isEmbed && !request()->routeIs('my-page'))
         @include('layouts.partials.embed-mobile')
     @endif
 
