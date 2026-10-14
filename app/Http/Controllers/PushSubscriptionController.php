@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SysPushPref;
+use App\Models\TrApproval;
 use App\Models\SysPushSubscription;
 use App\Services\PushNotificationFeed;
 use App\Services\PushPreferences;
@@ -59,6 +60,36 @@ class PushSubscriptionController extends Controller
             $checks['my_devices_registered'] = SysPushSubscription::where('username', $this->username($request))->where('status', 'A')->count();
         } catch (\Throwable $e) {
             $checks['my_devices_registered'] = 'ERROR: ' . $e->getMessage();
+        }
+
+        // What the scheduler sees for the signed-in user
+        try {
+            $username = $this->username($request);
+            $items = PushNotificationFeed::itemsFor($username);
+            $waiting = $items->filter(fn ($i) => str_starts_with($i['key'], 'WAITAPPR_'));
+            $sent = Cache::get('push_sent_' . $username);
+
+            $lineDocs = TrApproval::query()
+                ->where('status', 'P')->whereNotNull('aprv_datebefore')
+                ->whereRaw("(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?", ['%,' . $username . ',%'])
+                ->pluck('refnbr')->map(fn ($r) => strtoupper(trim($r)))->unique()->values();
+            $found = $waiting->pluck('docid')->map(fn ($r) => strtoupper(trim($r)));
+            $missing = $lineDocs->diff($found)->values();
+
+            $checks['my_feed_items'] = $items->count();
+            $checks['my_waiting_approval_items'] = $waiting->count();
+            $checks['my_approval_documents_in_the_system'] = $lineDocs->count();
+            $checks['my_approvals_the_list_cannot_find'] = $missing->isEmpty()
+                ? 0
+                : 'NO — ' . $missing->count() . ' approval(s) are waiting for you but the document lookup cannot find them, so they never appear in the app or in notifications: ' . $missing->take(10)->implode(', ');
+            $checks['already_notified_keys_remembered'] = $sent === null ? 'none yet (set when notifications are enabled)' : count($sent);
+            $checks['items_that_the_next_run_will_push'] = $sent === null ? 'n/a' : $items->reject(fn ($i) => in_array($i['key'], $sent, true))->count();
+
+            $prefs = PushPreferences::forUser($username);
+            $checks['my_notification_settings'] = $prefs;
+            $checks['quiet_hours_active_now'] = PushPreferences::inQuietHours($prefs) ? 'yes (pushes are being held until quiet hours end)' : 'no';
+        } catch (\Throwable $e) {
+            $checks['my_feed'] = 'ERROR: ' . $e->getMessage();
         }
 
         $problems = collect($checks)->filter(fn ($v, $k) => $v === false || (is_string($v) && (str_starts_with($v, 'ERROR') || str_starts_with($v, 'FAILED') || str_starts_with($v, 'NO'))))->keys()->values();
@@ -137,6 +168,33 @@ class PushSubscriptionController extends Controller
             ->where('endpoint', $request->input('endpoint'))->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    // POST /push/test — sends one notification to this user's own devices right now. Separates "can this phone receive
+    // pushes at all" (this works) from "is the scheduler / document lookup producing them" (see /push/diagnose).
+    public function test(Request $request)
+    {
+        $subs = SysPushSubscription::where('username', $this->username($request))->where('status', 'A')->get();
+
+        if ($subs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No device is registered. Turn on notifications first (the bell).']);
+        }
+
+        try {
+            $sent = WebPushService::send($subs, [
+                'title' => 'Test notification',
+                'body'  => 'If you can read this, push notifications reach this device.',
+                'url'   => rtrim((string) ($subs->first()->origin ?: config('app.url')), '/') . '/my-page',
+                'tag'   => 'push-test',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Push test failed', ['err' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'message' => 'Could not send: ' . $e->getMessage()]);
+        }
+
+        return response()->json(['success' => $sent > 0, 'devices' => $subs->count(), 'sent' => $sent,
+            'message' => $sent > 0 ? 'Test sent to ' . $sent . ' device(s).' : 'The push service did not accept it. See /push/diagnose.']);
     }
 
     // Notification settings shown in My APP > Profile > bell menu.
