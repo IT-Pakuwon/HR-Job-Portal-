@@ -77,7 +77,7 @@
 <body>
     <div class="wrap">
         <div class="hero">
-            <img class="logo" src="{{ asset('images/pwa/myapp-192.png') }}" alt="My APP">
+            <img class="logo" src="{{ asset('images/pwa/myapp-logo.png') }}?v={{ @filemtime(public_path('images/pwa/myapp-logo.png')) }}" alt="My APP">
             <h1>@yield('heading')</h1>
             <p>@yield('tagline')</p>
         </div>
