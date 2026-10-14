@@ -789,14 +789,21 @@
 
   @media (max-width:980px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}.kzcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:640px){.board,.board.two{grid-template-columns:1fr}.kcards.three,.kcards.five{grid-template-columns:1fr 1fr}.daterange{width:100%}.tabs{width:100%}.tabs button{flex:1;text-align:center}}
+.mall-filter{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.mall-filter-button{display:inline-flex;padding:10px 16px;border:1px solid var(--pkw-blue);border-radius:8px;color:var(--pkw-blue);background:#fff;text-decoration:none;font-size:12px;font-weight:600}
+.mall-filter-button:hover,.mall-filter-button.active{background:var(--pkw-blue);color:#fff}
+.mall-filter-button:focus-visible{outline:2px solid var(--pkw-blue);outline-offset:3px}
 </style>
+<link rel="stylesheet" href="{{ asset('assets/css/dashboards/om-v8.css') }}">
 </head>
 <body>
 <div class="wrap">
 
   <a href="{{ route('datahub.index') }}" class="back-btn">
-  ← Back to OM Dashboard
+  ← Back to Data Hub
 </a>
+
+
 
   <header>
     <div class="brandmark"></div>
@@ -805,7 +812,20 @@
       <div class="sub">Operations Manager View · Pakuwon Group Jakarta</div>
     </div>
     
-     <form method="GET" action="{{ route('datahub.om.detail', $mall) }}" class="daterange">
+    <div class="header-period">{{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} &ndash; {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</div>
+
+
+  </header>
+
+  <div class="filter-bar">
+  <nav class="mall-filter" aria-label="Filter mall">
+    @foreach ($malls as $code => $name)
+      <a class="mall-filter-button {{ $code === $mall ? 'active' : '' }}"
+         @if ($code === $mall) aria-current="page" @endif
+         href="{{ route('datahub.om.detail', ['mall' => $code, 'start_date' => $startDate, 'end_date' => $endDate, 'tab' => $activeTab, 'traffic_granularity' => $trafficGranularity, 'tenant_movement_type' => $tenantMovementType]) }}">{{ $name }}</a>
+    @endforeach
+  </nav>
+<form method="GET" action="{{ route('datahub.om.detail', $mall) }}" class="daterange">
   <span class="lbl">Date Range</span>
   <div class="field">
     <input type="date" id="dStart" name="start_date" value="{{ $startDate }}" aria-label="Start date">
@@ -819,8 +839,7 @@
     </button>
   </div>
 </form>
-
-  </header>
+  </div>
 
   <div class="tabs" id="omTabs">
     <a class="om-tab-link {{ ($activeTab ?? 'overview') === 'overview' ? 'active' : '' }}"
@@ -849,9 +868,9 @@
     <div class="band"><span class="no">1</span>Traffic &amp; Visitors<span class="ln"></span></div>
     <div class="sec">
       <div class="sec-title"><h2>Traffic</h2><span class="hint">vs LW · LM · LY</span></div>
-      <div class="kcards five">
-        <div class="kcard">
-          <div class="k">Head Count</div>
+      <div class="kpi-strip five">
+        <div class="xkpi g-purple">
+          <div class="kpi-head"><div class="k">Head Count</div><div class="kpi-icon i-purple"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
             <div class="v" id="headCountVal">{!! omFormatCompact($trafficSummary['head_count'] ?? 0) !!}</div>
               <div class="vs">
               <span>LW <span id="headLwVal">{!! omPercentLabel($trafficSummary['head_lw_percent'] ?? 0) !!}</span></span>
@@ -864,8 +883,8 @@
                 </div>
         </div>
 
-        <div class="kcard">
-          <div class="k">Car Count</div>
+        <div class="xkpi g-magenta">
+          <div class="kpi-head"><div class="k">Car Count</div><div class="kpi-icon i-magenta"><svg viewBox="0 0 24 24"><path d="M5 17H3v-4l2-5h12l2 5v4h-2M7 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0M7 17h8"/></svg></div></div>
           <div class="v" id="carCountVal">{!! omFormatCompact($trafficSummary['car_count'] ?? 0) !!}</div>
           <div class="vs">
             <span>LW <span id="carLwVal">{!! omPercentLabel($trafficSummary['car_lw_percent'] ?? 0) !!}</span></span>
@@ -875,8 +894,8 @@
           <div class="peak"><span>Peak</span><b id="carPeakVal">{{ $trafficSummary['parking_peak_hour'] ?? '-' }}</b></div>
         </div>
 
-        <div class="kcard">
-          <div class="k">Motor Count</div>
+        <div class="xkpi g-red">
+          <div class="kpi-head"><div class="k">Motor Count</div><div class="kpi-icon i-red"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3"/><circle cx="18.5" cy="17.5" r="3"/><path d="M15.5 17.5h-7l-1.5-5 4 0 1.5 2.5"/></svg></div></div>
           <div class="v" id="motorCountVal">{!! omFormatCompact($trafficSummary['motor_count'] ?? 0) !!}</div>
           <div class="vs">
             <span>LW <span id="motorLwVal">{!! omPercentLabel($trafficSummary['motor_lw_percent'] ?? 0) !!}</span></span>
@@ -886,8 +905,8 @@
           <div class="peak"><span>Peak</span><b id="motorPeakVal">{{ $trafficSummary['parking_peak_hour'] ?? '-' }}</b></div>
         </div>
 
-        <div class="kcard">
-          <div class="k">Blue Bird</div>
+        <div class="xkpi g-plum">
+          <div class="kpi-head"><div class="k">Blue Bird</div><div class="kpi-icon i-magenta"><svg viewBox="0 0 24 24"><path d="M3 12h18l-1.5-5H10M3 12v5h2M21 12v5h-2M6 17a2 2 0 1 0 4 0M13 17a2 2 0 1 0 4 0M9 7V4h6v3"/></svg></div></div>
           <div class="v" id="blueBirdVal">{!! omFormatCompact($trafficSummary['blue_bird'] ?? 0) !!}</div>
           <div class="vs">
             <span>LW <span id="blueBirdLwVal">{!! omPercentLabel($trafficSummary['blue_bird_lw_percent'] ?? 0) !!}</span></span>
@@ -900,8 +919,8 @@
                   </div>
         </div>
 
-        <div class="kcard">
-  <div class="k">Drop Off</div>
+        <div class="xkpi g-hero">
+  <div class="kpi-head"><div class="k">Drop Off</div><div class="kpi-icon i-purple"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div></div>
   <div class="v" id="dropOffVal">{!! omFormatCompact($trafficSummary['drop_off_count'] ?? 0) !!}</div>
 
   <div class="vs">
@@ -3404,6 +3423,23 @@ const kaizenMainUrl =
   
 let overviewDetailLoaded = false;  
 
+// Reuse payloads embedded by the server without queuing another AJAX request.
+const overviewInitial = @json($overviewInitial ?? []);
+for (const [section, url] of Object.entries({
+  traffic: overviewTrafficUrl, chart: overviewChartUrl, issue: overviewIssueUrl,
+  tenancy: getOverviewDetailUrl(), budget: overviewBudgetUrl, work: overviewWorkDetailUrl
+})) {
+  if (Object.prototype.hasOwnProperty.call(overviewInitial, section)) {
+    const target = new URL(url, window.location.href);
+    target.searchParams.set('start_date', omDates.start);
+    target.searchParams.set('end_date', omDates.end);
+    omResponses.set(target.href, {
+      pending: false, expiresAt: Date.now() + 60000,
+      promise: Promise.resolve(overviewInitial[section])
+    });
+  }
+}
+
 function loadOverviewMain(){
   console.log('Loading overview traffic AJAX:', overviewTrafficUrl);
   console.log('Loading overview chart AJAX:', overviewChartUrl);
@@ -3491,9 +3527,7 @@ function loadOverviewMain(){
 
 }
 
-if(activeTabFromLaravel === 'overview'){
-  loadOverviewMain();
-}
+
 
 function renderOverviewIssue(data){
   const s = data.issueSummary || {};
@@ -3772,17 +3806,6 @@ function loadOverviewDetail(){
 
   const detailUrl = getOverviewDetailUrl();
 
-  // The PHP development server handles requests in queue order. Show the
-  // visible Issues & Risk and Tenancy sections before the lower widgets.
-  fetchOmData(overviewIssueUrl)
-    .then(data => {
-      console.log('Overview Issue AJAX result:', data);
-      renderOverviewIssue(data);
-    })
-    .catch(error => {
-      console.error('Overview Issue AJAX error:', error);
-    });
-
   fetchOmData(detailUrl)
     .then(data => {
       console.log('Overview Detail AJAX result:', data);
@@ -3811,6 +3834,10 @@ function loadOverviewDetail(){
     .catch(error => {
       console.error('Overview Work Detail AJAX error:', error);
     });
+
+  fetchOmData(overviewIssueUrl)
+    .then(renderOverviewIssue)
+    .catch(error => console.error('Overview Issue AJAX error:', error));
 }
 
 const tenantMovementSeg = document.getElementById('tenantMovementSeg');
@@ -3850,6 +3877,7 @@ if(tenantMovementSeg){
 if(activeTabFromLaravel === 'overview'){
   // Start the lower Overview requests immediately instead of waiting until the
   // user scrolls to the trigger. They are independent from the traffic charts.
+  loadOverviewMain();
   loadOverviewDetail();
 }
 
@@ -4145,7 +4173,6 @@ function activateOmTab(tabName){
 
   built.ovw = false;
   loadOverviewMain();
-
   loadOverviewDetail();
 }
 
