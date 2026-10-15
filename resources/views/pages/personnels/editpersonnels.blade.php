@@ -343,7 +343,7 @@
                             <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
                                 <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Education &amp; Experience <span class="text-red-500">*</span>
                             </div>
-                            <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="{{ !empty($isSby) ? 'prf-select2 ' : '' }}mb-6 grid grid-cols-1 gap-4 {{ !empty($isSby) ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3' }}">
                                 <div class="flex flex-col gap-2">
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Education <span class="text-red-500">*</span></label>
                                     <select name="education" id="education" required
@@ -357,6 +357,14 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                @if (!empty($isSby))
+                                    <div class="flex flex-col gap-2">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Jurusan <span class="text-red-500">*</span></label>
+                                        <select name="education_jurusan[]" id="jurusan" multiple required
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        </select>
+                                    </div>
+                                @endif
                                 <div class="flex flex-col gap-2">
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — Start <span class="text-red-500">*</span></label>
                                     <input type="number" name="experience_start" id="experience_start" required
@@ -712,6 +720,67 @@
                 tokenSeparators: [','],
                 width: '100%'
             });
+
+            // SBY only: Education -> Jurusan (multiple), filtered by the chosen education
+            @if (!empty($isSby))
+                @php
+                    $savedJurusan = old('education_jurusan');
+                    if (!is_array($savedJurusan)) {
+                        $savedJurusan = array_values(array_filter(array_map('trim', explode(',', (string) $personnel->education_jurusan)), 'strlen'));
+                    }
+                @endphp
+                const jurusanMap = @json($jurusanMap ?? []);
+                const savedJurusan = @json($savedJurusan);
+                const ALL_JURUSAN = 'Semua Jurusan';
+                const $education = $('#education');
+                const $jurusan = $('#jurusan');
+
+                $education.select2({
+                    placeholder: 'Select Education',
+                    width: '100%',
+                    minimumResultsForSearch: Infinity
+                });
+                $jurusan.select2({
+                    placeholder: 'Select Jurusan',
+                    width: '100%',
+                    closeOnSelect: false
+                });
+
+                // the dropdown is appended to <body>, so tag it for the .prf-select2-dropdown styles
+                $education.add($jurusan).on('select2:open', function() {
+                    $('.select2-dropdown').last().addClass('prf-select2-dropdown');
+                });
+
+                function loadJurusan(education, selected) {
+                    selected = selected || [];
+                    const options = (jurusanMap[education] || []).slice();
+                    // keep saved values that are no longer in the master list (e.g. legacy free text)
+                    selected.forEach(function(name) {
+                        if (options.indexOf(name) === -1) options.push(name);
+                    });
+
+                    $jurusan.empty();
+                    options.forEach(function(name) {
+                        $jurusan.append(new Option(name, name, false, selected.indexOf(name) !== -1));
+                    });
+                    $jurusan.trigger('change');
+                }
+
+                loadJurusan($education.val(), savedJurusan);
+
+                $education.on('change', function() {
+                    loadJurusan($(this).val(), []);
+                });
+
+                // "Semua Jurusan" excludes the specific ones, and vice versa
+                $jurusan.on('select2:select', function(e) {
+                    let values = $jurusan.val() || [];
+                    values = e.params.data.id === ALL_JURUSAN ?
+                        [ALL_JURUSAN] :
+                        values.filter(function(v) { return v !== ALL_JURUSAN; });
+                    $jurusan.val(values).trigger('change');
+                });
+            @endif
 
             // Kalau select2 cuma punya 1 pilihan (selain placeholder), langsung auto select
             function autoSelectIfSingleOption($select) {
