@@ -159,20 +159,20 @@ use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
-use App\Http\Controllers\TenancyMasterController;
-use App\Http\Controllers\TenancyUserController;
-use App\Http\Controllers\TenancyOrganizationController;
-use App\Http\Controllers\TenancyApprovalController;
-use App\Http\Controllers\Tenancy\TsLocationController;
-use App\Http\Controllers\Tenancy\TsFloorController;
-use App\Http\Controllers\Tenancy\TsTenantController;
-use App\Http\Controllers\Tenancy\TsUserTenantController;
-use App\Http\Controllers\Tenancy\TsUserController;
-use App\Http\Controllers\Tenancy\TsSiteController;
-use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsApprovalController;
 use App\Http\Controllers\Tenancy\TsCompanyController;
 use App\Http\Controllers\Tenancy\TsDepartmentController;
-use App\Http\Controllers\Tenancy\TsApprovalController;
+use App\Http\Controllers\Tenancy\TsFloorController;
+use App\Http\Controllers\Tenancy\TsLocationController;
+use App\Http\Controllers\Tenancy\TsSiteController;
+use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsTenantController;
+use App\Http\Controllers\Tenancy\TsUserController;
+use App\Http\Controllers\Tenancy\TsUserTenantController;
+use App\Http\Controllers\TenancyApprovalController;
+use App\Http\Controllers\TenancyMasterController;
+use App\Http\Controllers\TenancyOrganizationController;
+use App\Http\Controllers\TenancyUserController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -187,10 +187,10 @@ use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\UpdateNotificationController;
+use App\Http\Controllers\UserDataSyncController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
-use App\Http\Controllers\UserDataSyncController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\VoucherTaxiSetupController;
@@ -228,16 +228,15 @@ Route::redirect('/', 'login');
 
 // "My Page" installable app (Add to Home Screen). Manifest + service worker must be
 // reachable without a session; the page itself requires login.
-Route::get('/my-page.webmanifest', [\App\Http\Controllers\MyPageController::class, 'manifest'])->name('my-page.manifest');
-Route::get('/my-page-sw.js', [\App\Http\Controllers\MyPageController::class, 'serviceWorker'])->name('my-page.sw');
-Route::get('/my-page', [\App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');
-Route::get('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'loginForm'])->name('my-page.login');
-Route::post('/my-page/login', [\App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
-Route::get('/my-page/forgot-password', [\App\Http\Controllers\MyPageController::class, 'forgotForm'])->name('my-page.forgot');
-Route::post('/my-page/forgot-password', [\App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
-Route::get('/my-page/reset-password', [\App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
-Route::post('/my-page/reset-password', [\App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
-Route::post('/my-page/logout', [\App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
+Route::get('/my-page.webmanifest', [App\Http\Controllers\MyPageController::class, 'manifest'])->name('my-page.manifest');
+Route::get('/my-page-sw.js', [App\Http\Controllers\MyPageController::class, 'serviceWorker'])->name('my-page.sw');
+Route::get('/my-page', [App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');Route::get('/my-page/login', [App\Http\Controllers\MyPageController::class, 'loginForm'])->name('my-page.login');
+Route::post('/my-page/login', [App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
+Route::get('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'forgotForm'])->name('my-page.forgot');
+Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
+Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
+Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
+Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -258,7 +257,7 @@ Route::post('/login', function (Request $request) {
         })
         ->first();
 
-    if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+    if (!$user || !Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
         throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
 
@@ -281,7 +280,7 @@ Route::get('/modules', function () {
 
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
-    Route::prefix('push')->controller(\App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
+    Route::prefix('push')->controller(App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
         Route::get('/key', 'key')->name('key');
         Route::get('/diagnose', 'diagnose')->name('diagnose');
         Route::get('/status', 'status')->name('status');
@@ -2376,7 +2375,6 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('access:OTHERS,VIEW')
                 ->name('legal-new-agreement.others.show');
 
-
             // Creator-only (checked in the controller), so VIEW is enough here.
             Route::post('/psm-ola/documents/{eid}', 'updatePsmOlaDocuments')
                 ->middleware('access:PSMOLA,VIEW')
@@ -2775,13 +2773,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
-        Route::get('/data-hub', [\App\Http\Controllers\OmDashboardController::class, 'menu'])
+        Route::get('/data-hub', [App\Http\Controllers\OmDashboardController::class, 'menu'])
             ->name('datahub.index')
             ->middleware('access:DATAHUB,VIEW');
 
         Route::prefix('data-hub/om')
             ->middleware('access:DATAHUB,VIEW')
-            ->controller(\App\Http\Controllers\OmDashboardController::class)
+            ->controller(App\Http\Controllers\OmDashboardController::class)
             ->name('datahub.om.')
             ->group(function () {
                 Route::get('/{mall}', 'detail')->name('detail');
@@ -2800,7 +2798,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
-        Route::prefix('my-activity')->controller(\App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
+        Route::prefix('my-activity')->controller(App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
             Route::get('/documents', 'documents')->name('documents');
             Route::get('/messages', 'messages')->name('messages');
             Route::get('/files', 'files')->name('files');
