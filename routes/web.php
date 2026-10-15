@@ -126,6 +126,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\RecruitmentDashboardController;
 use App\Http\Controllers\ReportBastController;
+use App\Http\Controllers\ReportKontrakController;
 use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportFixedAssetController;
 use App\Http\Controllers\ReportGeneralGAController;
@@ -3605,6 +3606,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/operational', function () {
             return view('pages.report-operational.wo-detail');
         });
+    });
+
+    Route::prefix('report-kontrak')->middleware('access:KONTRAK,VIEW')->group(function () {
+        Route::get('/', [ReportKontrakController::class, 'index'])->name('reportkontrak');
+        Route::get('/json', [ReportKontrakController::class, 'json'])->name('report.kontrak.json');
+        Route::get('/export', [ReportKontrakController::class, 'export'])->name('report.kontrak.export');
     });
 
     Route::prefix('report-bast')->middleware('access:REPORTBAST,VIEW')->group(function () {
