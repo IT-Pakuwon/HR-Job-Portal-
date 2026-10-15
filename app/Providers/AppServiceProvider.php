@@ -71,8 +71,9 @@ class AppServiceProvider extends ServiceProvider
                 if (! Auth::check()) {
                     return $data;
                 }
-                $connected = \App\Models\MailboxAccount::where('username', Auth::user()->username)
-                    ->where('status', true)->exists();
+                $connected = strtoupper(trim((string) Auth::user()->group_cpny_id)) === 'JKT'
+                    && \App\Models\MailboxAccount::where('username', Auth::user()->username)
+                        ->where('status', true)->exists();
                 if ($connected) {
                     return $data;
                 }

@@ -2649,7 +2649,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
-        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware('access:MAILBOX,VIEW')->group(function () {
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware(['access:MAILBOX,VIEW', function ($request, $next) {
+            abort_unless(strtoupper(trim((string) optional($request->user())->group_cpny_id)) === 'JKT', 403);
+            return $next($request);
+        }])->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
             Route::post('/sync', 'sync')->name('sync')->middleware('access:MAILBOX,EDIT');
@@ -3001,8 +3004,12 @@ Route::middleware(['auth'])->group(function () {
         // Update Data User: align ms_user NPK/Name/origin company+dept with Talenta
         Route::get('/user-data-sync', [UserDataSyncController::class, 'index'])->name('user-data-sync');
         Route::get('/user-data-sync/talenta', [UserDataSyncController::class, 'talentaJson'])->name('user-data-sync.talenta');
-        Route::get('/user-data-sync/users', [UserDataSyncController::class, 'usersJson'])->name('user-data-sync.users');
         Route::get('/user-data-sync/options', [UserDataSyncController::class, 'options'])->name('user-data-sync.options');
+        Route::get('/user-data-sync/overview', [UserDataSyncController::class, 'overview'])->name('user-data-sync.overview');
+        Route::post('/user-data-sync/sync-bulk', [UserDataSyncController::class, 'syncBulk'])->name('user-data-sync.sync-bulk');
+        Route::post('/user-data-sync/deactivate-resigned', [UserDataSyncController::class, 'deactivateResigned'])->name('user-data-sync.deactivate-resigned');
+        Route::post('/user-data-sync/resolve-rehire', [UserDataSyncController::class, 'resolveRehire'])->name('user-data-sync.resolve-rehire');
+        Route::post('/user-data-sync/{id}/deactivate', [UserDataSyncController::class, 'deactivate'])->name('user-data-sync.deactivate');
         Route::put('/user-data-sync/{id}', [UserDataSyncController::class, 'update'])->name('user-data-sync.update');
 
         Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
