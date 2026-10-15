@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         // ...
+        'jkt.only' => \App\Http\Middleware\JktGroupOnlyMiddleware::class,
         'access' => \App\Http\Middleware\AccessRightMiddleware::class,
         'bearer.sanctum' => \App\Http\Middleware\BearerSanctum::class,
         'ajax' => \App\Http\Middleware\AjaxMiddleware::class,

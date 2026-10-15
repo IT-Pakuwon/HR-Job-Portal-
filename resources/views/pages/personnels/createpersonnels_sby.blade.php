@@ -242,7 +242,7 @@
                             <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
                                 <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Education &amp; Experience <span class="text-red-500">*</span>
                             </div>
-                            <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="prf-select2 mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                                 <div class="flex flex-col gap-2">
                                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Education <span class="text-red-500">*</span></label>
                                     <select name="education" id="education" required
@@ -257,6 +257,12 @@
                                         <option value="S1">S1</option>
                                         <option value="S2">S2</option>
                                         <option value="S3">S3</option>
+                                    </select>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Jurusan <span class="text-red-500">*</span></label>
+                                    <select name="education_jurusan[]" id="jurusan" multiple required
+                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-2">
@@ -905,6 +911,49 @@
                 placeholder: 'Select User',
                 width: '100%',
                 allowClear: true
+            });
+
+            // Education -> Jurusan (multiple), filtered by the chosen education
+            const jurusanMap = @json($jurusanMap ?? []);
+            const ALL_JURUSAN = 'Semua Jurusan';
+            const $education = $('#education');
+            const $jurusan = $('#jurusan');
+
+            $education.select2({
+                placeholder: 'Select Education',
+                width: '100%',
+                minimumResultsForSearch: Infinity
+            });
+            $jurusan.select2({
+                placeholder: 'Select Jurusan',
+                width: '100%',
+                closeOnSelect: false
+            });
+
+            // the dropdown is appended to <body>, so tag it for the .prf-select2-dropdown styles
+            $education.add($jurusan).on('select2:open', function() {
+                $('.select2-dropdown').last().addClass('prf-select2-dropdown');
+            });
+
+            function loadJurusan(education) {
+                $jurusan.empty();
+                (jurusanMap[education] || []).forEach(function(name) {
+                    $jurusan.append(new Option(name, name, false, false));
+                });
+                $jurusan.val(null).trigger('change');
+            }
+
+            $education.on('change', function() {
+                loadJurusan($(this).val());
+            });
+
+            // "Semua Jurusan" excludes the specific ones, and vice versa
+            $jurusan.on('select2:select', function(e) {
+                let values = $jurusan.val() || [];
+                values = e.params.data.id === ALL_JURUSAN ?
+                    [ALL_JURUSAN] :
+                    values.filter(function(v) { return v !== ALL_JURUSAN; });
+                $jurusan.val(values).trigger('change');
             });
         });
     </script>

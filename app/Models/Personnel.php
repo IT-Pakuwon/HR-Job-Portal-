@@ -59,5 +59,39 @@ class Personnel extends Model
         return $this->belongsTo(Division::class, 'division_id', 'division_id');
     }
 
+    /**
+     * Jurusan chosen on the PRF as a clean array (stored comma-separated).
+     */
+    public function educationJurusanList(): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', (string) $this->education_jurusan)), 'strlen'));
+    }
+
+    /**
+     * Wording for the jurusan part of the education requirement.
+     * Only SBY picks specific jurusan: "A", "A atau B", "A, B atau C".
+     * Everyone else (and "Semua Jurusan" / nothing picked) returns null.
+     */
+    public function specificJurusanText(string $or = 'atau'): ?string
+    {
+        if ($this->group_cpny_id !== 'SBY') {
+            return null;
+        }
+
+        $list = $this->educationJurusanList();
+
+        if (!$list || in_array('Semua Jurusan', $list, true)) {
+            return null;
+        }
+
+        if (count($list) === 1) {
+            return $list[0];
+        }
+
+        $last = array_pop($list);
+
+        return implode(', ', $list).' '.$or.' '.$last;
+    }
+
 
 }

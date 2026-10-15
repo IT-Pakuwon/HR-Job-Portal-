@@ -311,7 +311,7 @@
                                         {{-- Larger icon --}}
                                         <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-semibold">{{ $personnel->education }}</span> Educational
-                                            Background From All Major.</span>
+                                            Background From {{ $personnel->specificJurusanText() ?? 'All Major' }}.</span>
 
                                         {{-- Bolder value --}}
                                     </li>

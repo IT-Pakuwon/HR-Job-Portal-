@@ -126,6 +126,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\RecruitmentDashboardController;
 use App\Http\Controllers\ReportBastController;
+use App\Http\Controllers\ReportKontrakController;
 use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportFixedAssetController;
 use App\Http\Controllers\ReportGeneralGAController;
@@ -2649,16 +2650,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
-        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware(['access:MAILBOX,VIEW', 'jkt.only'])->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
-            Route::post('/sync', 'sync')->name('sync');
+            Route::post('/sync', 'sync')->name('sync')->middleware('access:MAILBOX,EDIT');
             Route::post('/load-more', 'loadMore')->name('load-more');
-            Route::post('/send', 'send')->name('send');
-            Route::post('/save-draft', 'saveDraft')->name('save-draft');
+            Route::post('/send', 'send')->name('send')->middleware('access:MAILBOX,CREATE');
+            Route::post('/save-draft', 'saveDraft')->name('save-draft')->middleware('access:MAILBOX,CREATE');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
-            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
-            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
+            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save')->middleware('access:MAILBOX,EDIT');
+            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect')->middleware('access:MAILBOX,EDIT');
             // Landing spot for the header "Connect your Email" prompt — same page as
             // index() but auto-opens the settings modal. Must stay above the {folder?}
             // catch-all below or "settings" would be swallowed as a folder name.
@@ -2666,10 +2667,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
-            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
-            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
-            Route::post('/folders', 'createFolder')->name('folders.create');
-            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
+            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive')->middleware('access:MAILBOX,EDIT');
+            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy')->middleware('access:MAILBOX,DELETE');
+            Route::post('/folders', 'createFolder')->name('folders.create')->middleware('access:MAILBOX,CREATE');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete')->middleware('access:MAILBOX,DELETE');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the
@@ -3001,8 +3002,12 @@ Route::middleware(['auth'])->group(function () {
         // Update Data User: align ms_user NPK/Name/origin company+dept with Talenta
         Route::get('/user-data-sync', [UserDataSyncController::class, 'index'])->name('user-data-sync');
         Route::get('/user-data-sync/talenta', [UserDataSyncController::class, 'talentaJson'])->name('user-data-sync.talenta');
-        Route::get('/user-data-sync/users', [UserDataSyncController::class, 'usersJson'])->name('user-data-sync.users');
         Route::get('/user-data-sync/options', [UserDataSyncController::class, 'options'])->name('user-data-sync.options');
+        Route::get('/user-data-sync/overview', [UserDataSyncController::class, 'overview'])->name('user-data-sync.overview');
+        Route::post('/user-data-sync/sync-bulk', [UserDataSyncController::class, 'syncBulk'])->name('user-data-sync.sync-bulk');
+        Route::post('/user-data-sync/deactivate-resigned', [UserDataSyncController::class, 'deactivateResigned'])->name('user-data-sync.deactivate-resigned');
+        Route::post('/user-data-sync/resolve-rehire', [UserDataSyncController::class, 'resolveRehire'])->name('user-data-sync.resolve-rehire');
+        Route::post('/user-data-sync/{id}/deactivate', [UserDataSyncController::class, 'deactivate'])->name('user-data-sync.deactivate');
         Route::put('/user-data-sync/{id}', [UserDataSyncController::class, 'update'])->name('user-data-sync.update');
 
         Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
@@ -3601,6 +3606,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/operational', function () {
             return view('pages.report-operational.wo-detail');
         });
+    });
+
+    Route::prefix('report-kontrak')->middleware('access:KONTRAK,VIEW')->group(function () {
+        Route::get('/', [ReportKontrakController::class, 'index'])->name('reportkontrak');
+        Route::get('/json', [ReportKontrakController::class, 'json'])->name('report.kontrak.json');
+        Route::get('/export', [ReportKontrakController::class, 'export'])->name('report.kontrak.export');
     });
 
     Route::prefix('report-bast')->middleware('access:REPORTBAST,VIEW')->group(function () {
