@@ -51,6 +51,11 @@ class MyPageController extends Controller
         return [null, null];
     }
 
+    private function isJkt(User $user): bool
+    {
+        return strtoupper(trim((string) $user->group_cpny_id)) === 'JKT';
+    }
+
     // Single-use marker: changes as soon as the password changes, which kills any reset link already sent.
     private function resetStamp(User $user): string
     {
@@ -74,6 +79,10 @@ class MyPageController extends Controller
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
+        }
+
+        if (!$this->isJkt($user)) {
+            throw ValidationException::withMessages(['login' => ['My APP is only available for the JKT group company.']]);
         }
 
         Auth::login($user, $request->boolean('remember'));
@@ -153,6 +162,11 @@ class MyPageController extends Controller
         }
 
         $user = Auth::user();
+
+        // My APP is limited to the JKT group company.
+        if (!$this->isJkt($user)) {
+            abort(403, 'My APP is only available for the JKT group company.');
+        }
 
         return view('pages.my-page.index', [
             'doctypes' => Autonbr::query()
