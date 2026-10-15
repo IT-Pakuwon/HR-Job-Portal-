@@ -11,6 +11,7 @@ use App\Models\Division;
 use App\Models\GroupAccspecific;
 use App\Models\HrCompanyBudget;
 use App\Models\JobLevel;
+use App\Models\Jurusan;
 use App\Models\Jobposting;
 use App\Models\JobpostingQualification;
 use App\Models\JobpostingResponsiblities;
@@ -562,7 +563,41 @@ class PersonnelController extends Controller
             ? 'pages.personnels.createpersonnels_sby'
             : 'pages.personnels.createpersonnels';
 
-        return view($view, compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison', 'activeUsers', 'companyBudgets'));
+        $jurusanMap = $this->jurusanMap($groupCompanyId);
+
+        return view($view, compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison', 'activeUsers', 'companyBudgets', 'jurusanMap'));
+    }
+
+    /**
+     * Active jurusan options grouped by education level (hr_ms_jurusan).
+     */
+    private function jurusanMap(string $groupCompanyId): array
+    {
+        return Jurusan::query()
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('status', '1')
+            ->orderBy('id')
+            ->get(['education', 'education_jurusan'])
+            ->groupBy('education')
+            ->map(fn ($rows) => $rows->pluck('education_jurusan')->values()->all())
+            ->all();
+    }
+
+    /**
+     * education_jurusan may arrive as an array (multi-select) or a plain string.
+     * Stored as a comma-separated string so existing displays keep working.
+     */
+    private function jurusanToString(Request $request): ?string
+    {
+        $value = $request->input('education_jurusan');
+
+        if (is_array($value)) {
+            $value = array_values(array_unique(array_filter(array_map('trim', $value), 'strlen')));
+
+            return $value ? implode(', ', $value) : null;
+        }
+
+        return $value;
     }
 
 
@@ -613,6 +648,8 @@ class PersonnelController extends Controller
                 'qualification' => 'required|array|min:1',
                 'qualification.*' => 'required|string',
                 'education' => 'required|string',
+                'education_jurusan' => $groupCompanyId === 'SBY' ? 'required|array|min:1' : 'nullable',
+                'education_jurusan.*' => 'string',
                 'experience_start' => 'required|integer|min:0',
                 'experience_end' => 'required|integer|min:0|gte:experience_start',
             ];
@@ -760,7 +797,7 @@ class PersonnelController extends Controller
                 'actual' => $request->actual ?? 0,
                 'total_actual' => $request->total_actual ?? 0,
                 'education' => $request->education,
-                'education_jurusan' => $request->education_jurusan,
+                'education_jurusan' => $this->jurusanToString($request),
                 'experience_start' => $request->experience_start,
                 'experience_end' => $request->experience_end,
                 'experience_position' => $request->experience_position,
@@ -1334,6 +1371,7 @@ class PersonnelController extends Controller
             'activeUsers' => $activeUsers,
             'companyBudgets' => $companyBudgets,
             'isSby' => $isSby,
+            'jurusanMap' => $isSby ? $this->jurusanMap($groupCompanyId) : [],
             'hash' => $hash,
         ]);
     }
@@ -1403,6 +1441,8 @@ class PersonnelController extends Controller
                 'qualification' => 'required|array|min:1',
                 'qualification.*' => 'required|string',
                 'education' => 'required|string',
+                'education_jurusan' => $groupCompanyId === 'SBY' ? 'required|array|min:1' : 'nullable',
+                'education_jurusan.*' => 'string',
                 'experience_start' => 'required|integer|min:0',
                 'experience_end' => 'required|integer|min:0|gte:experience_start',
             ];
@@ -1493,6 +1533,9 @@ class PersonnelController extends Controller
                 'actual' => $request->actual ?? 0,
                 'total_actual' => $request->total_actual ?? 0,
                 'education' => $request->education,
+                'education_jurusan' => $request->has('education_jurusan')
+                    ? $this->jurusanToString($request)
+                    : $personnel->education_jurusan,
                 'experience_start' => $request->experience_start,
                 'experience_end' => $request->experience_end,
                 // 'created_user' => $user->username,
@@ -2552,8 +2595,8 @@ class PersonnelController extends Controller
             // Education
             $eduParts = array_filter([
                 $personnel->education ?? null,
-                // $personnel->education_jurusan ?? null,
-                'Semua Jurusan',
+                // SBY: chosen jurusan ("Teknik Industri atau Teknik Sipil"); everyone else: Semua Jurusan
+                $personnel->specificJurusanText() ?? 'Semua Jurusan',
             ], fn ($v) => filled($v));
 
             if (count($eduParts)) {
