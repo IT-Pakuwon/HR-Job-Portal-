@@ -2649,10 +2649,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
-        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware(['access:MAILBOX,VIEW', function ($request, $next) {
-            abort_unless(strtoupper(trim((string) optional($request->user())->group_cpny_id)) === 'JKT', 403);
-            return $next($request);
-        }])->group(function () {
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware(['access:MAILBOX,VIEW', 'jkt.only'])->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
             Route::post('/sync', 'sync')->name('sync')->middleware('access:MAILBOX,EDIT');
