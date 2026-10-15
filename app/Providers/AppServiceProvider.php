@@ -64,7 +64,25 @@ class AppServiceProvider extends ServiceProvider
                 ? 'sidebar-menu:' . Auth::user()->username
                 : null;
 
+            // The Mailbox sidebar entry only makes sense once the user has connected
+            // their mailbox (via the header bell prompt). Applied outside the per-user
+            // menu cache so connecting shows it immediately, not up to a minute later.
+            $hideMailboxUnlessConnected = function (array $data) {
+                if (! Auth::check()) {
+                    return $data;
+                }
+                $connected = \App\Models\MailboxAccount::where('username', Auth::user()->username)
+                    ->where('status', true)->exists();
+                if ($connected) {
+                    return $data;
+                }
+                $data['rootMenus'] = $data['rootMenus']->reject(fn ($m) => $m->menu_id === 'MAILBOX')->values();
+                $data['allowedMenuIds'] = collect($data['allowedMenuIds'])->reject(fn ($id) => $id === 'MAILBOX')->values();
+                return $data;
+            };
+
             if ($menuCacheKey && ($cached = Cache::get($menuCacheKey)) !== null) {
+                $cached = $hideMailboxUnlessConnected($cached);
                 $view->with('rootMenus', $cached['rootMenus']);
                 $view->with('allowedMenuIds', $cached['allowedMenuIds']);
                 $view->with('favouriteKeys', $cached['favouriteKeys']);
@@ -141,9 +159,11 @@ class AppServiceProvider extends ServiceProvider
                 Cache::put($menuCacheKey, $cached, now()->addMinute());
             }
 
-            $view->with('rootMenus', $rootMenus);
-            $view->with('allowedMenuIds', $allAllowedMenuIds);
-            $view->with('favouriteKeys', $favouriteKeys);
+            $cached = $hideMailboxUnlessConnected($cached);
+
+            $view->with('rootMenus', $cached['rootMenus']);
+            $view->with('allowedMenuIds', $cached['allowedMenuIds']);
+            $view->with('favouriteKeys', $cached['favouriteKeys']);
         });
     }
 

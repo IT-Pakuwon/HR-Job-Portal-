@@ -2744,16 +2744,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
-        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware('access:MAILBOX,VIEW')->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
-            Route::post('/sync', 'sync')->name('sync');
+            Route::post('/sync', 'sync')->name('sync')->middleware('access:MAILBOX,EDIT');
             Route::post('/load-more', 'loadMore')->name('load-more');
-            Route::post('/send', 'send')->name('send');
-            Route::post('/save-draft', 'saveDraft')->name('save-draft');
+            Route::post('/send', 'send')->name('send')->middleware('access:MAILBOX,CREATE');
+            Route::post('/save-draft', 'saveDraft')->name('save-draft')->middleware('access:MAILBOX,CREATE');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
-            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
-            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
+            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save')->middleware('access:MAILBOX,EDIT');
+            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect')->middleware('access:MAILBOX,EDIT');
             // Landing spot for the header "Connect your Email" prompt — same page as
             // index() but auto-opens the settings modal. Must stay above the {folder?}
             // catch-all below or "settings" would be swallowed as a folder name.
@@ -2761,10 +2761,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
-            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
-            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
-            Route::post('/folders', 'createFolder')->name('folders.create');
-            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
+            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive')->middleware('access:MAILBOX,EDIT');
+            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy')->middleware('access:MAILBOX,DELETE');
+            Route::post('/folders', 'createFolder')->name('folders.create')->middleware('access:MAILBOX,CREATE');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete')->middleware('access:MAILBOX,DELETE');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the
