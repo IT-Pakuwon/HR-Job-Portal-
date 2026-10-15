@@ -2,30 +2,27 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
-use Laravel\Sanctum\Sanctum;
 use App\Models\PersonalAccessTokenPgsql2;
-
 use App\Models\SysMenu;
-use App\Models\SysUserRole;
-use App\Models\SysRoleMenu;
 use App\Models\SysMenuFavourite;
+use App\Models\SysRoleMenu;
+use App\Models\SysUserRole;
 use App\Models\TrLndTrainingRegistration;
 use App\Observers\TrLndTrainingRegistrationObserver;
-
+use Carbon\Carbon;
 use Cmixin\BusinessDay;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
     }
 
     public function boot(): void
@@ -57,27 +54,30 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('rootMenus', $cached['rootMenus']);
                 $view->with('allowedMenuIds', $cached['allowedMenuIds']);
                 $view->with('favouriteKeys', $cached['favouriteKeys']);
+
                 return;
             }
 
             $menuCacheKey = Auth::check()
-                ? 'sidebar-menu:' . Auth::user()->username
+                ? 'sidebar-menu:'.Auth::user()->username
                 : null;
 
             // The Mailbox sidebar entry only makes sense once the user has connected
             // their mailbox (via the header bell prompt). Applied outside the per-user
             // menu cache so connecting shows it immediately, not up to a minute later.
             $hideMailboxUnlessConnected = function (array $data) {
-                if (! Auth::check()) {
+                if (!Auth::check()) {
                     return $data;
                 }
-                $connected = \App\Models\MailboxAccount::where('username', Auth::user()->username)
-                    ->where('status', true)->exists();
+                $connected = strtoupper(trim((string) Auth::user()->group_cpny_id)) === 'JKT'
+                    && \App\Models\MailboxAccount::where('username', Auth::user()->username)
+                        ->where('status', true)->exists();
                 if ($connected) {
                     return $data;
                 }
                 $data['rootMenus'] = $data['rootMenus']->reject(fn ($m) => $m->menu_id === 'MAILBOX')->values();
                 $data['allowedMenuIds'] = collect($data['allowedMenuIds'])->reject(fn ($id) => $id === 'MAILBOX')->values();
+
                 return $data;
             };
 
@@ -86,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('rootMenus', $cached['rootMenus']);
                 $view->with('allowedMenuIds', $cached['allowedMenuIds']);
                 $view->with('favouriteKeys', $cached['favouriteKeys']);
+
                 return;
             }
 
@@ -96,9 +97,9 @@ class AppServiceProvider extends ServiceProvider
             $schema = Schema::connection('pgsql2');
 
             if (
-                $schema->hasTable('sys_menu') &&
-                $schema->hasTable('sys_user_role') &&
-                $schema->hasTable('sys_role_menu')
+                $schema->hasTable('sys_menu')
+                && $schema->hasTable('sys_user_role')
+                && $schema->hasTable('sys_role_menu')
             ) {
                 if (Auth::check()) {
                     $username = Auth::user()->username;
@@ -143,7 +144,7 @@ class AppServiceProvider extends ServiceProvider
                     if ($schema->hasTable('sys_menu_favourite')) {
                         $favouriteKeys = SysMenuFavourite::where('username', $username)
                             ->get(['screen_id', 'application_id'])
-                            ->map(fn ($f) => $f->screen_id . '|' . $f->application_id)
+                            ->map(fn ($f) => $f->screen_id.'|'.$f->application_id)
                             ->all();
                     }
                 }
@@ -172,6 +173,7 @@ class AppServiceProvider extends ServiceProvider
         $secretKey = config('recaptcha.api_secret_key');
         $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$recaptchaResponse");
         $responseKeys = json_decode($response, true);
+
         return $responseKeys['success'] ?? false;
     }
 }
