@@ -1004,6 +1004,19 @@ class JobapplicantController extends Controller
 
         $groupCompanyId = strtoupper(trim((string) $authUser->group_cpny_id));
 
+        // Same authority as approve/rollback on an apply (STEP access), or the recruiter
+        // all-department role — remap silently restarts the whole workflow, so not everyone
+        // who can open the page should be able to do it.
+        $canRemap = \App\Models\GroupAccspecific::where('username', $authUser->username)
+                ->where('group_access_id', 'STEP')
+                ->where('status', 'A')
+                ->exists()
+            || $this->hasRole($authUser, 'RECACCALLDEPT');
+
+        if (!$canRemap) {
+            return response()->json(['error' => 'You are not allowed to remap applicants.'], 403);
+        }
+
         $decoded = Hashids::decode($request->apply_id);
         $id = $decoded[0] ?? null;
 
@@ -1026,6 +1039,12 @@ class JobapplicantController extends Controller
             return response()->json(['error' => 'Apply record not found'], 404);
         }
 
+        // Only a live apply can be moved: 'T' was already remapped, 'X' is cancelled and
+        // 'C' is completed (joined) — remapping any of those would fork or corrupt the record.
+        if (in_array($apply->status, ['T', 'X', 'C'], true)) {
+            return response()->json(['error' => 'This applicant\'s current status does not allow remapping.'], 422);
+        }
+
         $newJobposting = DB::connection('mysql3')
             ->table('hr_trx_jobposting')
             ->where('docid', $request->new_jobid)
@@ -1034,6 +1053,23 @@ class JobapplicantController extends Controller
 
         if (!$newJobposting) {
             return response()->json(['error' => 'Job posting not found'], 404);
+        }
+
+        if ($newJobposting->docid === $apply->jobid) {
+            return response()->json(['error' => 'The applicant is already mapped to this position.'], 422);
+        }
+
+        // Steps, assessments, etc. are keyed by docid + jobid, so a second apply row for a job
+        // this applicant already had (e.g. A -> B -> A) would collide with the first one.
+        $alreadyHadJob = DB::connection('mysql3')
+            ->table('hr_trx_job_apply')
+            ->where('docid', $apply->docid)
+            ->where('jobid', $newJobposting->docid)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->exists();
+
+        if ($alreadyHadJob) {
+            return response()->json(['error' => 'The applicant already has (or had) an apply for that position.'], 422);
         }
 
         $user = $authUser->username ?? 'system';
@@ -1069,7 +1105,7 @@ class JobapplicantController extends Controller
                 'group_cpny_id' => $groupCompanyId,
                 'jobid' => $request->new_jobid,
                 'applicant_id' => $apply->applicant_id,
-                'apply_date' => now(),
+                'apply_date' => $apply->apply_date ?: now(),
                 'apply_step' => 'JOAPHC',
                 'prev_apply_step' => 'JOAPHC',
                 'is_read' => 'N',
@@ -1107,6 +1143,14 @@ class JobapplicantController extends Controller
             }
 
             DB::connection('mysql3')->commit();
+
+            \Log::info('Applicant remapped', [
+                'docid' => $apply->docid,
+                'from_jobid' => $apply->jobid,
+                'from_apply_status' => $apply->status,
+                'to_jobid' => $request->new_jobid,
+                'by' => $user,
+            ]);
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
