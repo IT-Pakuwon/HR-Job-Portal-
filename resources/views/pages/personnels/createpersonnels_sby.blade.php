@@ -821,8 +821,11 @@
                         dataType: 'json',
                         success: function(data) {
                             // Isi experience dan education
-                            $('#experience_start').val(data.experience_min || '').prop(
-                                'readonly', true);
+                            // lock only when the job spec really has a value, otherwise let the user type (0 is valid)
+                            const hasExpMin = data.experience_min !== null && data.experience_min !== undefined &&
+                                String(data.experience_min).trim() !== '';
+                            $('#experience_start').val(hasExpMin ? data.experience_min : '').prop(
+                                'readonly', hasExpMin);
                             $('#experience_position').val(data.experience_position || '').prop(
                                 'readonly', true);
                             $('#education_min').val(data.education_min || '').prop('readonly',
@@ -857,7 +860,7 @@
                         error: function() {
                             $('#immediate_superior').val('').trigger('change');
                             $('#state_position').val('');
-                            $('#experience_start').val('');
+                            $('#experience_start').val('').prop('readonly', false);
                             $('#experience_position').val('');
                             $('#education_min').val('');
                             $('#education_jurusan').val('');
