@@ -1682,17 +1682,19 @@ class CareerController extends Controller
 
         $applicant = Applicant::where('applicant_id', $career->applicant_id)->where('group_cpny_id', $career->group_cpny_id)->first();
 
+        if (!$applicant || empty($applicant->email_address)) {
+            return response()->json(['error' => 'Applicant email not found.'], 404);
+        }
+
         $jobapply = JobApply::where('docid', $career->docid)
             ->where('applicant_id', $applicant->applicant_id)
             ->where('jobid', $career->jobid)
             ->where('group_cpny_id', $career->group_cpny_id)
             ->first();
 
-        $jobapply->status = 'P';
-        $jobapply->save();
-
-        if (!$applicant || empty($applicant->email_address)) {
-            return response()->json(['error' => 'Applicant email not found.'], 404);
+        if ($jobapply) {
+            $jobapply->status = 'P';
+            $jobapply->save();
         }
 
         $is_remapped = DB::connection('mysql3')
@@ -2778,23 +2780,40 @@ class CareerController extends Controller
                 throw new \Exception('No approval configuration found for this job posting.');
             }
 
-            // Insert approval transaksi untuk docid career
-            TrApproval::create([
-                'refnbr' => $career->docid,
-                'aprv_leveling' => 1,
-                'aprv_doctype' => 'JAP',
+            // Insert approval transaksi untuk docid career. TrApproval is keyed by docid only,
+            // so after a remap (step 1 approved again for the new job) the level-1 row already
+            // exists — reset that one instead of adding a second row, otherwise
+            // update_trx_approval() keeps approving the old row and the new one stays pending.
+            $approvalData = [
                 'aprv_cpnyid' => $approvals->aprv_cpnyid,
                 'aprv_departementid' => $approvals->aprv_departementid,
                 'aprv_username' => $approvals->aprv_username,
                 'aprv_name' => $approvals->aprv_name,
                 'aprv_datebefore' => $datestamp,
+                'aprv_dateafter' => null,
                 'aprv_type' => $approvals->aprv_type ?? null,
                 'aprv_condition' => $approvals->aprv_condition ?? null,
                 'aprv_start_nominal' => $approvals->aprv_start_nominal ?? null,
                 'aprv_end_nominal' => $approvals->aprv_end_nominal ?? null,
                 'status' => 'P',
-                'created_by' => $user->username,
-            ]);
+            ];
+
+            $existingLevel1 = TrApproval::where('refnbr', $career->docid)
+                ->where('aprv_leveling', 1)
+                ->where('aprv_doctype', 'JAP')
+                ->orderBy('id')
+                ->first();
+
+            if ($existingLevel1) {
+                $existingLevel1->update($approvalData + ['updated_by' => $user->username]);
+            } else {
+                TrApproval::create($approvalData + [
+                    'refnbr' => $career->docid,
+                    'aprv_leveling' => 1,
+                    'aprv_doctype' => 'JAP',
+                    'created_by' => $user->username,
+                ]);
+            }
 
             // Kirim email ke approver pertama
             $firstApproval = TrApproval::where('refnbr', $career->docid)

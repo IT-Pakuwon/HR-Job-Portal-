@@ -164,8 +164,12 @@ class AgendaController extends Controller
             }
         }
 
+        // After a remap the same docid has an old (T) apply row too, with an older id — the
+        // schedule must be matched against the active row or every step looks "resolved".
         $guardJobApply = JobApply::where('docid', $request->refid)
             ->where('group_cpny_id', $guardGroupCompanyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->orderByDesc('id')
             ->first();
 
         if ($guardJobApply) {
@@ -297,6 +301,8 @@ class AgendaController extends Controller
             $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
             $jobapply = JobApply::where('docid', $agenda->refid)
                 ->where('group_cpny_id', $groupCompanyId)
+                ->whereNotIn('status', ['T', 'X'])
+                ->orderByDesc('id')
                 ->firstOrFail();
 
             // Only the "Create Schedule" checkpoint step is auto-approved by creating the
@@ -350,7 +356,10 @@ class AgendaController extends Controller
                     ]);
 
                 // Update apply_step & prev_apply_step di Career, sama seperti di approveCareer()
-                $career = Career::where('docid', $jobapply->docid)->first();
+                $career = Career::where('docid', $jobapply->docid)
+                    ->where('jobid', $jobapply->jobid)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->first();
 
                 if ($career) {
                     $lastApprovedStep = $stepsToApprove->last();
@@ -828,8 +837,13 @@ class AgendaController extends Controller
 
             // $agenda->refid is a JAP docid, only unique WITHIN a group_cpny_id — pair with
             // $agenda->group_cpny_id or this can pull another group's job apply.
-            $jobapply = JobApply::where('docid', $agenda->refid)->where('group_cpny_id', $agenda->group_cpny_id)->first();
+            $jobapply = JobApply::where('docid', $agenda->refid)
+                ->where('group_cpny_id', $agenda->group_cpny_id)
+                ->whereNotIn('status', ['T', 'X'])
+                ->orderByDesc('id')
+                ->first();
             $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
+                ->where('jobid', $jobapply->jobid)
                 ->where('group_cpny_id', $agenda->group_cpny_id)
                 ->where('status','A')
                 ->orderby('step_order','DESC')
@@ -1107,6 +1121,11 @@ class AgendaController extends Controller
         // paired with $agenda->group_cpny_id or this can pull another group's step.
         $jobstep = JobApplyStep::where('docid', $agenda->refid)
             ->where('group_cpny_id', $agenda->group_cpny_id)
+            ->where('status', '!=', 'X')
+            ->orderByDesc('id')
+            ->first() ?? JobApplyStep::where('docid', $agenda->refid)
+            ->where('group_cpny_id', $agenda->group_cpny_id)
+            ->orderByDesc('id')
             ->first();
 
         $applicant = Applicant::where('applicant_id', $jobstep->applicant_id)->where('group_cpny_id', $agenda->group_cpny_id)->first();
