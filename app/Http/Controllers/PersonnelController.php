@@ -651,7 +651,15 @@ class PersonnelController extends Controller
                 'education_jurusan' => $groupCompanyId === 'SBY' ? 'required|array|min:1' : 'nullable',
                 'education_jurusan.*' => 'string',
                 'experience_start' => 'required|integer|min:0',
-                'experience_end' => 'required|integer|min:0|gte:experience_start',
+                'experience_end' => [
+                    'required', 'integer', 'min:0',
+                    // 0 = no upper limit (e.g. start 3, end 0 => minimum 3 years)
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ((int) $value !== 0 && (int) $value < (int) $request->experience_start) {
+                            $fail('Experience End harus 0 (tanpa batas) atau tidak lebih kecil dari Experience Start.');
+                        }
+                    },
+                ],
             ];
         }
 
@@ -1444,7 +1452,15 @@ class PersonnelController extends Controller
                 'education_jurusan' => $groupCompanyId === 'SBY' ? 'required|array|min:1' : 'nullable',
                 'education_jurusan.*' => 'string',
                 'experience_start' => 'required|integer|min:0',
-                'experience_end' => 'required|integer|min:0|gte:experience_start',
+                'experience_end' => [
+                    'required', 'integer', 'min:0',
+                    // 0 = no upper limit (e.g. start 3, end 0 => minimum 3 years)
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ((int) $value !== 0 && (int) $value < (int) $request->experience_start) {
+                            $fail('Experience End harus 0 (tanpa batas) atau tidak lebih kecil dari Experience Start.');
+                        }
+                    },
+                ],
             ];
         }
 
@@ -2617,14 +2633,7 @@ class PersonnelController extends Controller
             // $role  = $personnel->experience_position ?? null;
             $role = $personnel->job_title ?? null;
 
-            $desc = null;
-            if (filled($start) && filled($role)) {
-                $desc = "Memiliki Pengalaman {$start} tahun sebagai {$role}";
-            } elseif (filled($start)) {
-                $desc = "Memiliki Pengalaman {$start} tahun";
-            } elseif (filled($role)) {
-                $desc = "Memiliki Pengalaman sebagai {$role}";
-            }
+            $desc = Personnel::experienceWording($start, $personnel->experience_end, $role, 'id');
 
             if ($desc) {
                 JobpostingQualification::create([
