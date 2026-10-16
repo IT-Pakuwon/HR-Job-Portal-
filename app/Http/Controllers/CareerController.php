@@ -204,6 +204,7 @@ class CareerController extends Controller
             })
             ->select('hr_trx_doc_checklist.*', 'hr_ms_doc_checklist.checklist_descr')
             ->where('hr_trx_doc_checklist.jobapply_id', $career->docid)
+            ->where('hr_trx_doc_checklist.jobid', $career->docidposting)
             ->where('hr_trx_doc_checklist.group_cpny_id', $career->group_cpny_id)
             ->orderBy('hr_trx_doc_checklist.step_order', 'ASC')
             ->get();
@@ -218,6 +219,7 @@ class CareerController extends Controller
         // ========== HC ASSESSMENT ==========
         $assessmentGroups = [];
         $tr_assessment = TrAssessment::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->docidposting)
             ->where('group_cpny_id', $career->group_cpny_id)
             ->where('type', 'hc')
             ->first();
@@ -261,6 +263,7 @@ class CareerController extends Controller
         // ========== USER ASSESSMENT ==========
         $assessmentGroupsUser = [];
         $tr_assessment_user = TrAssessment::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->docidposting)
             ->where('group_cpny_id', $career->group_cpny_id)
             ->where('type', 'user')
             ->first();
@@ -306,6 +309,7 @@ class CareerController extends Controller
         // same candidate, and HC vs User results are kept fully separate (assessment_type),
         // so an update made from the User tab never surfaces on the HC tab or vice versa.
         $tr_assessment_results = TrAssessmentResult::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->docidposting)
             ->where('group_cpny_id', $career->group_cpny_id)
             ->orderBy('created_at')
             ->get();
@@ -384,11 +388,11 @@ class CareerController extends Controller
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
         $typestep = MJobApplyStep::where('schedule', 1)->where('group_cpny_id', $career->group_cpny_id)->where('status', 'A')->get();
-        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->get();
+        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->where('jobid', $career->docidposting)->where('group_cpny_id', $career->group_cpny_id)->get();
 
         $sign = SignPayroll::where('docid', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->orderby('aprvid', 'ASC')->get();
 
-        $onboarding = Tronboarding::where('jobapply_id', $career->docid)->where('group_cpny_id', $career->group_cpny_id)->first();
+        $onboarding = Tronboarding::where('jobapply_id', $career->docid)->where('jobid', $career->docidposting)->where('group_cpny_id', $career->group_cpny_id)->first();
         // dd($career->subgrade_id);
         $canAccessPayroll = GroupAccspecific::where('username', $user->username)
             ->where('group_access_id', 'PAYROLL')
@@ -478,7 +482,13 @@ class CareerController extends Controller
                 ->first();
         }
 
+        // Agenda is keyed by apply docid, which survives a remap. Anything created before
+        // this (remapped) apply row existed belongs to the previous position, and its step
+        // approvals stayed on the old steps — so the schedule must be created again.
+        $remapCutoff = $remapped_from && $job_apply ? $job_apply->created_at : null;
+
         return view('pages.careers.showcareers', compact(
+            'remapCutoff',
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
             'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
@@ -490,6 +500,34 @@ class CareerController extends Controller
             'canAccessChecklist', 'canAccessInterviewUser', 'canAccessInterviewHC', 'canAccessPayroll', 'canAccessJoin',
             'remapped_from', 'remapped_to', 'isSby', 'hcTrackActive', 'applicant_additional', 'applicant_organization'
         ));
+    }
+
+    /**
+     * jobid of the apply row currently in play for this docid. A remap leaves the old row
+     * behind as 'T', so lookups keyed by docid alone must be pinned to the active job.
+     */
+    private function activeApplyJobid($docid, $groupCpnyId)
+    {
+        return Career::where('docid', $docid)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->orderByDesc('id')
+            ->value('jobid');
+    }
+
+    /**
+     * Payroll rows are looked up by applicant_id, which survives a remap — so without this a
+     * remapped candidate's old-job payroll would be picked up (oldest row wins). When the
+     * request carries the apply docid, pin the query to that apply's active job.
+     */
+    private function pinPayrollToActiveJob($query, $jobapplyId, $groupCpnyId)
+    {
+        if (!empty($jobapplyId)) {
+            $query->where('jobapply_id', $jobapplyId)
+                ->where('jobid', $this->activeApplyJobid($jobapplyId, $groupCpnyId));
+        }
+
+        return $query;
     }
 
     public function updateAssessment(Request $request)
@@ -505,6 +543,7 @@ class CareerController extends Controller
 
         // Update header (TrAssessment)
         $assessment = TrAssessment::where('jobapply_id', $docid)
+            ->where('jobid', $this->activeApplyJobid($docid, $groupCpnyId))
             ->where('group_cpny_id', $groupCpnyId)
             ->where('type', 'hc')
             ->first();
@@ -557,6 +596,7 @@ class CareerController extends Controller
 
         // Update header (TrAssessment)
         $assessment = TrAssessment::where('jobapply_id', $docid)
+            ->where('jobid', $this->activeApplyJobid($docid, $groupCpnyId))
             ->where('group_cpny_id', $groupCpnyId)
             ->where('type', 'user')
             ->first();
@@ -605,7 +645,12 @@ class CareerController extends Controller
         // logged-in user's own group — not a client-supplied value.
         $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
 
-        $career = Career::where('docid', $request->jobapply_id)->where('group_cpny_id', $groupCpnyId)->first();
+        // After a remap the same docid has an old (T) apply row too — the result must go to
+        // the active one so the previous job's assessment stays untouched.
+        $career = Career::where('docid', $request->jobapply_id)
+            ->where('group_cpny_id', $groupCpnyId)
+            ->whereNotIn('status', ['T', 'X'])
+            ->first();
 
         if (!$career) {
             return response()->json(['error' => true, 'message' => 'Data career tidak ditemukan.'], 404);
@@ -621,6 +666,7 @@ class CareerController extends Controller
         // fully separate between the HC and User tabs (assessment_type) — one user can have
         // both an 'hc' row and a 'user' row, and neither is shared across the two tabs.
         $result = TrAssessmentResult::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->jobid)
             ->where('group_cpny_id', $groupCpnyId)
             ->where('created_user', $user->username)
             ->where('assessment_type', $assessmentType)
@@ -1918,7 +1964,11 @@ class CareerController extends Controller
         // applicant_id is only unique WITHIN a group_cpny_id (SBY/JKT sequences can collide),
         // so pin it via the company's own group instead of matching applicant_id alone.
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
-        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
+        $payrollconfirm = $this->pinPayrollToActiveJob(
+            Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null),
+            $request->jobapply_id,
+            $company->group_cpny_id ?? null
+        )->first();
         $dept = MsDepartment::where('department_id', $request->departementid)->first();
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid', 'ASC')
@@ -1973,7 +2023,11 @@ class CareerController extends Controller
             ->where('group_cpny_id', $company->group_cpny_id ?? null)
             ->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
-        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null)->first();
+        $payrollconfirm = $this->pinPayrollToActiveJob(
+            Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $company->group_cpny_id ?? null),
+            $request->jobapply_id,
+            $company->group_cpny_id ?? null
+        )->first();
 
         // $net_salary = $payrollconfirm->net_salary ?? 0;
         // $salary_words = terbilang($net_salary) . ' rupiah';
@@ -2379,9 +2433,11 @@ class CareerController extends Controller
         // so it must be paired with the acting user's own group or this can silently update
         // another company's payroll record.
         $groupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
-        $payroll = Payrollconfirm::where('applicant_id', $request->applicant_id)
-            ->where('group_cpny_id', $groupCpnyId)
-            ->firstOrFail();
+        $payroll = $this->pinPayrollToActiveJob(
+            Payrollconfirm::where('applicant_id', $request->applicant_id)->where('group_cpny_id', $groupCpnyId),
+            $request->jobapply_id,
+            $groupCpnyId
+        )->firstOrFail();
 
         $payroll->tax_liability = $request->tax_liability;
         $payroll->npwp_id = $request->npwp_id;
@@ -2981,12 +3037,12 @@ class CareerController extends Controller
             $username = $user ? $user->username : 'system';
 
             // Ambil payroll berdasar applicant_id, dan tambahkan filter jobapply_id kalau ada
-            $payrollQuery = Payrollconfirm::where('applicant_id', $data['applicant_id'])
-                ->where('group_cpny_id', strtoupper(trim((string) ($user->group_cpny_id ?? ''))));
-            if (!empty($data['jobapply_id'])) {
-                $payrollQuery->where('jobapply_id', $data['jobapply_id']);
-            }
-            $payroll = $payrollQuery->first();
+            $scheduleGroupCpnyId = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+            $payroll = $this->pinPayrollToActiveJob(
+                Payrollconfirm::where('applicant_id', $data['applicant_id'])->where('group_cpny_id', $scheduleGroupCpnyId),
+                $data['jobapply_id'] ?? null,
+                $scheduleGroupCpnyId
+            )->first();
 
             if (!$payroll) {
                 DB::rollBack();
