@@ -10,11 +10,10 @@
     <p style="margin:0 0 4px;">Hi {{ $to_name ?? '' }},</p>
     <p style="margin:0 0 4px;">A request is waiting for your approval for candidate with the details below.</p>
 
-    @include('emails.partials.detail-table', ['rows' => [
-        ['label' => 'Name', 'value' => $name],
-        ['label' => 'Company', 'value' => $cpnyid],
-        ['label' => 'Department', 'value' => $deptname],
-        ['label' => 'Date', 'value' => $date],
+    @include('emails.partials.schedule-card', ['rows' => [
+        ['icon' => '👤', 'label' => 'Name', 'value' => $name],
+        ['icon' => '🏢', 'label' => 'Company', 'value' => $cpnyid, 'sub' => $deptname],
+        ['icon' => '🗓️', 'label' => 'Date', 'value' => $date],
     ]])
 
     @include('emails.partials.button', ['url' => $url, 'label' => 'Review Request'])
