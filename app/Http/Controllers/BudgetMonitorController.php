@@ -10,6 +10,19 @@ use App\Models\TrBudget;     // tr_budget
 use App\Models\SysUserRole;  // pgsql2.sys_user_role
 use App\Models\User;         // pgsql2.ms_user
 use App\Models\MsDepartment; // pgsql2.ms_department
+use App\Models\TrCS;
+use App\Models\TrSPB;
+use App\Models\TrIssue;
+use App\Models\TrSPPB;
+use App\Models\TrPO;
+use App\Models\TrReceipt;
+use App\Models\TrIMBudget;
+use App\Models\TrWO;
+use App\Models\TrRfp;
+use App\Models\TrRfpNonPurch;
+use App\Models\TrCalr;
+use App\Models\TrCalrNonPurch;
+use Vinkla\Hashids\Facades\Hashids;
 
 class BudgetMonitorController extends Controller
 {
@@ -376,6 +389,12 @@ class BudgetMonitorController extends Controller
         $q = TrBudget::query()
             ->select([
                 'refnbr',
+                'doctype',
+                'spbid',
+                'issueid',
+                'sppbjktid',
+                'csid',
+                'ponbr',
                 'submitdate',
                 'account_id',
                 'activity_id',
@@ -408,6 +427,11 @@ class BudgetMonitorController extends Controller
 
         $rows = $q->orderByDesc('submitdate')->orderByDesc('refnbr')->get();
 
+        // Selalu tampilkan link; dokumen sumber dicari saat REF NO diklik.
+        foreach ($rows as $row) {
+            $row->document_url = route('budgetmonitor.document', ['refnbr' => $row->refnbr]);
+        }
+
         $totals = [
             'budget_amount' => (float) $rows->sum('budget_amount')
         ];
@@ -416,6 +440,53 @@ class BudgetMonitorController extends Controller
             'data'   => $rows,
             'totals' => $totals,
         ]);
+    }
+
+    public function openDocument(Request $request, string $refnbr)
+    {
+        $user = Auth::user();
+        abort_unless($user, 401);
+
+        $query = TrBudget::where('refnbr', $refnbr);
+        $this->applyUserAccessFilters($query, $this->getAccessPolicy($user), $request, false);
+        $transactions = $query->get(['refnbr', 'doctype', 'spbid', 'issueid', 'sppbjktid', 'csid', 'ponbr']);
+        abort_if($transactions->isEmpty(), 404, 'Transaksi budget tidak ditemukan.');
+
+        $documents = [
+            'CS' => [TrCS::class, 'csid', 'csid', '/showcs/'],
+            'RB' => [TrSPB::class, 'spbid', 'spbid', '/showspbs/'],
+            'IS' => [TrIssue::class, 'issueid', 'issueid', '/showissue/'],
+            'PB' => [TrSPPB::class, 'sppbjktid', 'sppbid', '/showsppbs/'],
+            'PO' => [TrPO::class, 'ponbr', 'ponbr', '/showpo/'],
+            'GR' => [TrReceipt::class, 'refnbr', 'receiptnbr', '/showreceipt/'],
+            'IM' => [TrIMBudget::class, 'refnbr', 'imbudgetid', '/showimbudgets/'],
+            'WO' => [TrWO::class, 'refnbr', 'woid', '/showwos/'],
+            'RP' => [TrRfp::class, 'refnbr', 'rfp_id', '/showrfp/'],
+            'RFP' => [TrRfpNonPurch::class, 'refnbr', 'rfpnonpurchaseid', '/showrfpnonpurch/'],
+            'CA' => [TrCalr::class, 'refnbr', 'calrid', '/showcalr/'],
+            'CAR' => [TrCalrNonPurch::class, 'refnbr', 'calrnonpurchaseid', '/showcalrnonpurch/'],
+        ];
+
+        foreach ($transactions as $transaction) {
+            $type = strtoupper(trim((string) $transaction->doctype));
+            $order = array_unique(array_merge([$type], array_keys($documents)));
+            foreach ($order as $doctype) {
+                if (!isset($documents[$doctype])) {
+                    continue;
+                }
+                [$model, $sourceField, $documentField, $path] = $documents[$doctype];
+                $sourceId = trim((string) ($transaction->{$sourceField} ?: $refnbr));
+                if ($sourceId === '') {
+                    continue;
+                }
+                $id = $model::where($documentField, $sourceId)->value('id');
+                if ($id) {
+                    return redirect(url($path . Hashids::encode($id)));
+                }
+            }
+        }
+
+        abort(404, 'Dokumen sumber untuk REF NO ini tidak ditemukan.');
     }
 
     private function mapDeptUserToFin(array $deptUserIds): array
