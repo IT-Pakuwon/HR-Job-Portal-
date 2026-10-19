@@ -2172,7 +2172,12 @@
 
                 if (!initialEidHandled && initialEid) {
                     initialEidHandled = true;
-                    const match = Object.values(cardsByDocid).find((g) => g.eid === initialEid);
+                    // One training can have several batch cards sharing the same eid —
+                    // prefer the card that actually holds the deep-linked schedule.
+                    const sameTraining = Object.values(cardsByDocid).filter((g) => g.eid === initialEid);
+                    const match = (initialScheduleId
+                        && sameTraining.find((g) => (g.schedules || []).some((s) => String(s.id) === initialScheduleId)))
+                        || sameTraining[0];
                     if (match) openDetailModal(match);
                 }
             });
