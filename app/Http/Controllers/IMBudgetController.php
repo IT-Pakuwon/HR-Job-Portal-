@@ -212,64 +212,32 @@ class IMBudgetController extends Controller
                 return $existing;
             }
 
-            $rows = TrIssuedetail::where('issueid', $sourceDocid)->orderBy('id')->get();
+            // View ini sudah membandingkan biaya Issue dengan budget SPB per akun.
+            $rows = DB::connection('pgsql')->table('v_issue_overbudget')
+                ->where('issueid', $sourceDocid)
+                ->get();
             if ($rows->isEmpty()) {
-                throw new \RuntimeException("Detail Issue {$sourceDocid} tidak ditemukan.");
-            }
-
-            $groups = [];
-            foreach ($rows as $row) {
-                $amount = round((float) ($row->totalcost ?? ((float) $row->issue_qty * (float) $row->unitcost)), 2);
-                if ($amount <= 0) {
-                    continue;
-                }
-                $fields = [
-                    'budget_perpost' => $row->budget_perpost ?: $issue->budget_perpost,
-                    'budget_cpny_id' => $row->budget_cpny_id ?: $issue->cpny_id,
-                    'budget_business_unit_id' => $row->budget_business_unit_id,
-                    'budget_department_fin_id' => $row->budget_department_fin_id,
-                    'budget_account_id' => $row->budget_account_id,
-                    'budget_activity_id' => $row->budget_activity_id,
-                    'budget_activity_descr' => $row->budget_activity_descr,
-                ];
-                $key = json_encode(array_values($fields));
-                if (!isset($groups[$key])) {
-                    $groups[$key] = ['fields' => $fields, 'expense' => 0.0];
-                }
-                $groups[$key]['expense'] += $amount;
+                throw new \RuntimeException("Data overbudget Issue {$sourceDocid} tidak ditemukan.");
             }
 
             $details = [];
             $totals = ['expense' => 0.0, 'remain' => 0.0, 'needed' => 0.0];
-            foreach ($groups as $group) {
-                $fields = $group['fields'];
-                $query = BudgetDetail::where('perpost', $fields['budget_perpost'])
-                    ->where('cpny_id', $fields['budget_cpny_id'])
-                    ->where('status', 'C');
-                foreach ([
-                    'budget_business_unit_id' => 'business_unit_id',
-                    'budget_department_fin_id' => 'department_fin_id',
-                    'budget_account_id' => 'account_id',
-                    'budget_activity_id' => 'activity_id',
-                    'budget_activity_descr' => 'activity_descr',
-                ] as $source => $column) {
-                    if ($fields[$source]) {
-                        $query->where($column, $fields[$source]);
-                    }
-                }
-                $budget = $query->first();
-                $expense = round($group['expense'], 2);
-                $available = $budget
-                    ? (float) $budget->totalbudget + (float) $budget->totalbudget_add
-                        - (float) $budget->total_reserve - (float) $budget->total_used
-                    : 0.0;
-                // Submit sudah mereservasi biaya Issue ini; kembalikan nilainya untuk
-                // menghitung sisa budget sebelum reservasi, sesuai generator RFP.
-                $remain = max(0.0, round($available + $expense, 2));
-                $needed = max(0.0, round($expense - $remain, 2));
+            foreach ($rows as $row) {
+                $needed = round((float) $row->budget_needed, 2);
                 if ($needed <= 0) {
                     continue;
                 }
+                $expense = round((float) $row->amount_expense, 2);
+                $remain = round((float) $row->remaining_budget, 2);
+                $fields = [
+                    'budget_perpost' => $row->perpost_year ?: $issue->budget_perpost,
+                    'budget_cpny_id' => $row->cpny_id ?: $issue->cpny_id,
+                    'budget_business_unit_id' => $row->business_unit_id,
+                    'budget_department_fin_id' => $row->department_fin_id,
+                    'budget_account_id' => $row->account_id,
+                    'budget_activity_id' => $row->activity_id,
+                    'budget_activity_descr' => $row->activity_descr,
+                ];
                 $details[] = compact('fields', 'expense', 'remain', 'needed');
                 $totals['expense'] += $expense;
                 $totals['remain'] += $remain;

@@ -9,7 +9,7 @@
                     TRAINING REPORT
                 </h1>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Learning &amp; Development activity — attendance, hours delivered, satisfaction and participant mix
+                    Learning &amp; Development activity — attendance, satisfaction and participant mix
                 </p>
             </div>
 
@@ -94,9 +94,8 @@
         </div>
 
         {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <x-card-chart.stat-card title="Total Attendance" subtitle="Period" value="0" color="blue" valueId="trnrepStatAttendance" />
-            <x-card-chart.stat-card title="Total Training Hours" subtitle="Man-hours delivered" value="0" color="cyan" valueId="trnrepStatHours" />
             <x-card-chart.stat-card title="Avg. Satisfaction" subtitle="Feedback rating" value="–" color="green" valueId="trnrepStatSatisfaction" />
             <x-card-chart.stat-card title="Completion Rate" subtitle="Attended / Registered" value="0%" color="violet" valueId="trnrepStatRate" />
         </div>
@@ -207,14 +206,13 @@
                             <th data-sort-key="training_name" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Training <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="level_name" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Level <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="attendees" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Attendees <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
-                            <th data-sort-key="total_hours" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Hours <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="avg_satisfaction" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-4 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Satisfaction <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                             <th data-sort-key="avg_stars" data-sort-numeric="true" class="select-none cursor-pointer whitespace-nowrap bg-slate-50 px-5 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-400 transition-colors hover:text-slate-600 dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-slate-300">Stars <span class="sort-icon ml-0.5 opacity-30">↕</span></th>
                         </tr>
                     </thead>
                     <tbody id="trnrepTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/60">
                         <tr>
-                            <td colspan="7" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">Loading…</td>
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">Loading…</td>
                         </tr>
                     </tbody>
                 </table>
@@ -269,29 +267,29 @@
         }
         #trnrepExtraFilterWrap .select2-selection__arrow { height: 24px; right: 0; }
         #trnrepExtraFilterWrap .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
-        #trnrepExtraFilterWrap .select2-dropdown {
+        .select2-dropdown.trnrep-select2-dd {
             border-radius: 0.75rem; border: 1px solid #e2e8f0;
             overflow: hidden; margin-top: 4px;
-            min-width: 240px; max-width: min(320px, calc(100vw - 2rem));
+            width: 360px !important; min-width: 360px; max-width: calc(100vw - 2rem);
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
         }
-        #trnrepExtraFilterWrap .select2-search__field {
+        .trnrep-select2-dd .select2-search__field {
             border-radius: 0.5rem; border: 1px solid #e2e8f0;
             padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
         }
-        #trnrepExtraFilterWrap .select2-search__field:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
-        #trnrepExtraFilterWrap .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; white-space: normal; word-break: break-word; }
-        #trnrepExtraFilterWrap .select2-results__option--highlighted[aria-selected] { background-color: #F5F3FF; color: #7C3AED; }
-        #trnrepExtraFilterWrap .select2-results__option[aria-selected="true"] { background-color: #EDE9FE; color: #6D28D9; font-weight: 600; }
+        .trnrep-select2-dd .select2-search__field:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
+        .trnrep-select2-dd .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; white-space: normal; word-break: break-word; }
+        .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #F5F3FF; color: #7C3AED; }
+        .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #EDE9FE; color: #6D28D9; font-weight: 600; }
 
         .dark #trnrepExtraFilterWrap .select2-selection__rendered { color: #e2e8f0; }
         .dark #trnrepExtraFilterWrap .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
-        .dark #trnrepExtraFilterWrap .select2-dropdown { background-color: #1e293b; border-color: #475569; }
-        .dark #trnrepExtraFilterWrap .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
-        .dark #trnrepExtraFilterWrap .select2-results__option { color: #e2e8f0; }
-        .dark #trnrepExtraFilterWrap .select2-results__option--highlighted[aria-selected] { background-color: #4C1D95; color: #fff; }
-        .dark #trnrepExtraFilterWrap .select2-results__option[aria-selected="true"] { background-color: #5B21B6; color: #fff; }
-        .dark #trnrepExtraFilterWrap .select2-search__field:focus { border-color: #8B5CF6; }
+        .dark .select2-dropdown.trnrep-select2-dd { background-color: #1e293b; border-color: #475569; }
+        .dark .trnrep-select2-dd .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
+        .dark .trnrep-select2-dd .select2-results__option { color: #e2e8f0; }
+        .dark .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #4C1D95; color: #fff; }
+        .dark .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #5B21B6; color: #fff; }
+        .dark .trnrep-select2-dd .select2-search__field:focus { border-color: #8B5CF6; }
     </style>
 
     <script src="{{ asset('assets/js/gm-report/gm-core.js') }}"></script>

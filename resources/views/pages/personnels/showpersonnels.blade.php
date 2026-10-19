@@ -311,7 +311,7 @@
                                         {{-- Larger icon --}}
                                         <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-semibold">{{ $personnel->education }}</span> Educational
-                                            Background From All Major.</span>
+                                            Background From {{ $personnel->specificJurusanText() ?? 'All Major' }}.</span>
 
                                         {{-- Bolder value --}}
                                     </li>
@@ -321,11 +321,8 @@
                                         <span
                                             class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
-                                        <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">Minimum
-                                            <span class="font-semibold">{{ $personnel->experience_start }} -
-                                                {{ $personnel->experience_end }}
-                                                Year of experience as
-                                                {{ $personnel->job_title }}.</span></span>
+                                        <span class="text-sm font-medium leading-relaxed text-gray-800 dark:text-gray-100">
+                                            <span class="font-semibold">{{ \App\Models\Personnel::experienceWording($personnel->experience_start, $personnel->experience_end, $personnel->job_title, 'en') }}.</span></span>
                                         {{-- Bolder value --}}
                                     </li>
                                 </div>

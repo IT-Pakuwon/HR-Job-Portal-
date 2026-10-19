@@ -58,7 +58,6 @@ class TrainingReportExport implements WithMultipleSheets
                         ['Metric', 'Value'],
                         ['Total Attendance', $s['total_attendance']],
                         ['Total Sessions', $s['total_sessions']],
-                        ['Total Training Hours', $s['total_training_hours']],
                         ['Avg. Satisfaction (/5)', $s['avg_satisfaction'] ?? '–'],
                         ['Avg. Stars (/5)', $s['avg_stars']],
                         [],
@@ -128,12 +127,12 @@ class TrainingReportExport implements WithMultipleSheets
 
                 public function headings(): array
                 {
-                    return ['Date', 'Training', 'Level', 'Attendees', 'Total Hours', 'Avg. Satisfaction', 'Avg. Stars'];
+                    return ['Date', 'Training', 'Level', 'Attendees', 'Avg. Satisfaction', 'Avg. Stars'];
                 }
 
                 public function columnWidths(): array
                 {
-                    return ['A' => 14, 'B' => 36, 'C' => 20, 'D' => 12, 'E' => 12, 'F' => 16, 'G' => 12];
+                    return ['A' => 14, 'B' => 36, 'C' => 20, 'D' => 12, 'E' => 16, 'F' => 12];
                 }
 
                 public function array(): array
@@ -143,7 +142,6 @@ class TrainingReportExport implements WithMultipleSheets
                         $r['training_name'] ?? '',
                         $r['level_name'] ?? '',
                         $r['attendees'] ?? 0,
-                        $r['total_hours'] ?? 0,
                         $r['avg_satisfaction'] ?? '–',
                         $r['avg_stars'] ?? 0,
                     ])->toArray();

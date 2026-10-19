@@ -1731,7 +1731,7 @@ class CanvassController extends Controller
                 }
             } else {
                 // Update ordered/openordered ke TrPOReuse + header PO
-                $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId, $cs->prev_ponbr);
 
                 if ($cs->bqtype !== 'Kontrak') {
                     // Reserve budget via SP (Submit)
@@ -4231,7 +4231,7 @@ class CanvassController extends Controller
                         $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                     }
                 } else {
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId, $cs->prev_ponbr);
                     $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                 }
 
@@ -4859,7 +4859,7 @@ class CanvassController extends Controller
                         $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                     }
                 } else {
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId, $cs->prev_ponbr);
                     $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                 }
 
@@ -7325,7 +7325,7 @@ class CanvassController extends Controller
         );
     }
 
-    private function updateOrderedOnPOReuse(array $details, string $prevCsid, string $cpnyId): void
+    private function updateOrderedOnPOReuse(array $details, string $prevCsid, string $cpnyId, ?string $prevPonbr = null): void
     {
         // Ambil semua baris reuse yang terkait CS sebelumnya (CS awal)
         $reuseRows = TrPOReuse::on('pgsql')
@@ -7333,10 +7333,16 @@ class CanvassController extends Controller
             ->when($cpnyId, function ($q) use ($cpnyId) {
                 return $q->where('cpny_id', $cpnyId);
             })
+            ->when($prevPonbr !== null && trim($prevPonbr) !== '', function ($q) use ($prevPonbr) {
+                return $q->where('ponbr', $prevPonbr);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->lockForUpdate()
             ->get();
 
         if ($reuseRows->isEmpty()) {
-            return;
+            throw new \RuntimeException("Sumber PO reuse tidak ditemukan untuk CS {$prevCsid}, PO {$prevPonbr}.");
         }
 
         $makeReuseKey = function ($lineNo, $inventoryid, $uom, $descr): string {
@@ -7372,7 +7378,7 @@ class CanvassController extends Controller
             $reusePlainIndex[$plainKey][] = $row;
         }
 
-        $addedTotalPerPonbr = [];
+        $updatedLineCount = 0;
 
         foreach ($details as $i => $d) {
             // cek apakah ada vendor yang dipilih
@@ -7392,13 +7398,13 @@ class CanvassController extends Controller
                 continue;
             }
 
-            $requestLineNo =
-                $d['sppb_no'] ??
-                $d['sppj_no'] ??
-                $d['sppk_no'] ??
-                $d['sppt_no'] ??
-                $d['sppbjkt_no'] ??
-                null;
+            $requestLineNo = null;
+            foreach (['sppbjkt_no', 'sppb_no', 'sppj_no', 'sppk_no', 'sppt_no'] as $field) {
+                if (isset($d[$field]) && trim((string) $d[$field]) !== '') {
+                    $requestLineNo = $d[$field];
+                    break;
+                }
+            }
 
             $key = $makeReuseKey(
                 $requestLineNo,
@@ -7416,13 +7422,18 @@ class CanvassController extends Controller
             $reuseDetList = $reuseIndex[$key] ?? null;
             $usingPlainFallback = false;
 
-            if ((!$reuseDetList || count($reuseDetList) === 0) && empty($requestLineNo)) {
+            // Legacy payloads may contain a renumbered CS/PO line instead of the source line.
+            // Only a unique item match is safe when the source reference does not match.
+            if (!$reuseDetList || count($reuseDetList) === 0) {
                 $reuseDetList = $reusePlainIndex[$plainKey] ?? null;
                 $usingPlainFallback = true;
             }
 
-            if (!$reuseDetList || count($reuseDetList) === 0) {
-                continue;
+            if (!$reuseDetList || count($reuseDetList) !== 1) {
+                $line = $d['cs_no'] ?? ($i + 1);
+                throw new \RuntimeException(
+                    "Detail CS baris {$line} ({$plainKey}) tidak cocok dengan satu baris PO reuse {$prevPonbr}; referensi {$requestLineNo}."
+                );
             }
 
             // Ambil row yang cocok dengan _no. Jika fallback tanpa _no, konsumsi satu baris agar duplicate tidak selalu kena row pertama.
@@ -7454,17 +7465,30 @@ class CanvassController extends Controller
             }
 
             // Update ordered/openordered di reuse
-            $reuseDet->ordered = (float) ($reuseDet->ordered ?? 0) + $orderedQty;
-            $reuseDet->openordered = max(0, (float) ($reuseDet->openordered ?? 0) - $orderedQty);
+            $openQty = (float) ($reuseDet->openordered ?? 0);
+            if ($orderedQty > $openQty + 0.00001) {
+                throw new \RuntimeException("Qty {$orderedQty} melebihi openordered {$openQty} pada PO reuse ID {$reuseDet->id}.");
+            }
+            $expectedOrdered = (float) ($reuseDet->ordered ?? 0) + $orderedQty;
+            $expectedOpen = max(0, $openQty - $orderedQty);
+            $reuseDet->ordered = $expectedOrdered;
+            $reuseDet->openordered = $expectedOpen;
             $reuseDet->updated_by = auth()->user()->username ?? $reuseDet->updated_by;
-            $reuseDet->save();
+            if (!$reuseDet->save()) {
+                throw new \RuntimeException("Gagal menyimpan PO reuse ID {$reuseDet->id}.");
+            }
+            $reuseDet->refresh();
+            if (abs((float) $reuseDet->ordered - $expectedOrdered) > 0.00001
+                || abs((float) $reuseDet->openordered - $expectedOpen) > 0.00001) {
+                throw new \RuntimeException("Qty PO reuse ID {$reuseDet->id} tidak tersimpan sesuai perhitungan.");
+            }
 
-            // Simpan total per PO (ponbr) untuk update header PO
-            $ponbr = $reuseDet->ponbr;
-            $addedTotalPerPonbr[$ponbr] = ($addedTotalPerPonbr[$ponbr] ?? 0) + $orderedQty;
+            ++$updatedLineCount;
         }
 
-      
+        if ($updatedLineCount === 0) {
+            throw new \RuntimeException('Tidak ada detail vendor terpilih yang diperbarui pada PO reuse.');
+        }
     }
 
     private function updateOrderedOnPOReuse_old(array $details, string $prevCsid, string $cpnyId): void
@@ -7900,7 +7924,7 @@ class CanvassController extends Controller
         } // bukan dari SPPB/J/K/T → skip
 
         // Ambil header + detail sumber
-        [$srcHeader, $srcDetails, $srcLineKey, $srcIndex] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
+        [$srcHeader, $srcDetails, $srcLineKey] = $this->buildSourceForDoc($docType, $cs->sppbjktid);
 
         // Ambil detail CS dari DB
         $csDetails = TrCSdetail::on('pgsql')
@@ -7910,7 +7934,7 @@ class CanvassController extends Controller
 
         $rolledBackTotal = 0.0;
 
-        foreach ($csDetails as $i => $cd) {
+        foreach ($csDetails as $cd) {
             // hanya yang vendor selected
             $hasPick = false;
             for ($slot = 1; $slot <= 6; ++$slot) {
@@ -7928,14 +7952,25 @@ class CanvassController extends Controller
                 continue;
             }
 
-            $key = strtoupper(trim((string) ($cd->inventoryid ?? ''))).'|'.
-                strtoupper(trim((string) ($cd->uom ?? ''))).'|'.
-                strtoupper(trim((string) ($cd->inventory_descr ?? '')));
+            // CS line numbers may differ from the original source line numbers.
+            $sourceLineNo = $cd->sppbjkt_no ?? $cd->cs_no;
+            $matches = $srcDetails->where($srcLineKey, $sourceLineNo)
+                ->filter(function ($row) use ($cd) {
+                    foreach (['inventoryid', 'uom', 'inventory_descr'] as $field) {
+                        if (strtoupper(trim((string) $row->{$field})) !== strtoupper(trim((string) $cd->{$field}))) {
+                            return false;
+                        }
+                    }
 
-            $srcDet = $srcIndex[$key] ?? ($srcDetails[$i] ?? null);
-            if (!$srcDet) {
-                continue;
+                    return true;
+                });
+
+            if ($sourceLineNo === null || $matches->count() !== 1) {
+                throw new \RuntimeException(
+                    "Detail CS {$cs->csid} baris {$cd->cs_no} tidak cocok dengan satu baris sumber {$sourceLineNo}."
+                );
             }
+            $srcDet = $matches->first();
 
             $detTable = $srcDet->getTable();
 

@@ -9,7 +9,7 @@ use Illuminate\Database\QueryException;
 
 /**
  * Data behind the OFFICE (OLA) Surat 1 / Surat 2 letters: the running letter
- * number, the list of related PSM/OLA + Addendum documents, and the unit text.
+ * number, the document the letter is about (one per follow-up), and the unit text.
  */
 class AgreementLetterService
 {
@@ -123,49 +123,33 @@ class AgreementLetterService
     }
 
     /**
-     * The PSM/OLA and its Addenda, in order, as the letter's numbered list.
-     * From an Addendum, climbs to the PSM/OLA it was made from; from a
-     * PSM/OLA, picks up the Addenda made from it. Cancelled ones are skipped.
+     * The document the letter is about, as its numbered list. A PSM/OLA and each of its
+     * Addenda have their own follow-up (and so their own letter / email), so they are never
+     * combined: a PSM/OLA lists only itself, an Addendum (or its follow-up, FU_ADDENDUM) only
+     * itself, numbered by its place among the Addenda of the same PSM/OLA.
      *
      * @return array<int, array{label: string, no: string, date: ?Carbon}>
      */
     public function documents(TrAgreement $agreement): array
     {
-        $isAddendum = $agreement->agreement_type === 'ADDENDUM';
+        if (! in_array($agreement->agreement_type, ['ADDENDUM', 'FU_ADDENDUM'], true)) {
+            return [$this->documentRow('Perjanjian Sewa Menyewa', $agreement)];
+        }
 
-        $root = $isAddendum && $agreement->parent_agreement_id
-            ? $this->liveAgreements()->where('agreement_id', $agreement->parent_agreement_id)->first()
-            : ($isAddendum ? null : $agreement);
+        $n = 1;
 
-        $addenda = $root
-            ? $this->liveAgreements()
-                ->where('parent_agreement_id', $root->agreement_id)
-                ->where('agreement_type', 'ADDENDUM')
+        if ($agreement->parent_agreement_id) {
+            $ids = $this->liveAgreements()
+                ->where('parent_agreement_id', $agreement->parent_agreement_id)
+                ->whereIn('agreement_type', ['ADDENDUM', 'FU_ADDENDUM'])
                 ->orderBy('id')
-                ->get()
-            : collect();
+                ->pluck('agreement_id')
+                ->all();
 
-        // An Addendum with no parent record still lists itself.
-        if ($isAddendum && ! $addenda->contains('agreement_id', $agreement->agreement_id)) {
-            $addenda->push($agreement);
+            $n = max(1, array_search($agreement->agreement_id, $ids, true) + 1);
         }
 
-        $docs = [];
-
-        if ($root && ($root->agreement_id === $agreement->agreement_id || filled($root->no_psm_or_addendum))) {
-            $docs[] = $this->documentRow('Perjanjian Sewa Menyewa', $root);
-        }
-
-        foreach ($addenda->values() as $i => $addendum) {
-            if ($addendum->agreement_id !== $agreement->agreement_id && blank($addendum->no_psm_or_addendum)) {
-                continue;
-            }
-
-            $n = $i + 1;
-            $docs[] = $this->documentRow('Addendum '.(self::ORDINALS[$n] ?? 'Ke-'.$n), $addendum);
-        }
-
-        return $docs;
+        return [$this->documentRow('Addendum '.(self::ORDINALS[$n] ?? 'Ke-'.$n), $agreement)];
     }
 
     protected function liveAgreements()

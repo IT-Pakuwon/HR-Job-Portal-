@@ -180,7 +180,7 @@ class TrainingWaitlistNotifier
      * carries a cancel link front and center — a kept seat that silently
      * follows the new date can strand someone who can't make it.
      */
-    public static function notifyReschedule(TrLndTrainingRegistration $registration, ?string $oldDate, string $newDate, string $reason): void
+    public static function notifyReschedule(TrLndTrainingRegistration $registration, ?string $oldDate, string $newDate): void
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
 
@@ -196,7 +196,7 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "The schedule for {$trainingName} has changed".($oldDate ? " from {$oldDate}" : '')." to {$newDate}. Reason: {$reason}",
+            'message' => "The schedule for {$trainingName} has changed".($oldDate ? " from {$oldDate}" : '')." to {$newDate}",
             'status' => 'A',
             'created_by' => 'system',
         ]);
@@ -214,7 +214,6 @@ class TrainingWaitlistNotifier
             'training_name' => $trainingName,
             'old_date' => $oldDate,
             'new_date' => $newDate,
-            'reason' => $reason,
             'url' => $url,
             'systemLabel' => 'Learning & Development System',
         ], function ($m) use ($to, $registration) {
@@ -236,8 +235,8 @@ class TrainingWaitlistNotifier
         $scheduleDate = $registration->schedule_date ?? $registration->schedule?->schedule_date;
         $scheduleDateLabel = $scheduleDate?->format('d M Y');
 
-        $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/'.$eid);
+        // Deep link straight to the certificate PDF (route takes the raw id)
+        $url = route('training-list.certificate', ['id' => $registration->id]);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,

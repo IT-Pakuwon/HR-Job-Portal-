@@ -384,10 +384,18 @@
                 <td style="width:50%;">
                     <div class="field-label">Experience <span class="en">( Pengalaman Kerja )</span></div>
                     <div class="field-value">
-                        @if ($personnel->experience_start || $personnel->experience_end)
-                            {{ $personnel->experience_start }} - {{ $personnel->experience_end }} years as {{ $personnel->experience_position ?: $personnel->job_title }}
-                        @else
+                        @php
+                            $expRole = $personnel->experience_position ?: $personnel->job_title;
+                            $expStart = (int) $personnel->experience_start;
+                            $expEnd = (int) $personnel->experience_end;
+                            $expHasValue = $personnel->experience_start !== null || $personnel->experience_end !== null;
+                        @endphp
+                        @if (!$expHasValue)
                             -
+                        @elseif ($expStart > 0 && $expEnd > 0)
+                            {{ $expStart }} - {{ $expEnd }} years as {{ $expRole }}
+                        @else
+                            {{ \App\Models\Personnel::experienceWording($expStart, $expEnd, $expRole, 'en') }}
                         @endif
                     </div>
                 </td>

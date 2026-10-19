@@ -43,7 +43,11 @@ class ReportCanvassSheetController extends Controller
 
             ->join('tr_cs as h', 'h.csid', '=', 'd.csid')
 
-            // ->leftJoin('tr_po as po', 'po.csid', '=', 'h.csid')
+            ->leftJoin('tr_po as po', function ($join) {
+                $join->on('po.ponbr', '=', 'd.ponbr')
+                    ->on('po.cpny_id', '=', 'h.cpny_id')
+                    ->on('po.csid', '=', 'h.csid');
+            })
 
             ->leftJoin('tr_sppb as b', 'b.sppbid', '=', 'h.sppbjktid')
             ->leftJoin('tr_sppj as j', 'j.sppjid', '=', 'h.sppbjktid')
@@ -52,12 +56,16 @@ class ReportCanvassSheetController extends Controller
 
             ->leftJoin(DB::raw("
                 (
-                    select cpny_id, ponbr, csid, sppbjktid,
-                           string_agg(DISTINCT bastid, ', ') as bastid
-                    from tr_po_term
-                    where progress_pct = 100
-                      and terms_type not in ('Retensi', 'DP')
-                    group by cpny_id, ponbr, csid, sppbjktid
+                    select pt.cpny_id, pt.ponbr, pt.csid, pt.sppbjktid,
+                           string_agg(DISTINCT pt.bastid, ', ') as bastid,
+                           jsonb_agg(DISTINCT jsonb_build_object('id', bh.id, 'number', pt.bastid))
+                               FILTER (WHERE pt.bastid IS NOT NULL AND pt.bastid <> '') as documents
+                    from tr_po_term pt
+                    left join tr_bast bh on bh.bastid = pt.bastid
+                        and bh.cpny_id = pt.cpny_id and bh.ponbr = pt.ponbr
+                    where pt.progress_pct = 100
+                      and pt.terms_type not in ('Retensi', 'DP')
+                    group by pt.cpny_id, pt.ponbr, pt.csid, pt.sppbjktid
                 ) as bast
             "), function ($j) {
                 $j->on('bast.cpny_id', '=', 'h.cpny_id')
@@ -72,6 +80,8 @@ class ReportCanvassSheetController extends Controller
                 'h.csdate',
                 'h.sppbjktid',
                 DB::raw('bast.bastid as bast_number'),
+                DB::raw('bast.documents as bast_documents'),
+                DB::raw('po.id as po_pk'),
 
                 DB::raw("
                     CASE
@@ -365,6 +375,15 @@ class ReportCanvassSheetController extends Controller
 
             ->addColumn('cs_hash', fn ($row) => \Hashids::encode($row->cs_pk)
             )
+
+            ->addColumn('po_hash', fn ($row) => $row->po_pk ? \Hashids::encode($row->po_pk) : null)
+            ->addColumn('bast_links', function ($row) {
+                return collect(json_decode($row->bast_documents ?? '[]', true) ?: [])
+                    ->map(fn ($document) => [
+                        'number' => $document['number'],
+                        'hash' => $document['id'] ? \Hashids::encode($document['id']) : null,
+                    ])->values()->all();
+            })
 
             ->addColumn('doc_hash', fn ($row) => $row->doc_id ? \Hashids::encode($row->doc_id) : null
             )

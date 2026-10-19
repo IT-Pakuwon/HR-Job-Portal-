@@ -823,7 +823,6 @@ class TrainingSessionController extends Controller
 
         $oldDate = $detail->schedule_date?->toDateString();
         $newDate = $request->schedule_date;
-        $reason = trim($request->reason);
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -887,7 +886,7 @@ class TrainingSessionController extends Controller
         }
 
         foreach ($registrations as $registration) {
-            TrainingWaitlistNotifier::notifyReschedule($registration->fresh(['schedule.schedule.training']), $oldDate, $newDate, $reason);
+            TrainingWaitlistNotifier::notifyReschedule($registration->fresh(['schedule.schedule.training']), $oldDate, $newDate);
         }
 
         return response()->json([

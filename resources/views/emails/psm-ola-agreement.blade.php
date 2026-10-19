@@ -23,11 +23,14 @@
 
 @php
     $rows = [
-        'Tenant' => $agreement->business_name,
-        'Trade Name' => $agreement->trade_name,
+        'Tenant Company Name' => $agreement->business_name,
+        'Tenant Name' => $agreement->trade_name,
         'Company' => $agreement->cpny_id,
-        'Unit' => $agreement->unit_id,
-        $label === 'Addendum' ? 'No. Addendum' : 'No. PSM / Addendum' => $agreement->no_psm_or_addendum,
+        'Floor - Unit' => collect([$agreement->floor_id, $agreement->unit_id])->map(fn ($v) => trim((string) $v))->filter()->implode(' - '),
+        'Floor LOI' => $agreement->floor_loi,
+        'Unit LOI' => $agreement->unit_loi,
+        'No. '.$label => $agreement->no_psm_or_addendum,
+        ($label.' Date') => substr((string) $agreement->psm_or_addendum_date, 0, 10),
         'PIC Legal' => $picLegalNames,
         'PIC Leasing' => \App\Models\TrAgreement::picDisplayNames($agreement->picLeasingList()),
         'Created By' => \App\Models\TrAgreement::picDisplayNames([$agreement->created_user]) ?: $agreement->created_user,

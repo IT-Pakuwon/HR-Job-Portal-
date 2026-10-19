@@ -89,18 +89,42 @@ class JobapplicantController extends Controller
             || $user->hasFullDataScope();
     }
 
-    // HCBPACCESS => bisa lihat semua applicant pada job di company-nya sendiri
-    // (userCpnyIds tetap membatasi ke company user), tanpa dibatasi division lagi.
+    // Hanya role full (RECACCALLDEPT / RECDIRACCESS / DIRECTORACCESS) yang tidak dibatasi division.
+    // HCBPACCESS tetap dibatasi company + division user (JKT dan SBY), sama seperti RECACCESS.
     private function canSkipDivisionRestriction($user): bool
     {
-        return $this->hasFullApplicantAccess($user)
-            || $this->hasRole($user, 'HCBPACCESS');
+        return $this->hasFullApplicantAccess($user);
     }
 
-    // RECACCALLDEPT => bisa lihat semua company, bukan cuma company yang di-assign ke user
+    private function userDeptIds($user): array
+    {
+        return $this->splitCsv($user->department_id);
+    }
+
+    // SBY: RECACCESS (tanpa role full/HCBP) juga dibatasi ke department user, selain company & division.
+    // JKT dan HCBPACCESS hanya company + division.
+    private function applyDepartmentScope($query, $user, string $deptColumn): void
+    {
+        if (strtoupper(trim((string) $user->group_cpny_id)) !== 'SBY'
+            || $this->canSkipDivisionRestriction($user)
+            || $this->hasRole($user, 'HCBPACCESS')
+        ) {
+            return;
+        }
+
+        $deptIds = $this->userDeptIds($user);
+
+        if (empty($deptIds)) {
+            $query->whereRaw('1=0');
+        } else {
+            $query->whereIn($deptColumn, $deptIds);
+        }
+    }
+
+    // RECACCALLDEPT / RECDIRACCESS => bisa lihat semua company di group-nya, bukan cuma company yang di-assign ke user
     private function userCpnyIds($user): array
     {
-        if ($user->hasFullDataScope() || $this->hasRole($user, 'RECACCALLDEPT')) {
+        if ($this->hasFullApplicantAccess($user)) {
             return MsCompany::pluck('cpny_id')->toArray();
         }
 
@@ -260,7 +284,7 @@ class JobapplicantController extends Controller
         $canFilterJobTL = $this->hasFullApplicantAccess($user);
         $skipDivisionRestriction = $this->canSkipDivisionRestriction($user);
 
-        // RECACCESS (tanpa RECACCALLDEPT/RECDIRACCESS/HCBPACCESS) hanya boleh lihat
+        // RECACCESS / HCBPACCESS (tanpa RECACCALLDEPT/RECDIRACCESS) hanya boleh lihat
         // applicant pada job posting yang division-nya sama dengan division user tsb.
         $allowedJobIds = null;
         if (!$skipDivisionRestriction) {
@@ -274,6 +298,7 @@ class JobapplicantController extends Controller
                 }, function ($q) {
                     $q->whereRaw('1=0');
                 })
+                ->tap(fn ($q) => $this->applyDepartmentScope($q, $user, 'jp.departementid'))
                 ->pluck('jp.docid');
         }
 
@@ -392,6 +417,7 @@ class JobapplicantController extends Controller
                     } else {
                         $q->whereIn('div.division_id', $divisionIds);
                     }
+                    $this->applyDepartmentScope($q, $user, 'jp.departementid');
                 });
 
             if (!empty($status)) {
@@ -828,6 +854,7 @@ class JobapplicantController extends Controller
                     } else {
                         $q->whereIn('div.division_id', $divisionIds);
                     }
+                    $this->applyDepartmentScope($q, $user, 'jp.departementid');
                 })
                 ->orderByDesc('vc.apply_date')
                 ->select([
@@ -969,15 +996,44 @@ class JobapplicantController extends Controller
 
     public function JobApplicants($jobId)
     {
-        // dd($jobId);
-        // $applicants = ViewCareer::where('docidposting', $jobId)->get();
+        $user = auth()->user();
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $userCpnyIds = $this->userCpnyIds($user);
+        $skipDivisionRestriction = $this->canSkipDivisionRestriction($user);
+
+        // Same scope as the Applicant List (json()): group, company, division (+ department for SBY).
         $applicants = DB::connection('mysql3')
             ->table('viewtrxcareer as vc')
             ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
                 $join->on('vc.docid', '=', 'vs.docid')
                     ->on('vc.docidposting', '=', 'vs.jobid');
             })
+            ->leftJoin('hr_trx_jobposting as jp', function ($join) {
+                $join->on('jp.docid', '=', 'vc.docidposting')
+                    ->on('jp.group_cpny_id', '=', 'vc.group_cpny_id');
+            })
+            ->leftJoin('hr_ms_department as dept', function ($join) {
+                $join->on('dept.department_id', '=', 'jp.departementid')
+                    ->on('dept.group_cpny_id', '=', 'vc.group_cpny_id');
+            })
+            ->leftJoin('hr_ms_division as div', function ($join) {
+                $join->on('div.division_id', '=', 'dept.division_id')
+                    ->on('div.group_cpny_id', '=', 'vc.group_cpny_id');
+            })
             ->where('vc.docidposting', $jobId)
+            ->where('vc.group_cpny_id', $groupCompanyId)
+            ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
+                $q->whereIn('vc.cpnyid', $userCpnyIds);
+            })
+            ->when(!$skipDivisionRestriction, function ($q) use ($user) {
+                $divisionIds = $this->userDivisionIds($user);
+                if (empty($divisionIds)) {
+                    $q->whereRaw('1=0');
+                } else {
+                    $q->whereIn('div.division_id', $divisionIds);
+                }
+                $this->applyDepartmentScope($q, $user, 'jp.departementid');
+            })
             ->select(
                 'vc.*',
                 DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
@@ -1004,6 +1060,19 @@ class JobapplicantController extends Controller
 
         $groupCompanyId = strtoupper(trim((string) $authUser->group_cpny_id));
 
+        // Same authority as approve/rollback on an apply (STEP access), or the recruiter
+        // all-department role — remap silently restarts the whole workflow, so not everyone
+        // who can open the page should be able to do it.
+        $canRemap = \App\Models\GroupAccspecific::where('username', $authUser->username)
+                ->where('group_access_id', 'STEP')
+                ->where('status', 'A')
+                ->exists()
+            || $this->hasRole($authUser, 'RECACCALLDEPT');
+
+        if (!$canRemap) {
+            return response()->json(['error' => 'You are not allowed to remap applicants.'], 403);
+        }
+
         $decoded = Hashids::decode($request->apply_id);
         $id = $decoded[0] ?? null;
 
@@ -1026,6 +1095,12 @@ class JobapplicantController extends Controller
             return response()->json(['error' => 'Apply record not found'], 404);
         }
 
+        // Only a live apply can be moved: 'T' was already remapped, 'X' is cancelled and
+        // 'C' is completed (joined) — remapping any of those would fork or corrupt the record.
+        if (in_array($apply->status, ['T', 'X', 'C'], true)) {
+            return response()->json(['error' => 'This applicant\'s current status does not allow remapping.'], 422);
+        }
+
         $newJobposting = DB::connection('mysql3')
             ->table('hr_trx_jobposting')
             ->where('docid', $request->new_jobid)
@@ -1034,6 +1109,23 @@ class JobapplicantController extends Controller
 
         if (!$newJobposting) {
             return response()->json(['error' => 'Job posting not found'], 404);
+        }
+
+        if ($newJobposting->docid === $apply->jobid) {
+            return response()->json(['error' => 'The applicant is already mapped to this position.'], 422);
+        }
+
+        // Steps, assessments, etc. are keyed by docid + jobid, so a second apply row for a job
+        // this applicant already had (e.g. A -> B -> A) would collide with the first one.
+        $alreadyHadJob = DB::connection('mysql3')
+            ->table('hr_trx_job_apply')
+            ->where('docid', $apply->docid)
+            ->where('jobid', $newJobposting->docid)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->exists();
+
+        if ($alreadyHadJob) {
+            return response()->json(['error' => 'The applicant already has (or had) an apply for that position.'], 422);
         }
 
         $user = $authUser->username ?? 'system';
@@ -1069,7 +1161,7 @@ class JobapplicantController extends Controller
                 'group_cpny_id' => $groupCompanyId,
                 'jobid' => $request->new_jobid,
                 'applicant_id' => $apply->applicant_id,
-                'apply_date' => now(),
+                'apply_date' => $apply->apply_date ?: now(),
                 'apply_step' => 'JOAPHC',
                 'prev_apply_step' => 'JOAPHC',
                 'is_read' => 'N',
@@ -1107,6 +1199,14 @@ class JobapplicantController extends Controller
             }
 
             DB::connection('mysql3')->commit();
+
+            \Log::info('Applicant remapped', [
+                'docid' => $apply->docid,
+                'from_jobid' => $apply->jobid,
+                'from_apply_status' => $apply->status,
+                'to_jobid' => $request->new_jobid,
+                'by' => $user,
+            ]);
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

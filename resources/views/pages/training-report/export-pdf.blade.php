@@ -151,10 +151,6 @@ body {
                 <div class="s-val">{{ $s['total_attendance'] }}</div>
             </td>
             <td>
-                <div class="s-lbl">Total Hours</div>
-                <div class="s-val" style="color:#0891b2">{{ $s['total_training_hours'] }}</div>
-            </td>
-            <td>
                 <div class="s-lbl">Avg. Satisfaction</div>
                 <div class="s-val" style="color:#059669">{{ $s['avg_satisfaction'] ?? '–' }} / 5</div>
             </td>
@@ -244,7 +240,6 @@ body {
                 <th>Training</th>
                 <th>Level</th>
                 <th class="num">Attendees</th>
-                <th class="num">Hours</th>
                 <th class="num">Satisfaction</th>
                 <th class="num">Stars</th>
             </tr>
@@ -256,12 +251,11 @@ body {
                     <td>{{ $r['training_name'] }}</td>
                     <td>{{ $r['level_name'] }}</td>
                     <td class="num">{{ $r['attendees'] }}</td>
-                    <td class="num">{{ $r['total_hours'] }}</td>
                     <td class="num">{{ $r['avg_satisfaction'] ?? '–' }}</td>
                     <td class="num">{{ $r['avg_stars'] }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
+                <tr><td colspan="6" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
             @endforelse
         </tbody>
     </table>

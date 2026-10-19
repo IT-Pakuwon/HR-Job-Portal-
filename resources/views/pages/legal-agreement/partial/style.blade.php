@@ -168,6 +168,30 @@
         resize: none;
     }
 
+    /* Compact field for the Process Tracking table. A class, not inline style, so flatpickr's alt input keeps it. */
+    .agr-input.proc-field {
+        height: 34px;
+        padding: 0 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .proc-add-row td {
+        background: var(--agr-primary-soft);
+    }
+
+    .proc-add-row .proc-add-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--agr-muted-2);
+    }
+
     .agr-input::placeholder,
     .agr-textarea::placeholder {
         color: var(--agr-muted-2);
@@ -194,10 +218,16 @@
     }
 
     input.agr-locked,
-    textarea.agr-locked {
+    textarea.agr-locked,
+    select.agr-locked {
         background: var(--agr-hover) !important;
         color: var(--agr-muted-2) !important;
         cursor: not-allowed !important;
+    }
+
+    select.agr-locked {
+        appearance: none;
+        -webkit-appearance: none;
     }
 
     .agr-edit-toggle {
