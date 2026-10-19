@@ -2681,6 +2681,14 @@ Route::middleware(['auth'])->group(function () {
             ->name('datahub.index')
             ->middleware('access:DATAHUB,VIEW');
 
+        Route::get('/data-hub/category/{category}', [\App\Http\Controllers\OmDashboardController::class, 'category'])
+            ->name('datahub.category')
+            ->middleware('access:DATAHUB,VIEW');
+
+        Route::get('/data-hub/om', [\App\Http\Controllers\OmDashboardController::class, 'omMenu'])
+            ->name('datahub.om.index')
+            ->middleware('access:DATAHUB,VIEW');
+
         Route::prefix('data-hub/om')
             ->middleware('access:DATAHUB,VIEW')
             ->controller(\App\Http\Controllers\OmDashboardController::class)

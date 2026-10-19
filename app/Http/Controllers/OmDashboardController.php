@@ -20,12 +20,57 @@ class OmDashboardController extends Controller
     public function menu()
     {
         return view('pages.data_hub.index', [
-            'malls' => $this->allowedMalls(),
+            'sportLinks' => config('data_hub.sport', []),
+            'loyaltyLinks' => config('data_hub.loyalty', []),
+            'hrdLinks' => config('data_hub.hrd', []),
         ]);
+    }
+
+    public function category(string $category)
+    {
+        $categories = [
+            'mall-performance' => ['Mall Performance Dashboard', 'Pilih dashboard Mall Performance yang ingin dibuka.'],
+            'loyalty' => ['Loyalty Dashboard', 'Kumpulan dashboard loyalty dari Power BI.'],
+            'hrd' => ['HRD Dashboard', 'Kumpulan dashboard HRD dari Power BI.'],
+            'sport' => ['Sport', 'Kumpulan dashboard sport dari Power BI.'],
+            'director-owner' => ['Director & Owner Dashboard', 'Dashboard performa mall untuk Director dan Owner.'],
+            'gm' => ['GM Dashboard', 'Dashboard General Manager untuk monitoring performa mall.'],
+            'operations' => ['Operations', 'Kumpulan dashboard operasional seperti Kaizen dan Valet Parking.'],
+        ];
+
+        abort_unless(isset($categories[$category]), 404);
+
+        return view('pages.data_hub.category', [
+            'category' => $category,
+            'title' => $categories[$category][0],
+            'description' => $categories[$category][1],
+            'loyaltyLinks' => config('data_hub.loyalty', []),
+            'hrdLinks' => config('data_hub.hrd', []),
+            'sportLinks' => config('data_hub.sport', []),
+        ]);
+    }
+
+    public function omMenu(Request $request)
+    {
+        $malls = $this->allowedMalls();
+        abort_if(empty($malls), 403, 'Tidak ada mall yang dapat diakses.');
+
+        return redirect()->route('datahub.om.detail', array_merge(
+            $request->only(['start_date', 'end_date', 'tab', 'traffic_granularity', 'tenant_movement_type']),
+            ['mall' => array_key_first($malls)]
+        ));
     }
 
     private function allowedMalls(): array
     {
+        $user = auth()->user();
+        $allMallUsers = array_map('strtolower', config('data_hub.om.all_mall_users', []));
+        if ($user->isPrimaryAdmin() || $user->hasFullDataScope()
+            || in_array(strtolower((string) $user->username), $allMallUsers, true)
+            || in_array(strtolower((string) $user->email), $allMallUsers, true)) {
+            return $this->mallNames;
+        }
+
         $companyByMall = ['GC' => 'AW', 'KK' => 'EP', 'PBM' => 'PSA', 'PMB' => 'GPS'];
         $companies = array_map('strtoupper', auth()->user()->scopedCompanyIds());
 
@@ -246,9 +291,40 @@ public function detail(Request $request, string $mall)
        // Kaizen data is loaded by the kaizen-main AJAX endpoint.
         
 
+        $overviewInitial = [];
+        foreach (['traffic', 'chart', 'issue', 'tenancy', 'budget', 'work'] as $section) {
+            $variant = match ($section) {
+                'chart' => $trafficGranularity,
+                'tenancy' => $tenantMovementType,
+                default => 'all',
+            };
+            $payload = Cache::get($this->overviewCacheKey($section, $mall, $startDate, $endDate, $variant));
+            if ($payload !== null) {
+                $overviewInitial[$section] = $payload;
+            }
+        }
+        $trafficSummary = $overviewInitial['traffic']['trafficSummary'] ?? [];
+        $trafficPattern = $overviewInitial['chart']['trafficPattern'] ?? [];
+        $parkingSummary = $overviewInitial['chart']['parkingSummary'] ?? [];
+        $valetSummary = $overviewInitial['chart']['valetSummary'] ?? [];
+        $valetTrend = $overviewInitial['chart']['valetTrend'] ?? [];
+        $issueSummary = $overviewInitial['issue']['issueSummary'] ?? [];
+        $issueRiskMonitor = $overviewInitial['issue']['issueRiskMonitor'] ?? [];
+
+        if ($activeTab === 'overview') {
+            $tenancy = Cache::get($this->overviewCacheKey('tenancy', $mall, $startDate, $endDate, $tenantMovementType), []);
+            $fitOutList = $tenancy['fitOutList'] ?? [];
+            $tenantMovement = $tenancy['tenantMovement'] ?? [];
+            $eventPipeline = $tenancy['eventPipeline'] ?? [];
+            $budgetSpending = Cache::get($this->overviewCacheKey('budget', $mall, $startDate, $endDate), [])['budgetSpending'] ?? [];
+            $workDetailDaily = Cache::get($this->overviewCacheKey('work', $mall, $startDate, $endDate), [])['workDetailDaily'] ?? ['all' => [], 'departments' => []];
+        }
+
         return view('dashboards.om-detail', [
+            'overviewInitial' => $overviewInitial,
             'mall' => $mall,
             'mallName' => $mallName,
+            'malls' => $this->allowedMalls(),
             'startDate' => $startDate,
             'endDate' => $endDate,
             'activeTab' => $activeTab,
@@ -308,6 +384,7 @@ public function detail(Request $request, string $mall)
         $trafficGranularity = 'monthly';
     }
 
+    return response()->json(Cache::remember($this->overviewCacheKey('traffic', $mall, $startDate, $endDate, 'all'), 3600, function () use ($mall, $startDate, $endDate) {
     $trafficSummary = $this->getTrafficSummary($mall, $startDate, $endDate);
 
     $trafficSummary = array_merge($trafficSummary, [
@@ -330,13 +407,14 @@ public function detail(Request $request, string $mall)
     // $valetSummary = $this->getValetSummary($mall, $startDate, $endDate);
     // $valetTrend = $this->getValetTrend($mall, $startDate, $endDate);
 
-    return response()->json([
+    return [
         'trafficSummary' => $trafficSummary,
         // 'trafficPattern' => $trafficPattern,
         // 'parkingSummary' => $parkingSummary,
         // 'valetSummary' => $valetSummary,
         // 'valetTrend' => $valetTrend,
-    ]);
+    ];
+    }));
 }
 
 public function overviewIssue(Request $request, string $mall)
@@ -351,13 +429,15 @@ public function overviewIssue(Request $request, string $mall)
     $startDate = $request->input('start_date', $defaultDate);
     $endDate = $request->input('end_date', $defaultDate);
 
+    return response()->json(Cache::remember($this->overviewCacheKey('issue', $mall, $startDate, $endDate, 'all'), 3600, function () use ($mall, $startDate, $endDate) {
     $issueSummary = $this->getIssueSummary($mall, $startDate, $endDate);
     $issueRiskMonitor = $this->getIssueRiskMonitor($mall, $startDate, $endDate);
 
-    return response()->json([
+    return [
         'issueSummary' => $issueSummary,
         'issueRiskMonitor' => $issueRiskMonitor,
-    ]);
+    ];
+    }));
 }
 
 public function overviewChart(Request $request, string $mall)
@@ -378,6 +458,7 @@ public function overviewChart(Request $request, string $mall)
         $trafficGranularity = 'monthly';
     }
 
+    return response()->json(Cache::remember($this->overviewCacheKey('chart', $mall, $startDate, $endDate, $trafficGranularity), 3600, function () use ($mall, $startDate, $endDate, $trafficGranularity) {
     $sql = "
         SELECT
             summary_date,
@@ -523,12 +604,13 @@ public function overviewChart(Request $request, string $mall)
         'valet_income' => $valetIncomeTotal,
     ];
 
-    return response()->json([
+    return [
         'trafficPattern' => array_values($trafficGroups),
         'parkingSummary' => $parkingSummary,
         'valetSummary' => $valetSummary,
         'valetTrend' => array_values($valetGroups),
-    ]);
+    ];
+    }));
 }
 
     public function overviewDetail(Request $request, string $mall)
@@ -572,11 +654,14 @@ public function overviewChart(Request $request, string $mall)
     // $issueSummary = $this->getIssueSummary($mall, $startDate, $endDate);
     // $issueRiskMonitor = $this->getIssueRiskMonitor($mall, $startDate, $endDate);
 
+    return response()->json(Cache::remember(
+        $this->overviewCacheKey('tenancy', $mall, $startDate, $endDate, $tenantMovementType),
+        3600,
+        function () use ($mall, $startDate, $endDate, $tenantMovementType) {
     $fitOutAndTenantMovement = $this->getFitOutAndTenantMovement($mall, $startDate, $endDate, $tenantMovementType);
-    $tenantUpdate = $this->getTenantUpdate($mall, $startDate, $endDate);
     $eventPipeline = $this->getEventPipeline($mall, $startDate, $endDate);
 
-    return response()->json([
+    return [
         // 'trafficSummary' => $trafficSummary,
         // 'trafficPattern' => $trafficPattern,
         // 'parkingSummary' => $parkingSummary,
@@ -586,10 +671,16 @@ public function overviewChart(Request $request, string $mall)
         // 'issueRiskMonitor' => $issueRiskMonitor,
         'fitOutList' => $fitOutAndTenantMovement['fitOutList'],
         'tenantMovement' => $fitOutAndTenantMovement['tenantMovement'],
-        'tenantUpdate' => $tenantUpdate,
         'eventPipeline' => $eventPipeline,
-    ]);
+    ];
+        }
+    ));
 }
+
+    private function overviewCacheKey(string $section, string $mall, string $startDate, string $endDate, string $movementType = 'all'): string
+    {
+        return 'om_overview_v1_' . sha1(json_encode([$section, $mall, $startDate, $endDate, $movementType]));
+    }
 
     public function overviewBudget(Request $request, string $mall)
     {
@@ -599,13 +690,16 @@ public function overviewChart(Request $request, string $mall)
 
         $defaultDate = now()->subDay()->toDateString();
 
-        return response()->json([
+        $startDate = $request->input('start_date', $defaultDate);
+        $endDate = $request->input('end_date', $defaultDate);
+
+        return response()->json(Cache::remember($this->overviewCacheKey('budget', $mall, $startDate, $endDate), 3600, fn () => [
             'budgetSpending' => $this->getBudgetSpending(
                 $mall,
                 $request->input('start_date', $defaultDate),
                 $request->input('end_date', $defaultDate),
             ),
-        ]);
+        ]));
     }
 
     public function overviewWorkDetail(Request $request, string $mall)
@@ -616,13 +710,16 @@ public function overviewChart(Request $request, string $mall)
 
         $defaultDate = now()->subDay()->toDateString();
 
-        return response()->json([
+        $startDate = $request->input('start_date', $defaultDate);
+        $endDate = $request->input('end_date', $defaultDate);
+
+        return response()->json(Cache::remember($this->overviewCacheKey('work', $mall, $startDate, $endDate), 3600, fn () => [
             'workDetailDaily' => $this->getWorkDetailDaily(
                 $mall,
                 $request->input('start_date', $defaultDate),
                 $request->input('end_date', $defaultDate),
             ),
-        ]);
+        ]));
     }
 
 public function departmentMain(Request $request, string $mall)
