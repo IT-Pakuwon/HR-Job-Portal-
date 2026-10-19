@@ -553,4 +553,233 @@ class IFCAAPINonStockController extends Controller
             ];
         }
     }
+
+    public function SchedulerProcessNonStock(): array
+    {
+        $username = 'scheduler';
+
+        // Ambil data H-6 sampai H-3 (contoh tanggal 19: tanggal 13-16)
+        $fromDt = now()->subDays(6)->startOfDay();
+        $toDt   = now()->subDays(3)->endOfDay();
+
+        // 1) Ambil inventory aktif dari H-6 sampai H-3
+        $inventories = MsInventory::query()
+            ->select(['id', 'inventoryid', 'inventory_descr', 'stock_unit', 'item_type', 'status'])
+            ->whereIn('item_type', ['SE', 'NS'])
+            ->where('status', 'A')
+            ->whereBetween('created_at', [$fromDt, $toDt])
+            ->orderBy('inventoryid')
+            ->get();
+
+        if ($inventories->isEmpty()) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada inventory aktif dalam periode H-6 sampai H-3.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_inventory' => 0,
+                'total_h' => 0,
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_existing_staging' => 0,
+            ];
+        }
+
+        $itemCds = $inventories
+            ->pluck('inventoryid')
+            ->map(fn ($v) => (string) $v)
+            ->values()
+            ->all();
+
+        // 2) Cek non stock yang SUDAH ADA di staging
+        $existingItemCds = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $itemCds)
+            ->pluck('item_cd')
+            ->map(fn ($v) => (string) $v)
+            ->values()
+            ->all();
+
+        // 3) Ambil hanya inventory yang BELUM ADA di staging
+        // Inilah status H
+        $inventoriesH = $inventories
+            ->filter(function ($v) use ($existingItemCds) {
+                return !in_array((string) $v->inventoryid, $existingItemCds, true);
+            })
+            ->values();
+
+        if ($inventoriesH->isEmpty()) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada non stock status H. Semua inventory dalam range sudah ada di staging.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_inventory' => $inventories->count(),
+                'total_h' => 0,
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_existing_staging' => count($existingItemCds),
+            ];
+        }
+
+        $insertedH = 0;
+        $sentOkP   = 0;
+        $sentFailP = 0;
+
+        $createdItemCds = [];
+
+        // 4) Insert hanya non stock H ke staging
+        $stagingConn = (new StagingIfcaPoItem)->getConnectionName();
+        DB::connection($stagingConn)->beginTransaction();
+
+        try {
+            foreach ($inventoriesH as $v) {
+                $itemCd = (string) $v->inventoryid;
+
+                // Safety check tambahan agar tidak double kalau ada proses lain bersamaan
+                $alreadyExists = StagingIfcaPoItem::query()
+                    ->where('item_cd', $itemCd)
+                    ->exists();
+
+                if ($alreadyExists) {
+                    continue;
+                }
+
+                StagingIfcaPoItem::query()->create([
+                    'item_cd'          => $itemCd,
+                    'item_descs'       => (string) $v->inventory_descr,
+                    'uom_cd'           => (string) ($v->stock_unit ?? ''),
+                    'item_type'        => 'N',
+                    'stock_cd'         => '',
+                    'item_remarks'     => (string) $v->inventory_descr,
+
+                    'costcode'         => '',
+                    'expense_acct'     => '',
+                    'asset_acct'       => '',
+                    'management_acct'  => '',
+
+                    'latest_cost'      => 0,
+                    'std_cost'         => 0,
+                    'budget_rate'      => 0,
+
+                    'supplier_cd'      => '',
+                    'product_cd'       => '',
+                    'leadtime'         => 0,
+
+                    'alt_supplier_cd'  => '',
+                    'alt_product_cd'   => '',
+                    'alt_leadtime'     => 0,
+
+                    'process_flag'     => 'N',
+                    'status'           => 'A',
+
+                    'created_by'       => $username,
+                    'created_at'       => now(),
+                    'updated_by'       => $username,
+                    'updated_at'       => now(),
+                ]);
+
+                $createdItemCds[] = $itemCd;
+                $insertedH++;
+            }
+
+            DB::connection($stagingConn)->commit();
+        } catch (\Throwable $e) {
+            DB::connection($stagingConn)->rollBack();
+
+            return [
+                'ok' => false,
+                'message' => 'Gagal insert staging non stock: ' . $e->getMessage(),
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_inventory' => $inventories->count(),
+                'total_h' => $inventoriesH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingItemCds),
+            ];
+        }
+
+        if (empty($createdItemCds)) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada non stock baru yang berhasil dibuat di staging.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_inventory' => $inventories->count(),
+                'total_h' => $inventoriesH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingItemCds),
+            ];
+        }
+
+        // 5) Ambil token IFCA
+        try {
+            $token = $this->getIfcaToken($username);
+        } catch (\Throwable $e) {
+            return [
+                'ok' => false,
+                'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_inventory' => $inventories->count(),
+                'total_h' => $inventoriesH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingItemCds),
+            ];
+        }
+
+        // 6) Send hanya non stock yang baru dibuat oleh scheduler ini
+        $items = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $createdItemCds)
+            ->where('process_flag', 'N')
+            ->get();
+
+        foreach ($items as $item) {
+            $res = $this->sendNonStockAPI($item, $token, $username);
+
+            if ($res['ok']) {
+                StagingIfcaPoItem::query()
+                    ->where('item_cd', $item->item_cd)
+                    ->update([
+                        'process_flag' => 'Y',
+                        'process_dt'   => now(),
+                        'process_note' => null,
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentOkP++;
+            } else {
+                StagingIfcaPoItem::query()
+                    ->where('item_cd', $item->item_cd)
+                    ->update([
+                        'process_note' => substr((string) ($res['response_body'] ?? 'ERROR'), 0, 255),
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentFailP++;
+            }
+        }
+
+        return [
+            'ok' => true,
+            'message' => 'Auto scheduler non stock selesai.',
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_inventory' => $inventories->count(),
+            'total_h' => $inventoriesH->count(),
+            'inserted_H_to_P' => $insertedH,
+            'sent_success_P_to_C' => $sentOkP,
+            'sent_failed_still_P' => $sentFailP,
+            'skipped_existing_staging' => count($existingItemCds),
+        ];
+    }
 }
