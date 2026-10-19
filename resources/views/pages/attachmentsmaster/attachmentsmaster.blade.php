@@ -15,7 +15,7 @@
             <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-white">Company</label>
-                    <select id="filterCompany" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                    <select id="filterCompany" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" style="width:100%">
                         <option value="">All Company</option>
                         @foreach ($companies as $company)
                             <option value="{{ $company->cpny_id }}">
@@ -27,9 +27,13 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-white">Doc Type</label>
-                    <input type="text" id="filterDoctype"
-                        class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"
-                        placeholder="PB / PJ / PO / CS">
+                    <select id="filterDoctype" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700"
+                        style="width:100%">
+                        <option value="">All Doc Type</option>
+                        @foreach ($doctypes as $doctype)
+                            <option value="{{ $doctype }}">{{ $doctype }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div>
@@ -80,10 +84,44 @@
 
     <script>
         $(document).ready(function() {
+            $('#filterDoctype').select2({
+                width: '100%',
+                placeholder: 'All Doc Type',
+                allowClear: true
+            });
+
+            $('#filterCompany').select2({
+                width: '100%',
+                placeholder: 'All Company',
+                allowClear: true
+            });
+
             if ($.fn.DataTable.isDataTable('#attachmentTable')) {
                 $('#attachmentTable').DataTable().clear().destroy();
             }
 
+
+            // With serverSide, export buttons would only export the current page: fetch everything first.
+            function exportAll(type) {
+                return function(e, dt, button, config) {
+                    const self = this;
+                    const oldStart = dt.settings()[0]._iDisplayStart;
+                    dt.one('preXhr', function(e, s, data) {
+                        data.start = 0;
+                        data.length = -1;
+                        dt.one('preDraw', function(e, settings) {
+                            $.fn.dataTable.ext.buttons[type].action.call(self, e, dt, button, config);
+                            dt.one('preXhr', function(e, s, data) {
+                                settings._iDisplayStart = oldStart;
+                                data.start = oldStart;
+                            });
+                            setTimeout(dt.ajax.reload, 0);
+                            return false;
+                        });
+                    });
+                    dt.ajax.reload();
+                };
+            }
             let table = $('#attachmentTable').DataTable({
                 ajax: {
                     url: "{{ route('attachments-master.json') }}",
@@ -91,7 +129,7 @@
                     data: function(d) {
                         d.cpny_id = $('#filterCompany').val();
                         d.doctype = $('#filterDoctype').val();
-                        d.search = $('#filterSearch').val();
+                        d.q = $('#filterSearch').val();
                     },
                     dataSrc: "data",
                     error: function(xhr) {
@@ -99,7 +137,9 @@
                     }
                 },
                 processing: true,
-                serverSide: false,
+                serverSide: true,
+                searchDelay: 500,
+                order: [],
                 autoWidth: false,
                 responsive: {
                     details: {
@@ -123,6 +163,7 @@
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
+                        action: exportAll('excelHtml5'),
                         text: '↓ Excel',
                         title: 'Attachment List',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
@@ -132,6 +173,7 @@
                     },
                     {
                         extend: 'csvHtml5',
+                        action: exportAll('csvHtml5'),
                         text: '↓ CSV',
                         title: 'Attachment List',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
@@ -215,8 +257,8 @@
             });
 
             $('#btnResetFilter').click(function() {
-                $('#filterCompany').val('');
-                $('#filterDoctype').val('');
+                $('#filterCompany').val(null).trigger('change');
+                $('#filterDoctype').val(null).trigger('change');
                 $('#filterSearch').val('');
                 table.ajax.reload(null, true);
             });
