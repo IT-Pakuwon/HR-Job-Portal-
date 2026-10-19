@@ -557,11 +557,11 @@ class IFCAAPISupplierController extends Controller
     {
         $username = 'scheduler';
 
-        // 3 hari sebelum hari ini s/d hari ini
-        $fromDt = now()->subDays(3)->startOfDay();
-        $toDt   = now()->endOfDay();
+        // Ambil data H-6 sampai H-3 (contoh tanggal 19: tanggal 13-16)
+        $fromDt = now()->subDays(6)->startOfDay();
+        $toDt   = now()->subDays(3)->endOfDay();
 
-        // 1) Ambil vendor aktif dari 3 hari sebelumnya sampai hari ini
+        // 1) Ambil vendor aktif dari H-6 sampai H-3
         $vendors = MsVendor::query()
             ->select([
                 'id',
@@ -588,7 +588,7 @@ class IFCAAPISupplierController extends Controller
         if ($vendors->isEmpty()) {
             return [
                 'ok' => true,
-                'message' => 'Tidak ada vendor aktif dalam range 3 hari.',
+                'message' => 'Tidak ada vendor aktif dalam periode H-6 sampai H-3.',
                 'period_from' => $fromDt->format('Y-m-d H:i:s'),
                 'period_to' => $toDt->format('Y-m-d H:i:s'),
                 'total_vendor' => 0,
