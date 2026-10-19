@@ -1102,6 +1102,7 @@
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
+                            orthogonal: 'export',
                             modifier: {
                                 page: 'current'
                             }
@@ -1114,6 +1115,7 @@
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
+                            orthogonal: 'export',
                             modifier: {
                                 page: 'current'
                             }
@@ -1275,20 +1277,20 @@
                         data: 'requesttype_name',
                         defaultContent: '-',
                         className: 'text-left',
-                        render: function(data) {
+                        render: function(data, type) {
                             if (!data) return '-';
                             const str = String(data);
-                            if (str.length <= 40) return str;
+                            if (type === 'export' || str.length <= 40) return str;
                             return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 40)}…</span>`;
                         }
                     },
                     {
                         data: 'keperluan',
                         className: 'text-left',
-                        render: function(data) {
+                        render: function(data, type) {
                             if (!data) return '-';
                             const str = String(data);
-                            if (str.length <= 50) return str;
+                            if (type === 'export' || str.length <= 50) return str;
                             return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 50)}…</span>`;
                         }
                     },
