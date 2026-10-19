@@ -766,7 +766,7 @@ function docNotifications(mailboxConnected = false) {
                             icon: '/favicon.ico',
                             tag: first.key,
                         });
-                        n.onclick = () => { this.markRead(first); window.focus(); window.location.href = `${first.url}/${first.hid}`; };
+                        n.onclick = () => { this.markRead(first); window.focus(); window.location.href = first.href || `${first.url}/${first.hid}`; };
                     }
                 }
 
