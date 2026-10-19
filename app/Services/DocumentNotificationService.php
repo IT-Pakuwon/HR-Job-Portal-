@@ -942,6 +942,7 @@ class DocumentNotificationService
                             'message'    => 'Now open for registration' . ($deadline ? " — register before {$deadline}" : '') . '.',
                             'cpnyid'     => $s->quota->first()->cpny_id ?? null,
                             'url'        => '/training-list',
+                            'href'       => '/training-list/' . Hashids::encode($trainingPk) . '?schedule=' . $s->schedule_id,
                             'by'         => null,
                             'updated_at' => $s->updated_at ?? $s->created_at,
                         ];

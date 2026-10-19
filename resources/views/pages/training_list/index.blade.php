@@ -1943,6 +1943,7 @@
         @endif
         const csrfHeaders = { 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
         const initialEid = @json($initialEid);
+        let initialScheduleId = initialEid ? (new URLSearchParams(location.search).get('schedule') || '').replace(/[^A-Za-z0-9_-]/g, '') || null : null;
         const initialMyEid = @json($initialMyEid ?? null);
         const initialAllRegsEid = @json($initialAllRegsEid ?? null);
         const initialApprovalEid = @json($initialApprovalEid ?? null);
@@ -2414,7 +2415,7 @@
                     }
 
                     $rows.append(`
-                        <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                        <div class="detailScheduleRow flex flex-col gap-3 p-4 sm:flex-row sm:items-center" data-schedule-id="${s.id}">
                             <div class="flex shrink-0 flex-col items-center justify-center rounded-lg bg-gray-50 px-4 py-2 dark:bg-gray-900">
                                 <span class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">${month}</span>
                                 <span class="text-2xl font-bold leading-tight text-gray-800 dark:text-white">${day}</span>
@@ -2441,6 +2442,17 @@
                 history.pushState({ trainingList: true }, '', targetPath);
             }
             $('#detailModal').removeClass('hidden').addClass('flex');
+
+            // ?schedule=<id> (notification deep link): scroll to and highlight that
+            // schedule row. One-shot, so reopening the modal later doesn't re-trigger.
+            if (initialScheduleId) {
+                const $row = $list.find(`.detailScheduleRow[data-schedule-id="${initialScheduleId}"]`);
+                initialScheduleId = null;
+                if ($row.length) {
+                    $row.addClass('ring-2 ring-inset ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/20');
+                    $row[0].scrollIntoView({ block: 'center' });
+                }
+            }
         }
 
         function closeDetailModal() {
