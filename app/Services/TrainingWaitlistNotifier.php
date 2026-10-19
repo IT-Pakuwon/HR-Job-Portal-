@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\SysUserRole;
+use App\Models\TrLndRescheduleEmailQueue;
 use App\Models\TrLndTrainingRegistration;
 use App\Models\TrMessage;
 use App\Models\User;
@@ -180,12 +181,9 @@ class TrainingWaitlistNotifier
      * carries a cancel link front and center — a kept seat that silently
      * follows the new date can strand someone who can't make it.
      */
-    public static function notifyReschedule(TrLndTrainingRegistration $registration, ?string $oldDate, string $newDate): void
+    public static function notifyReschedule(TrLndTrainingRegistration $registration, ?string $oldDate, string $newDate, ?string $timeLabel = null): void
     {
         $trainingName = $registration->schedule?->schedule?->training?->training_name ?? 'Training';
-
-        $eid = Hashids::encode($registration->id);
-        $url = url('/training-list/my/'.$eid);
 
         TrMessage::create([
             'refnbr' => $registration->training_regist_id,
@@ -196,24 +194,63 @@ class TrainingWaitlistNotifier
             'department_id' => $registration->department_id,
             'username' => 'system',
             'name' => 'System',
-            'message' => "The schedule for {$trainingName} has changed".($oldDate ? " from {$oldDate}" : '')." to {$newDate}",
+            'message' => $oldDate === $newDate && $timeLabel
+                ? "The time for {$trainingName} on {$newDate} has changed to {$timeLabel}"
+                : "The schedule for {$trainingName} has changed".($oldDate ? " from {$oldDate}" : '')." to {$newDate}".($timeLabel ? " ({$timeLabel})" : ''),
             'status' => 'A',
             'created_by' => 'system',
         ]);
+
+        // The SMTP relay throttles bursts ("421 Too many messages"), so the
+        // email isn't sent inline — it's queued and drained in small batches
+        // by training:send-reschedule-emails. A registrant already pending
+        // for an earlier reschedule just gets that row refreshed.
+        TrLndRescheduleEmailQueue::updateOrCreate(
+            [
+                'training_regist_id' => $registration->training_regist_id,
+                'status' => TrLndRescheduleEmailQueue::STATUS_PENDING,
+            ],
+            [
+                'schedule_id' => $registration->schedule_id,
+                'old_date' => $oldDate,
+                'new_date' => $newDate,
+                'time_label' => $timeLabel,
+                'created_by' => 'system',
+            ]
+        );
+    }
+
+    /**
+     * Sends one queued reschedule email. Returns false when there's nobody
+     * to mail (no active user / no address); throws on SMTP failure so the
+     * caller can retry or back off.
+     */
+    public static function sendRescheduleEmail(TrLndRescheduleEmailQueue $queued): bool
+    {
+        $registration = TrLndTrainingRegistration::with('schedule.schedule.training')
+            ->where('training_regist_id', $queued->training_regist_id)
+            ->first();
+
+        if (!$registration) {
+            return false;
+        }
 
         $user = User::where('username', $registration->user_registration)->where('status', 'A')->first();
         $to = $user ? ($user->notification_email ?: $user->email) : null;
 
         if (!$to) {
-            return;
+            return false;
         }
+
+        $url = url('/training-list/my/'.Hashids::encode($registration->id));
 
         Mail::send('emails.trainingreschedule', [
             'name' => $user->name ?: $user->username,
             'docid' => $registration->training_regist_id,
-            'training_name' => $trainingName,
-            'old_date' => $oldDate,
-            'new_date' => $newDate,
+            'training_name' => $registration->schedule?->schedule?->training?->training_name ?? 'Training',
+            'old_date' => $queued->old_date?->toDateString(),
+            'new_date' => $queued->new_date->toDateString(),
+            'time_label' => $queued->time_label,
             'url' => $url,
             'systemLabel' => 'Learning & Development System',
         ], function ($m) use ($to, $registration) {
@@ -221,6 +258,8 @@ class TrainingWaitlistNotifier
                 ->subject($registration->training_regist_id.' - Training Schedule Changed')
                 ->from(config('mail.from.address'), config('app.name'));
         });
+
+        return true;
     }
 
     /**
