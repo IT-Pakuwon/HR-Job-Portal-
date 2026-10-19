@@ -540,9 +540,20 @@
                     closeChangePasswordModal();
                 },
                 error: function(xhr) {
-                    const res = xhr.responseJSON;
-                    // alert(res.message || 'Something went wrong.');
-                    toastr.error(xhr.responseJSON.message);
+                    const res = xhr.responseJSON || {};
+                    let msg;
+                    if (res.errors) {
+                        msg = Object.values(res.errors).flat().join('<br>');
+                    } else if (res.message) {
+                        msg = res.message;
+                    } else if (xhr.status === 419) {
+                        msg = 'Your session has expired. Please refresh the page and try again.';
+                    } else if (xhr.status === 0) {
+                        msg = 'Cannot reach the server. Check your connection and try again.';
+                    } else {
+                        msg = 'Failed to update password (error ' + xhr.status + ').';
+                    }
+                    toastr.error(msg);
                 }
             });
         });

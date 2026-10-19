@@ -681,13 +681,11 @@ class UsersController extends Controller
                     ->first();
             }
 
-            // kalau user DAS wajib ada, gunakan throw supaya rollback
-            if (!$das) {
-                throw new \Exception('UserDas tidak ditemukan (email/username tidak match).');
+            // DAS sync is optional: some users (e.g. group_cpny_id SBY) have no DAS account
+            if ($das) {
+                $das->password = $newHash;
+                $das->save();
             }
-
-            $das->password = $newHash;
-            $das->save();
 
             DB::commit();
             return response()->json(['message' => 'Password updated successfully']);
