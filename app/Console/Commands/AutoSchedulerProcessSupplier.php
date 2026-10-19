@@ -10,7 +10,7 @@ class AutoSchedulerProcessSupplier extends Command
 {
     protected $signature = 'ifca:supplier-auto-process';
 
-    protected $description = 'Auto process IFCA Supplier status H hari ini';
+    protected $description = 'Auto process IFCA Supplier status H dari H-6 sampai H-3';
 
     public function handle()
     {
