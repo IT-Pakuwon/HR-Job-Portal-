@@ -6,6 +6,7 @@ use App\Models\MsCompany;
 use App\Models\TrAttachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AttachmentMasterController extends Controller
 {
@@ -18,14 +19,24 @@ class AttachmentMasterController extends Controller
             ->orderBy('cpny_name')
             ->get();
 
-        return view('pages.attachmentsmaster.attachmentsmaster', compact('companies'));
+        // DISTINCT over the whole table is slow, so cache the list briefly.
+        $doctypes = Cache::remember('attachments-master.doctypes', 600, fn () => TrAttachment::query()
+            ->whereNotNull('doctype')
+            ->where('doctype', '<>', '')
+            ->distinct()
+            ->orderBy('doctype')
+            ->pluck('doctype')
+            ->all());
+
+        return view('pages.attachmentsmaster.attachmentsmaster', compact('companies', 'doctypes'));
     }
 
     public function json(Request $request)
     {
-        $cpnyId = $request->get('cpny_id');
-        $doctype = $request->get('doctype');
-        $search = trim((string) $request->get('search', ''));
+        $cpnyId = (string) $request->get('cpny_id', '');
+        $doctype = trim((string) $request->get('doctype', ''));
+        $q = trim((string) $request->get('q', ''));
+        $dtSearch = trim((string) data_get($request->get('search'), 'value', ''));
 
         $query = TrAttachment::query()
             ->select([
@@ -43,29 +54,47 @@ class AttachmentMasterController extends Controller
                 'status',
             ]);
 
-        // if ($cpnyId !== '') {
-        //     $query->where('cpny_id', $cpnyId);
-        // }
-
-        if ($doctype !== '') {
-            $query->where('doctype', 'ilike', '%'.$doctype.'%');
+        if ($cpnyId !== '') {
+            $query->where('cpny_id', $cpnyId);
         }
 
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('refnbr', 'ilike', '%'.$search.'%')
-                    ->orWhere('doctype', 'ilike', '%'.$search.'%')
-                    ->orWhere('attachment_name', 'ilike', '%'.$search.'%')
-                    ->orWhere('filename', 'ilike', '%'.$search.'%')
-                    ->orWhere('folder', 'ilike', '%'.$search.'%')
-                    ->orWhere('department_id', 'ilike', '%'.$search.'%')
-                    ->orWhere('extention', 'ilike', '%'.$search.'%');
+        if ($doctype !== '') {
+            $query->where('doctype', $doctype);
+        }
+
+        foreach (array_filter([$q, $dtSearch], fn ($t) => $t !== '') as $term) {
+            $query->where(function ($w) use ($term) {
+                $w->where('refnbr', 'ilike', '%'.$term.'%')
+                    ->orWhere('doctype', 'ilike', '%'.$term.'%')
+                    ->orWhere('attachment_name', 'ilike', '%'.$term.'%')
+                    ->orWhere('filename', 'ilike', '%'.$term.'%')
+                    ->orWhere('folder', 'ilike', '%'.$term.'%')
+                    ->orWhere('department_id', 'ilike', '%'.$term.'%')
+                    ->orWhere('extention', 'ilike', '%'.$term.'%');
             });
         }
 
-        $rows = $query
-            ->orderByDesc('id')
-            ->get()
+        $total = (clone $query)->count();
+
+        // DataTables column index => DB column (0/1 are not orderable)
+        $orderable = [
+            2 => 'refnbr', 3 => 'doctype', 4 => 'attachment_date', 5 => 'cpny_id',
+            6 => 'department_id', 7 => 'attachment_name', 8 => 'folder', 9 => 'filename',
+            10 => 'filesize', 11 => 'extention', 12 => 'status',
+        ];
+        $orderCol = $orderable[(int) data_get($request->get('order'), '0.column', -1)] ?? null;
+        if ($orderCol) {
+            $dir = data_get($request->get('order'), '0.dir') === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($orderCol, $dir)->orderByDesc('id');
+        } else {
+            $query->orderByDesc('id');
+        }
+
+        $start = max(0, (int) $request->get('start', 0));
+        $length = (int) $request->get('length', 10);
+        $length = $length < 0 ? 50000 : min($length, 50000); // -1 = export all
+
+        $rows = $query->offset($start)->limit($length)->get()
             ->map(function ($row) {
                 return [
                     'id' => $row->id,
@@ -83,7 +112,12 @@ class AttachmentMasterController extends Controller
                 ];
             });
 
-        return response()->json(['data' => $rows]);
+        return response()->json([
+            'draw' => (int) $request->get('draw', 0),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $rows,
+        ]);
     }
 
     public function toggleStatus(Request $request, $id)
