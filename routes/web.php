@@ -749,6 +749,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
+        Route::get('/budgetmonitor/document/{refnbr}', [BudgetMonitorController::class, 'openDocument'])->name('budgetmonitor.document');
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {

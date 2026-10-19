@@ -643,7 +643,18 @@
                         orderable: false
                     },
                     {
-                        data: 'refnbr'
+                        data: 'refnbr',
+                        render: function(data, type, row) {
+                            if (type !== 'display' || !data) return data || '';
+
+                            const link = document.createElement('a');
+                            link.href = row.document_url || @json(url('/budgetmonitor/document')) + '/' + encodeURIComponent(data);
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            link.className = 'text-indigo-600 underline hover:text-indigo-800 dark:text-indigo-400';
+                            link.textContent = data;
+                            return link.outerHTML;
+                        }
                     },
                     {
                         data: 'submitdate'
