@@ -1145,26 +1145,65 @@ class RecruitmentDashboardController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    /**
+     * The group_cpny_id the dashboard widgets are locked to, or null when unrestricted.
+     * Same rule as dashboard(): only the primary admin (or a user with no group) sees every group;
+     * everyone else only sees their own group_cpny_id (e.g. JKT users only JKT, SBY users only SBY).
+     */
+    private function lockedGroup(): ?string
+    {
+        $user = Auth::user();
+        $group = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
+        return (!$user->isPrimaryAdmin() && $group !== '') ? $group : null;
+    }
+
+    /**
+     * Waiting Approval ('waiting') / Approval History ('history') list, limited to the locked group.
+     *
+     * A row is dropped only when its company belongs to a *different* known group. A company that
+     * can't be mapped to any group is kept, so a mapping gap never hides a document the user has to approve.
+     */
+    private function groupApprovalRows(Request $request, string $which): \Illuminate\Support\Collection
+    {
+        $response = $which === 'history'
+            ? $this->approvalDashboard->approveJson($request)
+            : $this->approvalDashboard->waitingJson($request);
+
+        $rows = collect($response->getData(true)['data'] ?? []);
+        $group = $this->lockedGroup();
+
+        if (!$group || $rows->isEmpty()) {
+            return $rows;
+        }
+
+        $groupByCompany = MsCompany::query()
+            ->select('cpny_id', 'group_cpny_id')
+            ->get()
+            ->mapWithKeys(fn ($c) => [strtoupper(trim((string) $c->cpny_id)) => strtoupper(trim((string) $c->group_cpny_id))]);
+
+        return $rows
+            ->filter(function ($row) use ($groupByCompany, $group) {
+                $rowGroup = $groupByCompany->get(strtoupper(trim((string) ($row['cpnyid'] ?? ''))));
+
+                return $rowGroup === null || $rowGroup === '' || $rowGroup === $group;
+            })
+            ->values();
+    }
+
     public function summaryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
-        $waitingApproval = collect(
-            $this->approvalDashboard
-                ->waitingJson($request)
-                ->getData(true)['data'] ?? []
-        )->count();
+        $waitingApproval = $this->groupApprovalRows($request, 'waiting')->count();
 
-        $approvalHistory = collect(
-            $this->approvalDashboard
-                ->approveJson($request)
-                ->getData(true)['data'] ?? []
-        )->count();
+        $approvalHistory = $this->groupApprovalRows($request, 'history')->count();
 
         $uncheckedApplicant = DB::connection('mysql3')
             ->table('viewtrxcareer')
             ->where('status', '!=', 'X')
             ->where('is_read', 'N')
+            ->when($this->lockedGroup(), fn ($q, $group) => $q->where('group_cpny_id', $group))
             ->count();
 
         $selfRegister = $this->uncheckedSelfRegisterQuery()->distinct()->count('vc.id');
@@ -1194,21 +1233,37 @@ class RecruitmentDashboardController extends Controller
             ->where(function ($q) {
                 $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
             })
-            ->whereNotIn('vc.status', ['R', 'X']);
+            ->whereNotIn('vc.status', ['R', 'X'])
+            ->when($this->lockedGroup(), function ($q, $group) {
+                // Older self-registrations were saved without a group_cpny_id, so for those fall back to
+                // the group of the applicant's own account (hr_ms_applicant) instead of hiding them.
+                $q->where(function ($w) use ($group) {
+                    $w->where('vc.group_cpny_id', $group)
+                        ->orWhere(function ($blank) use ($group) {
+                            $blank->where(fn ($b) => $b->whereNull('vc.group_cpny_id')->orWhere('vc.group_cpny_id', ''))
+                                ->whereExists(function ($sub) use ($group) {
+                                    $sub->select(DB::raw(1))
+                                        ->from('hr_ms_applicant as ap')
+                                        ->whereColumn('ap.applicant_id', 'vc.applicant_id')
+                                        ->where('ap.group_cpny_id', $group);
+                                });
+                        });
+                });
+            });
     }
 
     public function widgetWaitingApprovalJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
-        return $this->approvalDashboard->waitingJson($request);
+        return response()->json(['data' => $this->groupApprovalRows($request, 'waiting')]);
     }
 
     public function widgetApprovalHistoryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
-        return $this->approvalDashboard->approveJson($request);
+        return response()->json(['data' => $this->groupApprovalRows($request, 'history')]);
     }
 
     public function widgetApplicantJson(Request $request)
@@ -1220,6 +1275,7 @@ class RecruitmentDashboardController extends Controller
             ->select(['id', 'docid', 'fullname', 'apply_date', 'job_title', 'cpnyid', 'apply_step', 'status', 'is_read'])
             ->where('status', '!=', 'X')
             ->where('is_read', 'N')
+            ->when($this->lockedGroup(), fn ($q, $group) => $q->where('group_cpny_id', $group))
             ->orderByDesc('apply_date')
             ->get();
 
@@ -1283,17 +1339,9 @@ class RecruitmentDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $waiting = collect(
-            $this->approvalDashboard
-                ->waitingJson($request)
-                ->getData(true)['data'] ?? []
-        );
+        $waiting = $this->groupApprovalRows($request, 'waiting');
 
-        $history = collect(
-            $this->approvalDashboard
-                ->approveJson($request)
-                ->getData(true)['data'] ?? []
-        );
+        $history = $this->groupApprovalRows($request, 'history');
 
         $doctypes = $waiting
             ->merge($history)

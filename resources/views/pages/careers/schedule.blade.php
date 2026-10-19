@@ -23,8 +23,17 @@
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
             @forelse ($agenda as $p)
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                    <td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $p->title }}</td>
+                @php
+                    $isPrevPosition = !empty($remapCutoff) && $p->created_at && $p->created_at < $remapCutoff;
+                @endphp
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20 @if($isPrevPosition) opacity-60 @endif">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-gray-100">
+                        {{ $p->title }}
+                        @if($isPrevPosition)
+                            <span class="ml-1.5 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-300"
+                                title="Created before this applicant was remapped. Create a new schedule for the new position.">Previous position</span>
+                        @endif
+                    </td>
                     <td class="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">{{ $p->description }}</td>
                     <td class="px-3 py-3 text-sm text-gray-500 dark:text-gray-400">{{ $p->startdate }}</td>
                     <td class="px-3 py-3 text-sm text-gray-500 dark:text-gray-400">{{ $p->enddate }}</td>

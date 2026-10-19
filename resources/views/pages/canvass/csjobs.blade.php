@@ -1099,7 +1099,7 @@
 
                         const href = (cat === 'KONTRAK') ?
                             (kontrakEid ? `/showkontrak/${kontrakEid}` : '#') :
-                            `/showpo/${row.eid}`;
+                            `/showpo/${row.po_eid || row.eid}`;
 
                         const disabled = (cat === 'KONTRAK' && !kontrakEid) ?
                             'opacity-50 pointer-events-none' :
