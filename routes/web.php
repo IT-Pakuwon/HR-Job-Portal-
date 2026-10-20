@@ -3269,6 +3269,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
         Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
 
+        Route::get('/training-reschedule-emails', [\App\Http\Controllers\RescheduleEmailQueueController::class, 'index'])->name('reschedule_email_queue');
+
         Route::get('/group-acc-specific', [GroupAccspecificController::class, 'index'])->name('group_acc_specific');
         Route::get('/group-acc-specific/json', [GroupAccspecificController::class, 'json'])->name('group_acc_specific.json');
         Route::post('/group-acc-specific', [GroupAccspecificController::class, 'store'])->name('group_acc_specific.store');
@@ -3703,7 +3705,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::prefix('report-kontrak')->middleware('access:KONTRAK,VIEW')->group(function () {
+    Route::prefix('report-kontrak')->middleware('access:REPORTKONTRAK,VIEW')->group(function () {
         Route::get('/', [ReportKontrakController::class, 'index'])->name('reportkontrak');
         Route::get('/json', [ReportKontrakController::class, 'json'])->name('report.kontrak.json');
         Route::get('/export', [ReportKontrakController::class, 'export'])->name('report.kontrak.export');

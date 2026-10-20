@@ -138,6 +138,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/training-expire-waitlist-offers.log'));
 
+        // Drain queued reschedule emails, 15 per run (SMTP relay rate limit)
+        $schedule->command('training:send-reschedule-emails')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-send-reschedule-emails.log'));
+
         // Auto-publish DRAFT training schedules once their published_datetime arrives
         $schedule->command('training:publish-scheduled')
             ->everyFiveMinutes()
