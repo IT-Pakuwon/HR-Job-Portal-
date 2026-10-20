@@ -496,7 +496,7 @@ class PerizinanController extends Controller
 
         $validated = $request->validate([
             'item_perizinan' => ['required', 'array', 'min:1'],
-            'item_perizinan.*' => ['required', 'string', 'max:255'],
+            'item_perizinan.*' => ['required', 'string', 'max:5000'],
             'qty_perizinan' => ['required', 'array', 'min:1'],
             'qty_perizinan.*' => ['required', 'numeric', 'gt:0'],
         ]);
@@ -731,7 +731,7 @@ class PerizinanController extends Controller
             'sppbjktid' => ['nullable', 'string', 'max:255'],
             'csid' => ['nullable', 'string', 'max:255'],
             'item_perizinan' => ['required', 'array', 'min:1'],
-            'item_perizinan.*' => ['required', 'string', 'max:255'],
+            'item_perizinan.*' => ['required', 'string', 'max:5000'],
             'qty_perizinan' => ['required', 'array', 'min:1'],
             'qty_perizinan.*' => ['required', 'numeric', 'gt:0'],
             'attachments' => ['nullable', 'array'],

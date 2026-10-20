@@ -172,9 +172,8 @@
                                                 <li
                                                     class="flex w-1/2 items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 shadow-sm dark:bg-gray-800">
                                                     <span class="text-sm text-indigo-500 dark:text-indigo-400">💼</span>
-                                                    <span class="font-medium">Experience: Lebih dari
-                                                        {{ $jobposting->experience_start }} tahun
-                                                        {{ $jobposting->experience_end }} Year</span>
+                                                    <span class="font-medium">Experience:
+                                                        {{ \App\Models\Personnel::experienceWording($jobposting->experience_start, $jobposting->experience_end, null, 'id') ?? '-' }}</span>
                                                 </li>
                                             </div>
                                             @foreach ($jobqua as $jq)

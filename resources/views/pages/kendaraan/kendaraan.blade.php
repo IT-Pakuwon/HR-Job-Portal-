@@ -16,13 +16,15 @@
                 </button>
             </div>
 
-            {{-- Company filter hidden --}}
-            <select id="filterCompany" class="hidden">
-                <option value="">All Company</option>
-                @foreach ($companies as $company)
-                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
-                @endforeach
-            </select>
+            <div class="px-5 py-3">
+                <select id="filterCompany"
+                    class="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100">
+                    <option value="">All Company</option>
+                    @foreach ($companies as $company)
+                        <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <div class="relative overflow-hidden">
                 <table id="kendaraanTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -31,7 +33,7 @@
                             class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="w-10 px-4 py-3"></th>
                             <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
-                            <th class="hidden">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">No Polisi</th>
                             <th class="px-4 py-3 text-left font-medium">Nama Kendaraan</th>
                             <th class="px-4 py-3 text-left font-medium">Kategori Kendaraan</th>
@@ -69,20 +71,23 @@
                     @csrf
                     <input type="hidden" id="id" name="id">
 
-                    {{-- Company hidden --}}
-                    <select id="cpny_id" name="cpny_id" class="hidden">
-                        <option value="">-- Select Company --</option>
-                        @foreach ($companies as $company)
-                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
-                        @endforeach
-                    </select>
-
                     <div class="bg-slate-50 p-6 dark:bg-[#0b1220]">
                         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                                 <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Vehicle Information</h3>
                             </div>
                             <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Company</label>
+                                    <select id="cpny_id" name="cpny_id"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100">
+                                        <option value="">-- Select Company --</option>
+                                        @foreach ($companies as $company)
+                                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
                                 <div>
                                     <label class="req mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">No Polisi</label>
@@ -170,7 +175,6 @@
                 columnDefs: [
                     { targets: 0, width: '28px', className: 'dtr-control', orderable: false, searchable: false },
                     { targets: 1, orderable: false, searchable: false },
-                    { targets: 2, visible: false },
                 ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: ['excel', 'csv'],
@@ -209,6 +213,10 @@
                         }
                     }
                 ]
+            });
+
+            $('#filterCompany').change(function() {
+                table.ajax.reload(null, true);
             });
 
             $('#btnFilter').click(function() {

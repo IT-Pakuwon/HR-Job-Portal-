@@ -7,6 +7,7 @@ use App\Models\MsSPPBJKTCounting;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\TrCS;
+use App\Models\TrApproval;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -151,8 +152,8 @@ class CsListController extends Controller
             6 => 'created_by',
             8 => 'assigndate',
             9 => 'submitdate',
-            10 => 'days',
-            11 => 'status',
+            11 => 'days',
+            12 => 'status',
         ];
 
         if ($req->has('order')) {
@@ -283,6 +284,22 @@ class CsListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
+        $nextApprovals = $rows->isEmpty() ? collect() : TrApproval::query()
+            ->where('aprv_doctype', 'CS')
+            ->whereIn('refnbr', $rows->pluck('csid')->unique()->all())
+            ->whereIn('aprv_cpnyid', $rows->pluck('cpny_id')->unique()->all())
+            ->where(function ($query) {
+                $query->where(function ($pending) {
+                    $pending->where('status', 'P')->whereNotNull('aprv_datebefore');
+                })->orWhere(function ($acted) {
+                    $acted->whereIn('status', ['R', 'D', 'A'])->whereNotNull('aprv_dateafter');
+                });
+            })
+            ->orderByDesc('aprv_dateafter')
+            ->orderByDesc('id')
+            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username', 'status', 'aprv_leveling'])
+            ->groupBy('refnbr');
+
         // =========================
         // PREFETCH: counting limit per doctype (PB/PJ/PK/PT)
         // =========================
@@ -350,7 +367,26 @@ class CsListController extends Controller
             return $days;
         };
 
-        $rows->transform(function ($r) use ($countBusinessDays, $countingMap) {
+        $rows->transform(function ($r) use ($countBusinessDays, $countingMap, $nextApprovals) {
+            $st = strtoupper((string) ($r->status ?? ''));
+            $approvals = $nextApprovals->get($r->csid, collect())
+                ->where('aprv_cpnyid', $r->cpny_id);
+
+            if ($st === 'P') {
+                $approvals = $approvals->where('status', 'P')->sortBy('aprv_leveling');
+            } elseif (in_array($st, ['R', 'D', 'C', 'A'], true)) {
+                $actionStatus = in_array($st, ['C', 'A'], true) ? 'A' : $st;
+                // The batch query orders actions newest first, with id as a tie-breaker.
+                $approvals = $approvals->where('status', $actionStatus)->take(1);
+            } else {
+                $approvals = collect();
+            }
+
+            $r->next_approval = $approvals
+                ->map(fn ($approval) => trim((string) $approval->aprv_name)
+                    ?: trim((string) $approval->aprv_username))
+                ->filter()->unique()->implode(', ');
+
             $assign = $r->assigndate ? Carbon::parse($r->assigndate)->startOfDay() : null;
             $submit = $r->submitdate ? Carbon::parse($r->submitdate)->startOfDay() : null;
 

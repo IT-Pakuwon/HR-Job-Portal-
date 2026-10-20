@@ -22,6 +22,12 @@
                 </div>
             </div>
 
+            @if (session('success') || session('error'))
+                <div class="border-b border-gray-100 px-5 py-2 text-sm {{ session('success') ? 'text-green-700' : 'text-red-600' }} dark:border-white/[0.06]">
+                    {{ session('success') ?? session('error') }}
+                </div>
+            @endif
+
             {{-- Status summary / filter --}}
             <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
                 <a href="{{ route('reschedule_email_queue', array_filter(['q' => $search])) }}"
@@ -64,6 +70,7 @@
                             <th class="px-4 py-3 text-left font-medium">Attempts</th>
                             <th class="px-4 py-3 text-left font-medium">Sent At</th>
                             <th class="px-4 py-3 text-left font-medium">Last Error</th>
+                            <th class="px-4 py-3 text-left font-medium">Action</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700 dark:text-gray-200">
@@ -87,10 +94,22 @@
                                 <td class="max-w-xs truncate px-4 py-2 text-xs text-red-600" title="{{ $row->last_error }}">
                                     {{ $row->last_error ?? '-' }}
                                 </td>
+                                <td class="px-4 py-2">
+                                    @if ($row->status !== 'P')
+                                        <form method="POST" action="{{ route('reschedule_email_queue.resend', $row->id) }}"
+                                            onsubmit="return confirm('Resend this email to {{ $row->participant_email ?? 'the participant' }}?')">
+                                            @csrf
+                                            <button type="submit"
+                                                class="rounded-lg border border-blue-600 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50">
+                                                Resend
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="px-4 py-8 text-center text-gray-500">The queue is empty.</td>
+                                <td colspan="12" class="px-4 py-8 text-center text-gray-500">The queue is empty.</td>
                             </tr>
                         @endforelse
                     </tbody>

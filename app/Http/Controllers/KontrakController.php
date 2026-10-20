@@ -518,7 +518,7 @@ class KontrakController extends Controller
             ->orderBy('rfp_date')
             ->orderBy('rfp_id')
             ->get([
-                'id', 'period_payment', 'rfp_id', 'rfp_date',
+                'id', 'period_payment', 'rfp_id', 'rfp_date', 'ir_note',
                 'rfp_base_amount', 'rfp_tax_amount', 'rfp_amount',
             ]);
 
