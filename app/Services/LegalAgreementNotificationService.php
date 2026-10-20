@@ -94,6 +94,31 @@ class LegalAgreementNotificationService
             return;
         }
 
+        // One person can hold several roles (e.g. creator who is also PIC
+        // Legal). Keep them only in the highest-priority field: To, then Cc,
+        // then Bcc, so nobody sees themselves listed twice.
+        $seen = [];
+        $dedupe = function ($list) use (&$seen) {
+            $out = [];
+
+            foreach ((array) $list as $address) {
+                $key = strtolower(trim((string) $address));
+
+                if ($key === '' || isset($seen[$key])) {
+                    continue;
+                }
+
+                $seen[$key] = true;
+                $out[] = $address;
+            }
+
+            return $out;
+        };
+
+        $to = $dedupe($to);
+        $cc = $dedupe($cc);
+        $bcc = $dedupe($bcc);
+
         try {
             $mail = Mail::to($to);
 
@@ -143,11 +168,12 @@ class LegalAgreementNotificationService
     }
 
     public function agreementHeld(
-        TrAgreement $agreement
+        TrAgreement $agreement,
+        ?string $reason = null
     ) {
         $this->sendAgreementMail(
             $agreement,
-            new AgreementHoldMail($agreement),
+            new AgreementHoldMail($agreement, $reason),
             $this->creatorEmail($agreement),
             $this->picLeasingEmails($agreement),
             $this->picLegalEmails($agreement),
@@ -268,7 +294,8 @@ class LegalAgreementNotificationService
                         $agreement->agreement_id,
                         $commenterName,
                         $message,
-                        'LEGAL AGREEMENT'
+                        'LEGAL AGREEMENT',
+                        url('/show-legal-agreement/'.\Vinkla\Hashids\Facades\Hashids::encode($agreement->id))
                     )
                 );
             } catch (\Throwable $e) {

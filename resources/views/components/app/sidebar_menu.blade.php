@@ -92,6 +92,7 @@
                         $addSearchItem('access_control_studio', 'Access Control Studio', 'Global Settings');
 
                         $addSearchItem('users', 'Users', 'Organization Setup');
+                        $addSearchItem('user-data-sync', 'Update Data User', 'Organization Setup');
                         $addSearchItem('autonbrs', 'Autonbrs', 'Organization Setup');
                         $addSearchItem('companies', 'Companies', 'Organization Setup');
                         $addSearchItem('locations', 'Locations', 'Organization Setup');
@@ -106,6 +107,7 @@
                         $addSearchItem('grading', 'Grading', 'HRGA Setup');
                         $addSearchItem('kendaraan', 'Kendaraan', 'HRGA Setup');
                         $addSearchItem('group_acc_specific', 'Group Access Specific', 'HRGA Setup');
+                        $addSearchItem('reschedule_email_queue', 'Reschedule Email Queue', 'HRGA Setup');
 
                         $addSearchItem('tops', 'TOPS', 'Purchasing Setup');
                         $addSearchItem('tenants', 'Tenants', 'Purchasing Setup');
@@ -414,6 +416,7 @@
                             $settingsSegments = [
                                 'access_control_studio',
                                 'users',
+                                'user-data-sync',
                                 'roles',
                                 'access_rights',
                                 'role_menus',
@@ -504,7 +507,7 @@
                                 <!-- ================================================= -->
                                 <!-- ORGANIZATION SETUP (Organization + Master Data merged) -->
                                 <!-- ================================================= -->
-                                @php $orgSetup = ['users', 'autonbrs', 'companies', 'locations', 'categories', 'department', 'sys-calendar']; @endphp
+                                @php $orgSetup = ['users', 'user-data-sync', 'autonbrs', 'companies', 'locations', 'categories', 'department', 'sys-calendar']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $orgSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -525,6 +528,10 @@
                                     <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
                                         <li><a href="{{ route('users') }}"
                                                 class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
+                                        </li>
+                                        <li><a href="{{ route('user-data-sync') }}"
+                                                class="{{ Request::segment(1) === 'user-data-sync' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Update
+                                                Data User</a>
                                         </li>
                                         <li><a href="{{ route('autonbrs') }}"
                                                 class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>
@@ -603,7 +610,7 @@
                                 <!-- ================================================= -->
                                 <!-- HRGA SETUP -->
                                 <!-- ================================================= -->
-                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management']; @endphp
+                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management', 'training-reschedule-emails']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $hrgaSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -635,6 +642,10 @@
                                         <li><a href="{{ route('performance-management') }}"
                                                 class="{{ Request::segment(1) === 'performance-management' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Performance
                                                 Management</a>
+                                        </li>
+                                        <li><a href="{{ route('reschedule_email_queue') }}"
+                                                class="{{ Request::segment(1) === 'training-reschedule-emails' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Reschedule
+                                                Email Queue</a>
                                         </li>
                                     </ul>
                                 </li>

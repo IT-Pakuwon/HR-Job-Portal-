@@ -1,43 +1,24 @@
-<!doctype html>
-<html lang="en">
-  <body style="margin:0;padding:16px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;">
-    <p>Dear <strong>{{ $hod }}</strong>,</p>
-    <p>
-      We kindly invite you to attend the following <strong>Candidate Interview</strong> session:
-    </p>
+@extends('emails.layouts.career')
 
-    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:720px;border:1px solid #e5e7eb;border-collapse:collapse;">
-      <tr>
-        <td style="padding:8px;background:#f9fafb;width:140px;">Candidate Name</td>
-        <td style="padding:8px;">: <strong>{{ $full_name }}</strong></td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">Position</td>
-        <td style="padding:8px;">: {{ $job_title }}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">Date</td>
-        <td style="padding:8px;">: {{ $interview_date }}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">Time</td>
-        <td style="padding:8px;">: {{ $starttime }} – {{ $endtime }} WIB (Western Indonesia Time)</td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">Location</td>
-        <td style="padding:8px;">: {{ $location }}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">Address</td>
-        <td style="padding:8px;">: {{ $location_address }}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px;background:#f9fafb;">View Candidate</td>
-        <td style="padding:8px;">: <a href="{{ $url }}">{{ $url }}</a></td>
-      </tr>
-    </table>
+@section('title', 'Candidate Interview Schedule')
+@section('preheader', 'Interview schedule - ' . $full_name . ' (' . $job_title . ')')
+@section('icon', '🗓️')
+@section('header', 'Candidate Interview Schedule')
+@section('subtitle', $full_name . ' — ' . $job_title)
 
-    <p>Warm regards,</p>
-    <strong>Talent Acquisition Pakuwon Group</strong>
-  </body>
-</html>
+@section('content')
+    <p style="margin:0 0 12px;">Dear <strong>{{ $hod }}</strong>,</p>
+
+    <p style="margin:0 0 4px;">We kindly invite you to attend the following <strong style="color:#4338ca;">Candidate Interview</strong> session:</p>
+
+    @include('emails.partials.schedule-card', ['rows' => [
+        ['icon' => '👤', 'label' => 'Candidate', 'value' => $full_name, 'sub' => $job_title],
+        ['icon' => '🗓️', 'label' => 'Date', 'value' => $interview_date],
+        ['icon' => '⏰', 'label' => 'Time', 'value' => $starttime . ' – ' . $endtime . ' WIB', 'sub' => 'Western Indonesia Time'],
+        ['icon' => '📍', 'label' => 'Location', 'value' => $location, 'sub' => $location_address],
+    ]])
+
+    @include('emails.partials.button', ['url' => $url, 'label' => 'View Candidate  →'])
+
+    <p style="margin:26px 0 0;">Warm regards,<br><strong>Talent Acquisition Pakuwon Group</strong></p>
+@endsection

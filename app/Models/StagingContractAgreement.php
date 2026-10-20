@@ -49,6 +49,35 @@ class StagingContractAgreement extends Model
         });
     }
 
+    /**
+     * The staging job a PSM / OLA was made from, at the given staging status(es). Company,
+     * business, tenant and unit are locked on the form, so they still identify the job it copied.
+     */
+    public static function jobsFor(TrAgreement $agreement, string|array $status)
+    {
+        return static::query()
+            ->whereNull('deleted_at')
+            ->whereIn('status', (array) $status)
+            ->where('cpny_id', $agreement->cpny_id)
+            ->where('business_id', $agreement->business_id)
+            ->where('tenant_no', $agreement->tenant_no)
+            ->where('lot_no', $agreement->unit_id);
+    }
+
+    /**
+     * Moves that job between A pending / P on progress / C completed. Only acts when the match
+     * finds exactly one job: if IFCA ever sends two rows with the same company, business, tenant
+     * and unit, neither is guessed at.
+     */
+    public static function moveFor(TrAgreement $agreement, string|array $from, string $to, string $username): void
+    {
+        $jobs = static::jobsFor($agreement, $from)->get();
+
+        if ($jobs->count() === 1) {
+            $jobs->each->update(['status' => $to, 'updated_by' => $username, 'updated_at' => now()]);
+        }
+    }
+
     public function scopeWithoutContractNo($query)
     {
         return $query->where(function ($q) {

@@ -18,7 +18,7 @@ class AgreementExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        $query = TrAgreement::query();
+        $query = TrAgreement::followUp();
 
         if ($this->request->filled('status')) {
 

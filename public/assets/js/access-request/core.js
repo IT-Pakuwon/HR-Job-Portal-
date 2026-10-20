@@ -1,5 +1,6 @@
 let table;
 let currentStatus = "";
+let currentGroup = "";
 let currentModal = null;
 let detailIndex = 0;
 

@@ -92,6 +92,8 @@
                         <div><label class="text-xs text-slate-400">PIC Legal</label><p id="detail_pic_legal" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
                         <div><label class="text-xs text-slate-400">PIC Leasing</label><p id="detail_pic_leasing" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
                         <div><label class="text-xs text-slate-400">PIC Penyewa</label><p id="detail_pic_penyewa" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">PIC Penyewa Phone</label><p id="detail_pic_phone_penyewa" class="mt-1 text-sm font-medium text-slate-800 dark:text-white">-</p></div>
+                        <div><label class="text-xs text-slate-400">PIC Penyewa Email</label><p id="detail_pic_email_penyewa" class="mt-1 text-sm font-medium text-slate-800 dark:text-white break-all">-</p></div>
                     </div>
                 </div>
 

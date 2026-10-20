@@ -210,6 +210,15 @@
 
                 </table>
 
+                @if (!empty($docUrl))
+                <div style="margin-top:28px;text-align:center;">
+                    <a href="{{ $docUrl }}" target="_blank"
+                        style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:13px;font-weight:700;">
+                        Open {{ $moduleLabel }} &rarr;
+                    </a>
+                </div>
+                @endif
+
             </div>
 
             <div

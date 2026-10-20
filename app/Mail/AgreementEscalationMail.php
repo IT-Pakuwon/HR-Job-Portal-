@@ -38,7 +38,7 @@ class AgreementEscalationMail extends Mailable
                 . ' - Dokumen PSM/Addendum Belum Dikembalikan Setelah 2 Pengingat'
             )
             ->view('emails.agreement-escalation')
-            ->with('docUrl', $this->docUrl());
+            ->with(['docUrl' => $this->docUrl(), 'systemLabel' => 'Legal Agreement']);
 
         $mail->attachData(
             $this->renderSurat2Pdf($this->agreement, $this->surat2SentDate, $this->surat1SentDate),

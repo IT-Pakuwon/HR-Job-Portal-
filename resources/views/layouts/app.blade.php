@@ -1,3 +1,4 @@
+@php($isEmbed = request()->boolean('embed') || request()->routeIs('my-page') || request()->header('Sec-Fetch-Dest') === 'iframe')
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -96,19 +97,38 @@
     <!-- Livewire -->
     @livewireStyles
 
+    @stack('head')
+
+    {{-- only for documents shown inside My APP's review sheet; never on the My APP screens themselves --}}
+    @if ($isEmbed && !request()->routeIs('my-page'))
+        @include('layouts.partials.embed-mobile')
+    @endif
+
     <!-- ================= DARK MODE INIT ================= -->
     <script>
         // localStorage is the per-browser session override (set by the header toggle).
         // When it's empty (first visit, or cache/localStorage was cleared), fall back to
         // the account default saved in ms_user.is_darkmode via Settings/Account.
+        // 'dark-follow-system' = "match this phone/tablet's light/dark setting" (per device, set from Profile);
+        // while it is on it wins over the manual choice and updates live when the device switches.
         const storedDarkMode = localStorage.getItem('dark-mode');
-        const isDark = storedDarkMode !== null
-            ? storedDarkMode === 'true'
-            : @json((bool) (auth()->check() && auth()->user()->is_darkmode));
+        const followSystem = localStorage.getItem('dark-follow-system') === 'true';
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const isDark = followSystem
+            ? systemDark.matches
+            : (storedDarkMode !== null
+                ? storedDarkMode === 'true'
+                : @json((bool) (auth()->check() && auth()->user()->is_darkmode)));
 
-        if (storedDarkMode === null) {
+        if (storedDarkMode === null && !followSystem) {
             localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
         }
+
+        systemDark.addEventListener('change', e => {
+            if (localStorage.getItem('dark-follow-system') !== 'true') return;
+            document.documentElement.classList.toggle('dark', e.matches);
+            document.documentElement.style.colorScheme = e.matches ? 'dark' : 'light';
+        });
 
         if (isDark) {
             document.documentElement.classList.add('dark');
@@ -132,7 +152,7 @@
          it can sit inside another page's <iframe> — e.g. the Project/Team
          subtask "Meeting Room" / "Zoom" booking modal, which embeds
          /meeting and /meetingteams to reuse their create-booking modal. --}}
-    @php($isEmbed = request()->boolean('embed'))
+    {{-- $isEmbed is set at the top of this file (also true for any page loaded inside an iframe) --}}
 
     @if(!$isEmbed && session('impersonate_original_username'))
         <div class="sticky top-0 z-60 flex flex-wrap items-center justify-center gap-3 bg-black px-4 py-2 text-center text-sm font-semibold text-white">
@@ -172,9 +192,10 @@
             const toggle = document.getElementById('light-switch');
             if (!toggle) return;
 
-            toggle.checked = localStorage.getItem('dark-mode') === 'true';
+            toggle.checked = document.documentElement.classList.contains('dark');
 
             toggle.addEventListener('change', () => {
+                localStorage.setItem('dark-follow-system', 'false'); // a manual choice replaces "follow device"
                 if (toggle.checked) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.style.colorScheme = 'dark';

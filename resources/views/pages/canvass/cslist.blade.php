@@ -9,6 +9,24 @@
             box-shadow: 0 8px 18px rgba(0, 0, 0, .08);
             transform: translateY(-2px);
         }
+
+        #csTable th.cs-compact,
+        #csTable td.cs-compact {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            white-space: nowrap;
+        }
+
+        #csTable th.cs-compact {
+            padding-right: 20px !important;
+        }
+
+        #csTable .cs-purpose {
+            min-width: 240px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            text-align: left;
+        }
     </style>
 
 
@@ -129,9 +147,9 @@
                                 CS ID</th>
                             <th class="px-4 py-3 text-left font-medium">
                                 SPPB/J/K/T</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
+                            <th class="px-4 py-3 text-left font-medium">
                                 CS Date</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Company</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
@@ -139,11 +157,13 @@
                                 Purchaser </th>
                             <th class="px-4 py-3 text-left font-medium">
                                 Purpose</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Assign Date</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Submit Date</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
+                            <th class="px-4 py-3 text-left font-medium">
+                                Next Approval</th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 Days</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status
@@ -250,6 +270,26 @@
                         orderable: false
                     },
                     {
+                        targets: [3, 8, 9],
+                        width: '92px',
+                        className: 'cs-compact'
+                    },
+                    {
+                        targets: 4,
+                        width: '65px',
+                        className: 'cs-compact'
+                    },
+                    {
+                        targets: 11,
+                        width: '48px',
+                        className: 'cs-compact'
+                    },
+                    {
+                        targets: 7,
+                        width: '32%',
+                        responsivePriority: 2
+                    },
+                    {
                         targets: '_all',
                         className: 'text-left'
                     }
@@ -347,20 +387,14 @@
                             td.style.setProperty('text-align', 'left',
                             'important'); // 💥 strongest override
                         },
-                        render: function(data) {
+                        render: function(data, type) {
                             if (!data) return '-';
+                            if (type !== 'display') return data;
 
                             return `
                                 <div
+                                    class="cs-purpose"
                                     title="${escapeHtml(data)}"
-                                    style="
-                                        max-width:220px;
-                                        white-space:nowrap;
-                                        overflow:hidden;
-                                        text-overflow:ellipsis;
-                                        cursor:help;
-                                        text-align:left;
-                                    "
                                 >
                                     ${escapeHtml(data)}
                                 </div>
@@ -376,6 +410,17 @@
                         data: 'submitdate',
                         className: 'text-center',
                         render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'next_approval',
+                        className: 'text-left',
+                        orderable: false,
+                        searchable: false,
+                        defaultContent: '-',
+                        render: function(value, type) {
+                            const text = value || '-';
+                            return type === 'display' ? $('<span>').text(text).html() : text;
+                        }
                     },
                     {
                         data: 'days',

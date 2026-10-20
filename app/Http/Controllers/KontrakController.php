@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\TrKontrak;
+use App\Models\TrRfp;
 use App\Models\TrAttachment;
 use App\Models\TrCS;
 use App\Models\TrSPPB;
@@ -510,6 +511,17 @@ class KontrakController extends Controller
             ->orderBy('bq_line_no')
             ->get();
 
+        $payments = TrRfp::query()
+            ->where('kontrak_id', $kontrak->kontrakid)
+            ->where('cpny_id', $kontrak->cpny_id)
+            ->orderBy('period_payment')
+            ->orderBy('rfp_date')
+            ->orderBy('rfp_id')
+            ->get([
+                'id', 'period_payment', 'rfp_id', 'rfp_date', 'ir_note',
+                'rfp_base_amount', 'rfp_tax_amount', 'rfp_amount',
+            ]);
+
         $kontrakBudgets = TrKontrakBudget::query()
             ->where('kontrakid', $kontrak->kontrakid)
             ->where('cpny_id', $kontrak->cpny_id)
@@ -557,6 +569,7 @@ class KontrakController extends Controller
             'kontrakCategories' => $kontrakCategories,
             'details'    => $details,
             'kontrakBudgets' => $kontrakBudgets,
+            'payments' => $payments,
             'aksesCc' => $aksesCc,
             'userCpny' => $userCpny,
             'userBu' => $userBu,

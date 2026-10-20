@@ -261,17 +261,26 @@
 
             {{-- DETAIL SECTION --}}
             <div class="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(460px,0.55fr)]">
-                <div class="min-w-0 rounded-xl bg-white dark:bg-gray-800">
+                <div class="min-w-0 rounded-xl bg-white dark:bg-gray-800" x-data="{ detailTab: 'items' }">
                     <header class="rounded-t-xl border-b border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-                            <span class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
-                                DETAIL
-                            </span>
-                            TrBQCSDetail
-                        </h2>
+                        <div role="tablist" aria-label="Detail Kontrak" class="flex gap-2 text-sm font-semibold">
+                            <button type="button" id="kontrak-items-tab" role="tab" aria-controls="kontrak-items-panel"
+                                :aria-selected="detailTab === 'items'" @click="detailTab = 'items'"
+                                class="rounded-md px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+                                :class="detailTab === 'items' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' : 'text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-600'">
+                                Detail Item
+                            </button>
+                            <button type="button" id="kontrak-payment-tab" role="tab" aria-controls="kontrak-payment-panel"
+                                :aria-selected="detailTab === 'payment'" @click="detailTab = 'payment'"
+                                class="rounded-md px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
+                                :class="detailTab === 'payment' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' : 'text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-600'">
+                                Payment
+                            </button>
+                        </div>
                     </header>
 
-                    <div class="max-h-150 overflow-auto p-3">
+                    <div id="kontrak-items-panel" role="tabpanel" aria-labelledby="kontrak-items-tab"
+                        x-show="detailTab === 'items'" class="max-h-150 overflow-auto p-3">
                     <table class="w-full min-w-[760px] table-fixed text-xs">
                         <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                             <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -355,6 +364,53 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
+                    <div id="kontrak-payment-panel" role="tabpanel" aria-labelledby="kontrak-payment-tab"
+                        x-show="detailTab === 'payment'" style="display: none;" class="max-h-150 overflow-auto p-3">
+                        <table class="w-full min-w-[640px] text-xs">
+                            <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="p-2 text-left font-semibold">Periode</th>
+                                    <th class="p-2 text-left font-semibold">No RFP</th>
+                                    <th class="p-2 text-left font-semibold">Tanggal</th>
+                                    <th class="p-2 text-left font-semibold">Note</th>
+                                    <th class="p-2 text-right font-semibold">DPP</th>
+                                    <th class="p-2 text-right font-semibold">Tax</th>
+                                    <th class="p-2 text-right font-semibold">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($payments as $payment)
+                                    @php
+                                        $period = (string) ($payment->period_payment ?? '');
+                                        $displayPeriod = preg_match('/^(\d{4})-?(\d{2})$/', $period, $periodParts)
+                                            ? $periodParts[1] . ' - ' . $periodParts[2]
+                                            : ($period ?: '-');
+                                    @endphp
+                                    <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                        <td class="whitespace-nowrap p-2">{{ $displayPeriod }}</td>
+                                        <td class="whitespace-nowrap p-2">
+                                            <a href="{{ url('/showrfp/' . \Vinkla\Hashids\Facades\Hashids::encode($payment->id)) }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                class="text-indigo-600 hover:underline dark:text-indigo-400">
+                                                {{ $payment->rfp_id ?: '-' }}
+                                            </a>
+                                        </td>
+                                        <td class="whitespace-nowrap p-2">{{ $payment->rfp_date ? \Carbon\Carbon::parse($payment->rfp_date)->format('d M Y') : '-' }}</td>
+                                        <td class="min-w-[200px] max-w-sm whitespace-pre-line break-words p-2">{{ $payment->ir_note ?? '-' }}</td>
+                                        <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_base_amount, 2, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_tax_amount, 2, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_amount, 2, ',', '.') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="p-6 text-center italic text-gray-500 dark:text-gray-400">
+                                            Belum ada RFP untuk kontrak ini.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

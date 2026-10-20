@@ -75,7 +75,7 @@
             </button>
 
             {{-- Approved Status (management approved, IT processing) --}}
-            <button type="button" class="text-left">
+            <div class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="C">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
@@ -89,7 +89,7 @@
                         <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                     </div>
                 </a>
-            </button>
+            </div>
 
             {{-- Finished Status (IT completed all access items) --}}
             <button type="button" class="text-left">
@@ -116,7 +116,7 @@
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
-                <div>
+                <div class="flex flex-wrap items-center gap-3">
 
                     <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                         Access Request
@@ -125,6 +125,16 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <div class="group relative">
+                        <i class="fa-solid fa-layer-group pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-blue-500 dark:text-blue-400"></i>
+                        <select id="approvedGroupFilter" aria-label="Filter Approved request category"
+                            class="h-10 min-w-52 cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-10 text-sm font-medium text-gray-700 shadow-sm outline-none transition hover:border-blue-300 hover:bg-white focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/15 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-blue-500/60 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+                            <option value="">All Software / Hardware</option>
+                            <option value="SOFTWARE">Software</option>
+                            <option value="HARDWARE">Hardware</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 transition group-focus-within:text-blue-500"></i>
+                    </div>
 
                     <button id="btnCreate" type="button"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">

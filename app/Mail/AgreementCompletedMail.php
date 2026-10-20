@@ -33,7 +33,7 @@ class AgreementCompletedMail extends Mailable
                 'emails.agreement-completed'
             )
 
-            ->with('docUrl', $this->docUrl());
+            ->with(['docUrl' => $this->docUrl(), 'systemLabel' => 'Legal Agreement']);
     }
 
     protected function docUrl(): string

@@ -38,6 +38,7 @@ function initDataTable() {
             data: function (d) {
 
                 d.status = currentStatus;
+                d.group_category = currentGroup;
 
             },
         },
@@ -496,10 +497,21 @@ function initFilters() {
             currentStatus =
                 $(this).data("status");
 
+            currentGroup = "";
+            $("#approvedGroupFilter").val("");
+
             table.ajax.reload();
 
         }
     );
+
+    $(document).on("change", "#approvedGroupFilter", function () {
+        currentStatus = "C";
+        currentGroup = $(this).val();
+        $(".status-filter").removeClass("active");
+        $('.status-filter[data-status="C"]').addClass("active");
+        table.ajax.reload();
+    });
 }
 
 function bindTableActions() {
@@ -561,7 +573,7 @@ function bindExtendedActions() {
             const id =
                 $(this).data("id");
 
-            window.location.href =`/processhardwareaccess/${id}`;
+            openProcessHardwareModal(id);
 
         });
 
@@ -572,7 +584,7 @@ function bindExtendedActions() {
             const id =
                 $(this).data("id");
 
-           window.location.href =`/processsoftwareaccess/${id}`;
+            openProcessSoftwareModal(id);
 
         });
 }

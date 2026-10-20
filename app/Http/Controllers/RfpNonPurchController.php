@@ -852,7 +852,11 @@ class RfpNonPurchController extends Controller
                 ->where('refnbr', $docid)
                 ->where('aprv_doctype', $doctype)
                 ->where('status', 'P')
-                ->update(['aprv_datebefore' => null]);
+                ->update([
+                    'aprv_datebefore' => null,
+                    // Keep this submission's approvals together when ordered by creation time.
+                    'created_at' => $dt,
+                ]);
 
             if ($firstPendingLevelAfterGroup !== null) {
                 TrApproval::query()
@@ -1202,7 +1206,10 @@ class RfpNonPurchController extends Controller
         // =========================
         // USER ACCESS
         // =========================
-        $canUpload = $rfpnonpurch->status === 'P';
+        $canUpload = $user->username !== null
+            && $rfpnonpurch->created_by === $user->username
+            && ($rfpnonpurch->status === 'P'
+                || ($rfpnonpurch->status === 'C' && $rfpnonpurch->statuspayment !== 'C'));
         $hasApFinAccess = $user->hasRole('APFINACCESS');
         $hasApTreAccess = $user->hasRole('APTREACCESS');
 
@@ -2572,7 +2579,11 @@ class RfpNonPurchController extends Controller
                 ->where('refnbr', $docid)
                 ->where('aprv_doctype', $doctype)
                 ->where('status', 'P')
-                ->update(['aprv_datebefore' => null]);
+                ->update([
+                    'aprv_datebefore' => null,
+                    // Keep this submission's approvals together when ordered by creation time.
+                    'created_at' => $dt,
+                ]);
 
             if ($firstPendingLevelAfterGroup !== null) {
                 TrApproval::query()

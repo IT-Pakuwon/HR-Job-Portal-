@@ -38,7 +38,7 @@ Your seat/waiting list slot is kept for the new date.
         </td>
     </tr>
 
-    @if ($old_date)
+    @if ($old_date && $old_date !== $new_date)
     <tr>
         <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
             Old Date
@@ -62,14 +62,16 @@ Your seat/waiting list slot is kept for the new date.
         </td>
     </tr>
 
+    @if (!empty($time_label))
     <tr>
-        <td style="padding:13px 16px 13px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:top;">
-            Reason
+        <td style="padding:11px 16px 11px 0;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            Time
         </td>
-        <td style="padding:13px 0;font-size:13px;color:#475569;line-height:1.6;vertical-align:top;">
-            {{ $reason }}
+        <td style="padding:11px 0;font-size:13px;font-weight:700;color:#1e293b;vertical-align:middle;border-bottom:1px solid #f1f5f9;">
+            {{ $time_label }}
         </td>
     </tr>
+    @endif
 
 </table>
 

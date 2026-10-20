@@ -21,6 +21,7 @@ use App\Models\ViewtrPurch;
 use App\Models\Viewtrxall;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
@@ -75,7 +76,71 @@ class ApprovalDashboardController extends Controller
         ]);
     }
 
+    /**
+     * The same Waiting Approval list the dashboard shows, for a given user outside an HTTP request
+     * (used by the push-notification sender).
+     */
+    public function waitingForUser(\App\Models\User $user): Collection
+    {
+        $request = Request::create('/', 'GET');
+        $request->setUserResolver(fn () => $user);
+
+        return $this->getApprovalCollection($request, 'P');
+    }
+
+    // A user's approval lines for one status (the cheap first step of building the list).
+    private function approvalRowsFor(string $conn, string $table, string $username, string $status): Collection
+    {
+        return DB::connection($conn)
+            ->table($table)
+            ->select('refnbr', 'aprv_datebefore', 'aprv_cpnyid', 'aprv_departementid')
+            ->whereRaw(
+                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                ['%,'.$username.',%']
+            )
+            ->where('status', $status)
+            ->whereNotNull('aprv_datebefore')
+            ->get();
+    }
+
+    /**
+     * The list is expensive (it looks every document up across several big views) and one page load asks for it up
+     * to three times (waiting + approved for the counters, then the list), and the push sender asks for every
+     * subscribed user every minute. So the finished list is kept for a minute, keyed by a fingerprint of the user's
+     * approval lines: approving, rejecting or receiving a document changes those lines and therefore skips the cache
+     * at once. ?fresh=1 (manual refresh / pull-to-refresh) always rebuilds.
+     */
     private function getApprovalCollection(Request $request, string $status): Collection
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return collect();
+        }
+
+        $aprM = new TrApproval();
+        $username = strtolower(trim((string) $user->username));
+        $rows = $this->approvalRowsFor($aprM->getConnectionName() ?: config('database.default'), $aprM->getTable(), $username, $status);
+
+        if ($rows->isEmpty()) {
+            return collect();
+        }
+
+        $doctype = strtoupper(trim((string) $request->get('doctype', '')));
+        $key = 'apprcol:'.md5($username.'|'.$status.'|'.$doctype.'|'.json_encode($rows));
+
+        // a forced refresh rebuilds, and the rebuilt list is stored for whatever asks next (e.g. the counters)
+        if ($request->boolean('fresh')) {
+            $built = $this->buildApprovalCollection($request, $status, $rows);
+            Cache::put($key, $built, 60);
+
+            return $built;
+        }
+
+        return Cache::remember($key, 60, fn () => $this->buildApprovalCollection($request, $status, $rows));
+    }
+
+    private function buildApprovalCollection(Request $request, string $status, ?Collection $approvalRows = null): Collection
     {
         $user = $request->user();
 
@@ -113,21 +178,7 @@ class ApprovalDashboardController extends Controller
             trim((string) $user->username)
         );
 
-        $approvalRows = DB::connection($aprConn)
-            ->table($tblApr)
-            ->select(
-                'refnbr',
-                'aprv_datebefore',
-                'aprv_cpnyid',
-                'aprv_departementid'
-            )
-            ->whereRaw(
-                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
-                ['%,'.$username.',%']
-            )
-            ->where('status', $status)
-            ->whereNotNull('aprv_datebefore')
-            ->get();
+        $approvalRows ??= $this->approvalRowsFor($aprConn, $tblApr, $username, $status);
 
         if ($approvalRows->isEmpty()) {
             return collect();

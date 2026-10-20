@@ -749,7 +749,11 @@
                 const type = arg.event.extendedProps.type;
                 const hasLink = arg.event.extendedProps.isTeams; // has ANY online link (Teams or Zoom share this flag)
                 const isZoomMeeting = !arg.event.extendedProps.accTeamsEnabled && arg.event.extendedProps.accZoomEnabled;
-                const providerLabel = !hasLink ? 'Pending' : (isZoomMeeting ? 'Zoom' : 'Teams');
+                const wantsOnline = !!(arg.event.extendedProps.accTeamsEnabled || arg.event.extendedProps.accZoomEnabled);
+                // No online accessory chosen -> in-person only, nothing is pending.
+                const providerLabel = hasLink
+                    ? (isZoomMeeting ? 'Zoom' : 'Teams')
+                    : (wantsOnline ? 'Pending' : 'No online link');
 
                 const viewType = arg.view.type;
 

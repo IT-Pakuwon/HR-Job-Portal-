@@ -14,7 +14,7 @@ class ProcessAgreementFollowups extends Command
 
     public function handle(LegalAgreementController $controller): int
     {
-        $agreements = TrAgreement::query()
+        $agreements = TrAgreement::followUp()
             ->where('agreement_step_id', 'ACTIVE')
             ->where('status', 'P')
             ->whereNotNull('psm_or_addendum_delivery_date')

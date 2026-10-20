@@ -4,7 +4,7 @@
     <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
 
         {{-- Status Filter --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-8">
 
             {{-- Jobs — contracts from IFCA with no Agreement FU created yet. Default view. --}}
             <button type="button" class="text-left">
@@ -31,6 +31,7 @@
                     ['key' => 'HOLD', 'label' => 'Hold', 'icon' => '⏸️', 'count' => 'hold', 'color' => 'yellow'],
                     ['key' => 'ESCALATED', 'label' => 'Escalated', 'icon' => '🚨', 'count' => 'escalated', 'color' => 'red'],
                     ['key' => 'COMPLETED', 'label' => 'Completed', 'icon' => '🏁', 'count' => 'completed', 'color' => 'slate'],
+                    ['key' => 'CANCELLED', 'label' => 'Cancelled', 'icon' => '🚫', 'count' => 'cancelled', 'color' => 'red'],
                 ];
             @endphp
 
@@ -72,9 +73,11 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    @if ($isManager ?? false)
                     <a href="{{ route('legal-agreement.export') }}" class="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
                         <i class="fa-solid fa-file-excel"></i> Export
                     </a>
+                    @endif
                 </div>
 
             </div>
@@ -130,6 +133,8 @@
                 hold: "{{ url('/legal-agreement/hold') }}/:eid",
                 activate: "{{ url('/legal-agreement/activate') }}/:eid",
                 complete: "{{ url('/legal-agreement/complete') }}/:eid",
+                revert: "{{ url('/legal-agreement/revert') }}/:eid",
+                cancel: "{{ url('/legal-agreement/cancel') }}/:eid",
                 detail: "{{ url('/legal-agreement/detail') }}/:eid",
                 tracking: "{{ url('/legal-agreement/tracking') }}/:eid",
                 comments: "{{ url('/legal-agreement/comments') }}/:eid",

@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Mail\Concerns\RendersAgreementLetters;
 use App\Models\TrAgreement;
+use App\Services\AgreementLetterService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -33,16 +34,23 @@ class AgreementSurat2Mail extends Mailable
 
     public function build()
     {
+        $sentAt = now();
+
         $mail = $this
             ->subject(
                 '[LEGAL AGREEMENT][SURAT 2] '
                 . $this->agreement->agreement_id
                 . ' - Pengingat Terakhir Pengembalian Dokumen PSM/Addendum'
             )
-            ->view('emails.agreement-surat2');
+            ->view('emails.agreement-surat2')
+            ->with([
+                'systemLabel' => 'Legal Agreement',
+                // Same 7-day window the Surat 2 PDF prints as "Batas Pengembalian".
+                'deadline' => $sentAt->copy()->addDays(7),
+            ]);
 
         $mail->attachData(
-            $this->renderSurat2Pdf($this->agreement, now(), $this->surat1SentDate),
+            $this->renderSurat2Pdf($this->agreement, $sentAt, $this->surat1SentDate),
             'Surat-2-'.$this->agreement->agreement_id.'.pdf',
             ['mime' => 'application/pdf']
         );
@@ -52,6 +60,21 @@ class AgreementSurat2Mail extends Mailable
             'Surat-1-'.$this->agreement->agreement_id.'.pdf',
             ['mime' => 'application/pdf']
         );
+
+        // The Office letter lists the proof of delivery under "Lamp", so it
+        // goes with Surat 2 as well.
+        if (AgreementLetterService::isOffice($this->agreement)) {
+            $tandaTerima = $this->findLatestAttachmentByLabel($this->agreement, 'Bukti Pengiriman');
+            $file = $tandaTerima ? $this->downloadAgreementAttachmentFile($tandaTerima) : null;
+
+            if ($file) {
+                $mail->attachData(
+                    $file['content'],
+                    'Tanda-Terima-'.$this->agreement->agreement_id.'.'.$file['ext'],
+                    ['mime' => $file['mime']]
+                );
+            }
+        }
 
         return $mail;
     }

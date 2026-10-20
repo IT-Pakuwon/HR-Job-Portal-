@@ -21,6 +21,8 @@
                                     'RFP' => 'RFP Non Purchase',
                                     'RP'  => 'RFP',
                                     'CA'  => 'CALR Non Purchase',
+                                    'RB'  => 'SPB',
+                                    'IS'  => 'Issue',
                                     default => null,
                                 };
 
@@ -29,6 +31,8 @@
                                     'RFP' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
                                     'RP'  => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
                                     'CA'  => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
+                                    'RB'  => 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-300',
+                                    'IS'  => 'bg-cyan-100 text-cyan-700 dark:bg-cyan-800/30 dark:text-cyan-300',
                                     default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                                 };
                             @endphp
@@ -49,7 +53,7 @@
 
                                 @if (!empty($sourceDocid))
                                     @if (!empty($sourceUrl))
-                                        <a href="{{ $sourceUrl }}" target="_blank" rel="noopener"
+                                        <a href="{{ $sourceUrl }}" target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:underline dark:bg-indigo-900/30 dark:text-indigo-300">
                                             {{ $sourceDocid }}
                                         </a>

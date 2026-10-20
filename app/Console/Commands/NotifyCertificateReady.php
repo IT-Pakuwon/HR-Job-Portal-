@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\Log;
 class NotifyCertificateReady extends Command
 {
     protected $signature = 'training:notify-certificate-ready';
-    protected $description = 'Email attendees once their training certificate crosses the H+1 eligibility window (Approved + attended + event date passed)';
+    protected $description = 'Email attendees once their training certificate crosses the H+1 eligibility window (Approved + attended + event date passed + HR closed feedback, same gate as is_certificate_ready)';
 
     public function handle(): void
     {
         $eligibleScheduleIds = MsLndTrainingSchedule::on('pgsql5')
             ->whereDate('schedule_date', '<', now()->toDateString())
+            ->whereNotNull('feedback_closed_at')
             ->pluck('schedule_id');
 
         if ($eligibleScheduleIds->isEmpty()) {

@@ -12,7 +12,7 @@ class TrAgreement extends Model
 
     protected $fillable = [
         'agreement_id', 'renewal_sequence', 'agreement_date', 'prev_agreement_id', 'parent_agreement_id', 'agreement_type', 'cpny_id', 'site_id',
-        'business_id', 'business_name', 'tenant_no', 'trade_name', 'property_cd', 'floor_id', 'unit_id',
+        'business_id', 'business_name', 'tenant_no', 'trade_name', 'property_cd', 'floor_id', 'unit_id', 'floor_loi', 'unit_loi',
         'business_address', 'pic_penyewa', 'pic_phonenumber_penyewa', 'pic_email_penyewa', 'pic_legal', 'pic_leasing',
         'no_psm_or_addendum', 'psm_or_addendum_date', 'psm_or_addendum_delivery_date',
         'agreement_step_id', 'agreement_step_order', 'agreement_step_created_user', 'agreement_step_created_at',
@@ -74,6 +74,26 @@ class TrAgreement extends Model
         return self::splitPicList($this->pic_leasing);
     }
 
+    /**
+     * Comma-joined display names for a PIC username list; a username with no
+     * matching user falls back to the raw username.
+     */
+    public static function picDisplayNames(array $usernames): string
+    {
+        if (! $usernames) {
+            return '';
+        }
+
+        $names = \App\Models\User::query()
+            ->whereIn('username', $usernames)
+            ->pluck('name', 'username')
+            ->mapWithKeys(fn ($name, $username) => [strtolower($username) => $name]);
+
+        return collect($usernames)
+            ->map(fn ($u) => $names->get(strtolower($u)) ?: $u)
+            ->implode(', ');
+    }
+
     public function hasPic(string $username): bool
     {
         $username = strtolower(trim($username));
@@ -93,12 +113,41 @@ class TrAgreement extends Model
     }
 
     // Types made by New Agreement (PSM / OLA / Addendum). Agreement FU never handles these.
-    public const NEW_AGREEMENT_TYPES = ['PSM', 'OLA', 'PEMBUATAN', 'ADDENDUM'];
+    public const NEW_AGREEMENT_TYPES = ['PSM', 'OLA', 'PEMBUATAN', 'ADDENDUM', 'OTHERS'];
+
+    // Agreement FU's Job tab lists PSM / OLA and Addendum agreements; creating the follow-up
+    // converts that row in place to the matching FU type (Mall PSM -> FU_PSM, Office OLA -> FU_OLA,
+    // Addendum -> FU_ADDENDUM). Each can have one follow-up: the converted row leaves the Job tab.
+    public const FU_SOURCE_TYPES = ['PSM', 'OLA', 'ADDENDUM'];
+
+    public const FU_TYPES = ['FU_PSM', 'FU_OLA', 'FU_ADDENDUM'];
+
+    // Follow-ups of a PSM / OLA: the only ones that can still be the parent of an Addendum / Others.
+    public const FU_PARENT_TYPES = ['FU_PSM', 'FU_OLA'];
+
+    public const FU_SOURCE_BY_TYPE = ['FU_PSM' => 'PSM', 'FU_OLA' => 'OLA', 'FU_ADDENDUM' => 'ADDENDUM'];
+
+    public static function fuTypeFor(?string $type): ?string
+    {
+        return array_search($type, self::FU_SOURCE_BY_TYPE, true) ?: null;
+    }
 
     // Agreement FU's own agreements: everything except the New Agreement types.
     public function scopeFollowUp($query)
     {
         return $query->where(fn ($q) => $q->whereNull('agreement_type')->orWhereNotIn('agreement_type', self::NEW_AGREEMENT_TYPES));
+    }
+
+    // Addendums still Active that were made from this agreement (it can't be cancelled while they are).
+    public static function activeAddendumIds(string $agreementId): array
+    {
+        return static::query()
+            ->whereNull('deleted_at')
+            ->where('agreement_type', 'ADDENDUM')
+            ->where('agreement_step_id', 'ACTIVE')
+            ->where('prev_agreement_id', $agreementId)
+            ->pluck('agreement_id')
+            ->all();
     }
 
     public function scopeWherePicLegal($query, string $username)

@@ -5,6 +5,7 @@ namespace App\Mail\Concerns;
 use App\Models\MsCompany;
 use App\Models\TrAgreement;
 use App\Models\TrAgreementAttachment;
+use App\Services\AgreementLetterService;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -23,8 +24,40 @@ trait RendersAgreementLetters
             ->first();
     }
 
+    /**
+     * OFFICE (OLA) and MALL (PSM) agreements use their numbered letter; every other
+     * type keeps the generic surat1 / surat2 templates below.
+     */
+    protected function renderNumberedLetterPdf(int $kind, TrAgreement $agreement, $sentDate, $surat1SentDate = null): string
+    {
+        $letters = app(AgreementLetterService::class);
+
+        $surat1 = $letters->letter($agreement, AgreementLetterService::SRT1, $kind === 1 ? $sentDate : $surat1SentDate);
+        $letter = $kind === 1 ? $surat1 : $letters->letter($agreement, AgreementLetterService::SRT2, $sentDate);
+
+        return \PDF::loadView('pages.legal-agreement.pdf.surat-'.AgreementLetterService::kind($agreement), [
+            'kind' => $kind,
+            'agreement' => $agreement,
+            'company' => $this->resolveCompany($agreement),
+            'profile' => $letters->profile($agreement),
+            'letter' => $letter,
+            'surat1' => $surat1,
+            'docs' => $letters->documents($agreement),
+            'unitText' => AgreementLetterService::isMall($agreement) ? $letters->mallUnitText($agreement) : $letters->unitText($agreement),
+            // Surat 1 gives 14 days, Surat 2 gives 7 (the escalation window).
+            'deadline' => $letter->sent_at->copy()->addDays($kind === 1 ? 14 : 7),
+            'periodText' => $kind === 1 ? '2 (dua) minggu' : '7 (tujuh) hari kalender',
+        ])
+            ->setPaper('a4', 'portrait')
+            ->output();
+    }
+
     protected function renderSurat1Pdf(TrAgreement $agreement, $sentDate): string
     {
+        if (AgreementLetterService::kind($agreement)) {
+            return $this->renderNumberedLetterPdf(1, $agreement, $sentDate);
+        }
+
         return \PDF::loadView('pages.legal-agreement.pdf.surat1', [
             'agreement' => $agreement,
             'company' => $this->resolveCompany($agreement),
@@ -36,6 +69,10 @@ trait RendersAgreementLetters
 
     protected function renderSurat2Pdf(TrAgreement $agreement, $sentDate, $surat1SentDate): string
     {
+        if (AgreementLetterService::kind($agreement)) {
+            return $this->renderNumberedLetterPdf(2, $agreement, $sentDate, $surat1SentDate);
+        }
+
         return \PDF::loadView('pages.legal-agreement.pdf.surat2', [
             'agreement' => $agreement,
             'company' => $this->resolveCompany($agreement),

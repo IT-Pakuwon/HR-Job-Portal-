@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Autonbr;
+use App\Models\MsCompany;
 use App\Models\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,33 @@ class HrDashboardController extends Controller
         ApprovalDashboardController $approvalDashboard
     ) {
         $this->approvalDashboard = $approvalDashboard;
+    }
+
+    /**
+     * Group the user is locked to, or null when unrestricted (primary admin / no group).
+     * Mirrors RecruitmentDashboardController: non-admins only see their own group_cpny_id.
+     */
+    protected function lockedGroup(): ?string
+    {
+        $user = auth()->user();
+        $group = strtoupper(trim((string) ($user->group_cpny_id ?? '')));
+
+        return ($user && ! $user->isPrimaryAdmin() && $group !== '') ? $group : null;
+    }
+
+    /** Company ids inside the user's locked group, or null when unrestricted. */
+    protected function groupCompanyIds(): ?array
+    {
+        $group = $this->lockedGroup();
+
+        if ($group === null) {
+            return null;
+        }
+
+        return MsCompany::where('status', 'A')
+            ->whereRaw('upper(trim(group_cpny_id)) = ?', [$group])
+            ->pluck('cpny_id')
+            ->all();
     }
 
     public function index()
@@ -39,18 +67,24 @@ class HrDashboardController extends Controller
                 ->getData(true)['data'] ?? []
         )->count();
 
+        $companyIds = $this->groupCompanyIds();
+        $group = $this->lockedGroup();
+
         $waitingPrf = Personnel::query()
             ->where('status', 'P')
+            ->when($companyIds !== null, fn ($q) => $q->whereIn('cpnyid', $companyIds))
             ->count();
 
         $uncheckedApplicant = DB::connection('mysql3')
             ->table('viewtrxcareer')
             ->where('status', '!=', 'X')
             ->where('is_read', 'N')
+            ->when($companyIds !== null, fn ($q) => $q->whereIn('cpnyid', $companyIds))
             ->count();
 
         $selfRegister = DB::connection('mysql3')
             ->table('viewselfregister')
+            ->when($group !== null, fn ($q) => $q->whereRaw('upper(trim(group_cpny_id)) = ?', [$group]))
             ->count();
 
         return response()->json([
@@ -98,6 +132,7 @@ class HrDashboardController extends Controller
                 'status',
             ])
             ->where('status', 'P')
+            ->when($this->groupCompanyIds() !== null, fn ($q) => $q->whereIn('cpnyid', $this->groupCompanyIds()))
             ->orderByDesc('date')
             ->get()
             ->map(function ($row) {
@@ -151,6 +186,7 @@ class HrDashboardController extends Controller
             ])
             ->where('status', '!=', 'X')
             ->where('is_read', 'N')
+            ->when($this->groupCompanyIds() !== null, fn ($q) => $q->whereIn('cpnyid', $this->groupCompanyIds()))
             ->orderByDesc('apply_date')
             ->get()
             ->map(function ($row) {
@@ -195,9 +231,10 @@ class HrDashboardController extends Controller
                 'fullname',
                 'apply_date',
                 'job_title',
-                'cpnyid',
+                'group_cpny_id',
                 'status',
             ])
+            ->when($this->lockedGroup() !== null, fn ($q) => $q->whereRaw('upper(trim(group_cpny_id)) = ?', [$this->lockedGroup()]))
             ->orderByDesc('apply_date')
             ->get()
             ->map(function ($row) {
@@ -213,7 +250,7 @@ class HrDashboardController extends Controller
 
                     'job_title' => $row->job_title,
 
-                    'cpnyid' => $row->cpnyid,
+                    'cpnyid' => $row->group_cpny_id,
 
                     'status' => $row->status,
 

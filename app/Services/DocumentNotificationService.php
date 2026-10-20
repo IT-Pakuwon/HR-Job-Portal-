@@ -942,6 +942,7 @@ class DocumentNotificationService
                             'message'    => 'Now open for registration' . ($deadline ? " — register before {$deadline}" : '') . '.',
                             'cpnyid'     => $s->quota->first()->cpny_id ?? null,
                             'url'        => '/training-list',
+                            'href'       => '/training-list/' . Hashids::encode($trainingPk) . '?schedule=' . $s->schedule_id,
                             'by'         => null,
                             'updated_at' => $s->updated_at ?? $s->created_at,
                         ];
@@ -994,7 +995,7 @@ class DocumentNotificationService
         //       naturally disappears once the agreement moves to the next stage —
         //       no explicit dismiss needed.
         try {
-            $myAgreements = TrAgreement::where(function ($q) use ($username) {
+            $myAgreements = TrAgreement::followUp()->where(function ($q) use ($username) {
                     $q->where('created_user', $username)
                         ->orWhere(function ($q2) use ($username) {
                             $q2->wherePicLegalOrLeasing($username);

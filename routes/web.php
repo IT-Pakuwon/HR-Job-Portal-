@@ -126,6 +126,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\RecruitmentDashboardController;
 use App\Http\Controllers\ReportBastController;
+use App\Http\Controllers\ReportKontrakController;
 use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportFixedAssetController;
 use App\Http\Controllers\ReportGeneralGAController;
@@ -158,20 +159,20 @@ use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
-use App\Http\Controllers\TenancyMasterController;
-use App\Http\Controllers\TenancyUserController;
-use App\Http\Controllers\TenancyOrganizationController;
-use App\Http\Controllers\TenancyApprovalController;
-use App\Http\Controllers\Tenancy\TsLocationController;
-use App\Http\Controllers\Tenancy\TsFloorController;
-use App\Http\Controllers\Tenancy\TsTenantController;
-use App\Http\Controllers\Tenancy\TsUserTenantController;
-use App\Http\Controllers\Tenancy\TsUserController;
-use App\Http\Controllers\Tenancy\TsSiteController;
-use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsApprovalController;
 use App\Http\Controllers\Tenancy\TsCompanyController;
 use App\Http\Controllers\Tenancy\TsDepartmentController;
-use App\Http\Controllers\Tenancy\TsApprovalController;
+use App\Http\Controllers\Tenancy\TsFloorController;
+use App\Http\Controllers\Tenancy\TsLocationController;
+use App\Http\Controllers\Tenancy\TsSiteController;
+use App\Http\Controllers\Tenancy\TsTenantCompanyController;
+use App\Http\Controllers\Tenancy\TsTenantController;
+use App\Http\Controllers\Tenancy\TsUserController;
+use App\Http\Controllers\Tenancy\TsUserTenantController;
+use App\Http\Controllers\TenancyApprovalController;
+use App\Http\Controllers\TenancyMasterController;
+use App\Http\Controllers\TenancyOrganizationController;
+use App\Http\Controllers\TenancyUserController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -186,6 +187,7 @@ use App\Http\Controllers\TrainingSetupController;
 use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\UpdateNotificationController;
+use App\Http\Controllers\UserDataSyncController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
@@ -224,6 +226,18 @@ Route::get('/avatar/{filename}', function ($filename) {
 
 Route::redirect('/', 'login');
 
+// "My Page" installable app (Add to Home Screen). Manifest + service worker must be
+// reachable without a session; the page itself requires login.
+Route::get('/my-page.webmanifest', [App\Http\Controllers\MyPageController::class, 'manifest'])->name('my-page.manifest');
+Route::get('/my-page-sw.js', [App\Http\Controllers\MyPageController::class, 'serviceWorker'])->name('my-page.sw');
+Route::get('/my-page', [App\Http\Controllers\MyPageController::class, 'index'])->name('my-page');Route::get('/my-page/login', [App\Http\Controllers\MyPageController::class, 'loginForm'])->name('my-page.login');
+Route::post('/my-page/login', [App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
+Route::get('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'forgotForm'])->name('my-page.forgot');
+Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
+Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
+Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
+Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
+
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -243,7 +257,7 @@ Route::post('/login', function (Request $request) {
         })
         ->first();
 
-    if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+    if (!$user || !Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
         throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
 
@@ -266,6 +280,18 @@ Route::get('/modules', function () {
 
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
+    Route::prefix('push')->controller(App\Http\Controllers\PushSubscriptionController::class)->name('push.')->group(function () {
+        Route::get('/key', 'key')->name('key');
+        Route::get('/diagnose', 'diagnose')->name('diagnose');
+        Route::get('/status', 'status')->name('status');
+        Route::post('/subscribe', 'subscribe')->name('subscribe');
+        Route::post('/unsubscribe', 'unsubscribe')->name('unsubscribe');
+        Route::post('/test', 'test')->name('test');
+        Route::get('/health', 'health')->name('health');
+        Route::get('/prefs', 'prefs')->name('prefs');
+        Route::post('/prefs', 'savePrefs')->name('prefs.save');
+    });
+
     // Dashboard Approval JSON endpoints
 
     Route::get('/news', [NewsController::class, 'index'])->name('news');
@@ -723,6 +749,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
+        Route::get('/budgetmonitor/document/{refnbr}', [BudgetMonitorController::class, 'openDocument'])->name('budgetmonitor.document');
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {
@@ -2176,8 +2203,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/hold/{hash}', 'holdAgreement')->name('legal-agreement.hold');
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
+                Route::post('/revert/{hash}', 'revertAgreement')->name('legal-agreement.revert');
+                Route::post('/cancel/{hash}', 'cancelAgreement')->name('legal-agreement.cancel');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');
-                Route::post('/jobs/update-status', 'jobsUpdateStatus')->name('legal-agreement.jobs.updateStatus');
             });
         });
 
@@ -2207,6 +2235,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/psm-ola/active/json', 'activeJson')->name('legal-new-agreement.active.json');
                     Route::get('/psm-ola/completed/json', 'completedJson')->name('legal-new-agreement.completed.json');
                     Route::get('/psm-ola/cancelled/json', 'cancelledJson')->name('legal-new-agreement.cancelled.json');
+                    Route::get('/psm-ola/draft/json', 'draftJson')->name('legal-new-agreement.draft.json');
+                    Route::get('/psm-ola/follow-up/json', 'followUpJson')->name('legal-new-agreement.follow-up.json');
                     Route::get('/psm-ola/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.psm-ola.view');
                     Route::get('/psm-ola/pic-search', 'picSearch')->name('legal-new-agreement.psm-ola.pic-search');
                 });
@@ -2238,6 +2268,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/addendum/active/json', 'activeJson')->name('legal-new-agreement.addendum.active.json');
                     Route::get('/addendum/completed/json', 'completedJson')->name('legal-new-agreement.addendum.completed.json');
                     Route::get('/addendum/cancelled/json', 'cancelledJson')->name('legal-new-agreement.addendum.cancelled.json');
+                    Route::get('/addendum/draft/json', 'draftJson')->name('legal-new-agreement.addendum.draft.json');
+                    Route::get('/addendum/follow-up/json', 'followUpJson')->name('legal-new-agreement.addendum.follow-up.json');
                     Route::get('/addendum/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.addendum.view');
                     Route::get('/addendum/pic-search', 'picSearch')->name('legal-new-agreement.addendum.pic-search');
                 });
@@ -2251,13 +2283,21 @@ Route::middleware(['auth'])->group(function () {
 
             Route::middleware('access:ADDENDUM,CREATE')->group(function () {
                 Route::get('/addendum/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.addendum.create');
+                // Deep link to the create modal (?src=psm when started from a PSM / OLA): the Addendum page with it opened.
+                Route::get('/addendum/create-agreement/{eid}', 'addendumCreateLink')->name('legal-new-agreement.addendum.create-agreement');
                 Route::post('/addendum/store/{eid}', 'storePsmOla')->name('legal-new-agreement.addendum.store');
             });
 
             // Creator / PIC Legal only (checked in the controller), so VIEW is enough here.
+            Route::post('/addendum/documents/{eid}', 'updatePsmOlaDocuments')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.documents');
             Route::post('/addendum/process/{eid}', 'updatePsmOlaProcess')
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.process');
+            Route::post('/addendum/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:ADDENDUM,VIEW')
+                ->name('legal-new-agreement.addendum.activate');
             Route::post('/addendum/complete/{eid}', 'completePsmOla')
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.complete');
@@ -2275,14 +2315,73 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('access:ADDENDUM,VIEW')
                 ->name('legal-new-agreement.addendum.show');
 
+            // Others: same screens as Addendum (the controller picks the type from the URL), without Routing.
             Route::middleware('access:OTHERS,VIEW')->group(function () {
                 Route::get('/others', 'others')->name('legal-new-agreement.others');
+                Route::get('/others/jobs/export', 'jobsExport')->name('legal-new-agreement.others.jobs.export');
+                Route::get('/others/active/export', 'activeExport')->name('legal-new-agreement.others.active.export');
+                Route::get('/others/completed/export', 'completedExport')->name('legal-new-agreement.others.completed.export');
+                Route::get('/others/cancelled/export', 'cancelledExport')->name('legal-new-agreement.others.cancelled.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/others/jobs/json', 'jobsJson')->name('legal-new-agreement.others.jobs.json');
+                    Route::get('/others/psm-ola/json', 'addendumPsmOlaJson')->name('legal-new-agreement.others.psm-ola.json');
+                    Route::get('/others/active/json', 'activeJson')->name('legal-new-agreement.others.active.json');
+                    Route::get('/others/completed/json', 'completedJson')->name('legal-new-agreement.others.completed.json');
+                    Route::get('/others/cancelled/json', 'cancelledJson')->name('legal-new-agreement.others.cancelled.json');
+                    Route::get('/others/draft/json', 'draftJson')->name('legal-new-agreement.others.draft.json');
+                    Route::get('/others/view/{eid}', 'viewPsmOla')->name('legal-new-agreement.others.view');
+                    Route::get('/others/pic-search', 'picSearch')->name('legal-new-agreement.others.pic-search');
+                });
             });
+
+            Route::middleware('access:OTHERS,EDIT')->group(function () {
+                Route::get('/others/edit/{eid}', 'editPsmOla')->middleware('ajax')->name('legal-new-agreement.others.edit');
+                Route::post('/others/update/{eid}', 'updatePsmOla')->name('legal-new-agreement.others.update');
+                Route::post('/others/attachment/{eid}', 'uploadPsmOlaAttachment')->name('legal-new-agreement.others.attachment');
+            });
+
+            Route::middleware('access:OTHERS,CREATE')->group(function () {
+                Route::get('/others/create/{eid}', 'createPsmOla')->middleware('ajax')->name('legal-new-agreement.others.create');
+                // Deep link to the create modal (?src=psm when started from a PSM / OLA): the Others page with it opened.
+                Route::get('/others/create-agreement/{eid}', 'addendumCreateLink')->name('legal-new-agreement.others.create-agreement');
+                Route::post('/others/store/{eid}', 'storePsmOla')->name('legal-new-agreement.others.store');
+            });
+
+            // Creator / PIC Legal only (checked in the controller), so VIEW is enough here.
+            Route::post('/others/documents/{eid}', 'updatePsmOlaDocuments')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.documents');
+            Route::post('/others/process/{eid}', 'updatePsmOlaProcess')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.process');
+            Route::post('/others/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.activate');
+            Route::post('/others/complete/{eid}', 'completePsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.complete');
+            Route::post('/others/cancel/{eid}', 'cancelPsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.cancel');
+            Route::post('/others/reopen/{eid}', 'reopenPsmOla')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.reopen');
+            Route::post('/others/attachment/{eid}/delete', 'deletePsmOlaAttachment')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.attachment.delete');
+            Route::get('/others/{eid}', 'psmOlaView')
+                ->where('eid', '[A-Za-z0-9]+')
+                ->middleware('access:OTHERS,VIEW')
+                ->name('legal-new-agreement.others.show');
 
             // Creator-only (checked in the controller), so VIEW is enough here.
             Route::post('/psm-ola/documents/{eid}', 'updatePsmOlaDocuments')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.documents');
+            Route::post('/psm-ola/activate/{eid}', 'activatePsmOla')
+                ->middleware('access:PSMOLA,VIEW')
+                ->name('legal-new-agreement.psm-ola.activate');
             Route::post('/psm-ola/complete/{eid}', 'completePsmOla')
                 ->middleware('access:PSMOLA,VIEW')
                 ->name('legal-new-agreement.psm-ola.complete');
@@ -2645,16 +2744,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
-        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->group(function () {
+        Route::prefix('mailbox')->controller(MailboxController::class)->name('mailbox.')->middleware(['access:MAILBOX,VIEW', 'jkt.only'])->group(function () {
             Route::get('/panel', 'panel')->name('panel');
             Route::get('/unread-count', 'unreadCount')->name('unread-count');
-            Route::post('/sync', 'sync')->name('sync');
+            Route::post('/sync', 'sync')->name('sync')->middleware('access:MAILBOX,EDIT');
             Route::post('/load-more', 'loadMore')->name('load-more');
-            Route::post('/send', 'send')->name('send');
-            Route::post('/save-draft', 'saveDraft')->name('save-draft');
+            Route::post('/send', 'send')->name('send')->middleware('access:MAILBOX,CREATE');
+            Route::post('/save-draft', 'saveDraft')->name('save-draft')->middleware('access:MAILBOX,CREATE');
             Route::get('/account-settings', 'accountSettings')->name('account-settings');
-            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save');
-            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect');
+            Route::post('/account-settings', 'saveAccountSettings')->name('account-settings.save')->middleware('access:MAILBOX,EDIT');
+            Route::post('/account-settings/disconnect', 'disconnectAccount')->name('account-settings.disconnect')->middleware('access:MAILBOX,EDIT');
             // Landing spot for the header "Connect your Email" prompt — same page as
             // index() but auto-opens the settings modal. Must stay above the {folder?}
             // catch-all below or "settings" would be swallowed as a folder name.
@@ -2662,10 +2761,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{email}/content', 'content')->whereNumber('email')->name('content');
             Route::get('/{email}/attachments', 'attachments')->whereNumber('email')->name('attachments');
             Route::get('/{email}/attachments/{index}', 'downloadAttachment')->whereNumber('email')->whereNumber('index')->name('attachments.download');
-            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive');
-            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy');
-            Route::post('/folders', 'createFolder')->name('folders.create');
-            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete');
+            Route::post('/{email}/archive', 'archive')->whereNumber('email')->name('archive')->middleware('access:MAILBOX,EDIT');
+            Route::delete('/{email}', 'destroy')->whereNumber('email')->name('destroy')->middleware('access:MAILBOX,DELETE');
+            Route::post('/folders', 'createFolder')->name('folders.create')->middleware('access:MAILBOX,CREATE');
+            Route::delete('/folders/{folder}', 'deleteFolder')->where('folder', '.*')->name('folders.delete')->middleware('access:MAILBOX,DELETE');
             // Folder as a path segment for a clean, bookmarkable URL
             // (/mailbox/Drafts) instead of a query string (/mailbox?folder=Drafts).
             // Must stay last: it's a catch-all and would otherwise swallow the
@@ -2674,7 +2773,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{folder?}', 'index')->where('folder', '.*')->name('index');
         });
 
-        Route::get('/data-hub', [\App\Http\Controllers\OmDashboardController::class, 'menu'])
+        Route::get('/data-hub', [App\Http\Controllers\OmDashboardController::class, 'menu'])
             ->name('datahub.index')
             ->middleware('access:DATAHUB,VIEW');
 
@@ -2688,7 +2787,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('data-hub/om')
             ->middleware('access:DATAHUB,VIEW')
-            ->controller(\App\Http\Controllers\OmDashboardController::class)
+            ->controller(App\Http\Controllers\OmDashboardController::class)
             ->name('datahub.om.')
             ->group(function () {
                 Route::get('/{mall}', 'detail')->name('detail');
@@ -2706,6 +2805,12 @@ Route::middleware(['auth'])->group(function () {
             });
 
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
+
+        Route::prefix('my-activity')->controller(App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
+            Route::get('/documents', 'documents')->name('documents');
+            Route::get('/messages', 'messages')->name('messages');
+            Route::get('/files', 'files')->name('files');
+        });
 
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
@@ -2980,6 +3085,9 @@ Route::middleware(['auth'])->group(function () {
     // current user is the target (often non-admin), so this route needs to stay reachable.
     Route::post('/users/stop-impersonate', [UsersController::class, 'stopImpersonate'])->name('users.stop-impersonate');
 
+    // Self-service: any authenticated user may change their own password (not admin-only).
+    Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
+
     Route::middleware('admin')->group(function () {
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
@@ -2995,6 +3103,18 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/users', [UsersController::class, 'index'])->name('users');
         Route::get('/users/json', [UsersController::class, 'json'])->name('users.json');
+
+        // Update Data User: align ms_user NPK/Name/origin company+dept with Talenta
+        Route::get('/user-data-sync', [UserDataSyncController::class, 'index'])->name('user-data-sync');
+        Route::get('/user-data-sync/talenta', [UserDataSyncController::class, 'talentaJson'])->name('user-data-sync.talenta');
+        Route::get('/user-data-sync/options', [UserDataSyncController::class, 'options'])->name('user-data-sync.options');
+        Route::get('/user-data-sync/overview', [UserDataSyncController::class, 'overview'])->name('user-data-sync.overview');
+        Route::post('/user-data-sync/sync-bulk', [UserDataSyncController::class, 'syncBulk'])->name('user-data-sync.sync-bulk');
+        Route::post('/user-data-sync/deactivate-resigned', [UserDataSyncController::class, 'deactivateResigned'])->name('user-data-sync.deactivate-resigned');
+        Route::post('/user-data-sync/resolve-rehire', [UserDataSyncController::class, 'resolveRehire'])->name('user-data-sync.resolve-rehire');
+        Route::post('/user-data-sync/{id}/deactivate', [UserDataSyncController::class, 'deactivate'])->name('user-data-sync.deactivate');
+        Route::put('/user-data-sync/{id}', [UserDataSyncController::class, 'update'])->name('user-data-sync.update');
+
         Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
         Route::get('/users/inactive/json', [UsersController::class, 'inactiveJson'])->name('users.inactive.json');
         Route::post('/users', [UsersController::class, 'store'])->name('users.store');
@@ -3002,8 +3122,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/users/{post}', [UsersController::class, 'update'])->name('users.update');
         Route::put('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
         Route::post('/users/bulk-deactivate', [UsersController::class, 'bulkDeactivate'])->name('users.bulk-deactivate');
-        Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
-
         Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
         Route::delete('/users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
@@ -3158,6 +3276,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/categories/{id}/edit', [MsCategoryController::class, 'edit']);
         Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
         Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
+
+        Route::get('/training-reschedule-emails', [\App\Http\Controllers\RescheduleEmailQueueController::class, 'index'])->name('reschedule_email_queue');
+        Route::post('/training-reschedule-emails/{id}/resend', [\App\Http\Controllers\RescheduleEmailQueueController::class, 'resend'])->name('reschedule_email_queue.resend');
 
         Route::get('/group-acc-specific', [GroupAccspecificController::class, 'index'])->name('group_acc_specific');
         Route::get('/group-acc-specific/json', [GroupAccspecificController::class, 'json'])->name('group_acc_specific.json');
@@ -3591,6 +3712,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/operational', function () {
             return view('pages.report-operational.wo-detail');
         });
+    });
+
+    Route::prefix('report-kontrak')->middleware('access:REPORTKONTRAK,VIEW')->group(function () {
+        Route::get('/', [ReportKontrakController::class, 'index'])->name('reportkontrak');
+        Route::get('/json', [ReportKontrakController::class, 'json'])->name('report.kontrak.json');
+        Route::get('/vendors', [ReportKontrakController::class, 'vendors'])->name('report.kontrak.vendors');
+        Route::get('/export', [ReportKontrakController::class, 'export'])->name('report.kontrak.export');
     });
 
     Route::prefix('report-bast')->middleware('access:REPORTBAST,VIEW')->group(function () {

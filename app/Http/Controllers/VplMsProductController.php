@@ -432,39 +432,48 @@ class VplMsProductController extends Controller
                 $cpnyPrefix = self::COMPANY_PREFIX[$request->cpnyid] ?? '0';
                 $prefix     = $request->product_type . $cpnyPrefix;
 
-                $product_id = DB::connection('pgsql5')->transaction(function () use ($prefix) {
+                // ms_vpl_product.product_id has a unique index; if two users
+                // save at the same moment the loser hits it and retries with
+                // the next number.
+                $msproduct = null;
+                for ($attempt = 1; $attempt <= 5; $attempt++) {
                     $maxSuffix = MsVplProduct::where('product_id', 'like', $prefix.'%')
-                        ->lockForUpdate()
                         ->get(['product_id'])
                         ->map(fn ($row) => (int) substr($row->product_id, strlen($prefix)))
                         ->max();
 
-                    $next = ($maxSuffix ?? 0) + 1;
+                    $product_id = $prefix . sprintf('%05d', ($maxSuffix ?? 0) + 1);
 
-                    return $prefix . sprintf('%05d', $next);
-                });
+                    try {
+                        $msproduct = MsVplProduct::create([
+                            'product_id'            => $product_id,
+                            'cpnyid'                => $request->cpnyid,
+                            'product_name'          => $request->product_name,
+                            'product_type'          => $request->product_type,
+                            'product_category'      => $request->product_category,
+                            'product_source_type'   => $request->product_source_type,
+                            'product_source_company'=> strtoupper($request->product_source_company ?? ''),
+                            'product_source_tenant' => strtoupper($request->product_source_tenant ?? ''),
+                            'product_remark'        => $request->product_remark,
+                            'product_value'         => $request->product_value,
+                            'product_uom'           => strtoupper($request->product_uom ?? ''),
+                            'product_check_exp'     => $request->product_check_exp,
+                            'product_photo'         => null,
+                            'status'                => 'A',
+                            'created_user'          => $username,
+                        ]);
+                        break;
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->getCode() !== '23505' || $attempt === 5) {
+                            throw $e;
+                        }
+                    }
+                }
 
-                $photoPath = $request->hasFile('product_photo')
-                    ? $this->uploadProductPhoto($request->file('product_photo'), $product_id)
-                    : null;
-
-                $msproduct = MsVplProduct::create([
-                    'product_id'            => $product_id,
-                    'cpnyid'                => $request->cpnyid,
-                    'product_name'          => $request->product_name,
-                    'product_type'          => $request->product_type,
-                    'product_category'      => $request->product_category,
-                    'product_source_type'   => $request->product_source_type,
-                    'product_source_company'=> strtoupper($request->product_source_company ?? ''),
-                    'product_source_tenant' => strtoupper($request->product_source_tenant ?? ''),
-                    'product_remark'        => $request->product_remark,
-                    'product_value'         => $request->product_value,
-                    'product_uom'           => strtoupper($request->product_uom ?? ''),
-                    'product_check_exp'     => $request->product_check_exp,
-                    'product_photo'         => $photoPath,
-                    'status'                => 'A',
-                    'created_user'          => $username,
-                ]);
+                if ($request->hasFile('product_photo')) {
+                    $msproduct->product_photo = $this->uploadProductPhoto($request->file('product_photo'), $msproduct->product_id);
+                    $msproduct->save();
+                }
             }
 
             return response()->json([

@@ -14,6 +14,7 @@ use App\Models\TrIssue;
 use App\Models\TrIssuedetail;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
+use App\Models\BusinessUnit;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -198,6 +199,10 @@ class IssueController extends Controller
             $totalIssueQty   = 0.0;
             $grandTotalCost  = 0.0;
             $createdDetails  = collect();   // <--- ini yg dikirim ke applyIssuePostingToSpb
+            $businessUnits = BusinessUnit::where('cpny_id', $cpnyid)
+                ->whereIn('business_unit_id', $spbDetails->pluck('budget_business_unit_id')->filter()->unique())
+                ->get()->keyBy('business_unit_id');
+            $inventoryCostCache = [];
 
             /** @var TrSPBdetail $src */
             foreach ($spbDetails as $detailId => $src) {
@@ -208,8 +213,35 @@ class IssueController extends Controller
                 $siteFromForm = isset($siteInput[$detailId]) ? trim((string)$siteInput[$detailId]) : null;
                 $lineNo++;
 
-                // Ambil harga dari SPB detail (kalau ada)
-                $unitCost = (float) ($src->unitcost ?? 0);
+                $bu = $businessUnits->get($src->budget_business_unit_id);
+                $isIfca = strtoupper(trim((string) ($bu->integration_type ?? ''))) === 'IFCA';
+                $inventoryModels = [
+                    'AW' => $isIfca ? \App\Models\ViewInventoryAWIfca::class : \App\Models\ViewInventoryAW::class,
+                    'EP' => $isIfca ? \App\Models\ViewInventoryEPHIfca::class : \App\Models\ViewInventoryEPH::class,
+                    'O8' => $isIfca ? \App\Models\ViewInventoryO8Ifca::class : \App\Models\ViewInventoryO8::class,
+                    'PSA' => $isIfca ? \App\Models\ViewInventoryPSAIfca::class : \App\Models\ViewInventoryPSA::class,
+                    'GPS' => \App\Models\ViewInventoryGPSIfca::class,
+                ];
+                $model = $inventoryModels[strtoupper(trim((string) $cpnyid))] ?? null;
+                $siteId = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
+                $siteFilter = $bu
+                    ? (trim((string) ($isIfca ? $bu->ifca_entity_cd : $bu->solomon_cpny_id)) ?: $siteId)
+                    : $siteId;
+                $costKey = implode('|', [$model ?? '', (string) $cpnyid, (string) $siteFilter, (string) $src->inventoryid]);
+
+                if (!array_key_exists($costKey, $inventoryCostCache)) {
+                    $inventoryCostCache[$costKey] = $model
+                        ? $model::query()
+                            ->where('cpnyid', $cpnyid)
+                            ->where('invtid', $src->inventoryid)
+                            ->when($siteFilter, fn ($query) => $query->where('siteid', $siteFilter))
+                            ->value('cost')
+                        : null;
+                }
+
+                $unitCost = $inventoryCostCache[$costKey] !== null
+                    ? (float) $inventoryCostCache[$costKey]
+                    : (float) ($src->unitcost ?? 0);
                 $lineCost = $unitCost * $qtyIssue;
 
                 $det = new TrIssuedetail();
@@ -224,7 +256,7 @@ class IssueController extends Controller
                 $det->issuetype       = 'IS';
                 $det->inventoryid     = $src->inventoryid;
                 $det->inventory_descr = $src->inventory_descr;
-                $det->siteid          = $siteFromForm !== '' ? $siteFromForm : ($src->siteid ?? null);
+                $det->siteid          = $siteId;
 
                 // Kuantitas Issue
                 $det->qty             = $qtyIssue;
@@ -285,6 +317,22 @@ class IssueController extends Controller
             $header->grandtotalcost      = $grandTotalCost;
             $header->totalreturnissueqty = 0;
             $header->save();
+
+            $needsIMBudget = $this->needsIMBudgetFromIssueDetail($issueid);
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $issueid, $cpnyid, 'Submit', $username);
+
+                $header->refresh();
+                $flagIMBudget = in_array(
+                    strtolower(trim((string) ($header->flag_imbudget ?? ''))),
+                    ['1', 't', 'true', 'yes'],
+                    true
+                );
+                if ($flagIMBudget) {
+                    app(IMBudgetController::class)->generateIMBudgetFromIssue($header, $user, $now);
+                }
+            }
 
             // ====== POSTING KE SPB LANGSUNG DI SINI ======
             // Akan mengupdate:
@@ -1033,8 +1081,8 @@ class IssueController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
-                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $doctype, $fullname, $docUrl, $request, $user) {
+                DB::transaction(function () use ($issue, $doctype, $fullname, $docUrl, $now, $request, $user) {
                     // 1) Rollback qty ke SPB
                     $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
@@ -1043,6 +1091,16 @@ class IssueController extends Controller
                     $issue->completed_by = $user->username ?? auth()->user()->username;
                     $issue->completed_at = $now;
                     $issue->save();
+
+                    if ($this->needsIMBudgetFromIssueDetail($issue->issueid)) {
+                        $this->reserveBudget(
+                            $doctype,
+                            $issue->issueid,
+                            $request->cpnyid ?? $issue->cpny_id,
+                            'Reject',
+                            $user->username
+                        );
+                    }
 
                     // (opsional) detail jadi R
                     // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'R']);
@@ -1099,8 +1157,8 @@ class IssueController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $fullname, $docUrl, $user) {
-                DB::transaction(function () use ($issue, $fullname, $docUrl, $now, $user) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($issue, $doctype, $fullname, $docUrl, $request, $user) {
+                DB::transaction(function () use ($issue, $doctype, $fullname, $docUrl, $now, $request, $user) {
                     // 1) Rollback qty ke SPB
                     $this->rollbackIssuePostingToSpb($issue, $user, $now);
 
@@ -1109,6 +1167,16 @@ class IssueController extends Controller
                     $issue->completed_by = $user->username ?? auth()->user()->username;
                     $issue->completed_at = $now;
                     $issue->save();
+
+                    if ($this->needsIMBudgetFromIssueDetail($issue->issueid)) {
+                        $this->reserveBudget(
+                            $doctype,
+                            $issue->issueid,
+                            $request->cpnyid ?? $issue->cpny_id,
+                            'Revise',
+                            $user->username
+                        );
+                    }
 
                     // (opsional) DETAIL -> D
                     // TrIssuedetail::where('issueid', $issue->issueid)->update(['status' => 'D']);
@@ -1922,6 +1990,8 @@ class IssueController extends Controller
             $hdr->updated_at = $now;
             $hdr->save();
 
+            $this->reserveBudget($doctype, $issueid, $cpnyid, 'Submit', $username);
+
             // posting ke SPB / stock (kalau memang diperlukan)
             // pastikan function ini aman untuk RI
             if (method_exists($this, 'applyIssuePostingToSpb')) {
@@ -1971,6 +2041,26 @@ class IssueController extends Controller
                 ->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Return'])
                 ->withInput();
         }
+    }
+
+    private function needsIMBudgetFromIssueDetail(string $issueid): bool
+    {
+        return TrIssuedetail::where('issueid', $issueid)
+            ->whereRaw("TRIM(COALESCE(budget_business_unit_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_department_fin_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_account_id, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(budget_activity_id, '')) <> ''")
+            ->exists();
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
+        );
     }
 
 

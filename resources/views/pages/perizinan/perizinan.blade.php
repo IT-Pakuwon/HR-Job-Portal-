@@ -1136,7 +1136,7 @@
             function showDetailItemRow(item = {}) {
                 return `<tr class="show-detail-row border-t dark:border-gray-700">
                     <td class="p-2">
-                        <input type="text" class="show-item-name w-full rounded-lg border px-3 py-2" value="${escapeHtml(item.item_perizinan || '')}" maxlength="255" required>
+                        <textarea rows="2" class="show-item-name w-full rounded-lg border px-3 py-2" maxlength="5000" required>${escapeHtml(item.item_perizinan || '')}</textarea>
                     </td>
                     <td class="p-2">
                         <input type="number" class="show-item-qty w-full rounded-lg border px-3 py-2 text-right" value="${escapeHtml(item.qty_perizinan || 1)}" min="0.01" step="0.01" required>
@@ -1226,7 +1226,7 @@
                 } else {
                     $('#detailItems').html(items.length ? items.map(item => `
                         <tr class="border-t dark:border-gray-700">
-                            <td class="px-3 py-2">${escapeHtml(item.item_perizinan || '-')}</td>
+                            <td class="px-3 py-2 whitespace-pre-wrap break-words">${escapeHtml(item.item_perizinan || '-')}</td>
                             <td class="px-3 py-2 text-right">${escapeHtml(item.qty_perizinan ?? '-')}</td>
                         </tr>`).join('') : '<tr><td colspan="2" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No permit items.</td></tr>');
                 }
@@ -1259,9 +1259,9 @@
                     <tr class="detail-row transition hover:bg-slate-50/60 dark:hover:bg-white/[0.02]">
                         <td class="detail-row-no px-3 py-2 text-sm font-medium text-slate-400 dark:text-slate-500"></td>
                         <td class="p-2">
-                            <input type="text" name="item_perizinan[]" value="${escapeHtml(detail.item_perizinan || '')}" placeholder="e.g. Business Operation License"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:focus:border-blue-500"
-                                maxlength="255" required>
+                            <textarea name="item_perizinan[]" rows="2" placeholder="e.g. Business Operation License"
+                                class="min-h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:focus:border-blue-500"
+                                maxlength="5000" required>${escapeHtml(detail.item_perizinan || '')}</textarea>
                         </td>
                         <td class="p-2">
                             <input type="number" name="qty_perizinan[]" value="${escapeHtml(detail.qty_perizinan || 1)}"

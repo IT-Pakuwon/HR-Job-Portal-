@@ -190,7 +190,7 @@
     </template>
 </div>
 
-<div id="pendingFeedbackReminders" class="col-span-full"></div>
+<div id="pendingFeedbackReminders" class="col-span-full hidden"></div>
 
 <script src="{{ asset('assets/js/multidashboard/pending-training-feedback.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/pending-training-feedback.js')) }}"></script>
 

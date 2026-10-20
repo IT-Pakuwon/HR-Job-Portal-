@@ -6,7 +6,10 @@
     // (independent of any one user's MAILACCESS grant) to pull the feature
     // entirely — the header icon should disappear right along with the
     // sidebar link, not just stop linking anywhere useful.
-    $mailboxMenuActive = \App\Models\SysMenu::where('menu_id', 'MAILBOX')->where('status', 'A')->exists();
+    // Mailbox is only offered to the JKT group company.
+    $mailboxMenuActive = auth()->check()
+        && strtoupper(trim((string) auth()->user()->group_cpny_id)) === 'JKT'
+        && \App\Models\SysMenu::where('menu_id', 'MAILBOX')->where('status', 'A')->exists();
 @endphp
 <div x-data="docNotifications({{ \Illuminate\Support\Js::from($mailboxConnected) }})" x-init="init()" class="flex items-center gap-1">
 
@@ -763,7 +766,7 @@ function docNotifications(mailboxConnected = false) {
                             icon: '/favicon.ico',
                             tag: first.key,
                         });
-                        n.onclick = () => { this.markRead(first); window.focus(); window.location.href = `${first.url}/${first.hid}`; };
+                        n.onclick = () => { this.markRead(first); window.focus(); window.location.href = first.href || `${first.url}/${first.hid}`; };
                     }
                 }
 
