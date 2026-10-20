@@ -7,6 +7,7 @@ use App\Models\MsSPPBJKTCounting;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\TrCS;
+use App\Models\TrApproval;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -151,8 +152,8 @@ class CsListController extends Controller
             6 => 'created_by',
             8 => 'assigndate',
             9 => 'submitdate',
-            10 => 'days',
-            11 => 'status',
+            11 => 'days',
+            12 => 'status',
         ];
 
         if ($req->has('order')) {
@@ -283,6 +284,17 @@ class CsListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
+        $nextApprovals = $rows->isEmpty() ? collect() : TrApproval::query()
+            ->where('aprv_doctype', 'CS')
+            ->whereIn('refnbr', $rows->pluck('csid')->unique()->all())
+            ->whereIn('aprv_cpnyid', $rows->pluck('cpny_id')->unique()->all())
+            ->whereNotNull('aprv_datebefore')
+            ->where('status', 'P')
+            ->orderBy('aprv_leveling')
+            ->orderBy('id')
+            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username'])
+            ->groupBy('refnbr');
+
         // =========================
         // PREFETCH: counting limit per doctype (PB/PJ/PK/PT)
         // =========================
@@ -350,7 +362,13 @@ class CsListController extends Controller
             return $days;
         };
 
-        $rows->transform(function ($r) use ($countBusinessDays, $countingMap) {
+        $rows->transform(function ($r) use ($countBusinessDays, $countingMap, $nextApprovals) {
+            $r->next_approval = $nextApprovals->get($r->csid, collect())
+                ->where('aprv_cpnyid', $r->cpny_id)
+                ->map(fn ($approval) => trim((string) $approval->aprv_name)
+                    ?: trim((string) $approval->aprv_username))
+                ->filter()->unique()->implode(', ');
+
             $assign = $r->assigndate ? Carbon::parse($r->assigndate)->startOfDay() : null;
             $submit = $r->submitdate ? Carbon::parse($r->submitdate)->startOfDay() : null;
 
