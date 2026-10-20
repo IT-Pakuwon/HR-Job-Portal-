@@ -42,6 +42,15 @@
                                 {{ $originCpnyName ?? '-' }} &middot; {{ $originDepartmentName ?? '-' }}</p>
                         </div>
                     </div>
+
+                    {{-- Inside the My Page app (?embed=1) install/logout live in the app bar instead --}}
+                    @if (!request()->boolean("embed") && strtoupper(trim((string) auth()->user()->group_cpny_id)) === 'JKT')
+                    <button type="button" id="btnAddHomeScreen"
+                        class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-cyan-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-cyan-800 hover:shadow-md sm:self-center">
+                        <i class="fa-solid fa-mobile-screen-button text-[11px]"></i>
+                        Add to Home Screen
+                    </button>
+                    @endif
                 </div>
 
                 <div
@@ -67,26 +76,22 @@
                         <div class="flex items-center gap-3">
                             <span
                                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                                <i class="fa-solid fa-moon text-xs"></i>
+                                <i class="fa-solid fa-circle-half-stroke text-xs"></i>
                             </span>
                             <div>
-                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Dark Mode</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Use dark mode by default whenever
-                                    you sign in</p>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Appearance</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Light, dark, or match this device's setting</p>
                             </div>
                         </div>
-                        <span
-                            class="bg-linear-to-r has-checked:from-indigo-700 has-checked:to-blue-700 relative inline-flex h-7 w-14 shrink-0 items-center rounded-full from-amber-200 to-amber-100 shadow-inner transition-colors duration-300 dark:from-gray-600 dark:to-gray-600">
-                            <input type="checkbox" id="darkmodeDefaultSwitch"
-                                class="peer absolute inset-0 z-20 cursor-pointer opacity-0"
-                                {{ Auth::user()->is_darkmode ? 'checked' : '' }}>
-                            <i
-                                class="fa-solid fa-sun absolute left-1.75 text-[10px] text-amber-500 transition-opacity duration-300 peer-checked:opacity-0"></i>
-                            <i
-                                class="fa-solid fa-moon absolute right-1.75 text-[10px] text-white opacity-0 transition-opacity duration-300 peer-checked:opacity-100"></i>
-                            <span
-                                class="pointer-events-none relative z-10 inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-8"></span>
-                        </span>
+                        <div id="themeChoice" role="radiogroup" aria-label="Appearance"
+                            class="inline-flex rounded-full bg-gray-100 p-1 dark:bg-gray-700">
+                            @foreach (['light' => ['Light', 'fa-sun'], 'dark' => ['Dark', 'fa-moon'], 'system' => ['Device', 'fa-mobile-screen']] as $val => [$label, $icon])
+                                <button type="button" role="radio" data-theme="{{ $val }}"
+                                    class="theme-opt inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 transition dark:text-gray-300">
+                                    <i class="fa-solid {{ $icon }} text-[10px]"></i> {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,6 +282,79 @@
         </div>
     </div>
 
+    <!-- Add to Home Screen modal -->
+    <div id="homeScreenModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
+        <div
+            class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex items-start justify-between gap-3 bg-cyan-700 px-6 py-4">
+                <div>
+                    <h2 class="text-base font-semibold text-white">Add My Page to Home Screen</h2>
+                    <p class="mt-0.5 text-xs text-cyan-100">Opens as its own app, with only your own work.</p>
+                </div>
+                <button type="button" id="btnCloseHomeScreen"
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="max-h-[70vh] space-y-4 overflow-y-auto p-5 text-sm text-gray-700 dark:text-gray-200">
+                <p class="text-xs text-gray-500 dark:text-gray-400">First open <strong>My Page</strong> on the phone or
+                    tablet you want to install it on (log in if asked), then follow the steps for that device.</p>
+
+                <div>
+                    <h3 class="mb-1 font-semibold"><i class="fa-brands fa-android mr-1 text-emerald-600"></i> Android
+                        (Chrome)</h3>
+                    <ol class="list-decimal space-y-0.5 pl-5 text-xs">
+                        <li>Tap <strong>Add to Home Screen</strong> at the top of My Page, or the <strong>⋮</strong>
+                            menu in Chrome.</li>
+                        <li>Choose <strong>Install app</strong> / <strong>Add to Home screen</strong>.</li>
+                        <li>Tap <strong>Install</strong>. The My Page icon appears on your home screen.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h3 class="mb-1 font-semibold"><i class="fa-brands fa-apple mr-1"></i> iPhone / iPad (Safari)</h3>
+                    <ol class="list-decimal space-y-0.5 pl-5 text-xs">
+                        <li>Open My Page in <strong>Safari</strong> (other iOS browsers may not offer this).</li>
+                        <li>Tap the <strong>Share</strong> button (square with an arrow).</li>
+                        <li>Scroll and tap <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <h3 class="mb-1 font-semibold"><i class="fa-solid fa-desktop mr-1 text-blue-600"></i> Laptop
+                        (Chrome / Edge)</h3>
+                    <ol class="list-decimal space-y-0.5 pl-5 text-xs">
+                        <li>Open My Page and click the <strong>install</strong> icon at the right of the address bar.
+                        </li>
+                    </ol>
+                </div>
+
+                <p class="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+                    Tapping a document, comment or file opens it in your device's browser. You need an internet
+                    connection and must be logged in.</p>
+            </div>
+            <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-3 dark:border-gray-700">
+                <button type="button" id="btnCloseHomeScreen2"
+                    class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200">Close</button>
+                <a href="{{ route('my-page') }}"
+                    class="inline-flex items-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-800">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> Open My Page
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            const modal = document.getElementById('homeScreenModal');
+            const toggle = open => modal.classList.toggle('hidden', !open);
+            const addBtn = document.getElementById('btnAddHomeScreen');
+            if (addBtn) addBtn.addEventListener('click', () => toggle(true));
+            ['btnCloseHomeScreen', 'btnCloseHomeScreen2'].forEach(id =>
+                document.getElementById(id).addEventListener('click', () => toggle(false)));
+            modal.addEventListener('click', e => { if (e.target === modal) toggle(false); });
+        })();
+    </script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function resetPasswordVisibility() {
@@ -397,34 +475,57 @@
             });
         });
 
-        $('#darkmodeDefaultSwitch').on('change', function() {
-            const isDark = $(this).is(':checked');
-
-            // apply immediately to this session so the toggle previews live
-            document.documentElement.classList.add('**:transition-none!');
-            document.documentElement.classList.toggle('dark', isDark);
-            document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-            localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
-            document.querySelectorAll('.light-switch').forEach(el => el.checked = isDark);
-            setTimeout(() => document.documentElement.classList.remove('**:transition-none!'), 1);
-
-            $.ajax({
-                url: '{{ route('darkmode.update.custom') }}',
-                type: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                data: {
-                    is_darkmode: isDark ? 1 : 0
-                },
-                success: function() {
-                    toastr.success('Theme preference saved');
-                },
-                error: function() {
-                    toastr.error('Failed to save theme preference');
-                }
+        (function () {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const root = document.documentElement;
+            const apply = dark => {
+                root.classList.toggle('dark', dark);
+                root.style.colorScheme = dark ? 'dark' : 'light';
+                document.querySelectorAll('.light-switch').forEach(el => el.checked = dark);
+            };
+            const current = () => localStorage.getItem('dark-follow-system') === 'true'
+                ? 'system'
+                : (root.classList.contains('dark') ? 'dark' : 'light');
+            const mark = mode => document.querySelectorAll('#themeChoice .theme-opt').forEach(b => {
+                const on = b.dataset.theme === mode;
+                b.classList.toggle('on', on);
+                b.setAttribute('aria-checked', on ? 'true' : 'false');
             });
-        });
+            mark(current());
+
+            $('#themeChoice').on('click', '.theme-opt', function () {
+                const mode = this.dataset.theme;
+                mark(mode);
+                if (mode === 'system') {
+                    localStorage.setItem('dark-follow-system', 'true');
+                    apply(mq.matches);
+                    toastr.success('Following your device setting');
+                    return;
+                }
+                const isDark = mode === 'dark';
+                localStorage.setItem('dark-follow-system', 'false');
+                localStorage.setItem('dark-mode', isDark ? 'true' : 'false');
+                apply(isDark);
+                $.ajax({
+                    url: '{{ route('darkmode.update.custom') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { is_darkmode: isDark ? 1 : 0 },
+                    success: function () { toastr.success('Theme preference saved'); },
+                    error: function () { toastr.error('Failed to save theme preference'); }
+                });
+            });
+            mq.addEventListener('change', e => {
+                if (localStorage.getItem('dark-follow-system') === 'true') apply(e.matches);
+            });
+        })();
+
+        (function () {
+            const s = document.createElement('style');
+            s.textContent = '#themeChoice .theme-opt.on{background:#fff;color:#4f46e5;box-shadow:0 1px 3px #0f172a26}'
+                + '.dark #themeChoice .theme-opt.on{background:#0f172a;color:#67e8f9}';
+            document.head.appendChild(s);
+        })();
 
         $('#changePasswordForm').submit(function(e) {
             e.preventDefault();

@@ -20,7 +20,9 @@
         </select>
     </div>
 
+    @unless ($noExport ?? false)
     <button type="button" data-list-export="{{ $prefix }}" class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-semibold text-green-700 hover:bg-green-100 dark:border-green-800/60 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30">
         <i class="fa-solid fa-file-excel"></i> Export to Excel
     </button>
+    @endunless
 </div>

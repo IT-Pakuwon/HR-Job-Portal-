@@ -42,7 +42,7 @@ class UserDataSyncController extends Controller
 
                 return [
                     'npk' => trim($t->employee_id),
-                    'name' => trim($t->first_name . ' ' . $t->last_name),
+                    'name' => trim($t->first_name.' '.$t->last_name),
                     'organization' => $org,
                     'company' => count($parts) === 2 ? trim($parts[0]) : $org,
                     'department' => count($parts) === 2 ? trim($parts[1]) : '',
@@ -59,6 +59,7 @@ class UserDataSyncController extends Controller
         return User::query()
             ->where('status', 'A')
             ->orderBy('name')
+            ->toBase()
             ->get(['id', 'username', 'name', 'npk', 'origin_cpny_id', 'origin_department_id', 'status']);
     }
 
@@ -84,7 +85,7 @@ class UserDataSyncController extends Controller
 
         return $talenta
             ->filter(fn ($t) => $t['bod'] !== '' && $this->norm($t['name']) !== '')
-            ->groupBy(fn ($t) => $this->norm($t['name']) . '|' . $t['bod'])
+            ->groupBy(fn ($t) => $this->norm($t['name']).'|'.$t['bod'])
             ->filter(fn ($g) => $g->pluck('npk')->unique()->count() > 1)
             ->map(function ($g) use ($usersByNpk) {
                 $active = $g->filter(fn ($t) => !$this->isResigned($t))->values();
@@ -148,7 +149,10 @@ class UserDataSyncController extends Controller
             $via = $t ? 'npk' : null;
             if (!$t) {
                 $c = $byName->get($this->norm($u->name));
-                if ($c && $c->count() === 1) { $t = $c->first(); $via = 'name'; }
+                if ($c && $c->count() === 1) {
+                    $t = $c->first();
+                    $via = 'name';
+                }
             }
 
             $suggested = $diff = null;
@@ -176,8 +180,11 @@ class UserDataSyncController extends Controller
                 : (in_array(true, $diff, true) ? 'mismatch' : 'ok'))));
 
             $dup = null;
-            if ($npk !== '' && $npkCount[$npk] > 1) $dup = 'Same NPK';
-            elseif (($nameCount[$this->norm($u->name)] ?? 0) > 1) $dup = 'Same name';
+            if ($npk !== '' && $npkCount[$npk] > 1) {
+                $dup = 'Same NPK';
+            } elseif (($nameCount[$this->norm($u->name)] ?? 0) > 1) {
+                $dup = 'Same name';
+            }
 
             return [
                 'id' => $u->id, 'username' => $u->username, 'name' => $u->name, 'npk' => $u->npk,
@@ -213,7 +220,7 @@ class UserDataSyncController extends Controller
         $done = 0;
         foreach (collect($this->buildOverview()['rows'])->whereIn('id', $request->ids)->where('issue', 'mismatch') as $r) {
             User::where('id', $r['id'])->update($r['suggested'] + ['updated_by' => $me]);
-            $done++;
+            ++$done;
         }
 
         return response()->json(['message' => "{$done} account(s) synced with Talenta.", 'count' => $done]);
@@ -269,7 +276,7 @@ class UserDataSyncController extends Controller
         $me = Auth::user()->username ?? 'system';
         $offIds = $pair['accounts']->pluck('id')->reject(fn ($i) => $i === $pair['keep_id'])->values();
 
-        DB::connection((new User)->getConnectionName())->transaction(function () use ($pair, $t, $co, $dp, $offIds, $me) {
+        DB::connection((new User())->getConnectionName())->transaction(function () use ($pair, $t, $co, $dp, $offIds, $me) {
             // switch the others off first so the NPK is never held by two rows
             User::whereIn('id', $offIds)->update(['status' => 'X', 'updated_by' => $me]);
 
@@ -284,16 +291,16 @@ class UserDataSyncController extends Controller
         });
 
         return response()->json([
-            'message' => 'Account updated to NPK ' . $t['npk'] . ($offIds->isNotEmpty() ? '; ' . $offIds->count() . ' other account(s) set to X.' : '.'),
+            'message' => 'Account updated to NPK '.$t['npk'].($offIds->isNotEmpty() ? '; '.$offIds->count().' other account(s) set to X.' : '.'),
         ]);
     }
 
     public function options()
     {
         return response()->json([
-            'companies' => MsCompany::query()->orderBy('cpny_id')->get(['cpny_id', 'cpny_name'])
+            'companies' => MsCompany::query()->orderBy('cpny_id')->toBase()->get(['cpny_id', 'cpny_name'])
                 ->unique('cpny_id')->values(),
-            'departments' => MsDepartment::query()->orderBy('department_id')->get(['department_id', 'department_name'])
+            'departments' => MsDepartment::query()->orderBy('department_id')->toBase()->get(['department_id', 'department_name'])
                 ->unique('department_id')->values(),
         ]);
     }

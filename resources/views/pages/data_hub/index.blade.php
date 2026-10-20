@@ -1,31 +1,38 @@
 <x-app-layout>
-    <div class="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
-        <div>
-            <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400">Data Hub</p>
-            <h1 class="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">OM Dashboard</h1>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Pilih mall untuk melihat performa operasional, laporan departemen, dan Kaizen.</p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            @forelse ($malls as $code => $name)
-                <a href="{{ route('datahub.om.detail', $code) }}"
-                    class="group flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500">
-                    <div class="mb-6 flex items-center justify-between">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
-                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M5 21V5l7-2v18m0-14h7v14M8 7v1m0 3v1m0 3v1m7-5h1m-1 4h1" /></svg>
-                        </div>
-                        <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">{{ $code }}</span>
-                    </div>
-                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ $name }}</h2>
-                    <p class="mt-2 flex-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">Pantau performa operasional {{ $name }}.</p>
-                    <span class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">Buka dashboard <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7 7 7-7 7" /></svg></span>
-                </a>
-            @empty
-                <div class="rounded-xl border border-gray-200 bg-white p-8 text-center sm:col-span-2 xl:col-span-4 dark:border-gray-700 dark:bg-gray-800">
-                    <h2 class="font-semibold text-gray-800 dark:text-gray-100">Tidak ada mall yang dapat diakses</h2>
-                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Akses Data Hub tersedia, tetapi perusahaan akun belum dipetakan ke mall OM.</p>
-                </div>
-            @endforelse
-        </div>
+    @include('pages.data_hub.styles')
+    <div class="dh-page">
+        <h1 class="dh-heading">Data Hub</h1>
+        <section class="dh-section" aria-labelledby="dh-mall-heading">
+            <h2 id="dh-mall-heading" class="dh-section-heading">Mall</h2>
+            <div class="dh-grid">
+                <x-data-hub.card title="GM Dashboard" description="Dashboard General Manager untuk monitoring performa mall." icon="👨‍💼" :href="route('datahub.category', 'gm')" />
+                <x-data-hub.card title="OM Dashboard" description="Dashboard Operations Manager untuk monitoring operasional mall." icon="👷" :href="route('datahub.om.index')" />
+                <x-data-hub.card title="Director & Owner Dashboard" description="Dashboard performa mall untuk Director dan Owner." icon="📈" :href="route('datahub.category', 'director-owner')" />
+            </div>
+        </section>
+        <section class="dh-section" aria-labelledby="dh-sport-heading">
+            <h2 id="dh-sport-heading" class="dh-section-heading">Sport</h2>
+            <div class="dh-grid">
+                <x-data-hub.card title="Tennis Dashboard" description="Dashboard sport dari Power BI." icon="🎾" badge="POWER BI" :href="$sportLinks['tennis'] ?? null" :external="true" />
+                <x-data-hub.card title="Padel Dashboard" description="Dashboard sport dari Power BI." icon="🎾" badge="POWER BI" :href="$sportLinks['padel'] ?? null" :external="true" />
+                <x-data-hub.card title="Asia Racket Dashboard" description="Dashboard sport dari Power BI." icon="🎾" badge="POWER BI" :href="$sportLinks['asia_racket'] ?? null" :external="true" />
+            </div>
+        </section>
+        <section class="dh-section" aria-labelledby="dh-loyalty-heading">
+            <h2 id="dh-loyalty-heading" class="dh-section-heading">Loyalty</h2>
+            <div class="dh-grid">
+                <x-data-hub.card title="Dashboard PGCard" description="Dashboard loyalty PGCard dari Power BI." icon="💳" badge="POWER BI" :href="$loyaltyLinks['pgcard'] ?? null" :external="true" />
+                <x-data-hub.card title="Dashboard STYW 2026" description="Dashboard STYW tahun 2026 dari Power BI." icon="📈" badge="POWER BI" :href="$loyaltyLinks['styw_2026'] ?? null" :external="true" />
+                <x-data-hub.card title="Dashboard STYW 2025" description="Dashboard STYW tahun 2025 dari Power BI." icon="📊" badge="POWER BI" :href="$loyaltyLinks['styw_2025'] ?? null" :external="true" />
+                <x-data-hub.card title="Dashboard CNY HKTB 2026" description="Dashboard CNY HKTB 2026 dari Power BI." icon="🧧" badge="POWER BI" :href="$loyaltyLinks['cny_hktb_2026'] ?? null" :external="true" />
+                <x-data-hub.card title="Dashboard PGCard STYW 2026 vs 2025" description="Dashboard comparison STYW 2026 vs 2025 dari Power BI." icon="📊" badge="POWER BI" :href="$loyaltyLinks['pgcard_styw_comparison'] ?? null" :external="true" />
+            </div>
+        </section>
+        <section class="dh-section" aria-labelledby="dh-hrd-heading">
+            <h2 id="dh-hrd-heading" class="dh-section-heading">HRD</h2>
+            <div class="dh-grid">
+                <x-data-hub.card title="Job Portal" description="Portal rekrutmen dan informasi lowongan pekerjaan." icon="💼" :href="$hrdLinks['job_portal'] ?? null" :external="true" />
+            </div>
+        </section>
     </div>
 </x-app-layout>
