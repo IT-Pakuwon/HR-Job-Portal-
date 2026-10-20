@@ -103,7 +103,11 @@ function initJobsTable() {
                 `;
                 },
             },
-            { data: 'contract_no', render: (d) => d || '-' },
+            // Agreement FU lists PSM / OLA and Addendum agreements together; New Agreement's rows have no agreement_type.
+            {
+                data: 'contract_no',
+                render: (d, type, row) => (d || '-') + (row.agreement_type === 'ADDENDUM' ? ' <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Addendum</span>' : ''),
+            },
             { data: 'cpny_id', render: (d) => d || '-' },
             { data: 'tenant_no', render: (d) => d || '-' },
             { data: 'trade_name', render: (d) => d || '-' },

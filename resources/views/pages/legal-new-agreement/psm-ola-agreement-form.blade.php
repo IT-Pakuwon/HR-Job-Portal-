@@ -10,6 +10,12 @@
     $receivedCount = $documents->where('agreementdocument_received', true)->count();
     $totalDocs = $documents->count();
     $pct = $totalDocs ? (int) round($receivedCount / $totalDocs * 100) : 0;
+
+    $isDraft = (bool) ($draft ?? false);
+    // Which right-hand tab opens first: a Draft has no Timeline, so Documents (or Attachments when there is no checklist).
+    $firstTab = $isDraft ? ($kind['checklist'] ? 'completeness' : 'attachments') : 'timeline';
+    // Upload / delete attachments: Active agreements (creator or PIC Legal) and their Drafts.
+    $canAttach = ! $completed && ! $cancelled && ($canUpdateDocs || ($isDraft && $canManage));
     $missingRequired = $documents->filter(fn ($d) => $d->agreementdocument_required && ! $d->agreementdocument_received)->count();
 
     $fmtSize = function ($b) {
@@ -25,7 +31,9 @@
     <div>
         <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ $agreement->agreement_id }}</h2>
-            @if ($cancelled)
+            @if ($draft ?? false)
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Draft</span>
+            @elseif ($cancelled)
                 <span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Cancelled</span>
             @elseif ($completed)
                 <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Completed</span>
@@ -48,12 +56,19 @@
 
             <div id="viewAgrActionDropdown" class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[220px] overflow-hidden rounded-lg border border-slate-200/80 bg-white/95 shadow-xl dark:border-white/[0.06] dark:bg-slate-800/95">
                 <div class="p-2">
-                    @if ($canUpdateDocs)
+                    @if ($canUpdateDocs || ($draft ?? false))
                     <button type="button" class="btn-edit-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-blue-600 hover:bg-slate-100 dark:text-blue-400 dark:hover:bg-white/[0.06]" data-eid="{{ $eid }}">
                         <i class="fa-solid fa-pen-to-square w-4 text-center"></i> Edit Agreement
                     </button>
+                    {{-- Draft: the only other action is Process, which makes it Active. --}}
+                    @if ($isDraft)
+                        <button type="button" class="btn-process-draft flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-emerald-600 hover:bg-slate-100 dark:text-emerald-400 dark:hover:bg-white/[0.06]"
+                            data-url="{{ route($kind['r']['activate'], $eid, false) }}">
+                            <i class="fa-solid fa-circle-check w-4 text-center"></i> Process
+                        </button>
+                    @endif
                     {{-- Creator only: marks the agreement complete (status C). --}}
-                    @if ($canUpdateDocs)
+                    @if ($canUpdateDocs && ! $isDraft)
                         <button type="button" class="btn-complete-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-emerald-600 hover:bg-slate-100 dark:text-emerald-400 dark:hover:bg-white/[0.06]"
                             data-url="{{ route($kind['r']['complete'], $eid, false) }}" data-missing="{{ $missingRequired }}">
                             <i class="fa-solid fa-flag-checkered w-4 text-center"></i> Complete Agreement
@@ -74,6 +89,11 @@
         </div>
         @endif
 
+        {{-- Hides / shows the left information panel so the right panel can use the full width (xl screens only). --}}
+        <button type="button" class="btn-toggle-info-panel hidden h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-lg xl:inline-flex dark:border-white/[0.06] dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" title="Hide information panel" aria-label="Hide information panel">
+            <i class="fa-solid fa-table-columns text-[15px]"></i>
+        </button>
+
         {{-- Only shown while full screen (the page script swaps it with the expand button). --}}
         <button type="button" class="btn-view-minimize hidden h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-lg dark:border-white/[0.06] dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700" data-eid="{{ $eid }}" title="Minimize" aria-label="Minimize">
             <i class="fa-solid fa-down-left-and-up-right-to-center text-[15px]"></i>
@@ -88,10 +108,14 @@
 </div>
 
 {{-- Body --}}
-<div class="grid min-h-0 flex-1 grid-cols-1 overflow-hidden xl:grid-cols-12">
+<style>
+    .agr-view-body.info-collapsed .agr-info-panel { display: none; }
+    .agr-view-body.info-collapsed .agr-main-panel { grid-column: 1 / -1; }
+</style>
+<div class="agr-view-body grid min-h-0 flex-1 grid-cols-1 overflow-hidden xl:grid-cols-12">
 
     {{-- Left panel: information --}}
-    <div class="modal-scroll min-h-0 space-y-4 overflow-y-auto border-b border-slate-200 bg-slate-50/60 p-6 xl:col-span-5 xl:border-b-0 xl:border-r dark:border-white/[0.06] dark:bg-slate-900/40">
+    <div class="agr-info-panel modal-scroll min-h-0 space-y-4 overflow-y-auto border-b border-slate-200 bg-slate-50/60 p-6 xl:col-span-5 xl:border-b-0 xl:border-r dark:border-white/[0.06] dark:bg-slate-900/40">
 
         <div class="agr-section rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800/60">
             <div class="agr-section-head">
@@ -102,11 +126,12 @@
                 <div><label class="text-xs text-slate-400">Company</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($companyName) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Agreement Date</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($dateOnly($agreement->agreement_date)) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Type</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{{ $kind['docs'] ? (in_array($agreement->agreement_type, ['PSM', 'OLA'], true) ? $agreement->agreement_type : 'PSM / OLA') : $kind['label'] }}</p></div>
-                <div><label class="text-xs text-slate-400">Business ID</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->business_id) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Created By</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->created_user) !!}</p></div>
-                <div><label class="text-xs text-slate-400">{{ $kind['docs'] ? 'No. PSM / Addendum' : 'No. Addendum' }}</label><p class="mt-1 break-words text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->no_psm_or_addendum) !!}</p></div>
-                @if (! $kind['docs'] && $agreement->prev_agreement_id)
+                <div><label class="text-xs text-slate-400">{{ $kind['no_label'] }}</label><p class="mt-1 break-words text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->no_psm_or_addendum) !!}</p></div>
+                <div><label class="text-xs text-slate-400">{{ $kind['date_label'] }}</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($dateOnly($agreement->psm_or_addendum_date)) !!}</p></div>
+                @if ($kind['from_psm'] && $agreement->prev_agreement_id)
                     <div><label class="text-xs text-slate-400">No. PSM / OLA</label><p class="mt-1 break-words text-sm font-medium text-slate-800 dark:text-white">{!! $dash($psmOlaNo) !!}</p></div>
+                    <div><label class="text-xs text-slate-400">PSM / OLA Date</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($dateOnly($psmOlaDate)) !!}</p></div>
                 @endif
             </div>
         </div>
@@ -117,12 +142,12 @@
                 <p class="agr-section-title">Property &amp; Tenant</p>
             </div>
             <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                <div><label class="text-xs text-slate-400">Business Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->business_name) !!}</p></div>
-                <div><label class="text-xs text-slate-400">Trade Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->trade_name) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Tenant Company Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->business_name) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Tenant Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->trade_name) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Tenant Number</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->tenant_no) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Property Type</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($propertyTypes[strtoupper((string) $agreement->property_cd)] ?? $agreement->property_cd) !!}</p></div>
-                <div><label class="text-xs text-slate-400">Floor</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->floor_id) !!}</p></div>
-                <div><label class="text-xs text-slate-400">Unit</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->unit_id) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Floor - Unit</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash(collect([$agreement->floor_id, $agreement->unit_id])->map(fn ($v) => trim((string) $v))->filter()->implode(' - ')) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Floor - Unit LOI</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash(collect([$agreement->floor_loi, $agreement->unit_loi])->map(fn ($v) => trim((string) $v))->filter()->implode(' - ')) !!}</p></div>
             </div>
             <div class="mt-4 border-t border-dashed border-slate-200 pt-4 dark:border-white/[0.06]">
                 <label class="text-xs text-slate-400">Business Address</label>
@@ -152,174 +177,67 @@
                 <span class="agr-section-badge"><i class="fa-solid fa-users text-[11px]"></i></span>
                 <p class="agr-section-title">Tenant Contact</p>
             </div>
-            <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <div><label class="text-xs text-slate-400">PIC Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->pic_penyewa) !!}</p></div>
                 <div><label class="text-xs text-slate-400">PIC Phone Number</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->pic_phonenumber_penyewa) !!}</p></div>
-                <div class="sm:col-span-2"><label class="text-xs text-slate-400">Email</label><p class="mt-1 break-words text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->pic_email_penyewa) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Email</label><p class="mt-1 break-words text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->pic_email_penyewa) !!}</p></div>
             </div>
         </div>
 
     </div>
 
     {{-- Right panel: timeline / document completeness / related / attachments --}}
-    <div class="flex min-h-0 flex-col xl:col-span-7">
+    <div class="agr-main-panel flex min-h-0 flex-col xl:col-span-7">
 
         <div class="border-b border-slate-200 bg-slate-50/70 px-6 py-2 dark:border-white/[0.06] dark:bg-slate-900/60">
             <div class="flex w-full items-center gap-1 rounded-lg border border-slate-200 bg-white p-1.5 shadow-sm dark:border-white/[0.08] dark:bg-slate-800">
-                <button type="button" class="agr-detail-tab view-agr-tab active inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="timeline">
+                {{-- A Draft shows only Documents and Attachments; everything else (process sheet, related, log) starts once it is Processed. --}}
+                @unless ($isDraft)
+                <button type="button" class="agr-detail-tab view-agr-tab {{ $firstTab === 'timeline' ? 'active' : '' }} inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="timeline">
                     <i class="fa-solid fa-clock-rotate-left text-[12px]"></i> Timeline
                 </button>
-                @if ($kind['docs'])
-                <button type="button" class="agr-detail-tab view-agr-tab inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="completeness">
+                @endunless
+                @if ($kind['checklist'])
+                <button type="button" class="agr-detail-tab view-agr-tab {{ $firstTab === 'completeness' ? 'active' : '' }} inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="completeness">
                     <i class="fa-solid fa-list-check text-[12px]"></i> Documents
                 </button>
                 @endif
+                @unless ($isDraft)
                 <button type="button" class="agr-detail-tab view-agr-tab inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="related">
                     <i class="fa-solid fa-link text-[12px]"></i> Related
                     @if (count($related))<span class="rounded-full bg-slate-200 px-1.5 text-[10px] dark:bg-white/10">{{ count($related) }}</span>@endif
                 </button>
-                <button type="button" class="agr-detail-tab view-agr-tab inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="attachments">
+                @endunless
+                <button type="button" class="agr-detail-tab view-agr-tab {{ $firstTab === 'attachments' ? 'active' : '' }} inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="attachments">
                     <i class="fa-solid fa-paperclip text-[12px]"></i> Attachments
                     @if (count($attachments))<span class="rounded-full bg-slate-200 px-1.5 text-[10px] dark:bg-white/10">{{ count($attachments) }}</span>@endif
-                </button>
-                <button type="button" class="agr-detail-tab view-agr-tab inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="activity">
-                    <i class="fa-solid fa-list-ul text-[12px]"></i> Activity Log
                 </button>
             </div>
         </div>
 
         {{-- Timeline --}}
-        <div data-view-panel="timeline" class="modal-scroll flex-1 overflow-y-auto p-6">
-            {{-- Process sheet (like the paper routing form): In/Out dates + notes per
-                 step. IN = working_start_date, OUT = working_end_date on
-                 tr_agreement_activity. Creator-only: Update / Save per row. --}}
+        <div data-view-panel="timeline" class="modal-scroll {{ $firstTab === 'timeline' ? '' : 'hidden' }} flex-1 overflow-y-auto p-6">
+            {{-- Process sheet: every process has a Start and an End date + an optional note
+                 (working_start_date / working_end_date on tr_agreement_activity). Pengumpulan Dokumen is a
+                 system row; the rest are added with "Add Process" / "Add Routing" from ms_agreement_category
+                 (type PROCESS / ROUTING). Routing starts once Cetak is added. Creator / PIC Legal: Update / Save per row. --}}
             <h3 class="mb-1 text-sm font-semibold text-slate-800 dark:text-slate-100">Process Tracking</h3>
-            <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Use Update on a row to change it, then Save. Notes are optional.</p>
+            <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Use Update on a row to change it, then Save. Pengumpulan Dokumen starts on the earliest date a document was received. Notes are optional.</p>
 
             <form id="viewAgrProcessForm" data-url="{{ route($kind['r']['process'], $eid, false) }}" autocomplete="off" class="mb-8 space-y-4">
-                @php
-                    $mainSteps = $processes->where('main', true);
-                    $routeSteps = $processes->where('main', false);
-                    $inputCls = 'proc-edit agr-input hidden w-full rounded-lg border-slate-300 bg-white shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
-                    $inputStyle = 'height:32px; padding:0 6px; font-size:11px;';
-                @endphp
+                @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->rows, 'available' => $processes->available['PROCESS'] ?? [], 'label' => 'Process'])
 
-                {{-- Process: Create / Cetak. No dates to pick: done once the step has a row, and the date shown is when the creator updated it. --}}
-                <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/[0.06]">
-                    <table class="w-full text-xs">
-                        <thead class="bg-slate-50 dark:bg-white/[0.03]">
-                            <tr>
-                                <th class="px-3 py-2 text-left">Process</th>
-                                <th class="px-3 py-2 text-left" style="width:175px;">Date</th>
-                                <th class="px-3 py-2 text-left">Notes</th>
-                                <th class="px-3 py-2 text-right" style="width:90px;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($mainSteps as $proc)
-                                <tr class="border-t border-slate-100 align-middle dark:border-white/[0.06]" data-proc-row>
-                                    <td class="px-3 py-2">{{ $proc->descr }}</td>
-                                    <td class="px-3 py-2">
-                                        @if ($proc->done)
-                                            <span class="proc-static inline-flex items-center gap-1.5 text-green-700"><i class="fa-solid fa-circle-check"></i> {{ $proc->date->format('l, d M Y') }}</span>
-                                        @else
-                                            <span class="proc-static text-slate-400">-</span>
-                                        @endif
-
-                                        @if ($proc->editable)
-                                            <label class="proc-edit hidden cursor-pointer select-none items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                                <input type="hidden" name="process[{{ $proc->process_id }}][done]" value="0">
-                                                <input type="checkbox" class="h-4 w-4 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500" name="process[{{ $proc->process_id }}][done]" value="1" @checked($proc->done)>
-                                                Done
-                                            </label>
-                                        @endif
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        @if ($proc->has_note)
-                                            <span class="proc-static whitespace-pre-line">{!! $dash($proc->note) !!}</span>
-                                            <input type="text" maxlength="2000" name="process[{{ $proc->process_id }}][note]" value="{{ $proc->note }}"
-                                                class="{{ $inputCls }}" style="{{ $inputStyle }}" placeholder="Notes">
-                                        @else
-                                            <span class="text-slate-400">-</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-3 py-2 text-right whitespace-nowrap">
-                                        @if ($canUpdateDocs && $proc->editable)
-                                            <button type="button" class="btn-proc-edit inline-flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[12px] text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300" title="Update" aria-label="Update">
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </button>
-                                            <span class="proc-row-actions hidden items-center gap-1.5">
-                                                <button type="button" class="btn-proc-cancel inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-[12px] text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300" title="Cancel" aria-label="Cancel"><i class="fa-solid fa-xmark"></i></button>
-                                                <button type="button" class="btn-proc-save inline-flex h-7 w-7 items-center justify-center rounded-lg bg-green-600 text-[12px] text-white hover:bg-green-700" title="Save" aria-label="Save"><i class="fa-solid fa-floppy-disk"></i></button>
-                                            </span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Routing: sent Out, then returned In, both picked by the creator. --}}
-                <div>
-                    <h3 class="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-100">Routing</h3>
-                    <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/[0.06]">
-                        <table class="w-full text-xs">
-                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
-                                <tr>
-                                    <th class="px-3 py-2 text-left">To</th>
-                                    <th class="px-3 py-2 text-left" style="width:175px;">Out</th>
-                                    <th class="px-3 py-2 text-left" style="width:175px;">In</th>
-                                    <th class="px-3 py-2 text-left">Notes</th>
-                                    <th class="px-3 py-2 text-right" style="width:90px;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($routeSteps as $proc)
-                                    <tr class="border-t border-slate-100 align-middle dark:border-white/[0.06]" data-proc-row>
-                                        <td class="px-3 py-2">{{ $proc->descr }}</td>
-
-                                        @foreach ([['date_out', optional($proc->date_out)->format('Y-m-d'), true, $proc->date_out], ['date_in', optional($proc->date_in)->format('Y-m-d'), $proc->has_in, $proc->date_in]] as [$field, $val, $enabled, $dateObj])
-                                            <td class="px-3 py-2">
-                                                @if ($enabled)
-                                                    <span class="proc-static">{!! $dash(optional($dateObj)->format('l, d M Y')) !!}</span>
-                                                    <input type="date" name="process[{{ $proc->process_id }}][{{ $field }}]" value="{{ $val }}"
-                                                        class="{{ $inputCls }}" style="{{ $inputStyle }}">
-                                                @else
-                                                    <span class="block h-4 rounded bg-slate-300 dark:bg-white/10" title="Not applicable"></span>
-                                                @endif
-                                            </td>
-                                        @endforeach
-
-                                        <td class="px-3 py-2">
-                                            <span class="proc-static whitespace-pre-line">{!! $dash($proc->note) !!}</span>
-                                            <input type="text" maxlength="2000" name="process[{{ $proc->process_id }}][note]" value="{{ $proc->note }}"
-                                                class="{{ $inputCls }}" style="{{ $inputStyle }}" placeholder="Notes">
-                                        </td>
-                                        <td class="px-3 py-2 text-right whitespace-nowrap">
-                                            @if ($canUpdateDocs && $proc->editable)
-                                                <button type="button" class="btn-proc-edit inline-flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[12px] text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300" title="Update" aria-label="Update">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </button>
-                                                <span class="proc-row-actions hidden items-center gap-1.5">
-                                                    <button type="button" class="btn-proc-cancel inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-[12px] text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300" title="Cancel" aria-label="Cancel"><i class="fa-solid fa-xmark"></i></button>
-                                                    <button type="button" class="btn-proc-save inline-flex h-7 w-7 items-center justify-center rounded-lg bg-green-600 text-[12px] text-white hover:bg-green-700" title="Save" aria-label="Save"><i class="fa-solid fa-floppy-disk"></i></button>
-                                                </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                {{-- Routing only starts once Cetak (the printed agreement) is on the list. --}}
+                @if ($processes->routingVisible)
+                    @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->routing, 'available' => $processes->available['ROUTING'] ?? [], 'label' => 'Routing'])
+                @endif
             </form>
         </div>
 
         {{-- Document completeness (PSM / OLA only). The creator or PIC Legal can tick documents that
              arrive later: Update unlocks the rows, Save writes them. --}}
-        @if ($kind['docs'])
-        <div data-view-panel="completeness" class="modal-scroll hidden flex-1 overflow-y-auto p-6">
+        @if ($kind['checklist'])
+        <div data-view-panel="completeness" class="modal-scroll {{ $firstTab === 'completeness' ? '' : 'hidden' }} flex-1 overflow-y-auto p-6">
             <div class="mb-1 flex items-start justify-between gap-3">
                 <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Document Completeness</h3>
 
@@ -339,11 +257,6 @@
             </div>
             <p class="mb-4 text-xs text-slate-500 dark:text-slate-400">
                 {{ $receivedCount }} of {{ $totalDocs }} documents received
-                @if ($missingRequired)
-                    · <span class="font-semibold text-rose-600">{{ $missingRequired }} required still missing</span>
-                @elseif ($totalDocs)
-                    · <span class="font-semibold text-green-600">all required documents received</span>
-                @endif
             </p>
 
             <div class="mb-4 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
@@ -370,11 +283,6 @@
                                 @else
                                     <span class="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-600">Not received</span>
                                 @endif
-                                @if ($doc->agreementdocument_required)
-                                    <span class="rounded-full bg-rose-50 px-2 py-0.5 font-semibold text-rose-600">Required</span>
-                                @else
-                                    <span class="text-slate-400">Optional</span>
-                                @endif
                                 @if ($doc->agreementdocument_received && $doc->agreementdocument_received_at)
                                     <span class="doc-static text-slate-400"><i class="fa-regular fa-calendar-check mr-1"></i>{{ $doc->agreementdocument_received_at->format('Y-m-d H:i') }}</span>
                                 @endif
@@ -390,6 +298,13 @@
                 @empty
                     <div class="rounded-lg border border-dashed border-slate-300 px-5 py-10 text-center text-sm text-slate-400 dark:border-white/[0.08]">No documents</div>
                 @endforelse
+                {{-- Update mode only: extra documents for this agreement (free-text name, never added to the master). --}}
+                @if ($canUpdateDocs)
+                    <div id="viewNewDocs" class="space-y-2"></div>
+                    <button type="button" id="btnViewAddDoc" class="doc-edit hidden w-full items-center justify-center gap-2 rounded-lg border border-dashed border-blue-300 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800/60 dark:text-blue-300 dark:hover:bg-blue-900/20 flex">
+                        <i class="fa-solid fa-plus"></i> Add document
+                    </button>
+                @endif
             </form>
         </div>
         @endif
@@ -435,10 +350,10 @@
         </div>
 
         {{-- Attachments --}}
-        <div data-view-panel="attachments" class="modal-scroll hidden flex-1 overflow-y-auto p-6">
+        <div data-view-panel="attachments" class="modal-scroll {{ $firstTab === 'attachments' ? '' : 'hidden' }} flex-1 overflow-y-auto p-6">
             <h3 class="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">Attachments</h3>
 
-            @if (! $completed && $canUpdateDocs)
+            @if ($canAttach)
             <form id="viewAgrUploadForm" data-url="{{ route($kind['r']['attachment'], $eid, false) }}" class="mb-4 flex flex-wrap items-center gap-2">
                 <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.xlsx,.xls,.doc,.docx"
                     class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white text-xs file:mr-3 file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-xs file:font-semibold dark:border-white/[0.08] dark:bg-slate-800">
@@ -465,7 +380,7 @@
                         </div>
                         <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
                     </a>
-                    @if (! $completed && $canUpdateDocs)
+                    @if ($canAttach)
                         <button type="button" class="btn-del-attachment inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-900/20"
                             data-url="{{ route($kind['r']['attachment_delete'], $eid, false) }}" data-id="{{ $file['id'] }}" data-name="{{ $file['display_name'] }}" title="Delete" aria-label="Delete">
                             <i class="fa-solid fa-trash-can"></i>
@@ -478,36 +393,6 @@
             </div>
         </div>
 
-        {{-- Activity log: what happened after creation (Create is the first row of the process table). --}}
-        <div data-view-panel="activity" class="modal-scroll hidden flex-1 overflow-y-auto p-6">
-            <h3 class="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-100">Activity Log</h3>
-
-            @forelse ($timeline as $item)
-                <div class="relative pb-3 pl-10">
-                    @unless ($loop->last)
-                        <div class="absolute bottom-0 left-[15px] top-10 w-px bg-slate-200 dark:bg-white/[0.06]"></div>
-                    @endunless
-
-                    <div class="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-2xl text-white shadow-md {{ $item['color'] }}">
-                        <i class="fa-solid {{ $item['icon'] }} text-[11px]"></i>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200/80 bg-slate-50/20 px-4 py-2.5 dark:border-white/[0.05] dark:bg-slate-900/60">
-                        <div class="text-[13px] font-semibold text-slate-800 dark:text-white">{{ $item['title'] }}</div>
-                        <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
-                            <span>{{ $item['by'] }}</span>
-                            <span class="opacity-40">&bull;</span>
-                            <span>{{ $item['at'] }}</span>
-                        </div>
-                        @if ($item['descr'])
-                            <div class="mt-2 whitespace-pre-line rounded-lg border border-slate-100 bg-slate-50/70 px-2.5 py-2 text-[11px] leading-5 text-slate-600 dark:border-white/[0.04] dark:bg-white/[0.03] dark:text-slate-300">{{ $item['descr'] }}</div>
-                        @endif
-                    </div>
-                </div>
-            @empty
-                <div class="rounded-lg border border-dashed border-slate-300 px-5 py-10 text-center text-sm text-slate-400 dark:border-white/[0.08]">No activity yet</div>
-            @endforelse
-        </div>
 
     </div>
 </div>
