@@ -181,7 +181,7 @@
         function skin(b) {
             var c = b.className || '';
             if (c.indexOf('dsh-tab') !== -1) return;
-            b.className = /(^|s)(bg-black|bg-zinc-700)(s|$)/.test(c) ? 'dsh-tab dsh-tab-on' : 'dsh-tab';
+            b.className = /(^|\s)(bg-black|bg-zinc-700)(\s|$)/.test(c) ? 'dsh-tab dsh-tab-on' : 'dsh-tab';
         }
 
         function setup() {
