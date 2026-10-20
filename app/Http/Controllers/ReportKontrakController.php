@@ -35,6 +35,14 @@ class ReportKontrakController extends Controller
         return view('pages.report-kontrak.index', [
             'months' => self::MONTHS,
             'companyIds' => $companyIds,
+            'years' => TrRfp::query()
+                ->selectRaw("DISTINCT substring(regexp_replace(COALESCE(period_payment, ''), '[^0-9]', '', 'g') from 1 for 4) as year")
+                ->whereRaw("regexp_replace(COALESCE(period_payment, ''), '[^0-9]', '', 'g') ~ '^[0-9]{4}(0[1-9]|1[0-2])$'")
+                ->pluck('year')->map(fn ($y) => (int) $y)
+                // Drop typo'd periods in source data (e.g. 0024, 2004, 2035).
+                ->filter(fn ($y) => $y >= 2015 && $y <= now()->year + 2)
+                ->push((int) now()->year)->unique()->sortDesc()->values(),
+            'companyNames' => \App\Models\MsCompany::whereIn('cpny_id', $companyIds)->pluck('cpny_name', 'cpny_id'),
         ]);
     }
 
@@ -73,20 +81,7 @@ class ReportKontrakController extends Controller
                 FILTER (WHERE substring(r.period from 5 for 2) = ?) as month_$month", [sprintf('%02d', $month)]);
         }
 
-        $user = $request->user();
-        if (!$user->hasFullDataScope()) {
-            $companyIds = Usercpny::where('username', $user->username)->pluck('cpny_id');
-            $query->whereIn('k.cpny_id', $companyIds);
-
-            if (!$user->hasRole('COSTCTRLACCESS') && !$user->hasRole('FINACCESS')) {
-                $departments = Userdept::where('username', $user->username)->pluck('department_id');
-                $query->where(function ($scope) use ($departments, $user) {
-                    $scope->whereIn('k.department_id', $departments)
-                        ->orWhere('k.user_peminta', $user->username)
-                        ->orWhere('k.created_by', $user->username);
-                });
-            }
-        }
+        $this->applyAccessScope($query, $request->user());
 
         foreach (['kontrakid' => 'k.kontrakid', 'vendor' => 'k.vendorname'] as $input => $column) {
             if ($request->filled($input)) {
@@ -101,6 +96,46 @@ class ReportKontrakController extends Controller
         }
 
         return $query->toBase();
+    }
+
+    private function applyAccessScope($query, $user): void
+    {
+        if ($user->hasFullDataScope()) {
+            return;
+        }
+
+        $companyIds = Usercpny::where('username', $user->username)->pluck('cpny_id');
+        $query->whereIn('k.cpny_id', $companyIds);
+
+        if (!$user->hasRole('COSTCTRLACCESS') && !$user->hasRole('FINACCESS')) {
+            $departments = Userdept::where('username', $user->username)->pluck('department_id');
+            $query->where(function ($scope) use ($departments, $user) {
+                $scope->whereIn('k.department_id', $departments)
+                    ->orWhere('k.user_peminta', $user->username)
+                    ->orWhere('k.created_by', $user->username);
+            });
+        }
+    }
+
+    public function vendors(Request $request)
+    {
+        $term = trim((string) $request->input('q', ''));
+        $query = TrKontrak::query()->from('tr_kontrak as k')
+            ->whereNotNull('k.vendorname')->where('k.vendorname', '<>', '');
+        $this->applyAccessScope($query, $request->user());
+
+        if ($term !== '') {
+            $query->where('k.vendorname', 'ilike', '%' . addcslashes($term, '%_\\') . '%');
+        }
+        if ($request->filled('cpny_id')) {
+            $query->where('k.cpny_id', trim($request->input('cpny_id')));
+        }
+
+        return response()->json($query->selectRaw('k.vendorname, count(*) as total')
+            ->groupBy('k.vendorname')
+            // Prefix matches first, then alphabetical.
+            ->orderByRaw('(k.vendorname ilike ?) desc', [addcslashes($term, '%_\\') . '%'])
+            ->orderBy('k.vendorname')->limit(10)->get());
     }
 
     private function contractPeriod($row): string
