@@ -107,6 +107,7 @@
                         $addSearchItem('grading', 'Grading', 'HRGA Setup');
                         $addSearchItem('kendaraan', 'Kendaraan', 'HRGA Setup');
                         $addSearchItem('group_acc_specific', 'Group Access Specific', 'HRGA Setup');
+                        $addSearchItem('reschedule_email_queue', 'Reschedule Email Queue', 'HRGA Setup');
 
                         $addSearchItem('tops', 'TOPS', 'Purchasing Setup');
                         $addSearchItem('tenants', 'Tenants', 'Purchasing Setup');
@@ -609,7 +610,7 @@
                                 <!-- ================================================= -->
                                 <!-- HRGA SETUP -->
                                 <!-- ================================================= -->
-                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management']; @endphp
+                                @php $hrgaSetup = ['grading', 'kendaraan', 'group-acc-specific', 'performance-management', 'training-reschedule-emails']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $hrgaSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -641,6 +642,10 @@
                                         <li><a href="{{ route('performance-management') }}"
                                                 class="{{ Request::segment(1) === 'performance-management' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Performance
                                                 Management</a>
+                                        </li>
+                                        <li><a href="{{ route('reschedule_email_queue') }}"
+                                                class="{{ Request::segment(1) === 'training-reschedule-emails' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Reschedule
+                                                Email Queue</a>
                                         </li>
                                     </ul>
                                 </li>

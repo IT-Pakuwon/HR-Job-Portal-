@@ -878,6 +878,12 @@ class TrainingSessionController extends Controller
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
+            \Illuminate\Support\Facades\Log::error('Training reschedule failed', [
+                'schedule_id' => $id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal reschedule',
@@ -885,15 +891,40 @@ class TrainingSessionController extends Controller
             ], 500);
         }
 
+        // The schedule change is already committed, so one failed notice (e.g.
+        // the SMTP relay's "421 Too many messages" rate limit) must not abort
+        // the loop and leave everyone after it un-notified. The in-app
+        // message is written before the email is attempted, so a mail
+        // failure still leaves the in-app notice in place.
+        $timeLabel = substr($request->start_time, 0, 5).'-'.substr($request->end_time, 0, 5);
+        $failed = [];
+
         foreach ($registrations as $registration) {
-            TrainingWaitlistNotifier::notifyReschedule($registration->fresh(['schedule.schedule.training']), $oldDate, $newDate);
+            try {
+                TrainingWaitlistNotifier::notifyReschedule($registration->fresh(['schedule.schedule.training']), $oldDate, $newDate, $timeLabel);
+            } catch (\Throwable $e) {
+                $failed[] = $registration->training_regist_id;
+
+                \Illuminate\Support\Facades\Log::error('Training reschedule notification failed', [
+                    'schedule_id' => $detail->schedule_id,
+                    'training_regist_id' => $registration->training_regist_id,
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $message = count($registrations) > 0
+            ? 'Schedule berhasil di-reschedule, '.(count($registrations) - count($failed)).' dari '.count($registrations).' peserta telah diberi notifikasi. Email dikirim bertahap (15 per 5 menit)'
+            : 'Schedule berhasil di-reschedule';
+
+        if ($failed) {
+            $message .= '. '.count($failed).' notifikasi gagal dibuat (lihat log)';
         }
 
         return response()->json([
             'success' => true,
-            'message' => count($registrations) > 0
-                ? 'Schedule berhasil di-reschedule, '.count($registrations).' peserta telah diberi notifikasi'
-                : 'Schedule berhasil di-reschedule',
+            'message' => $message,
+            'failed_notifications' => $failed,
         ]);
     }
 
