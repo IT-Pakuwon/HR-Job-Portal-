@@ -100,6 +100,18 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/ifca-stock-auto.log'));
 
+        // Auto Process PO H -> D (waiting for review)
+        $schedule->command('ifca:pohold-auto-process')
+            ->everySixHours()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-pohold-auto.log'));
+
+        // Auto Process reviewed PO P-IFCA -> C
+        $schedule->command('ifca:poonprogress-auto-process')
+            ->everySixHours()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-poonprogress-auto.log'));
+
         // // Sync user DAS ke PostgreSQL tiap 5 menit
         // $schedule->command('sync:users-das-to-pg --chunk=500')
         //     ->everyFiveMinutes()
