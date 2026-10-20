@@ -373,6 +373,7 @@
                                     <th class="p-2 text-left font-semibold">Periode</th>
                                     <th class="p-2 text-left font-semibold">No RFP</th>
                                     <th class="p-2 text-left font-semibold">Tanggal</th>
+                                    <th class="p-2 text-left font-semibold">Note</th>
                                     <th class="p-2 text-right font-semibold">DPP</th>
                                     <th class="p-2 text-right font-semibold">Tax</th>
                                     <th class="p-2 text-right font-semibold">Total</th>
@@ -396,13 +397,14 @@
                                             </a>
                                         </td>
                                         <td class="whitespace-nowrap p-2">{{ $payment->rfp_date ? \Carbon\Carbon::parse($payment->rfp_date)->format('d M Y') : '-' }}</td>
+                                        <td class="min-w-[200px] max-w-sm whitespace-pre-line break-words p-2">{{ $payment->ir_note ?? '-' }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_base_amount, 2, ',', '.') }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_tax_amount, 2, ',', '.') }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_amount, 2, ',', '.') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="p-6 text-center italic text-gray-500 dark:text-gray-400">
+                                        <td colspan="7" class="p-6 text-center italic text-gray-500 dark:text-gray-400">
                                             Belum ada RFP untuk kontrak ini.
                                         </td>
                                     </tr>
