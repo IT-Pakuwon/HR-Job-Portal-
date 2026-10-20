@@ -288,11 +288,16 @@ class CsListController extends Controller
             ->where('aprv_doctype', 'CS')
             ->whereIn('refnbr', $rows->pluck('csid')->unique()->all())
             ->whereIn('aprv_cpnyid', $rows->pluck('cpny_id')->unique()->all())
-            ->whereNotNull('aprv_datebefore')
-            ->where('status', 'P')
-            ->orderBy('aprv_leveling')
-            ->orderBy('id')
-            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username'])
+            ->where(function ($query) {
+                $query->where(function ($pending) {
+                    $pending->where('status', 'P')->whereNotNull('aprv_datebefore');
+                })->orWhere(function ($acted) {
+                    $acted->whereIn('status', ['R', 'D', 'A'])->whereNotNull('aprv_dateafter');
+                });
+            })
+            ->orderByDesc('aprv_dateafter')
+            ->orderByDesc('id')
+            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username', 'status', 'aprv_leveling'])
             ->groupBy('refnbr');
 
         // =========================
@@ -363,8 +368,21 @@ class CsListController extends Controller
         };
 
         $rows->transform(function ($r) use ($countBusinessDays, $countingMap, $nextApprovals) {
-            $r->next_approval = $nextApprovals->get($r->csid, collect())
-                ->where('aprv_cpnyid', $r->cpny_id)
+            $st = strtoupper((string) ($r->status ?? ''));
+            $approvals = $nextApprovals->get($r->csid, collect())
+                ->where('aprv_cpnyid', $r->cpny_id);
+
+            if ($st === 'P') {
+                $approvals = $approvals->where('status', 'P')->sortBy('aprv_leveling');
+            } elseif (in_array($st, ['R', 'D', 'C', 'A'], true)) {
+                $actionStatus = in_array($st, ['C', 'A'], true) ? 'A' : $st;
+                // The batch query orders actions newest first, with id as a tie-breaker.
+                $approvals = $approvals->where('status', $actionStatus)->take(1);
+            } else {
+                $approvals = collect();
+            }
+
+            $r->next_approval = $approvals
                 ->map(fn ($approval) => trim((string) $approval->aprv_name)
                     ?: trim((string) $approval->aprv_username))
                 ->filter()->unique()->implode(', ');
