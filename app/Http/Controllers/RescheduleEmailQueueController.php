@@ -67,4 +67,25 @@ class RescheduleEmailQueueController extends Controller
             'search' => $search,
         ]);
     }
+
+    /**
+     * Put a Sent/Failed row back in the queue; the scheduled
+     * `training:send-reschedule-emails` run delivers it on its next tick.
+     */
+    public function resend(int $id)
+    {
+        $row = TrLndRescheduleEmailQueue::findOrFail($id);
+
+        if ($row->status === TrLndRescheduleEmailQueue::STATUS_PENDING) {
+            return back()->with('error', 'Email is already pending.');
+        }
+
+        $row->status = TrLndRescheduleEmailQueue::STATUS_PENDING;
+        $row->attempts = 0;
+        $row->last_error = null;
+        $row->sent_at = null;
+        $row->save();
+
+        return back()->with('success', "Email for {$row->training_regist_id} re-queued; it will be sent within 5 minutes.");
+    }
 }
