@@ -1546,7 +1546,12 @@ class TrainingRegistrationController extends Controller
                 && $r->status === TrLndTrainingRegistration::STATUS_PENDING
                 && $scheduleStatus === self::SCHEDULE_PUBLISHED;
 
-            return $waitlistCase || $activeReassignCase;
+            $reofferCase = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED
+                && $r->process_registration_user === 'system'
+                && $notRejected
+                && $scheduleStatus === self::SCHEDULE_PUBLISHED;
+
+            return $waitlistCase || $activeReassignCase || $reofferCase;
         })->pluck('schedule_id')->unique();
 
         $quotas = $eligibleScheduleIds->isEmpty() ? collect() : MsLndTrainingQuota::whereIn('schedule_id', $eligibleScheduleIds)->get();
@@ -1588,7 +1593,11 @@ class TrainingRegistrationController extends Controller
                 && $r->status === TrLndTrainingRegistration::STATUS_PENDING;
 
             $canAccept = $isWaitlistedAndEligible && $r->schedule?->status === self::SCHEDULE_CLOSED;
-            $canOffer = ($isWaitlistedAndEligible || $isActiveReassignEligible) && $r->schedule?->status === self::SCHEDULE_PUBLISHED;
+            $isReofferEligible = $r->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED
+                && $r->process_registration_user === 'system'
+                && $r->status !== TrLndTrainingRegistration::STATUS_REJECTED;
+
+            $canOffer = ($isWaitlistedAndEligible || $isActiveReassignEligible || $isReofferEligible) &&$r->schedule?->status === self::SCHEDULE_PUBLISHED;
 
             $quotaOptions = collect();
             if ($canAccept || $canOffer) {
@@ -1997,7 +2006,15 @@ class TrainingRegistrationController extends Controller
         $isActiveReassignCase = in_array($registration->status_registration, [null, TrLndTrainingRegistration::REG_STATUS_OFFERED], true)
             && $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
 
-        if (!$isWaitlistCase && !$isActiveReassignCase) {
+        // Re-offer: an offer the 24h expiry sweep auto-cancelled (see
+        // ExpireWaitlistOffers — it stamps process_registration_user =
+        // 'system'). A row the participant cancelled/declined themselves is
+        // deliberately not re-offerable. Approval is kept as-is.
+        $isReofferCase = $registration->status_registration === TrLndTrainingRegistration::REG_STATUS_CANCELLED
+            && $registration->process_registration_user === 'system'
+            && $registration->status !== TrLndTrainingRegistration::STATUS_REJECTED;
+
+        if (!$isWaitlistCase && !$isActiveReassignCase && !$isReofferCase) {
             return response()->json(['success' => false, 'message' => 'This registration is not eligible for a manual offer/reassignment'], 422);
         }
 
@@ -2042,7 +2059,7 @@ class TrainingRegistrationController extends Controller
 
             $registration->registration_cpny_id = $cpnyId;
 
-            if ($isWaitlistCase) {
+            if ($isWaitlistCase || $isReofferCase) {
                 TrainingRegistrationService::offerSlot($registration, $user->username);
             } else {
                 // Pure reassignment — no 24h clock, no offer notification;
@@ -2057,8 +2074,8 @@ class TrainingRegistrationController extends Controller
             $approvalPending = $registration->status === TrLndTrainingRegistration::STATUS_PENDING;
             $companyName = MsCompany::where('cpny_id', $cpnyId)->value('cpny_name') ?? $cpnyId;
 
-            $message = $isWaitlistCase
-                ? $registration->user_registration.' has been offered the slot'
+            $message = ($isWaitlistCase || $isReofferCase)
+                ?$registration->user_registration.' has been offered the slot'
                 : $registration->user_registration.'\'s registration is now using '.$companyName.'\'s quota';
 
             return response()->json([

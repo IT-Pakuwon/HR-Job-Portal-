@@ -3971,7 +3971,7 @@
                     : '';
 
                 const offerHtml = r.can_offer
-                    ? `<button type="button" class="allRegsOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20" data-id="${r.id}">${r.status_registration === 'W' ? '📨 Offer Slot' : '🔁 Reassign Quota'}</button>`
+                    ? `<button type="button" class="allRegsOfferBtn flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-purple-600 transition hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20" data-id="${r.id}">${r.status_registration === 'W' ? '📨 Offer Slot' : r.status_registration === 'X' ? '📨 Re-offer Slot' : '🔁 Reassign Quota'}</button>`
                     : '';
 
                 // Same guard as TrainingRegistrationController::cancel(): a
@@ -4217,7 +4217,7 @@
                     <div class="ticketModal-header">
                         <div class="ticketModal-thumbFallback">📨</div>
                         <div style="min-width:0;">
-                            <h3 class="ticketModal-title">${r.status_registration === 'W' ? 'Offer slot to' : 'Reassign quota for'} ${r.name ?? r.username}?</h3>
+                            <h3 class="ticketModal-title">${r.status_registration === 'W' ? 'Offer slot to' : r.status_registration === 'X' ? 'Re-offer slot to' : 'Reassign quota for'} ${r.name ?? r.username}?</h3>
                             <p class="ticketModal-subtitle">${r.docid} · ${r.training_name ?? '-'}</p>
                         </div>
                     </div>
@@ -4225,8 +4225,8 @@
                         <div class="ticketModal-card">
                             <label class="ticketModal-label">📅 Schedule</label>
                             <p style="margin:0;font-size:13px;color:#111827;">${fmtDate(r.schedule_date)}</p>
-                            <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">${r.status_registration === 'W'
-                                ? 'Sends the same 24h accept/decline offer as the automatic waitlist promotion.'
+                            <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">${r.status_registration === 'W' || r.status_registration === 'X'
+                                ? 'Sends a fresh 24h accept/decline offer (same as the automatic waitlist promotion).'
                                 : 'This participant already holds a seat/offer — this only moves which company\'s quota it counts against, no new offer is sent.'}</p>
                         </div>
                         <div class="ticketModal-card">
