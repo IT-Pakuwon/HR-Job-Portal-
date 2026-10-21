@@ -212,7 +212,7 @@ class CareerController extends Controller
         // PRF checklist item is auto-linked to the PRF document the job posting was raised from,
         // instead of requiring a manual upload.
         $prfPersonnel = $jobposting && $jobposting->refid
-            ? Personnel::where('docid', $jobposting->refid)->first()
+            ? Personnel::where('docid', $jobposting->refid)->where('group_cpny_id', $jobposting->group_cpny_id)->first()
             : null;
         $prfHash = $prfPersonnel ? Hashids::encode($prfPersonnel->id) : null;
 
@@ -779,9 +779,42 @@ class CareerController extends Controller
     //     ]);
     // }
 
+    // tr_approval has no group_cpny_id and PRF numbers repeat across SBY/JKT, so approval rows are
+    // pinned by the PRF's own company, found via the group-scoped PRF lookup.
+    private function prfCpnyid($jobposting): ?string
+    {
+        return Personnel::where('docid', $jobposting->refid)
+            ->where('group_cpny_id', $jobposting->group_cpny_id)
+            ->value('cpnyid');
+    }
+
+    // The applicant job (docid + the user's group_cpny_id), whose cpnyid scopes its comments.
+    // docid repeats across SBY/JKT, so the group is the user's own, not a client-supplied value.
+    private function commentCareer($docid): ?Career
+    {
+        $group = strtoupper(trim((string) (Auth::user()->group_cpny_id ?? '')));
+
+        return Career::where('docid', $docid)->where('group_cpny_id', $group)->first();
+    }
+
     public function fetchComments($refnbr)
     {
+        $career = $this->commentCareer($refnbr);
+        if (!$career) {
+            return response()->json(['status' => 'error', 'message' => 'Career not found'], 404);
+        }
+
+        // refnbr (docid) repeats across SBY/JKT, so match refnbr + the applicant job's cpnyid.
+        // Old comments saved without a cpny_id are matched by their author's group instead.
+        $group = $career->group_cpny_id;
         $comments = TrMessage::where('refnbr', $refnbr)
+            ->where(function ($q) use ($career, $group) {
+                $q->where('cpny_id', $career->cpnyid)
+                    ->orWhere(function ($q) use ($group) {
+                        $q->whereNull('cpny_id')
+                            ->whereIn('username', fn ($s) => $s->from('ms_user')->select('username')->where('group_cpny_id', $group));
+                    });
+            })
             ->orderBy('message_date', 'desc')
             ->get();
 
@@ -799,11 +832,16 @@ class CareerController extends Controller
 
         $user = Auth::user();   // ambil user login
 
+        $career = $this->commentCareer($refnbr);
+        if (!$career) {
+            return response()->json(['status' => 'error', 'message' => 'Career not found'], 404);
+        }
+
         $comment = TrMessage::create([
             'refnbr' => $refnbr,
             'doctype' => 'PRF',
             'message_date' => now(),
-            'cpny_id' => $user->cpnyid ?? null,
+            'cpny_id' => $career->cpnyid,
             'department_id' => $user->departmentid ?? null,
             'username' => $user->username,
             'name' => $user->name,
@@ -848,6 +886,7 @@ class CareerController extends Controller
         //     ->where('aprvid','>',1)
         //     ->first();
         $cek_approval = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_cpnyid', $this->prfCpnyid($jobposting))
             ->where('aprv_username', 'like', '%'.$user->username.'%')
             ->where('aprv_leveling', '>', 1)
             ->first();
@@ -998,6 +1037,7 @@ class CareerController extends Controller
         //     })
         //     ->exists();
         $cek_approval = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_cpnyid', $this->prfCpnyid($jobposting))
             ->where(function ($q) use ($user) {
                 $q->where('aprv_username', $user->username)
                 ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
@@ -1063,7 +1103,7 @@ class CareerController extends Controller
         // Kirim notifikasi internal (comment) bila ada
         $id = $career->id;
         $doctype = 'JAP';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid($id, $doctype, $career->cpnyid, $request);
 
         // Kirim email reject ke applicant
         $this->sendemail_rejected_applicant($career, $user);
@@ -1100,6 +1140,7 @@ class CareerController extends Controller
         //     })
         //     ->exists();
         $inApprovalLine = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_cpnyid', $this->prfCpnyid($jobposting))
             ->where(function ($q) use ($user) {
                 $q->where('aprv_username', $user->username)
                 ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
@@ -1181,7 +1222,7 @@ class CareerController extends Controller
                 $request->merge(['comment' => '[ROLLBACK] '.$request->reason]);
             }
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($career->id, 'JAP', $request);
+                ->sendmsgWithCpnyid($career->id, 'JAP', $career->cpnyid, $request);
 
             DB::commit();
 
@@ -1217,6 +1258,7 @@ class CareerController extends Controller
         //     })
         //     ->exists();
         $isInApprovalList = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_cpnyid', $this->prfCpnyid($jobposting))
             ->where(function ($q) use ($user) {
                 $q->where('aprv_username', $user->username)
                 ->orWhere('aprv_username', 'like', '%'.$user->username.'%');
@@ -2771,6 +2813,7 @@ class CareerController extends Controller
 
             // Ambil template approval dari master TrApproval
             $approvals = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_cpnyid', $this->prfCpnyid($jobposting))
                 ->where('aprv_leveling', '>', 1)
                 ->where('status', 'A')
                 ->orderBy('aprv_leveling', 'ASC')
