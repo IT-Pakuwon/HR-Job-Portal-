@@ -171,16 +171,17 @@
 
         /* ============ APPROVAL ============ */
         .approval-table {
-            margin-top: 40px;
+            margin-top: 24px;
             border-collapse: collapse;
             font-size: 12px;
+            table-layout: fixed;
         }
 
         .approval-table th,
         .approval-table td {
-            border: 1px solid #000;
-            padding: 7px;
-            vertical-align: top;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 9px 7px;
+            vertical-align: middle;
             overflow-wrap: break-word;
             word-wrap: break-word;
         }
@@ -188,17 +189,26 @@
         .approval-table th {
             text-align: left;
             font-weight: bold;
+            background-color: #f8f9fa;
         }
 
-        .sig-name {
-            font-weight: bold;
-            text-transform: uppercase;
+        .approval-table tr {
+            page-break-inside: avoid;
         }
 
-        .sig-status {
-            margin-top: 4px;
+        .approval-badge {
+            display: inline-block;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 11px;
             font-weight: bold;
+            color: #fff;
         }
+
+        .approval-approved { background-color: #22b966; }
+        .approval-rejected { background-color: #dc3545; }
+        .approval-revised { background-color: #287cff; }
+        .approval-waiting { background-color: #e5ac12; }
 
         .blue {
             color: #1a4d8f;
@@ -263,10 +273,6 @@
         $kepadaText = $rfpnonpurch->imnonpurchase_kepada ?: 'TREASURY';
         $paymentText = $rfpnonpurch->paymenttype ?: $rfpnonpurch->payment_type ?? '';
 
-        $colsPerRow = $approve_count > 5 ? 4 : 3;
-        $chunks = $approval->values()->chunk($colsPerRow);
-        $idx = 1;
-        $totalCols = 1 + $colsPerRow;
     @endphp
 
     {{-- HEADER --}}
@@ -495,74 +501,54 @@
     @endif
 
     {{-- APPROVAL --}}
+    <h4 style="margin-bottom: 8px;">Approval Details</h4>
     <table class="approval-table">
+        <colgroup>
+            <col style="width: 10%;">
+            <col style="width: 38%;">
+            <col style="width: 30%;">
+            <col style="width: 22%;">
+        </colgroup>
         <thead>
             <tr>
-                <th colspan="{{ $totalCols }}">
+                <th colspan="4">
                     Status:
                     <span class="{{ $statusColor }}">{{ $statusText }}</span>
                 </th>
             </tr>
+            <tr>
+                <th>Level</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
         </thead>
 
         <tbody>
-            @forelse ($chunks as $rowIndex => $chunk)
+            @forelse ($approval as $dt2)
+                @php
+                    $label = match ($dt2->status) {
+                        'A' => 'Approved',
+                        'R' => 'Rejected',
+                        'D' => 'Revise',
+                        default => 'Waiting Approval',
+                    };
+                    $badgeClass = match ($dt2->status) {
+                        'A' => 'approval-approved',
+                        'R' => 'approval-rejected',
+                        'D' => 'approval-revised',
+                        default => 'approval-waiting',
+                    };
+                @endphp
                 <tr>
-                    @if ($rowIndex === 0)
-                        <td rowspan="{{ $chunks->count() }}" style="width: 25%;">
-                            <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                            <div class="sig-status blue">Created</div>
-                            <div>{{ $req_date_fmt }}</div>
-                        </td>
-                    @endif
-
-                    @foreach ($chunk as $dt2)
-                        @php
-                            $label = match ($dt2->status) {
-                                'A' => 'Approved',
-                                'R' => 'Rejected',
-                                'P' => 'Waiting',
-                                'D' => 'Revised',
-                                default => 'Waiting',
-                            };
-
-                            $color = match ($dt2->status) {
-                                'A' => 'blue',
-                                'R' => 'red',
-                                'P' => 'orange',
-                                'D' => 'red',
-                                default => 'orange',
-                            };
-
-                            $dateStr = $dt2->aprv_dateafter
-                                ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('Y-m-d H:i:s')
-                                : '';
-                        @endphp
-
-                        <td>
-                            <div>
-                                <span class="sig-name">{{ $idx++ }}. {{ $dt2->aprv_name }}</span>
-                            </div>
-
-                            <div class="sig-status {{ $color }}">
-                                {{ $label }}
-                            </div>
-
-                            <div>{{ $dateStr }}</div>
-                        </td>
-                    @endforeach
-
-                    @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                        <td>&nbsp;</td>
-                    @endfor
+                    <td>{{ number_format((float) $dt2->aprv_leveling, 2, '.', '') }}</td>
+                    <td>{{ $dt2->aprv_name }}</td>
+                    <td>{{ $fmtDate($dt2->aprv_dateafter, 'd M Y H:i:s') }}</td>
+                    <td><span class="approval-badge {{ $badgeClass }}">{{ $label }}</span></td>
                 </tr>
             @empty
                 <tr>
-                    <td>
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                        <div class="sig-status blue">Created</div>
-                        <div>{{ $req_date_fmt }}</div>
-                    </td>
+                    <td colspan="4">No approval data.</td>
                 </tr>
             @endforelse
         </tbody>
