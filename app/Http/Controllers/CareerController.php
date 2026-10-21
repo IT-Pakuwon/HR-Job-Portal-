@@ -788,16 +788,33 @@ class CareerController extends Controller
             ->value('cpnyid');
     }
 
-    private function commentGroup(): string
+    // The applicant job (docid + the user's group_cpny_id), whose cpnyid scopes its comments.
+    // docid repeats across SBY/JKT, so the group is the user's own, not a client-supplied value.
+    private function commentCareer($docid): ?Career
     {
-        return strtoupper(trim((string) (Auth::user()->group_cpny_id ?? '')));
+        $group = strtoupper(trim((string) (Auth::user()->group_cpny_id ?? '')));
+
+        return Career::where('docid', $docid)->where('group_cpny_id', $group)->first();
     }
 
     public function fetchComments($refnbr)
     {
-        // refnbr (docid) repeats across SBY/JKT, so only show comments from the user's own group.
+        $career = $this->commentCareer($refnbr);
+        if (!$career) {
+            return response()->json(['status' => 'error', 'message' => 'Career not found'], 404);
+        }
+
+        // refnbr (docid) repeats across SBY/JKT, so match refnbr + the applicant job's cpnyid.
+        // Old comments saved without a cpny_id are matched by their author's group instead.
+        $group = $career->group_cpny_id;
         $comments = TrMessage::where('refnbr', $refnbr)
-            ->where('group_cpny_id', $this->commentGroup())
+            ->where(function ($q) use ($career, $group) {
+                $q->where('cpny_id', $career->cpnyid)
+                    ->orWhere(function ($q) use ($group) {
+                        $q->whereNull('cpny_id')
+                            ->whereIn('username', fn ($s) => $s->from('ms_user')->select('username')->where('group_cpny_id', $group));
+                    });
+            })
             ->orderBy('message_date', 'desc')
             ->get();
 
@@ -815,12 +832,16 @@ class CareerController extends Controller
 
         $user = Auth::user();   // ambil user login
 
+        $career = $this->commentCareer($refnbr);
+        if (!$career) {
+            return response()->json(['status' => 'error', 'message' => 'Career not found'], 404);
+        }
+
         $comment = TrMessage::create([
             'refnbr' => $refnbr,
             'doctype' => 'PRF',
             'message_date' => now(),
-            'cpny_id' => $user->cpnyid ?? null,
-            'group_cpny_id' => $this->commentGroup(),
+            'cpny_id' => $career->cpnyid,
             'department_id' => $user->departmentid ?? null,
             'username' => $user->username,
             'name' => $user->name,
@@ -1082,7 +1103,7 @@ class CareerController extends Controller
         // Kirim notifikasi internal (comment) bila ada
         $id = $career->id;
         $doctype = 'JAP';
-        app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
+        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid($id, $doctype, $career->cpnyid, $request);
 
         // Kirim email reject ke applicant
         $this->sendemail_rejected_applicant($career, $user);
@@ -1201,7 +1222,7 @@ class CareerController extends Controller
                 $request->merge(['comment' => '[ROLLBACK] '.$request->reason]);
             }
             app('App\Http\Controllers\SendCommentController')
-                ->sendmsg($career->id, 'JAP', $request);
+                ->sendmsgWithCpnyid($career->id, 'JAP', $career->cpnyid, $request);
 
             DB::commit();
 

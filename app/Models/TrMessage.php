@@ -16,7 +16,6 @@ class TrMessage extends Model
         'message_date',
         'message_type',
         'cpny_id',
-        'group_cpny_id',
         'department_id',
         'username',
         'name',
