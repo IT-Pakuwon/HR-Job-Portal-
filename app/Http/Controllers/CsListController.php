@@ -146,20 +146,20 @@ class CsListController extends Controller
         $columns = [
             1 => 'csid',
             2 => 'sppbjktid',
-            3 => 'csdate',
-            4 => 'cpny_id',
-            5 => 'department_id',
-            6 => 'created_by',
-            8 => 'assigndate',
-            9 => 'submitdate',
-            11 => 'days',
+            3 => 'assigndate',
+            4 => 'submitdate',
+            5 => 'days',
+            6 => 'cpny_id',
+            7 => 'department_id',
+            8 => 'created_by',
+            9 => 'keperluan',
             12 => 'status',
         ];
 
         if ($req->has('order')) {
             $order = $req->get('order')[0];
             $colIndex = $order['column'];
-            $dir = $order['dir'];
+            $dir = strtolower((string) $order['dir']) === 'asc' ? 'asc' : 'desc';
 
             if (isset($columns[$colIndex])) {
                 $base->orderBy($columns[$colIndex], $dir);
@@ -234,6 +234,8 @@ class CsListController extends Controller
         $start = (int) $req->input('start', 0);
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
+        $approvalSort = [10 => 'next_approval', 11 => 'days_waiting'][(int) $req->input('order.0.column', -1)] ?? null;
+        $sortDirection = strtolower((string) $req->input('order.0.dir', 'desc')) === 'asc' ? 1 : -1;
 
         $csTable = (new TrCS())->getTable();
         $prefixExpr = "SUBSTRING({$csTable}.sppbjktid FROM 1 FOR 2)";
@@ -280,8 +282,11 @@ class CsListController extends Controller
                         ELSE NULL
                     END) AS sppbjkt_src_id")
         )
-                ->orderBy('csdate', 'desc')
-                ->skip($start)->take($length)
+                ->orderBy('csid', 'desc')
+                // Approval values come from another connection; sort those before pagination.
+                ->when(!$approvalSort && $length !== -1, function ($query) use ($start, $length) {
+                    $query->skip($start)->take($length);
+                })
                 ->get();
 
         $nextApprovals = $rows->isEmpty() ? collect() : TrApproval::query()
@@ -297,7 +302,7 @@ class CsListController extends Controller
             })
             ->orderByDesc('aprv_dateafter')
             ->orderByDesc('id')
-            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username', 'status', 'aprv_leveling'])
+            ->get(['refnbr', 'aprv_cpnyid', 'aprv_name', 'aprv_username', 'status', 'aprv_leveling', 'aprv_datebefore'])
             ->groupBy('refnbr');
 
         // =========================
@@ -367,7 +372,8 @@ class CsListController extends Controller
             return $days;
         };
 
-        $rows->transform(function ($r) use ($countBusinessDays, $countingMap, $nextApprovals) {
+        $today = Carbon::today(config('app.timezone'));
+        $rows->transform(function ($r) use ($countBusinessDays, $countingMap, $nextApprovals, $today) {
             $st = strtoupper((string) ($r->status ?? ''));
             $approvals = $nextApprovals->get($r->csid, collect())
                 ->where('aprv_cpnyid', $r->cpny_id);
@@ -381,6 +387,13 @@ class CsListController extends Controller
             } else {
                 $approvals = collect();
             }
+
+            // Parallel approvers use the longest active waiting time.
+            $r->days_waiting = $st === 'P' && $approvals->isNotEmpty()
+                ? $approvals->map(fn ($approval) => max(0, (int) Carbon::parse(
+                    $approval->aprv_datebefore, config('app.timezone')
+                )->startOfDay()->diffInDays($today, false)))->max()
+                : null;
 
             $r->next_approval = $approvals
                 ->map(fn ($approval) => trim((string) $approval->aprv_name)
@@ -452,6 +465,27 @@ class CsListController extends Controller
 
             return $r;
         });
+
+        if ($approvalSort) {
+            $rows = $rows->sort(function ($a, $b) use ($approvalSort, $sortDirection) {
+                $left = $a->{$approvalSort};
+                $right = $b->{$approvalSort};
+                $leftEmpty = $left === null || $left === '';
+                $rightEmpty = $right === null || $right === '';
+
+                // Keep missing approvals and waiting times last in either direction.
+                if ($leftEmpty !== $rightEmpty) {
+                    return $leftEmpty ? 1 : -1;
+                }
+
+                $comparison = $approvalSort === 'days_waiting'
+                    ? ($left <=> $right)
+                    : strcasecmp((string) $left, (string) $right);
+
+                return ($comparison * $sortDirection) ?: strcmp($b->csid, $a->csid);
+            });
+            $rows = ($length === -1 ? $rows : $rows->slice($start, $length))->values();
+        }
 
         return response()->json([
             'draw' => $draw,

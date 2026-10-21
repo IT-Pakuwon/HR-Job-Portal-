@@ -126,7 +126,9 @@
                                 [
                                     'icon' => 'calendar-days',
                                     'label' => 'CS Date',
-                                    'value' => \Carbon\Carbon::parse($cs->csdate)->format('d M Y'),
+                                    'value' => $cs->submitdate
+                                        ? \Carbon\Carbon::parse($cs->submitdate)->format('d M Y')
+                                        : '-',
                                 ],
                                 [
                                     'icon' => 'building-office',
