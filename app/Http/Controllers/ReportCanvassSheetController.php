@@ -58,7 +58,7 @@ class ReportCanvassSheetController extends Controller
                 (
                     select pt.cpny_id, pt.ponbr, pt.csid, pt.sppbjktid,
                            string_agg(DISTINCT pt.bastid, ', ') as bastid,
-                           jsonb_agg(DISTINCT jsonb_build_object('id', bh.id, 'number', pt.bastid))
+                           jsonb_agg(DISTINCT jsonb_build_object('id', bh.id, 'number', pt.bastid, 'status', bh.status))
                                FILTER (WHERE pt.bastid IS NOT NULL AND pt.bastid <> '') as documents
                     from tr_po_term pt
                     left join tr_bast bh on bh.bastid = pt.bastid
@@ -382,6 +382,15 @@ class ReportCanvassSheetController extends Controller
                     ->map(fn ($document) => [
                         'number' => $document['number'],
                         'hash' => $document['id'] ? \Hashids::encode($document['id']) : null,
+                        'status_label' => match ($document['status'] ?? null) {
+                            'D' => 'Revise',
+                            'P' => 'On Progress',
+                            'A' => 'Approved',
+                            'R' => 'Rejected',
+                            'C' => 'Completed',
+                            'X' => 'Canceled',
+                            default => 'Unknown',
+                        },
                     ])->values()->all();
             })
 

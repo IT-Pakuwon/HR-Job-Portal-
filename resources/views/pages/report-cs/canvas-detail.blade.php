@@ -319,14 +319,19 @@
                     data: 'bast_number',
                     defaultContent: '-',
                     render: function(data, type, row) {
-                        if (type !== 'display') return data || '';
                         if (!Array.isArray(row.bast_links) || !row.bast_links.length) {
-                            return $('<span>').text(data || '-').html();
+                            return type === 'display' ? $('<span>').text(data || '-').html() : data || '';
+                        }
+                        if (type !== 'display') {
+                            return row.bast_links.map(document =>
+                                `${document.number || ''} - ${document.status_label || 'Unknown'}`
+                            ).join(', ');
                         }
                         return row.bast_links.map(function(document) {
                             const label = $('<span>').text(document.number || '').html();
-                            if (!document.hash) return label;
-                            return `<a href="/showbast/${encodeURIComponent(document.hash)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline dark:text-indigo-400">${label}</a>`;
+                            const status = $('<span>').text(document.status_label || 'Unknown').html();
+                            if (!document.hash) return `${label} - ${status}`;
+                            return `<a href="/showbast/${encodeURIComponent(document.hash)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline dark:text-indigo-400">${label}</a> - ${status}`;
                         }).join(', ');
                     }
                 },
