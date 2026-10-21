@@ -132,6 +132,7 @@ class SendCommentController extends Controller
             'refnbr'        => $request->doc_no ?? $request->docid ?? (string)$id,          // menyesuaikan dengan nama field baru
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
+            'group_cpny_id' => strtoupper(trim((string) ($user->group_cpny_id ?? ''))) ?: null,
             'username'      => $user->username,
             'name'          => $user->name,
             'message'       => $request->reason,
