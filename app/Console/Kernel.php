@@ -96,15 +96,33 @@ class Kernel extends ConsoleKernel
 
         // Auto Process PO H -> D (waiting for review)
         $schedule->command('ifca:pohold-auto-process')
-            ->everySixHours()
+            ->everyThirtyMinutes()
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/ifca-pohold-auto.log'));
 
         // Auto Process reviewed PO P-IFCA -> C
         $schedule->command('ifca:poonprogress-auto-process')
-            ->everySixHours()
+            ->everyThirtyMinutes()
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/ifca-poonprogress-auto.log'));
+
+        // Auto Process Issue H -> D (waiting for review)
+        $schedule->command('ifca:issuehold-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-issuehold-auto.log'));
+
+        // Auto Process reviewed Issue P-IFCA -> C
+        $schedule->command('ifca:issueonprogress-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-issueonprogress-auto.log'));
+
+        // Auto Process GRN H -> P, then IFCA P -> C
+        $schedule->command('ifca:grn-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-grn-auto.log'));
 
         // // Sync user DAS ke PostgreSQL tiap 5 menit
         // $schedule->command('sync:users-das-to-pg --chunk=500')

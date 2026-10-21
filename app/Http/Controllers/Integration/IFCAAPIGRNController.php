@@ -310,6 +310,16 @@ class IFCAAPIGRNController extends Controller
             ], 422);
         }
 
+        $result = $this->processGRNPairs($pairs, $username);
+
+        return response()->json($result, !empty($result['ok']) ? 200 : 500);
+    }
+
+    /**
+     * Shared H -> P staging and IFCA-only P -> C delivery for UI and scheduler.
+     */
+    private function processGRNPairs(array $pairs, string $username): array
+    {
         $keys = array_values(array_unique(array_map(fn($p) => (string)$p['key'], $pairs)));
 
         // source header untuk integration type
@@ -380,24 +390,10 @@ class IFCAAPIGRNController extends Controller
                 $grn  = (string)$p['grn_no'];
                 $key  = (string)$p['key'];
 
-                $st = $stMap->get($key);
-
-                $stage = 'H';
-                if ($st) {
-                    $cnt  = (int)$st->cnt;
-                    $cntC = (int)$st->cnt_c;
-                    $cntP = (int)$st->cnt_p;
-
-                    if ($cnt > 0 && $cntC === $cnt) {
-                        $stage = 'C';
-                    } elseif ($cnt > 0 && $cntP > 0) {
-                        $stage = 'P';
-                    } else {
-                        $stage = 'H';
-                    }
-                }
-
-                if ($stage !== 'H') {
+                if ($stMap->has($key) || StagingIfcaPoGrn::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('grn_no', $grn)
+                    ->exists()) {
                     continue;
                 }
 
@@ -495,10 +491,10 @@ class IFCAAPIGRNController extends Controller
         } catch (\Throwable $e) {
             DB::connection($stagingConn)->rollBack();
 
-            return response()->json([
+            return [
                 'ok' => false,
                 'message' => 'Gagal insert staging GRN (H->P): ' . $e->getMessage(),
-            ], 500);
+            ];
         }
 
         // STEP B: P -> C hanya IFCA
@@ -545,23 +541,23 @@ class IFCAAPIGRNController extends Controller
         }
 
         if (empty($sendPairs)) {
-            return response()->json([
+            return [
                 'ok' => true,
                 'inserted_H_to_P'     => $insertedHtoP,
                 'sent_success_P_to_C' => $sentOkPtoC,
                 'sent_failed_still_P' => $sentFailP,
                 'skipped_C'           => $skippedC,
-            ]);
+            ];
         }
 
         try {
             $token = $this->getIfcaToken($username);
         } catch (\Throwable $e) {
-            return response()->json([
+            return [
                 'ok' => false,
                 'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
                 'inserted_H_to_P' => $insertedHtoP,
-            ], 500);
+            ];
         }
 
         foreach ($sendPairs as $p) {
@@ -615,13 +611,13 @@ class IFCAAPIGRNController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'ok' => true,
             'inserted_H_to_P'     => $insertedHtoP,
             'sent_success_P_to_C' => $sentOkPtoC,
             'sent_failed_still_P' => $sentFailP,
             'skipped_C'           => $skippedC,
-        ]);
+        ];
     }
 
     private function getIfcaSettingMap(): array
@@ -810,5 +806,48 @@ class IFCAAPIGRNController extends Controller
         }
 
         return mb_substr($v, 0, $max);
+    }
+
+    /**
+     * Process GRN dated H-3 through today; SOLOMON remains P.
+     */
+    public function SchedulerProcessGRN(): array
+    {
+        $fromDt = now()->subDays(3)->startOfDay();
+        $toDt = now()->endOfDay();
+
+        $pairs = ViewStagingGRN::query()
+            ->select(['cpny_id', 'grn_no'])
+            ->whereBetween('grn_date', [$fromDt, $toDt])
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('grn_no')
+            ->get()
+            ->map(fn ($row) => [
+                'cpny_id' => (string) $row->cpny_id,
+                'grn_no' => (string) $row->grn_no,
+                'key' => (string) $row->cpny_id . '||' . (string) $row->grn_no,
+            ])
+            ->all();
+
+        if (empty($pairs)) {
+            $result = [
+                'ok' => true,
+                'message' => 'Tidak ada GRN dalam periode H-3 sampai hari ini.',
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_C' => 0,
+            ];
+        } else {
+            // Existing P-IFCA in this date range is retried on each run.
+            $result = $this->processGRNPairs($pairs, 'scheduler');
+        }
+
+        return array_merge($result, [
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_grn' => count($pairs),
+        ]);
     }
 }
