@@ -148,7 +148,11 @@
                             <th class="px-4 py-3 text-left font-medium">
                                 SPPB/J/K/T</th>
                             <th class="px-4 py-3 text-left font-medium">
+                                Assign Date</th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 CS Date</th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Process Day</th>
                             <th class="px-4 py-3 text-left font-medium">
                                 Company</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">
@@ -158,13 +162,9 @@
                             <th class="px-4 py-3 text-left font-medium">
                                 Purpose</th>
                             <th class="px-4 py-3 text-left font-medium">
-                                Assign Date</th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Submit Date</th>
-                            <th class="px-4 py-3 text-left font-medium">
                                 Next Approval</th>
                             <th class="px-4 py-3 text-left font-medium">
-                                Days</th>
+                                Day Approve</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status
                             </th>
@@ -270,22 +270,22 @@
                         orderable: false
                     },
                     {
-                        targets: [3, 8, 9],
+                        targets: [3, 4],
                         width: '92px',
                         className: 'cs-compact'
                     },
                     {
-                        targets: 4,
+                        targets: 6,
                         width: '65px',
                         className: 'cs-compact'
                     },
                     {
-                        targets: 11,
+                        targets: [5, 11],
                         width: '48px',
                         className: 'cs-compact'
                     },
                     {
-                        targets: 7,
+                        targets: 9,
                         width: '32%',
                         responsivePriority: 2
                     },
@@ -295,8 +295,7 @@
                     }
                 ],
                 order: [
-                    [2, 'desc'],
-                    [0, 'desc']
+                    [1, 'desc']
                 ],
                 ajax: {
                     url: "{{ route('cslist.json') }}",
@@ -326,23 +325,19 @@
                         render: (v, t, row) => renderSPPBtn(v, row)
                     },
                     {
-                        data: 'csdate',
-                        render: function(data, type) {
-
-                            if (!data) return '';
-
-                            // sorting uses raw value
-                            if (type === 'sort' || type === 'type') {
-                                return data;
-                            }
-
-                            // display format
-                            return new Date(data).toLocaleDateString('id-ID', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                            });
-                        }
+                        data: 'assigndate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'submitdate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'days',
+                        className: 'text-center',
+                        render: (v, t, row) => renderDays(v, row)
                     },
                     {
                         data: 'cpny_id',
@@ -402,19 +397,9 @@
                         }
                     },
                     {
-                        data: 'assigndate',
-                        className: 'text-center',
-                        render: (v) => fmtDate(v)
-                    },
-                    {
-                        data: 'submitdate',
-                        className: 'text-center',
-                        render: (v) => fmtDate(v)
-                    },
-                    {
                         data: 'next_approval',
                         className: 'text-left',
-                        orderable: false,
+                        orderable: true,
                         searchable: false,
                         defaultContent: '-',
                         render: function(value, type) {
@@ -423,9 +408,11 @@
                         }
                     },
                     {
-                        data: 'days',
+                        data: 'days_waiting',
                         className: 'text-center',
-                        render: (v, t, row) => renderDays(v, row)
+                        orderable: true,
+                        searchable: false,
+                        render: (value) => value == null ? '-' : value
                     },
                     {
                         data: 'status',

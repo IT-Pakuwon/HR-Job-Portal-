@@ -1345,7 +1345,7 @@ class IFCAAPIPOController extends Controller
     }
 
     /**
-     * Send reviewed P-IFCA PO with order dates from H-3 through today.
+     * Send P-IFCA PO reviewed from H-3 through today.
      */
     public function SchedulerProcessPOOnProgress(): array
     {
@@ -1358,7 +1358,7 @@ class IFCAAPIPOController extends Controller
         // Check every line of the PO, so mixed D/P/C orders remain untouched.
         $sendPairs = StagingIfcaPoApprove::query()
             ->select(['cpny_id', 'order_no'])
-            ->whereBetween('order_date', [$fromDt, $toDt])
+            ->whereBetween('reviewed_at', [$fromDt, $toDt])
             ->groupBy('cpny_id', 'order_no')
             ->havingRaw("COUNT(*) = SUM(CASE WHEN status = 'P' AND integration_type = 'IFCA' THEN 1 ELSE 0 END)")
             ->orderBy('cpny_id')

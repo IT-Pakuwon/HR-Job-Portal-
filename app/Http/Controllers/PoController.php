@@ -180,6 +180,42 @@ class PoController extends Controller
                 return $r;
             });
 
+        $rfcaList = DB::connection('pgsql')->table('tr_rfca as rfca')
+            ->leftJoin('tr_po_term as term', function ($join) {
+                $join->on('term.terms_id', '=', 'rfca.terms_id')
+                    ->on('term.ponbr', '=', 'rfca.ponbr')
+                    ->on('term.cpny_id', '=', 'rfca.cpny_id');
+            })
+            ->where('rfca.ponbr', $po->ponbr)
+            ->where('rfca.cpny_id', $po->cpny_id)
+            ->where('rfca.status', '<>', 'X')
+            ->select('rfca.id as rfca_record_id', 'rfca.rfcaid', 'term.terms_name', 'rfca.rfca_amount')
+            ->orderBy('rfca.id')
+            ->get();
+
+        $bastHistory = collect();
+        if ($po->potype === 'SPK') {
+            $bastHistory = DB::connection('pgsql')->table('tr_po_term as term')
+                ->leftJoin('tr_bast as bast', function ($join) {
+                    $join->on('bast.bastid', '=', 'term.bastid')
+                        ->on('bast.ponbr', '=', 'term.ponbr')
+                        ->on('bast.cpny_id', '=', 'term.cpny_id');
+                })
+                ->where('term.ponbr', $po->ponbr)
+                ->where('term.cpny_id', $po->cpny_id)
+                ->where('term.terms_type', '<>', 'DP')
+                ->select([
+                    'term.order_term', 'term.bastid', 'term.terms_name',
+                    'term.payment_pct', 'term.progress_pct',
+                    'bast.startdate', 'bast.enddate', 'bast.handoverdate',
+                    'bast.days_penalty', 'bast.total_penalty', 'bast.rating_vendor',
+                    'bast.realize_amount', 'bast.status', 'bast.id as bast_record_id',
+                ])
+                ->orderByRaw('CAST(term.order_term AS numeric) ASC')
+                ->orderBy('term.id')
+                ->get();
+        }
+
         $holidayDates = SysCalendar::query()
             ->where('status', 'Z') // active only
             ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
@@ -197,6 +233,8 @@ class PoController extends Controller
             'csUrl'       => $csUrl,
             'hasReceiptCompleted' => $hasReceiptCompleted,
             'poHistory'   => $poHistory,
+            'bastHistory' => $bastHistory,
+            'rfcaList'    => $rfcaList,
             'hash'        => $hash,
             'holidayDates'          => $holidayDates,
              'poTerms'     => $poTerms,

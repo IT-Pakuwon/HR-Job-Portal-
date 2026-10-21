@@ -354,6 +354,40 @@
                                 @endforeach
                             </div>
 
+                            @if ($rfcaList->isNotEmpty())
+                                <div class="my-3 space-y-3">
+                                    @foreach ($rfcaList as $rfca)
+                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                            <div class="flex min-w-0 items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                                <x-heroicon-o-document-text class="h-5 w-5 shrink-0 text-gray-400" />
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">RFCA ID</p>
+                                                    <a href="{{ url('/showrfca/' . \Vinkla\Hashids\Facades\Hashids::encode($rfca->rfca_record_id)) }}"
+                                                        target="_blank" rel="noopener noreferrer"
+                                                        class="break-words text-sm font-semibold text-indigo-700 hover:underline dark:text-indigo-300">
+                                                        {{ $rfca->rfcaid }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="flex min-w-0 items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                                <x-heroicon-o-document-duplicate class="h-5 w-5 shrink-0 text-gray-400" />
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">Terms Name</p>
+                                                    <p class="break-words text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $rfca->terms_name ?? '-' }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex min-w-0 items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                                <x-heroicon-o-banknotes class="h-5 w-5 shrink-0 text-gray-400" />
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">RFCA Amount</p>
+                                                    <p class="break-words text-sm font-semibold text-gray-900 dark:text-gray-100">Rp {{ number_format((float) $rfca->rfca_amount, 2, ',', '.') }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
                             {{-- Financial Summary --}}
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {{-- Total Amount --}}
@@ -1197,13 +1231,13 @@
                                 :class="poTab === 'detail' ? 'bg-indigo-600 text-white' :
                                     'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
                                 class="px-4 py-2 text-sm font-semibold transition">
-                                PO Detail
+                                {{ $po->potype === 'SPK' ? 'SPK Detail' : 'PO Detail' }}
                             </button>
                             <button type="button" @click="poTab='history'"
                                 :class="poTab === 'history' ? 'bg-indigo-600 text-white' :
                                     'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
                                 class="px-4 py-2 text-sm font-semibold transition">
-                                STTB Tracking
+                                {{ $po->potype === 'SPK' ? 'BAST Tracking' : 'STTB Tracking' }}
                             </button>
                         </div>
                     </div>
@@ -1259,6 +1293,83 @@
 
                 {{-- ===== TAB: PO HISTORY (TrReceipt) ===== --}}
                 <div x-show="poTab==='history'" class="overflow-x-auto">
+                    @if ($po->potype === 'SPK')
+                    <table class="w-full whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                            <tr>
+                                <th class="px-4 py-2">Order Term</th>
+                                <th class="px-4 py-2">BAST ID</th>
+                                <th class="min-w-[220px] px-4 py-2">Terms Name</th>
+                                <th class="px-4 py-2 text-right">Payment %</th>
+                                <th class="px-4 py-2 text-right">Progress %</th>
+                                <th class="px-4 py-2">Start Date</th>
+                                <th class="px-4 py-2">End Date</th>
+                                <th class="px-4 py-2">Handover Date</th>
+                                <th class="px-4 py-2 text-right">Days Penalty</th>
+                                <th class="px-4 py-2 text-right">Total Penalty</th>
+                                <th class="px-4 py-2">Vendor Rating</th>
+                                <th class="px-4 py-2 text-right">Realize Amount</th>
+                                <th class="px-4 py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($bastHistory as $bast)
+                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2">{{ $bast->order_term ?? '-' }}</td>
+                                    <td class="px-4 py-2 font-semibold">
+                                        @if ($bast->bast_record_id && $bast->bastid)
+                                            <a href="{{ url('/showbast/' . \Vinkla\Hashids\Facades\Hashids::encode($bast->bast_record_id)) }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                class="text-indigo-700 hover:underline dark:text-indigo-300">
+                                                {{ $bast->bastid }}
+                                            </a>
+                                        @else
+                                            {{ $bast->bastid ?: '-' }}
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-normal break-words px-4 py-2">{{ $bast->terms_name ?? '-' }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $bast->payment_pct !== null ? $nf2($bast->payment_pct) . '%' : '-' }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $bast->progress_pct !== null ? $nf2($bast->progress_pct) . '%' : '-' }}</td>
+                                    <td class="px-4 py-2">{{ $bast->startdate ? \Carbon\Carbon::parse($bast->startdate)->format('d M Y') : '-' }}</td>
+                                    <td class="px-4 py-2">{{ $bast->enddate ? \Carbon\Carbon::parse($bast->enddate)->format('d M Y') : '-' }}</td>
+                                    <td class="px-4 py-2">{{ $bast->handoverdate ? \Carbon\Carbon::parse($bast->handoverdate)->format('d M Y') : '-' }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $bast->days_penalty ?? '-' }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $bast->total_penalty !== null ? $nf2($bast->total_penalty) : '-' }}</td>
+                                    <td class="px-4 py-2">{{ $bast->rating_vendor ?? '-' }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $bast->realize_amount !== null ? $nf2($bast->realize_amount) : '-' }}</td>
+                                    <td class="px-4 py-2">
+                                        @php
+                                            $bastStatus = strtoupper(trim((string) $bast->status));
+                                            $bastStatusLabel = match ($bastStatus) {
+                                                'P' => 'On Progress',
+                                                'C' => 'Completed',
+                                                'R' => 'Rejected',
+                                                'D' => 'Revise',
+                                                default => $bastStatus !== '' ? $bastStatus : '-',
+                                            };
+                                            $bastStatusColor = match ($bastStatus) {
+                                                'P' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                                'C' => 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300',
+                                                'R' => 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-300',
+                                                'D' => 'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-300',
+                                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                            };
+                                        @endphp
+                                        <span class="{{ $bastStatusColor }} inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold">
+                                            {{ $bastStatusLabel }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="13" class="px-4 py-6 text-center italic text-gray-500 dark:text-gray-400">
+                                        No BAST tracking found for this SPK.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                    @else
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
@@ -1340,6 +1451,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    @endif
                 </div>
 
             </div>

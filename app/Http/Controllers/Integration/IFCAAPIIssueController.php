@@ -922,4 +922,392 @@ class IFCAAPIIssueController extends Controller
     {
         return Str::limit(trim((string)$val), $len, '');
     }
+
+    /**
+     * Stage Issue H -> D; review remains a separate manual step.
+     */
+    public function SchedulerProcessIssueHold(): array
+    {
+        $username = 'scheduler';
+        $fromDt = now()->subDays(3)->startOfDay();
+        $toDt = now()->endOfDay();
+
+        $pairs = ViewStagingIssue::query()
+            ->select(['cpny_id', 'issue_id'])
+            ->whereBetween('issue_date', [$fromDt, $toDt])
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('issue_id')
+            ->get();
+
+        $insertedHtoD = 0;
+        $processed = 0;
+        $skipped = 0;
+        $stagingConn = (new StagingIfcaIcStkIssue)->getConnectionName();
+
+        DB::connection($stagingConn)->beginTransaction();
+        try {
+            foreach ($pairs as $p) {
+                $cpny = (string) $p->cpny_id;
+                $iss = (string) $p->issue_id;
+
+                if (StagingIfcaIcStkIssue::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('issue_id', $iss)
+                    ->exists()) {
+                    $skipped++;
+                    continue;
+                }
+
+                $lines = ViewStagingIssue::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('issue_id', $iss)
+                    ->orderBy('line_no')
+                    ->get();
+
+                if ($lines->isEmpty()) {
+                    continue;
+                }
+
+                $processed++;
+                $buKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_business_unit_id)
+                    ->filter(fn($k) => $k !== '||')
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $deptKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_department_fin_id)
+                    ->filter(fn($k) => $k !== '||')
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $coaKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_account_id)
+                    ->filter(fn($k) => $k !== '||')
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $buRows = BusinessUnit::query()
+                    ->select([
+                        'cpny_id',
+                        'business_unit_id',
+                        'ifca_entity_cd',
+                        'solomon_cpny_id',
+                        'solomon_allocation_cd',
+                        'integration_type',
+                    ])
+                    ->where('status', 'A')
+                    ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $buKeys)
+                    ->get();
+
+                $buMap = $buRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->business_unit_id);
+
+                $deptRows = DepartmentFin::query()
+                    ->select([
+                        'cpny_id',
+                        'department_fin_id',
+                        'ifca_dept_cd',
+                        'solomon_subaccount_dept',
+                    ])
+                    ->where('status', 'A')
+                    ->whereIn(DB::raw("(cpny_id || '||' || department_fin_id)"), $deptKeys)
+                    ->get();
+
+                $deptMap = $deptRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->department_fin_id);
+
+                $coaRows = MsCoa::query()
+                    ->select([
+                        'cpny_id',
+                        'account_id',
+                        'ifca_acct_cd',
+                        'solomon_acct_cd',
+                    ])
+                    ->where('status', 'A')
+                    ->whereIn(DB::raw("(cpny_id || '||' || account_id)"), $coaKeys)
+                    ->get();
+
+                $coaMap = $coaRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->account_id);
+
+                $needDivKeys = [];
+
+                foreach ($lines as $l) {
+                    $buId = trim((string)($l->budget_business_unit_id ?? ''));
+                    if ($buId === '') {
+                        continue;
+                    }
+
+                    $mapCpnyX = (string)($l->budget_cpny_id ?? $cpny);
+                    $deptKeyX = $mapCpnyX.'||'.(string)$l->budget_department_fin_id;
+                    $dpX = $deptMap->get($deptKeyX);
+
+                    $deptCdIfca = trim($this->s($dpX->ifca_dept_cd ?? '', 8));
+                    if ($deptCdIfca === '' || $deptCdIfca === 'ERR') {
+                        continue;
+                    }
+
+                    $needDivKeys[] = $buId.'||'.$deptCdIfca;
+                }
+
+                $needDivKeys = array_values(array_unique($needDivKeys));
+
+                $divMap = collect();
+                if (!empty($needDivKeys)) {
+                    $divMap = StagingIfcaMappingDiv::query()
+                        ->select([
+                            'business_unit_id',
+                            'dept_cd',
+                            'div_cd',
+                        ])
+                        ->where('status', 'A')
+                        ->whereIn(DB::raw("(business_unit_id || '||' || dept_cd)"), $needDivKeys)
+                        ->get()
+                        ->keyBy(fn($r) => trim((string)$r->business_unit_id).'||'.trim((string)$r->dept_cd));
+                }
+
+                foreach ($lines as $ln) {
+                    $mapCpny = (string)($ln->budget_cpny_id ?? $cpny);
+
+                    $buKey   = $mapCpny.'||'.(string)$ln->budget_business_unit_id;
+                    $deptKey = $mapCpny.'||'.(string)$ln->budget_department_fin_id;
+                    $coaKey  = $mapCpny.'||'.(string)$ln->budget_account_id;
+
+                    $bu  = $buMap->get($buKey);
+                    $dp  = $deptMap->get($deptKey);
+                    $coa = $coaMap->get($coaKey);
+
+                    $integrationType = strtoupper((string)($bu->integration_type ?? 'ERR'));
+
+                    $entityCd = $locationCd = '';
+                    $acctCd = $divCd = $deptCd = '';
+                    $solAcctCd = $solAlloc = $solSubDept = '';
+
+                    if ($integrationType === 'IFCA') {
+                        $entityCd   = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
+                        $locationCd = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
+
+                        $acctCd = $this->s($coa->ifca_acct_cd ?? 'ERR', 20);
+                        $deptCd = $this->s($dp->ifca_dept_cd ?? 'ERR', 8);
+
+                        $divCd = '0000';
+                        if ($deptCd === '' || $deptCd === 'ERR') {
+                            $deptCd = '0000';
+                        }
+
+                        $buIdLine  = trim((string)($ln->budget_business_unit_id ?? ''));
+                        $deptCdKey = trim((string)$deptCd);
+
+                        if ($buIdLine !== '' && $deptCdKey !== '' && $deptCdKey !== 'ERR' && $deptCdKey !== '0000') {
+                            $mk = $buIdLine.'||'.$deptCdKey;
+                            $mappedDiv = $divMap->get($mk);
+
+                            if ($mappedDiv) {
+                                $divCd = $this->s($mappedDiv->div_cd ?? $divCd, 20);
+                            }
+                        }
+
+                        $solAcctCd = $solAlloc = $solSubDept = '';
+                    } elseif ($integrationType === 'SOLOMON') {
+                        $entityCd   = $this->s($bu->solomon_cpny_id ?? 'ERR', 4);
+                        $locationCd = $this->s($bu->solomon_cpny_id ?? 'ERR', 4);
+
+                        $solAcctCd  = $this->s($coa->solomon_acct_cd ?? 'ERR', 10);
+                        $solAlloc   = $this->s($bu->solomon_allocation_cd ?? 'ERR', 10);
+                        $solSubDept = $this->s($dp->solomon_subaccount_dept ?? 'ERR', 10);
+
+                        $acctCd = $divCd = $deptCd = '';
+                    } else {
+                        $integrationType = 'ERR';
+                        $entityCd   = 'ERR';
+                        $locationCd = 'ERR';
+                        $acctCd     = 'ERR';
+                        $deptCd     = 'ERR';
+                        $solAcctCd  = 'ERR';
+                        $solAlloc   = 'ERR';
+                        $solSubDept = 'ERR';
+                        $divCd      = 'ERR';
+                    }
+
+                    StagingIfcaIcStkIssue::create([
+                        'cpny_id' => $cpny,
+                        'entity_cd' => $entityCd,
+
+                        'issue_id' => (string)$ln->issue_id,
+                        'issue_date' => $ln->issue_date,
+                        'issuehd_descs' => (string)$ln->issuehd_descs,
+                        'reference_no' => (string)$ln->reference_no,
+                        'spb_id' => (string)$ln->spb_id,
+                        'wo_id' => (string)$ln->wo_id,
+                        'ref_issue_id' => (string)$ln->ref_issue_id,
+                        'department_id' => (string)$ln->department_id,
+                        'user_peminta' => (string)$ln->user_peminta,
+                        'keeper' => (string)$ln->keeper,
+
+                        'total_record' => (int)$ln->total_record,
+                        'line_no' => (int)$ln->line_no,
+                        'item_cd' => (string)$ln->item_cd,
+                        'item_remark' => (string)$ln->item_remark,
+                        'uom' => (string)$ln->uom,
+                        'issue_qty' => (float)$ln->issue_qty,
+
+                        'budget_business_unit_id'  => (string)$ln->budget_business_unit_id,
+                        'budget_department_fin_id' => (string)$ln->budget_department_fin_id,
+                        'budget_account_id'        => (string)$ln->budget_account_id,
+
+                        'integration_type' => $this->s($integrationType, 20),
+
+                        'ic_location' => $locationCd,
+                        'trx_cd' => $acctCd,
+                        'div_cd'  => $divCd,
+                        'dept_cd' => $deptCd,
+
+                        'solomon_reason_cd'       => (string)$ln->reason_code,
+                        'solomon_acct_cd'         => $solAcctCd,
+                        'solomon_allocation_cd'   => $solAlloc,
+                        'solomon_subaccount_dept' => $solSubDept,
+
+                        'process_flag' => 'N',
+                        'create_date' => now(),
+                        'process_dt' => null,
+                        'process_note' => null,
+                        'status' => 'D',
+
+                        'created_by' => $username,
+                        'created_at' => now(),
+                        'updated_by' => $username,
+                        'updated_at' => now(),
+                    ]);
+
+                    $insertedHtoD++;
+                }
+            }
+
+            DB::connection($stagingConn)->commit();
+        } catch (\Throwable $e) {
+            DB::connection($stagingConn)->rollBack();
+            return [
+                'ok' => false,
+                'message' => 'Gagal insert staging Issue (H->D): ' . $e->getMessage(),
+                'inserted_H_to_D' => 0,
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'message' => 'Auto scheduler Issue Hold selesai.',
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_issue' => $pairs->count(),
+            'processed_H_to_D' => $processed,
+            'inserted_H_to_D' => $insertedHtoD,
+            'skipped_existing_staging' => $skipped,
+        ];
+    }
+
+    /**
+     * Send P-IFCA Issue reviewed from H-3 through today.
+     */
+    public function SchedulerProcessIssueOnProgress(): array
+    {
+        $username = 'scheduler';
+        $fromDt = now()->subDays(3)->startOfDay();
+        $toDt = now()->endOfDay();
+        $sentOkPtoC = 0;
+        $sentFailP = 0;
+
+        // Check every line of the Issue, so mixed D/P/C documents remain untouched.
+        $sendPairs = StagingIfcaIcStkIssue::query()
+            ->select(['cpny_id', 'issue_id'])
+            ->whereBetween('reviewed_at', [$fromDt, $toDt])
+            ->groupBy('cpny_id', 'issue_id')
+            ->havingRaw("COUNT(*) = SUM(CASE WHEN status = 'P' AND integration_type = 'IFCA' THEN 1 ELSE 0 END)")
+            ->orderBy('cpny_id')
+            ->orderBy('issue_id')
+            ->get()
+            ->map(fn ($p) => [
+                'cpny_id' => (string) $p->cpny_id,
+                'issue_id' => (string) $p->issue_id,
+                'key' => (string) $p->cpny_id . '||' . (string) $p->issue_id,
+            ])
+            ->all();
+
+        if (empty($sendPairs)) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada Issue P-IFCA yang siap dikirim.',
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+            ];
+        }
+        // ===== STEP B: P -> C (send API) =====
+        try {
+            $token = $this->getIfcaToken($username);
+        } catch (\Throwable $e) {
+            return [
+                'ok' => false,
+                'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
+            ];
+        }
+
+        foreach ($sendPairs as $p) {
+            $cpny = (string)$p['cpny_id'];
+            $iss  = (string)$p['issue_id'];
+            $key  = (string)$p['key'];
+
+            $lines = StagingIfcaIcStkIssue::query()
+                ->where('cpny_id', $cpny)
+                ->where('issue_id', $iss)
+                ->orderBy('line_no')
+                ->get();
+
+            // Recheck the full Issue in case its review status changed after selection.
+            if ($lines->isEmpty() || $lines->contains(fn ($line) =>
+                $line->status !== 'P' || $line->integration_type !== 'IFCA'
+            )) {
+                continue;
+            }
+
+            $res = $this->sendIcStockIssueAPI($lines, $token, $username, $key);
+
+            if (!empty($res['ok'])) {
+                StagingIfcaIcStkIssue::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('issue_id', $iss)
+                    ->where('status', 'P')
+                    ->where('integration_type', 'IFCA')
+                    ->update([
+                        'status'       => 'C',
+                        'process_flag' => 'Y',
+                        'process_dt'   => now(),
+                        'process_note' => null,
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentOkPtoC++;
+            } else {
+                $msg = substr((string)($res['response_body'] ?? 'ERROR'), 0, 255);
+
+                StagingIfcaIcStkIssue::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('issue_id', $iss)
+                    ->where('status', 'P')
+                    ->where('integration_type', 'IFCA')
+                    ->update([
+                        'process_note' => $msg,
+                        'process_dt'   => now(),
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentFailP++;
+            }
+        }
+
+        return [
+            'ok' => true,
+            'sent_success_P_to_C' => $sentOkPtoC,
+            'sent_failed_still_P' => $sentFailP,
+        ];
+    }
 }
