@@ -256,71 +256,7 @@ class StockJobsController extends Controller
         ]);
     }
 
-    private function jsonInventory_xxx(Request $request)
-    {
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 25);
-        $search = trim((string) $request->input('search.value', ''));
-
-        // IMPORTANT:
-        // tampilkan GI (all status), biar toggle A/X masih terlihat
-        $q = MsInventory::query()
-            ->where('item_type', 'GI');
-
-        $recordsTotal = (clone $q)->count();
-
-        if ($search !== '') {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('inventoryid', 'ilike', "%{$search}%")
-                    ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                    ->orWhere('item_sub_type', 'ilike', "%{$search}%")
-                    ->orWhere('item_class', 'ilike', "%{$search}%")
-                    ->orWhere('item_sub_class', 'ilike', "%{$search}%")
-                    ->orWhere('stock_unit', 'ilike', "%{$search}%")
-                    ->orWhere('status', 'ilike', "%{$search}%");
-            });
-        }
-
-        $recordsFiltered = (clone $q)->count();
-
-        // karena kolom ke-0 di datatable adalah "Actions",
-        // mapping order harus start dari index 1
-        $columns = [
-            1 => 'inventoryid',
-            2 => 'inventory_descr',
-            3 => 'item_sub_type',
-            4 => 'item_class',
-            5 => 'item_sub_class',
-            6 => 'stock_unit',
-            7 => 'status',
-        ];
-
-        $orderColIndex = (int) $request->input('order.0.column', 1);
-        $orderDir      = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
-        $orderBy       = $columns[$orderColIndex] ?? 'inventoryid';
-
-        $rows = $q->orderBy($orderBy, $orderDir)
-            ->skip($start)
-            ->take($length)
-            ->get([
-                'id',
-                'inventoryid',
-                'inventory_descr',
-                'item_sub_type',
-                'item_class',
-                'item_sub_class',
-                'stock_unit',
-                'status',
-            ]);
-
-        return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data'            => $rows,
-        ]);
-    }
+ 
 
     private function jsonJobs(Request $request, $user)
     {
@@ -525,7 +461,7 @@ class StockJobsController extends Controller
                 'item_class'      => $classCode,
                 'item_sub_class'  => $subClsCode,
 
-                'item_category'   => $request->item_category,
+                'item_category'   => 'Stock',
                 'stock_unit'      => strtoupper(trim($request->stock_unit)),
                 'purchase_unit'   => strtoupper(trim($request->purchase_unit)),
 
@@ -624,16 +560,7 @@ class StockJobsController extends Controller
 
         $request->validate([
             'inventory_descr'   => ['required','string','max:255'],
-
-            // ⬇️ masih STRING (GI / STOCK / ATK / BKU)
-            // 'item_type_id'      => ['required','string','max:50'],
-            // 'item_sub_type_id'  => ['required','string','max:50'],
-            // 'item_class_id'     => ['required','string','max:50'],
-            // 'item_sub_class_id' => ['required','string','max:50'],
-
-            // 'item_category'     => ['nullable','string','max:100'],
-            // 'stock_unit'        => ['required','string','max:50'],
-            // 'purchase_unit'     => ['required','string','max:50'],
+         
         ]);
 
         DB::beginTransaction();
@@ -646,52 +573,7 @@ class StockJobsController extends Controller
             $classCode   = strtoupper(trim($request->item_class_id));
             $subClsCode  = strtoupper(trim($request->item_sub_class_id));
 
-            /*
-            |--------------------------------------------------------------------------
-            | OPTIONAL: validasi master (tanpa autonbr & tanpa inventoryid)
-            |--------------------------------------------------------------------------
-            */
-            // $type = MsInvItemType::whereRaw(
-            //     'UPPER(TRIM(item_type_id)) = ?',
-            //     [$typeCode]
-            // )->first();
-
-            // if (!$type) {
-            //     return response()->json(['error' => "Item Type tidak valid: {$typeCode}"], 422);
-            // }
-
-            // $subType = MsInvItemSubType::whereRaw(
-            //         'UPPER(TRIM(item_sub_type_id)) = ?',
-            //         [$subTypeCode]
-            //     )
-            //     ->whereRaw('UPPER(TRIM(item_type_id)) = ?', [$typeCode])
-            //     ->first();
-
-            // if (!$subType) {
-            //     return response()->json(['error' => "Item Sub Type tidak valid: {$subTypeCode}"], 422);
-            // }
-
-            // $cls = MsInvItemClass::whereRaw(
-            //         'UPPER(TRIM(item_class_id)) = ?',
-            //         [$classCode]
-            //     )
-            //     ->whereRaw('UPPER(TRIM(item_sub_type_id)) = ?', [$subTypeCode])
-            //     ->first();
-
-            // if (!$cls) {
-            //     return response()->json(['error' => "Item Class tidak valid: {$classCode}"], 422);
-            // }
-
-            // $subCls = MsInvItemSubClass::whereRaw(
-            //         'UPPER(TRIM(item_sub_class_id)) = ?',
-            //         [$subClsCode]
-            //     )
-            //     ->whereRaw('UPPER(TRIM(item_class_id)) = ?', [$classCode])
-            //     ->first();
-
-            // if (!$subCls) {
-            //     return response()->json(['error' => "Item Sub Class tidak valid: {$subClsCode}"], 422);
-            // }
+            
 
             /*
             |--------------------------------------------------------------------------
@@ -700,15 +582,8 @@ class StockJobsController extends Controller
             */
             $inv->update([
                 'inventory_descr' => strtoupper(trim($request->inventory_descr)),
-
-                // 'item_type'       => $typeCode,
-                // 'item_sub_type'   => $subTypeCode,
-                // 'item_class'      => $classCode,
-                // 'item_sub_class'  => $subClsCode,
-
-                // 'item_category'   => $request->item_category,
-                // 'stock_unit'      => strtoupper(trim($request->stock_unit)),
-                // 'purchase_unit'   => strtoupper(trim($request->purchase_unit)),
+                'item_category'   => 'Stock',
+               
 
                 'updated_by'      => $loginUser->username ?? 'system',
                 'updated_at'      => now(),
