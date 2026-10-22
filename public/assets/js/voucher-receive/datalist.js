@@ -51,7 +51,7 @@ const VplReceiveDatalist = {
             },
             columns: [
                 {
-                    data: 'action', name: 'receive_id', orderable: false, searchable: false,
+                    data: 'action', name: 'receive_id', orderable: false, searchable: true,
                 },
                 {
                     data: 'receive_date', name: 'receive_date',

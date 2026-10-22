@@ -19,7 +19,7 @@ const VplTransferDatalist = {
                 },
             },
             columns: [
-                { data: 'action',              name: 'action',            orderable: false, searchable: false },
+                { data: 'action',              name: 'action',            orderable: false, searchable: true },
                 { data: 'transfer_date_fmt',   name: 'transfer_date',     orderable: true },
                 { data: 'cpnyid',              name: 'cpnyid' },
                 { data: 'department',          name: 'department' },
@@ -27,7 +27,7 @@ const VplTransferDatalist = {
                 { data: 'transfertype_label',  name: 'transfertype' },
                 { data: 'ref_transfer_id',     name: 'ref_transfer_id',   defaultContent: '-' },
                 { data: 'transfer_remark',     name: 'transfer_remark',   defaultContent: '-' },
-                { data: 'status_badge',        name: 'status',            orderable: false, searchable: false },
+                { data: 'status_badge',        name: 'status',            orderable: false, searchable: true },
             ],
             order: [[1, 'desc']],
             pageLength: 10,

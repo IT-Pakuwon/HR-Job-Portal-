@@ -19,7 +19,7 @@ const VplUsageDatalist = {
                 },
             },
             columns: [
-                { data: 'action',            name: 'action',            orderable: false, searchable: false },
+                { data: 'action',            name: 'action',            orderable: false, searchable: true },
                 { data: 'usage_date_fmt',    name: 'usage_date',        orderable: true },
                 { data: 'event_date_fmt',    name: 'event_date',        orderable: false, defaultContent: '-' },
                 { data: 'cpnyid',            name: 'cpnyid' },
@@ -28,7 +28,7 @@ const VplUsageDatalist = {
                 { data: 'usagetype_label',   name: 'usagetype' },
                 { data: 'ref_usage_id',      name: 'ref_usage_id',      defaultContent: '-' },
                 { data: 'usage_remark',      name: 'usage_remark',      defaultContent: '-' },
-                { data: 'status_badge',      name: 'status',            orderable: false, searchable: false },
+                { data: 'status_badge',      name: 'status',            orderable: false, searchable: true },
             ],
             order: [[1, 'desc']],
             pageLength: 10,
