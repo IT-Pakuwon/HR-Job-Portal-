@@ -110,7 +110,7 @@
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
@@ -129,6 +129,16 @@
                                     SPK
                                 </span>
                             @endif
+                            @php
+                                $ifcaStatusClasses = match ($ifcaStatus) {
+                                    'On Progress' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                    'Processed to IFCA' => 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300',
+                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                                };
+                            @endphp
+                            <span class="{{ $ifcaStatusClasses }} inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold">
+                                {{ $ifcaStatus }}
+                            </span>
                         </h1>
 
 
