@@ -783,9 +783,24 @@ class CareerController extends Controller
     // pinned by the PRF's own company, found via the group-scoped PRF lookup.
     private function prfCpnyid($jobposting): ?string
     {
-        return Personnel::where('docid', $jobposting->refid)
+        $headerCpnyid = Personnel::where('docid', $jobposting->refid)
             ->where('group_cpny_id', $jobposting->group_cpny_id)
             ->value('cpnyid');
+
+        // The PRF's company can be changed after its approval rows were created (e.g. a
+        // draft save skips the approval rebuild), leaving TrApproval under the old company.
+        // Prefer the company the approval rows actually carry so lookups still match them.
+        $rowCpnyids = TrApproval::where('refnbr', $jobposting->refid)
+            ->where('aprv_doctype', 'PRF')
+            ->pluck('aprv_cpnyid')
+            ->unique()
+            ->values();
+
+        if ($rowCpnyids->isEmpty() || $rowCpnyids->contains($headerCpnyid)) {
+            return $headerCpnyid;
+        }
+
+        return $rowCpnyids->first();
     }
 
     // The applicant job (docid + the user's group_cpny_id), whose cpnyid scopes its comments.
