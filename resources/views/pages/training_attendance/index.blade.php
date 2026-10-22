@@ -31,7 +31,7 @@
                     <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         <option value="">Select an event…</option>
                     </select>
-                    <div id="eventMeta" class="mt-3 hidden flex-wrap gap-2"></div>
+                    <div id="eventMeta" class="mt-3 hidden flex-col gap-3"></div>
                 </div>
 
                 <div id="noEventState" class="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
@@ -349,6 +349,46 @@
             background: rgba(17, 24, 39, 0.6);
             color: #d1d5db;
         }
+        .eventInfoRow { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-bottom: 14px; }
+        .eventStatGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+        @media (max-width: 640px) { .eventStatGrid { grid-template-columns: 1fr; } }
+        .eventStat {
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; gap: 14px;
+            border-radius: 16px; border: 1px solid; padding: 16px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.04);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .eventStat:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.07); }
+        .eventStat::after {
+            content: ''; position: absolute; right: -28px; top: -28px; width: 96px; height: 96px;
+            border-radius: 9999px; background: currentColor; opacity: .06;
+        }
+        .eventStatIcon {
+            display: flex; align-items: center; justify-content: center;
+            width: 46px; height: 46px; flex: none; border-radius: 14px; font-size: 21px;
+            background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.07);
+        }
+        .eventStatValue { font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+        .eventStatLabel { margin-top: 5px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+        .eventStatPct {
+            margin-left: auto; align-self: flex-start; padding: 2px 8px; border-radius: 9999px;
+            font-size: 11px; font-weight: 700; background: rgba(255,255,255,.75); z-index: 1;
+        }
+        .eventStat--blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #bfdbfe; color: #1d4ed8; }
+        .eventStat--green { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #a7f3d0; color: #047857; }
+        .eventStat--amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fde68a; color: #b45309; }
+        .dark .eventStat--blue { background: rgba(59,130,246,.14); border-color: rgba(59,130,246,.35); color: #93c5fd; }
+        .dark .eventStat--green { background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.35); color: #6ee7b7; }
+        .dark .eventStat--amber { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.35); color: #fcd34d; }
+        .dark .eventStatIcon { background: rgba(17,24,39,.7); }
+        .dark .eventStatPct { background: rgba(17,24,39,.55); }
+        .eventProgressWrap { width: 100%; margin-top: 14px; }
+        .eventProgressHead { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; font-weight: 600; color: #6b7280; }
+        .dark .eventProgressHead { color: #9ca3af; }
+        .eventProgress { width: 100%; height: 8px; border-radius: 9999px; background: #e5e7eb; overflow: hidden; }
+        .dark .eventProgress { background: #374151; }
+        .eventProgressBar { height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #34d399, #059669); transition: width .4s ease; }
     </style>
 
     <script>
@@ -456,12 +496,48 @@
                 ? { icon: '🔒', text: 'Registration closed' }
                 : { icon: '🟡', text: 'Registration still open' };
 
+            const registered = event.approved_count || 0;
+            const attended = Math.min(event.attended_count || 0, registered);
+            const notYet = registered - attended;
+            const pct = registered ? Math.round((attended / registered) * 100) : 0;
+
             $meta.removeClass('hidden').html(`
-                <span class="metaBadge">📅 ${fmtDate(event.schedule_date)}</span>
-                <span class="metaBadge">⏰ ${time}</span>
-                <span class="metaBadge">👥 ${count}</span>
-                <span class="metaBadge">${regStatus.icon} ${regStatus.text}</span>
+                <div class="eventInfoRow">
+                    <span class="metaBadge">📅 ${fmtDate(event.schedule_date)}</span>
+                    <span class="metaBadge">⏰ ${time}</span>
+                    <span class="metaBadge">${regStatus.icon} ${regStatus.text}</span>
+                </div>
+                <div class="eventStatGrid">
+                    <div class="eventStat eventStat--blue">
+                        <span class="eventStatIcon">👥</span>
+                        <div><div class="eventStatValue">${registered}</div><div class="eventStatLabel">Total Registered</div></div>
+                    </div>
+                    <div class="eventStat eventStat--green">
+                        <span class="eventStatIcon">✅</span>
+                        <div><div class="eventStatValue">${attended}</div><div class="eventStatLabel">Total Attended</div></div>
+                        <span class="eventStatPct">${pct}%</span>
+                    </div>
+                    <div class="eventStat eventStat--amber">
+                        <span class="eventStatIcon">⏳</span>
+                        <div><div class="eventStatValue">${notYet}</div><div class="eventStatLabel">Not Attend Yet</div></div>
+                        <span class="eventStatPct">${registered ? 100 - pct : 0}%</span>
+                    </div>
+                </div>
+                <div class="eventProgressWrap">
+                    <div class="eventProgressHead"><span>Attendance progress</span><span>${attended} / ${registered}</span></div>
+                    <div class="eventProgress"><div class="eventProgressBar" style="width:${pct}%"></div></div>
+                </div>
             `);
+        }
+
+        // Keep the selected event's attended count in step with the roster
+        // (check-ins / undo happen without re-fetching the events list).
+        function syncAttendedFromRoster() {
+            const event = events.find((e) => String(e.id) === String(selectedEventId));
+            if (!event) return;
+            event.attended_count = currentRoster.filter((r) => r.attended_at).length;
+            event.approved_count = currentRoster.length;
+            renderEventMeta(event);
         }
 
         function onEventChange(id, skipReload) {
@@ -561,6 +637,7 @@
             $.get(routeUrl('roster', selectedEventId), function (res) {
                 currentRoster = res.data || [];
                 renderRoster();
+                syncAttendedFromRoster();
             });
         }
 
@@ -570,6 +647,7 @@
             const idx = currentRoster.findIndex((r) => String(r.id) === String(updated.id));
             if (idx !== -1) currentRoster[idx] = updated;
             renderRoster();
+            syncAttendedFromRoster();
         }
 
         function initials(name) {

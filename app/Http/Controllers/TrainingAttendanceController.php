@@ -54,9 +54,17 @@ class TrainingAttendanceController extends Controller
             ->groupBy('schedule_id')
             ->pluck('cnt', 'schedule_id');
 
+        $attendedCounts = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
+            ->whereNotNull('completed_at')
+            ->select('schedule_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id')
+            ->pluck('cnt', 'schedule_id');
+
         $levelLabels = StoGrading::labelsFor($details->pluck('schedule.job_level'));
 
-        $rows = $details->map(function ($d) use ($approvedCounts, $levelLabels) {
+        $rows = $details->map(function ($d) use ($approvedCounts, $attendedCounts, $levelLabels) {
             $schedule = $d->schedule;
             $training = $schedule?->training;
 
@@ -73,6 +81,7 @@ class TrainingAttendanceController extends Controller
                 'platform' => $d->training_platform,
                 'status' => $d->status,
                 'approved_count' => (int) ($approvedCounts[$d->schedule_id] ?? 0),
+                'attended_count' => (int) ($attendedCounts[$d->schedule_id] ?? 0),
             ];
         })->values();
 
