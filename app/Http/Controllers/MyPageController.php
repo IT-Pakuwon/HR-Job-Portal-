@@ -51,9 +51,11 @@ class MyPageController extends Controller
         return [null, null];
     }
 
+    // My APP is limited to the JKT group company, and for now to admin users only.
     private function isJkt(User $user): bool
     {
-        return strtoupper(trim((string) $user->group_cpny_id)) === 'JKT';
+        return $user->isPrimaryAdmin()
+            && strtoupper(trim((string) $user->group_cpny_id)) === 'JKT';
     }
 
     // Single-use marker: changes as soon as the password changes, which kills any reset link already sent.
@@ -82,7 +84,7 @@ class MyPageController extends Controller
         }
 
         if (!$this->isJkt($user)) {
-            throw ValidationException::withMessages(['login' => ['My APP is only available for the JKT group company.']]);
+            throw ValidationException::withMessages(['login' => ['My APP is currently only available for admin users of the JKT group company.']]);
         }
 
         Auth::login($user, $request->boolean('remember'));
@@ -165,7 +167,7 @@ class MyPageController extends Controller
 
         // My APP is limited to the JKT group company.
         if (!$this->isJkt($user)) {
-            abort(403, 'My APP is only available for the JKT group company.');
+            abort(403, 'My APP is currently only available for admin users of the JKT group company.');
         }
 
         return view('pages.my-page.index', [
