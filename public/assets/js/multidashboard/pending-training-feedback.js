@@ -9,7 +9,8 @@
 
     var currentRows = [];
 
-    function init() {
+    // afterLoad (optional) replaces the default popup, e.g. after a submit.
+    function init(afterLoad) {
         var container = document.getElementById('pendingFeedbackReminders');
         if (!container) return;
 
@@ -18,8 +19,44 @@
             .then(function (res) {
                 currentRows = res.data || [];
                 render(container);
+                if (typeof afterLoad === 'function') afterLoad(); else promptPending();
             })
             .catch(function () {});
+    }
+
+    // Shown on every dashboard load while feedback is still pending, so the
+    // user keeps getting a one-click path into the form until they fill it.
+    function promptPending() {
+        if (!currentRows.length || !window.Swal || window.Swal.isVisible()) return;
+
+        var first = currentRows[0];
+        var more = currentRows.length > 1 ? ' (+' + (currentRows.length - 1) + ' more)' : '';
+
+        injectStyles();
+
+        var speaker = first.speaker_name ? '<div class="feedbackPrompt-speaker">by ' + esc(first.speaker_name) + '</div>' : '';
+        var badge = more ? '<span class="feedbackPrompt-badge">' + esc(more.trim()) + '</span>' : '';
+
+        window.Swal.fire({
+            html: '<div class="feedbackPrompt-icon">📝</div>'
+                + '<h3 class="feedbackPrompt-title">Your feedback is needed</h3>'
+                + '<p class="feedbackPrompt-text">Share how the training went — it only takes a minute.</p>'
+                + '<div class="feedbackPrompt-card">'
+                + '<div class="feedbackPrompt-name">' + esc(first.training_name || '-') + '</div>'
+                + speaker + badge
+                + '</div>',
+            showCancelButton: true,
+            buttonsStyling: false,
+            confirmButtonText: 'Fill feedback now',
+            cancelButtonText: 'Remind me later',
+            customClass: {
+                popup: 'pendingFeedbackModalPopup feedbackPrompt-popup',
+                confirmButton: 'pendingFeedbackConfirmBtn',
+                cancelButton: 'pendingFeedbackCancelBtn',
+            },
+        }).then(function (result) {
+            if (result.isConfirmed) openInlineFeedbackModal(first);
+        });
     }
 
     function render(container) {
@@ -57,6 +94,33 @@
         e.preventDefault();
         openInlineFeedbackModal(row);
     });
+
+    // Success popup after a submit; if more trainings are still pending, offer
+    // to continue with the next one.
+    function showSubmitted() {
+        injectStyles();
+
+        var next = currentRows[0];
+        var left = currentRows.length;
+
+        window.Swal.fire({
+            html: '<div class="feedbackPrompt-icon feedbackPrompt-iconOk">✓</div>'
+                + '<h3 class="feedbackPrompt-title">Thank you!</h3>'
+                + '<p class="feedbackPrompt-text">Your feedback has been submitted.'
+                + (left ? '<br>You still have <b>' + left + '</b> training' + (left > 1 ? 's' : '') + ' waiting for feedback.' : '') + '</p>',
+            showCancelButton: !!left,
+            buttonsStyling: false,
+            confirmButtonText: left ? 'Fill next feedback' : 'Close',
+            cancelButtonText: 'Later',
+            customClass: {
+                popup: 'pendingFeedbackModalPopup feedbackPrompt-popup',
+                confirmButton: 'pendingFeedbackConfirmBtn',
+                cancelButton: 'pendingFeedbackCancelBtn',
+            },
+        }).then(function (result) {
+            if (result.isConfirmed && next) openInlineFeedbackModal(next);
+        });
+    }
 
     function csrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
@@ -105,9 +169,20 @@
             '.feedbackModal-textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:8px;padding:9px 12px;font-size:13px;color:#111827;background:#fff;resize:vertical;min-height:60px;font-family:inherit;}',
             '.feedbackModal-textarea:focus{outline:none;border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08);}',
             '.feedbackModal-textarea:disabled{background:#f9fafb;color:#6b7280;cursor:not-allowed;}',
-            // Submit / Cancel / confirmation buttons: one size, finger-friendly
-            '.pendingFeedbackConfirmBtn,.pendingFeedbackCancelBtn,.pendingFeedbackNeutralBtn{display:block;width:100%;min-height:46px;margin:0!important;padding:12px 0!important;font-size:14px!important;font-weight:600!important;border-radius:10px!important;box-shadow:none!important;cursor:pointer;touch-action:manipulation;}',
-            '.pendingFeedbackConfirmBtn{background:#111827!important;color:#fff!important;border:1px solid #111827!important;}',
+            '.feedbackPrompt-popup{width:420px!important;}',
+            '.feedbackPrompt-popup .swal2-html-container{padding:28px 28px 20px!important;text-align:center;}',
+            '.feedbackPrompt-icon{width:64px;height:64px;margin:0 auto 14px;border-radius:18px;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 20px rgba(245,158,11,.35);}',
+            '.feedbackPrompt-popup .swal2-actions{gap:8px;}',
+            '.feedbackPrompt-popup .pendingFeedbackCancelBtn{width:100%;padding:11px 0!important;font-size:13px!important;font-weight:600!important;border:1px solid #d1d5db!important;border-radius:8px!important;background:#fff!important;color:#374151!important;}',
+            '.feedbackPrompt-popup .pendingFeedbackCancelBtn:hover{background:#f3f4f6!important;color:#111827!important;text-decoration:none;}',
+            '.feedbackPrompt-iconOk{background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-weight:700;box-shadow:0 8px 20px rgba(5,150,105,.35);}',
+            '.feedbackPrompt-title{font-size:18px;font-weight:700;color:#111827;margin:0 0 6px;}',
+            '.feedbackPrompt-text{font-size:13px;color:#6b7280;margin:0 0 18px;line-height:1.5;}',
+            '.feedbackPrompt-card{padding:12px 14px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;}',
+            '.feedbackPrompt-name{font-size:13.5px;font-weight:600;color:#92400e;line-height:1.4;}',
+            '.feedbackPrompt-speaker{font-size:11.5px;color:#b45309;margin-top:2px;}',
+            '.feedbackPrompt-badge{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:999px;background:#111827;color:#fff;font-size:11px;font-weight:600;}',
+            '.pendingFeedbackConfirmBtn{background:#111827!important;color:#fff!important;border:none!important;padding:11px 0!important;width:100%;font-size:13px!important;font-weight:600!important;border-radius:8px!important;box-shadow:none!important;}',
             '.pendingFeedbackConfirmBtn:hover{background:#374151!important;}',
             '.pendingFeedbackCancelBtn{background:#fef2f2!important;color:#b91c1c!important;border:1px solid #fecaca!important;}',
             '.pendingFeedbackCancelBtn:hover{background:#fee2e2!important;}',
@@ -353,7 +428,64 @@
                     return;
                 }
 
-                showForm(row, questions, {}, restorePath);
+                window.Swal.fire({
+                    html: '<div class="feedbackModal-header"><div class="feedbackModal-icon">📝</div><div>'
+                        + '<h3 class="feedbackModal-title">' + (readOnly ? 'Feedback' : 'Fill Feedback') + '</h3>'
+                        + '<p class="feedbackModal-subtitle">' + esc(row.training_name || '') + '</p>'
+                        + '</div></div>'
+                        + '<div class="feedbackModal-body">' + notice + '<div>' + questionsHtml + '</div></div>',
+                    showCancelButton: !readOnly,
+                    buttonsStyling: false,
+                    confirmButtonText: readOnly ? 'Close' : 'Submit',
+                    cancelButtonText: 'Cancel',
+                    customClass: {
+                        popup: 'pendingFeedbackModalPopup',
+                        confirmButton: 'pendingFeedbackConfirmBtn',
+                        cancelButton: 'pendingFeedbackCancelBtn',
+                    },
+                    preConfirm: function () {
+                        if (readOnly) return true;
+
+                        var answers = questions.map(function (q) {
+                            var name = 'pending_feedback_q_' + q.question_order;
+                            var el = document.querySelector('input[name="' + name + '"]:checked, textarea[name="' + name + '"]');
+                            return { question_order: q.question_order, value: el ? el.value : null };
+                        });
+
+                        var unanswered = answers.some(function (a) { return a.value === null || String(a.value).trim() === ''; });
+                        if (unanswered) {
+                            window.Swal.showValidationMessage('Mohon jawab semua pertanyaan sebelum submit');
+                            return false;
+                        }
+
+                        return answers;
+                    },
+                }).then(function (result) {
+                    restorePath();
+
+                    if (readOnly || !result.isConfirmed) return;
+
+                    fetch('/training-list/my/' + row.id + '/feedback', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken(),
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ answers: result.value }),
+                    })
+                        .then(function (r) { return r.json(); })
+                        .then(function (subRes) {
+                            if (!subRes.success) {
+                                toast('error', subRes.message);
+                                return;
+                            }
+                            init(function () { showSubmitted(); });
+                        })
+                        .catch(function () {
+                            toast('error', 'Gagal menyimpan feedback');
+                        });
+                });
             })
             .catch(function () {
                 restorePath();

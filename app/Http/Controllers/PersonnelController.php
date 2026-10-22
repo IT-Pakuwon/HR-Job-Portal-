@@ -1607,6 +1607,15 @@ class PersonnelController extends Controller
                         'created_by' => $user->username,
                     ]);
                 }
+            } elseif ($originalCpnyid && $originalCpnyid !== $request->cpnyid) {
+                // Draft save skips the rebuild above, but the company changed: drop the pending
+                // rows left under the old company so they don't contradict the PRF header.
+                // They are rebuilt from the master when the PRF is submitted.
+                TrApproval::where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('aprv_cpnyid', $originalCpnyid)
+                    ->where('status', 'P')
+                    ->delete();
             }
 
             // ===== Rebuild Responsibilities =====

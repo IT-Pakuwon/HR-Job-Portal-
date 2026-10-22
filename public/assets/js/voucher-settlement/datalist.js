@@ -21,7 +21,7 @@ const VplSettlementDatalist = {
                 },
             },
             columns: [
-                { data: 'action',                name: 'action',                orderable: false, searchable: false },
+                { data: 'action',                name: 'action',                orderable: false, searchable: true },
                 { data: 'settlement_date_fmt',    name: 'settlement_date',       orderable: true },
                 { data: 'event_date_fmt',         name: 'event_date',            orderable: false, defaultContent: '-' },
                 { data: 'cpnyid',                 name: 'cpnyid' },
@@ -29,7 +29,7 @@ const VplSettlementDatalist = {
                 { data: 'vp_type_label',          name: 'vp_type' },
                 { data: 'usage_id',                name: 'usage_id' },
                 { data: 'settlement_remark',      name: 'settlement_remark',     defaultContent: '-' },
-                { data: 'status_badge',           name: 'status',                orderable: false, searchable: false },
+                { data: 'status_badge',           name: 'status',                orderable: false, searchable: true },
             ],
             order: [[1, 'desc']],
             pageLength: 10,
@@ -50,7 +50,7 @@ const VplSettlementDatalist = {
             serverSide:  false,
             ajax: { url: VplSettlement.routes.jobList, type: 'GET' },
             columns: [
-                { data: 'action',         name: 'action',        orderable: false, searchable: false, width: '100px' },
+                { data: 'action',         name: 'action',        orderable: false, searchable: true, width: '100px' },
                 { data: 'usage_id',       name: 'usage_id' },
                 { data: 'usage_date_fmt', name: 'usage_date' },
                 { data: 'event_date_fmt', name: 'event_date', defaultContent: '-' },

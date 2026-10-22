@@ -579,10 +579,11 @@
             error: function(xhr) {
                 console.error(xhr.responseText);
 
+                let msg = xhr.responseJSON && xhr.responseJSON.message;
                 if (xhr.status === 403) {
-                    toastr.error("You are not authorized to approve this career.");
+                    toastr.error(msg || "You are not authorized to approve this career.");
                 } else {
-                    //    toastr.error("Error: Unable to approve career.");
+                    toastr.error(msg || "Error: Unable to approve career (HTTP " + xhr.status + ").");
                 }
             },
             complete: function() {

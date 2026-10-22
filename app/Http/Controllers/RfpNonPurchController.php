@@ -2777,18 +2777,27 @@ class RfpNonPurchController extends Controller
 
     private function buildRfpNonPurchPdf(TrRfpNonPurch $rfpnonpurch)
     {
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
         // =========================
         // APPROVAL
         // =========================
         $approval = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('aprv_doctype', $doctype)
             ->where('status', '<>', 'X')
-            ->orderBy('aprv_leveling')
+            ->reorder()
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw("CASE
+                WHEN aprv_leveling::text ~ '^[0-9]+(\\.[0-9]+)?$'
+                THEN CAST(aprv_leveling AS numeric)
+                ELSE 999999
+            END ASC")
+            ->orderBy('id', 'asc')
             ->get();
 
         // =========================
         // DETAIL (RFP / RCA)
         // =========================
-        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
         $isRCA = $doctype === 'RCA';
 
         $detailsQuery = TrRfpNonPurchDetail::query()
