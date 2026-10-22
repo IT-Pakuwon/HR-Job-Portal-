@@ -906,7 +906,7 @@ class SelfRegisterApplicantController extends Controller
 
         return response($content, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => ($request->boolean('preview') ? 'inline' : 'attachment') . '; filename="' . $filename . '"',
         ]);
     }
 }
