@@ -1357,6 +1357,11 @@ class SpbController extends Controller
             $spb->updated_at = now();
             $spb->save();
 
+            // Void still-pending approval lines so the doc leaves approvers' "Waiting Approval" lists.
+            TrApproval::where('refnbr', $spb->spbid)
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
+
             DB::commit();
 
             return response()->json([
