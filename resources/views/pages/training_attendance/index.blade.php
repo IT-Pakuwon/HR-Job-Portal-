@@ -233,6 +233,8 @@
                         </div>
                     </div>
 
+                    <div id="feedbackStats"></div>
+
                     <div id="feedbackChartQuestions" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
                     <div id="feedbackQuestions" class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2"></div>
                     <div id="feedbackEmpty" class="hidden flex flex-col items-center gap-1 rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
@@ -507,6 +509,7 @@
                     <span class="metaBadge">⏰ ${time}</span>
                     <span class="metaBadge">${regStatus.icon} ${regStatus.text}</span>
                 </div>
+                <div class="attendanceStats">
                 <div class="eventStatGrid">
                     <div class="eventStat eventStat--blue">
                         <span class="eventStatIcon">👥</span>
@@ -527,7 +530,15 @@
                     <div class="eventProgressHead"><span>Attendance progress</span><span>${attended} / ${registered}</span></div>
                     <div class="eventProgress"><div class="eventProgressBar" style="width:${pct}%"></div></div>
                 </div>
+                </div>
             `);
+            toggleAttendanceStats();
+        }
+
+        // The attendance numbers are redundant on the Feedback tab, which has
+        // its own response stats — keep only the date/time/status badges there.
+        function toggleAttendanceStats() {
+            $('#eventMeta .attendanceStats').toggleClass('hidden', activeTab === 'feedback');
         }
 
         // Keep the selected event's attended count in step with the roster
@@ -583,6 +594,7 @@
             if (tab !== 'checkin' && typeof closeQrScanner === 'function') closeQrScanner();
 
             $('#eventPickerBlock').toggleClass('hidden', tab === 'report');
+            toggleAttendanceStats();
 
             if (tab === 'report') {
                 loadReportFilters();
@@ -1018,12 +1030,12 @@
                 let iconClasses = 'bg-gray-200 dark:bg-gray-700';
 
                 if (res.opened_at && isOpen) {
-                    statusText = `Feedback is OPEN (opened ${fmtDateTime(res.opened_at)} by ${res.opened_by ?? '-'}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    statusText = `Feedback is OPEN (opened ${fmtDateTime(res.opened_at)} by ${res.opened_by ?? '-'})`;
                     icon = '🟢';
                     bannerClasses = 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20';
                     iconClasses = 'bg-emerald-100 dark:bg-emerald-800/40';
                 } else if (res.opened_at && !isOpen) {
-                    statusText = `Feedback is CLOSED (closed ${fmtDateTime(res.closed_at)}) · ${res.respondent_count}/${res.attended_count} attendees responded`;
+                    statusText = `Feedback is CLOSED (closed ${fmtDateTime(res.closed_at)})`;
                     icon = '🔴';
                     bannerClasses = 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
                     iconClasses = 'bg-red-100 dark:bg-red-800/40';
@@ -1032,6 +1044,34 @@
                 $('#feedbackStatusBanner').attr('class', `flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 ${bannerClasses}`);
                 $('#feedbackStatusIcon').attr('class', `flex h-8 w-8 flex-none items-center justify-center rounded-full text-sm ${iconClasses}`).text(icon);
                 $('#feedbackStatusText').text(statusText);
+
+                const attendedTotal = res.attended_count || 0;
+                const filled = res.respondent_count || 0;
+                const notFilled = Math.max(attendedTotal - filled, 0);
+                const filledPct = attendedTotal ? Math.min(Math.round((filled / attendedTotal) * 100), 100) : 0;
+
+                $('#feedbackStats').html(`
+                    <div class="eventStatGrid">
+                        <div class="eventStat eventStat--blue">
+                            <span class="eventStatIcon">🎓</span>
+                            <div><div class="eventStatValue">${attendedTotal}</div><div class="eventStatLabel">Total Attended</div></div>
+                        </div>
+                        <div class="eventStat eventStat--green">
+                            <span class="eventStatIcon">📝</span>
+                            <div><div class="eventStatValue">${filled}</div><div class="eventStatLabel">Filled Feedback</div></div>
+                            <span class="eventStatPct">${filledPct}%</span>
+                        </div>
+                        <div class="eventStat eventStat--amber">
+                            <span class="eventStatIcon">⏳</span>
+                            <div><div class="eventStatValue">${notFilled}</div><div class="eventStatLabel">Not Filled Yet</div></div>
+                            <span class="eventStatPct">${attendedTotal ? 100 - filledPct : 0}%</span>
+                        </div>
+                    </div>
+                    <div class="eventProgressWrap">
+                        <div class="eventProgressHead"><span>Feedback response rate</span><span>${filled} / ${attendedTotal}</span></div>
+                        <div class="eventProgress"><div class="eventProgressBar" style="width:${filledPct}%"></div></div>
+                    </div>
+                `);
 
                 $('#exportFeedbackBtn').attr('href', routeUrl('feedbackExport', selectedEventId));
 
