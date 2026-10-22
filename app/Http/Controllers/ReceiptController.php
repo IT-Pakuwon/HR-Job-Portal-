@@ -13,6 +13,7 @@ use App\Models\TrPOdetail;
 use App\Models\MsVendor;
 use App\Models\MsCompany;
 use App\Models\TrReceipt;
+use App\Models\StagingIfcaPoGrn;
 use App\Models\TrReceiptdetail;
 use App\Models\TrSPPB;
 use App\Models\TrSPPJ;
@@ -391,6 +392,19 @@ class ReceiptController extends Controller
         // ===== Header Receipt
         $rcp = TrReceipt::findOrFail($id);
 
+        $ifcaStatuses = StagingIfcaPoGrn::where('grn_no', $rcp->receiptnbr)
+            ->where('cpny_id', $rcp->cpny_id)
+            ->distinct()
+            ->pluck('status')
+            ->map(fn ($status) => strtoupper(trim((string) $status)));
+
+        $ifcaStatus = 'Not Processed IFCA';
+        if ($ifcaStatuses->contains(fn ($status) => in_array($status, ['D', 'P'], true))) {
+            $ifcaStatus = 'On Progress IFCA';
+        } elseif ($ifcaStatuses->isNotEmpty() && $ifcaStatuses->every(fn ($status) => $status === 'C')) {
+            $ifcaStatus = 'Processed to IFCA';
+        }
+
         // ===== Detail Receipt
         $rcpdetail = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no', 'asc')
@@ -469,6 +483,7 @@ class ReceiptController extends Controller
 
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
+            'ifcaStatus'     => $ifcaStatus,
             'rcpdetail'      => $rcpdetail,
             'hash'           => $hash,
             'eid_receiptnbr' => $eid_receiptnbr,
