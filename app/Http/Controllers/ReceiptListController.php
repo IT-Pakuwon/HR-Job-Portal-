@@ -173,14 +173,21 @@ class ReceiptListController extends Controller
                     ->whereRaw('COALESCE(tr_receipt.totalqty_received,0) > COALESCE(rr.sum_returned,0)');
             }
 
-            $orderColumns = [
-                0 => 'receiptnbr',
-                1 => 'receiptdate',
-                2 => 'receipttype',
-                3 => 'ponbr',
-                4 => 'sppbjktid',
-                5 => 'cpny_id',
-                6 => 'created_by',
+            $orderColumns = $scope === 'returnjobs' ? [
+                2 => 'receiptnbr',
+                3 => 'receiptdate',
+                4 => 'ponbr',
+                5 => 'sppbjktid',
+                6 => 'cpny_id',
+                7 => 'created_by',
+            ] : [
+                1 => 'receiptnbr',
+                2 => 'receiptdate',
+                3 => 'receipttype',
+                4 => 'ponbr',
+                5 => 'sppbjktid',
+                6 => 'cpny_id',
+                7 => 'created_by',
             ];
 
             if ($search !== '') {
@@ -206,9 +213,9 @@ class ReceiptListController extends Controller
         $recordsTotal = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
-        $orderIdx = (int) $req->input('order.0.column', $scope === 'receiptjobs' ? 2 : 1);
+        $orderIdx = (int) $req->input('order.0.column', in_array($scope, ['receiptjobs', 'returnjobs'], true) ? 2 : 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'receiptjobs' ? 'podate' : 'receiptdate');
+        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'receiptjobs' ? 'podate' : 'receiptnbr');
 
         $rows = $base->orderBy($orderCol, $orderDir)
             ->orderBy($scope === 'receiptjobs' ? 'ponbr' : 'receiptnbr', 'desc')
