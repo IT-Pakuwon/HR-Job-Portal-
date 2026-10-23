@@ -35,12 +35,13 @@
     <style>
         :root { --bg: #eef2f7; --card: #ffffff; --fg: #0f172a; --muted: #64748b; --line: #dbe3ee; --field: #f8fafc; --err: #dc2626; }
         .dark { --bg: #0b1220; --card: #111a2e; --fg: #f1f5f9; --muted: #94a3b8; --line: #243049; --field: #0b1428; --err: #f87171; }
+:root { --mp-g1: #06b6d4; --mp-g2: #3b82f6; --mp-g3: #6366f1; }        .dark { --mp-g1: #0e7490; --mp-g2: #1d4ed8; --mp-g3: #4338ca; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { margin: 0; min-height: 100%; }
         body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; min-height: 100dvh; }
         .wrap { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
         .hero { position: relative; overflow: hidden; color: #fff; text-align: center; padding: calc(2.5rem + env(safe-area-inset-top)) 1.5rem 4.5rem;
-            background: linear-gradient(130deg, #0e7490 0%, #2563eb 55%, #7c3aed 100%); border-radius: 0 0 2rem 2rem; }
+            background: linear-gradient(130deg, var(--mp-g1) 0%, var(--mp-g2) 55%, var(--mp-g3) 100%); border-radius: 0 0 2rem 2rem; }
         .hero::before, .hero::after { content: ""; position: absolute; border-radius: 9999px; background: #ffffff1c; }
         .hero::before { width: 14rem; height: 14rem; right: -4rem; top: -6rem; }
         .hero::after { width: 9rem; height: 9rem; left: -3rem; bottom: -4rem; background: #ffffff12; }
@@ -61,7 +62,7 @@
         .row a { color: #2563eb; font-weight: 600; text-decoration: none; }
         .dark .row a { color: #60a5fa; }
         .btn { width: 100%; padding: .875rem 1rem; font-size: .9375rem; font-weight: 700; color: #fff; border: 0; border-radius: .875rem; cursor: pointer;
-            background: linear-gradient(120deg, #0e7490, #2563eb 60%, #7c3aed); box-shadow: 0 14px 24px -12px #2563eb; transition: transform .15s; }
+            background: linear-gradient(120deg, var(--mp-g1), var(--mp-g2) 60%, var(--mp-g3)); box-shadow: 0 14px 24px -12px #2563eb; transition: transform .15s; }
         .btn:active { transform: scale(.98); }
         .err { margin: 0 0 1rem; padding: .625rem .75rem; border-radius: .75rem; font-size: .8125rem; color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); border: 1px solid color-mix(in srgb, var(--err) 35%, transparent); }
         .foot { margin: auto 0 0; padding: 1.5rem 1rem calc(1.25rem + env(safe-area-inset-bottom)); text-align: center; font-size: .6875rem; color: var(--muted); }

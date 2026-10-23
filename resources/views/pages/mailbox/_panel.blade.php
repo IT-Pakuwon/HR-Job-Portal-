@@ -184,8 +184,8 @@
             </div>
         </div>
 
-        <div class="min-h-0 flex-1 overflow-y-auto">
-            <table class="w-full min-w-full table-fixed border-separate border-spacing-0 text-sm">
+        <div class="min-h-0 flex-1 overflow-auto">
+            <table class="w-full min-w-160 table-fixed border-separate border-spacing-0 text-sm">
                 <thead class="sticky top-0 z-10">
                     <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 backdrop-blur dark:border-white/[0.06] dark:bg-[#0f172a]/95 dark:text-gray-400">
                         <th class="w-8 px-4 py-3"></th>
