@@ -2411,6 +2411,103 @@
         }
     </style>
 
+    {{-- "Request Desktop Site" is a per-site browser setting (installed PWA included) that makes the phone lay the page out
+         ~980px wide and shrink it. It cannot be overridden from the page, so detect it (touch device whose screen is narrow
+         but whose layout width is not) and tell the user how to turn it off. --}}
+    <div id="mpDesktopModeBar" class="mp-dmbar" hidden role="status">
+        <i class="fa-solid fa-desktop"></i>
+        <span><b>Desktop site is on.</b> Turn it off for a proper view: browser menu &rarr; uncheck <b>Desktop site</b>
+            (Safari: <b>aA</b> &rarr; Website Settings), then reopen the app.</span>
+        <button type="button" id="mpDesktopModeClose" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <style>
+        .mp-dmbar {
+            position: fixed;
+            left: .75rem;
+            right: .75rem;
+            top: calc(.5rem + env(safe-area-inset-top));
+            z-index: 2147483100;
+            display: flex;
+            align-items: flex-start;
+            gap: .625rem;
+            padding: .75rem .875rem;
+            border-radius: 1rem;
+            background: #fef3c7;
+            color: #78350f;
+            border: 1px solid #fcd34d;
+            font-size: .8125rem;
+            line-height: 1.4;
+            box-shadow: 0 14px 28px -12px #78350f66;
+        }
+
+        .mp-dmbar[hidden] {
+            display: none;
+        }
+
+        .mp-dmbar>i:first-child {
+            margin-top: .15rem;
+        }
+
+        .mp-dmbar button {
+            flex: none;
+            margin-left: auto;
+            padding: .125rem .375rem;
+            color: inherit;
+        }
+
+        .dark .mp-dmbar {
+            background: #422006;
+            color: #fde68a;
+            border-color: #854d0e;
+        }
+    </style>
+    <script>
+        (function() {
+            // Full-bleed hero: measure where the hero actually sits and pull it out to the screen's top / left / right edges.
+            // Negative margins computed in CSS depended on the exact padding of every wrapper (layout <main> + .mp-wrap)
+            // and left a gap on iOS; measuring is exact whatever the wrappers are.
+            const hero = document.querySelector('.mp-wrap > .mp-hero');
+            if (!hero) return;
+            const mq = window.matchMedia('(max-width: 768px), (display-mode: standalone)');
+            const fit = () => {
+                hero.style.marginTop = hero.style.marginLeft = hero.style.marginRight = '';
+                if (!mq.matches) return;
+                const cs = getComputedStyle(hero);
+                const r = hero.getBoundingClientRect();
+                const vw = document.documentElement.clientWidth;
+                hero.style.marginTop = (parseFloat(cs.marginTop) - r.top) + 'px';
+                hero.style.marginLeft = (parseFloat(cs.marginLeft) - r.left) + 'px';
+                hero.style.marginRight = (parseFloat(cs.marginRight) - (vw - r.right)) + 'px';
+            };
+            fit();
+            requestAnimationFrame(fit);
+            window.addEventListener('load', fit);
+            window.addEventListener('resize', fit);
+            window.addEventListener('orientationchange', () => setTimeout(fit, 200));
+            if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+        })();
+
+        (function() {
+            try {
+                const bar = document.getElementById('mpDesktopModeBar');
+                if (!bar || sessionStorage.getItem('mp_dm_dismissed')) return;
+                const touch = (navigator.maxTouchPoints || 0) > 0;
+                const shortSide = Math.min(screen.width, screen.height);
+                // phone / tablet (short screen side <= 900) whose layout viewport is far wider than the screen
+                const check = () => {
+                    bar.hidden = !(touch && shortSide <= 900 && window.innerWidth > Math.max(shortSide, 0) * 1.5 &&
+                        window.innerWidth >= 900);
+                };
+                check();
+                window.addEventListener('resize', check);
+                document.getElementById('mpDesktopModeClose').addEventListener('click', () => {
+                    bar.hidden = true;
+                    try { sessionStorage.setItem('mp_dm_dismissed', '1'); } catch (e) {}
+                });
+            } catch (e) {}
+        })();
+    </script>
+
     <div class="mp-wrap mx-auto w-full max-w-7xl p-2" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
         @php($mpHeroUser = auth()->user())
         <div class="mp-hero">
@@ -2856,23 +2953,74 @@
                 m.classList.remove('flex');
             };
 
+            // Business Card / Checkin Training modals: like Profile and the document sheet, opening one adds a history
+            // entry so the back gesture (swipe from the left edge, Android back) closes it instead of leaving My APP.
+            const modalPushed = new WeakSet();
+            const showModal = m => {
+                show(m);
+                if (!modalPushed.has(m)) {
+                    history.pushState({
+                        mpModal: 1
+                    }, '', location.href);
+                    modalPushed.add(m);
+                }
+            };
+            const hideModal = (m, fromPop) => {
+                if (m.classList.contains('hidden')) return;
+                hide(m);
+                if (modalPushed.has(m)) {
+                    modalPushed.delete(m);
+                    if (!fromPop) history.back();
+                }
+            };
+            // true when a modal was open and got closed (so the same back gesture must not also close Profile)
+            const closeOpenModal = () => {
+                let closed = false;
+                document.querySelectorAll('[data-mp-modal]').forEach(m => {
+                    if (!m.classList.contains('hidden')) {
+                        hideModal(m, true);
+                        closed = true;
+                    }
+                });
+                return closed;
+            };
+
             document.querySelectorAll('[data-mp-modal]').forEach(m => {
                 m.addEventListener('click', e => {
-                    if (e.target === m || e.target.closest('[data-mp-close]')) hide(m);
+                    if (e.target === m || e.target.closest('[data-mp-close]')) hideModal(m, false);
                 });
             });
 
             const overlay = $('mpProfileOverlay');
+            // Same idea as the document sheet: opening Profile adds one history entry, so the phone's back gesture /
+            // button (swipe from the left edge, Android back) closes Profile instead of leaving My APP.
+            let profPushed = false;
+            const closeProfile = fromPop => {
+                if (overlay.classList.contains('hidden')) return;
+                hide(overlay);
+                const wasPushed = profPushed;
+                profPushed = false;
+                if (wasPushed && !fromPop) history.back();
+            };
             $('btnMpProfile').addEventListener('click', () => {
                 show(overlay);
+                if (!profPushed) {
+                    history.pushState({
+                        mpProfile: 1
+                    }, '', location.href);
+                    profPushed = true;
+                }
                 if (window.mpProfileOpened) window.mpProfileOpened();
             });
-            $('btnMpProfileClose').addEventListener('click', () => hide(overlay));
+            $('btnMpProfileClose').addEventListener('click', () => closeProfile(false));
+            window.addEventListener('popstate', () => {
+                if (!closeOpenModal()) closeProfile(true);
+            });
 
             const card = $('mpBusinessCardModal');
             $('btnMpBusinessCard').addEventListener('click', () => {
                 card.querySelector('[data-mp-img]').src = qrUrl + '?t=' + Date.now();
-                show(card);
+                showModal(card);
             });
 
             const checkin = $('mpCheckinModal');
@@ -2898,7 +3046,7 @@
             };
             $('btnMpCheckin').addEventListener('click', () => {
                 setKind('barcode');
-                show(checkin);
+                showModal(checkin);
             });
             checkin.querySelectorAll('.mp-kind').forEach(b => b.addEventListener('click', () => setKind(b.dataset
                 .mpKind)));
