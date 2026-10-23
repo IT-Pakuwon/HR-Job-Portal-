@@ -601,6 +601,287 @@
             visibility: visible;
         }
 
+        /* ===== Eng Ticket detail, phone: one scrolling page with a compact header, info card, full-width tabs ===== */
+        html.mp-frame #ticketDetailModal .modal-panel {
+            display: block !important;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            background: #f1f5f9 !important;
+        }
+
+        html.mp-frame.dark #ticketDetailModal .modal-panel {
+            background: #0b1220 !important;
+        }
+
+        /* header: id + status + summary on top, Actions (wide) and Print (icon) on one row beneath */
+        html.mp-frame #ticketDetailModal .modal-panel>div:first-child {
+            gap: .75rem !important;
+            padding: .875rem 1rem !important;
+            border-bottom: 0 !important;
+            border-radius: 0 0 1.25rem 1.25rem;
+            background: linear-gradient(135deg, #0e7490, #2563eb 60%, #6366f1) !important;
+            box-shadow: 0 8px 20px -12px #1e3a8a99;
+        }
+
+        html.mp-frame #ticketDetailModal #detail_ticketid {
+            color: #fff !important;
+            font-size: 1.125rem;
+            letter-spacing: .01em;
+        }
+
+        html.mp-frame #ticketDetailModal #detail_issue_summary {
+            margin-top: .375rem;
+            color: #e0e7ff !important;
+            font-size: .8125rem;
+            line-height: 1.4;
+        }
+
+        html.mp-frame #ticketDetailModal .modal-panel>div:first-child>div:last-child {
+            flex-wrap: nowrap !important;
+            justify-content: stretch !important;
+            gap: .5rem !important;
+        }
+
+        html.mp-frame #ticketDetailModal .modal-panel>div:first-child>div:last-child>.relative {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        html.mp-frame #ticketDetailModal #ticketActionBtn,
+        html.mp-frame #ticketDetailModal #btn_print_ticket {
+            height: 2.75rem !important;
+            border: 1px solid #ffffff44 !important;
+            border-radius: .875rem !important;
+            background: #ffffff26 !important;
+            color: #fff !important;
+            box-shadow: none !important;
+            backdrop-filter: blur(6px);
+            transform: none !important;
+        }
+
+        html.mp-frame #ticketDetailModal #ticketActionBtn {
+            width: 100%;
+        }
+
+        html.mp-frame #ticketDetailModal #btn_print_ticket {
+            width: 2.75rem;
+            padding: 0 !important;
+        }
+
+        html.mp-frame #ticketDetailModal #btn_print_ticket>span {
+            display: none;
+        }
+
+        html.mp-frame #ticketDetailModal #ticketActionDropdown {
+            left: 0;
+            right: 0;
+            width: auto;
+            border-radius: 1rem;
+            box-shadow: 0 18px 40px -12px #0f172a66;
+        }
+
+        /* body stacks as one page (no scroll boxes inside the sheet) */
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2) {
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2)>div {
+            overflow: visible !important;
+            border: 0 !important;
+            min-height: 0;
+        }
+
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2)>div:first-child {
+            padding: 1rem .75rem .5rem !important;
+        }
+
+        /* each block is its own card */
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2)>div:first-child>.space-y-4>div {
+            padding: .875rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            background: #fff;
+            box-shadow: 0 1px 2px #0f172a0d;
+        }
+
+        html.mp-frame.dark #ticketDetailModal .modal-panel>div:nth-child(2)>div:first-child>.space-y-4>div {
+            border-color: #1e293b;
+            background: #111827;
+        }
+
+        html.mp-frame #ticketDetailModal h3 {
+            margin-bottom: .625rem;
+            font-size: .6875rem;
+            letter-spacing: .08em;
+        }
+
+        /* ticket information: two label/value columns */
+        html.mp-frame #ticketDetailModal .ticket-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .875rem .75rem;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-info-grid>* {
+            min-width: 0;
+            margin: 0 !important;
+            overflow-wrap: anywhere;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div:has(#detail_requester),
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div:has(#detail_category),
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div:has(#detail_pic),
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div:has(#detail_company),
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div:has(#detail_ba_auto_number) {
+            grid-column: 1 / -1;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-info-grid label {
+            display: block;
+            font-size: .6875rem;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-info-grid p,
+        html.mp-frame #ticketDetailModal .ticket-info-grid>div>div {
+            margin-top: .125rem;
+            font-size: .875rem;
+        }
+
+        html.mp-frame #ticketDetailModal #detail_issue_descr,
+        html.mp-frame #ticketDetailModal #detail_solution_descr {
+            padding: .75rem !important;
+            border-radius: .75rem;
+        }
+
+        /* tabs: one full-width segmented bar, icon over label */
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2)>div:last-child>div:first-child {
+            padding: .5rem .75rem !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+
+        html.mp-frame #ticketDetailModal .modal-panel>div:nth-child(2)>div:last-child>div:first-child>div {
+            display: flex !important;
+            width: 100%;
+            padding: .25rem !important;
+            gap: .125rem !important;
+            border-radius: 1rem !important;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-detail-tab {
+            flex: 1 1 0;
+            min-width: 0;
+            flex-direction: column;
+            justify-content: center;
+            gap: .125rem !important;
+            padding: .5rem .125rem !important;
+            border-radius: .75rem !important;
+            font-size: .6875rem !important;
+            line-height: 1.1;
+        }
+
+        html.mp-frame #ticketDetailModal .ticket-detail-tab i {
+            font-size: .9375rem !important;
+        }
+
+        /* tab contents flow with the page */
+        html.mp-frame #ticketDetailModal .ticket-tab-content {
+            overflow: visible !important;
+            flex: none !important;
+            padding: .5rem .75rem 1rem !important;
+        }
+
+        html.mp-frame #ticketDetailModal #ticket_discussion_panel {
+            padding: 0 !important;
+        }
+
+        html.mp-frame #ticketDetailModal #ticket_discussion_panel>.flex {
+            height: auto !important;
+        }
+
+        html.mp-frame #ticketDetailModal #ticket_comment_list {
+            overflow: visible !important;
+            padding: .5rem .75rem 1rem !important;
+        }
+
+        /* the comment box stays pinned to the bottom of the screen while you read the thread */
+        html.mp-frame #ticketDetailModal #ticket_discussion_panel .border-t.p-4 {
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+            padding: .625rem .75rem calc(.625rem + env(safe-area-inset-bottom)) !important;
+            background: #fff;
+            box-shadow: 0 -8px 20px -14px #0f172a66;
+        }
+
+        html.mp-frame.dark #ticketDetailModal #ticket_discussion_panel .border-t.p-4 {
+            background: #111827;
+            border-color: #1e293b !important;
+        }
+
+        html.mp-frame #ticketDetailModal #form_ticket_comment button[type="submit"] {
+            width: 100%;
+        }
+
+        /* ===== Eng Ticket action dialogs (Response, Transfer, Process, Pending, Reopen, Complete): bottom sheets ===== */
+        html.mp-frame .ticket-modal[data-form-modal] {
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+
+        html.mp-frame .ticket-modal[data-form-modal]>.modal-panel {
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            align-items: flex-end !important;
+        }
+
+        html.mp-frame .ticket-modal[data-form-modal] .modal-scroll {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 92vh !important;
+            max-height: 92dvh !important;
+            border-width: 1px 0 0 !important;
+            border-radius: 1.5rem 1.5rem 0 0 !important;
+            box-shadow: 0 -20px 50px -12px #0f172a80 !important;
+        }
+
+        /* grab handle */
+        html.mp-frame .ticket-modal[data-form-modal] .modal-scroll>div:first-child {
+            padding-top: 1.375rem !important;
+        }
+
+        html.mp-frame .ticket-modal[data-form-modal] .modal-scroll>div:first-child::before {
+            content: "";
+            position: absolute;
+            top: .5rem;
+            left: 50%;
+            width: 2.5rem;
+            height: .25rem;
+            border-radius: 9999px;
+            background: #cbd5e1;
+            transform: translateX(-50%);
+        }
+
+        html.mp-frame.dark .ticket-modal[data-form-modal] .modal-scroll>div:first-child::before {
+            background: #475569;
+        }
+
+        html.mp-frame .ticket-modal[data-form-modal] form {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        html.mp-frame .ticket-modal[data-form-modal] form button[type="submit"],
+        html.mp-frame .ticket-modal[data-form-modal] form button[type="button"]:not(.btn-close-form-modal) {
+            min-height: 2.75rem;
+            border-radius: .875rem;
+        }
+
         /* two-up form/detail grids that have no responsive class stack on a phone */
         html.mp-frame main .grid.grid-cols-2:not([class*="sm:grid-cols"]):not([class*="md:grid-cols"]):not([class*="lg:grid-cols"]):not(.keep-cols),
         html.mp-frame main .grid.grid-cols-3:not([class*="sm:grid-cols"]):not([class*="md:grid-cols"]):not([class*="lg:grid-cols"]):not(.keep-cols) {

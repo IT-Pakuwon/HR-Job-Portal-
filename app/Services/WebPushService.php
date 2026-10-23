@@ -38,7 +38,9 @@ class WebPushService
                 Subscription::create(['endpoint' => $sub->endpoint, 'keys' => ['p256dh' => $sub->p256dh, 'auth' => $sub->auth]]),
                 json_encode($payload + [
                     'icon'  => asset('images/pwa/myapp-192.png'),
-                    'badge' => asset('images/pwa/myapp-192.png'),
+                    // Android keeps only the alpha channel of the badge, so it must be a white glyph on a
+                    // transparent background — the coloured 192 icon rendered as a solid white square.
+                    'badge' => asset('images/pwa/myapp-badge.png'),
                 ])
             );
         }

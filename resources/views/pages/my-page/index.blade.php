@@ -971,12 +971,6 @@
                 display: none;
             }
 
-            .mp-hero {
-                border-radius: 0 0 1.5rem 1.5rem;
-                margin: calc(-0.5rem - env(safe-area-inset-top)) -0.5rem .875rem;
-                padding: calc(1rem + env(safe-area-inset-top)) 1.125rem 1.25rem;
-            }
-
             /* the five tabs move to the bottom bar */
             .mp-tabhead {
                 display: none !important;
@@ -2120,6 +2114,56 @@
                 z-index: 2147483000;
                 pointer-events: none;
                 background: linear-gradient(120deg, var(--mp-g1) 0%, var(--mp-g2) 55%, var(--mp-g3) 100%);
+            }
+        }
+
+        /* ===== Phone / installed app: full-bleed header. It runs edge to edge and up under the status bar (the wrap's
+           side padding is .5rem, its top padding max(.5rem, safe-area), so the negative margins cancel exactly);
+           only the bottom corners are rounded. Also keyed on standalone, so "Request Desktop Site" (a ~980px
+           layout width that fails max-width) cannot turn it back into a floating card. ===== */
+        @media (max-width: 768px), (display-mode: standalone) {
+            .mp-hero {
+                border-radius: 0 0 2rem 2rem;
+                margin: calc(-1 * max(.5rem, env(safe-area-inset-top))) -.5rem 1rem;
+                padding: calc(1rem + env(safe-area-inset-top)) 1.25rem 1.5rem;
+                background:
+                    radial-gradient(70% 90% at 96% 70%, #ffffff2b 0%, transparent 62%),
+                    radial-gradient(80% 70% at 0% 100%, #ffffff17 0%, transparent 65%),
+                    linear-gradient(120deg, var(--mp-g1) 0%, var(--mp-g2) 55%, var(--mp-g3) 100%);
+                box-shadow: 0 20px 36px -18px #2563ebcc, inset 0 -1px 0 #ffffff33;
+            }
+
+            .mp-hero .mp-avatar {
+                width: 3.5rem;
+                height: 3.5rem;
+                border: 2px solid #ffffffe6;
+                box-shadow: 0 0 0 4px #ffffff30, 0 10px 20px -8px #0f172a99;
+            }
+
+            .mp-hero .mp-hello {
+                font-size: .75rem;
+                letter-spacing: .02em;
+                opacity: .9;
+            }
+
+            .mp-hero .mp-name {
+                font-size: 1.125rem;
+                font-weight: 800;
+                letter-spacing: .005em;
+                text-shadow: 0 1px 8px #0f172a33;
+            }
+
+            .mp-hero .mp-sub {
+                margin-top: .25rem;
+                opacity: .85;
+            }
+
+            .mp-hero .mp-hero-bell {
+                width: 2.625rem;
+                height: 2.625rem;
+                background: #ffffff2e;
+                border-color: #ffffff52;
+                box-shadow: 0 6px 14px -6px #0f172a66, inset 0 1px 0 #ffffff40;
             }
         }
 
