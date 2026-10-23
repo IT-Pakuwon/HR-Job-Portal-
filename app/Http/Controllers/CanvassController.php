@@ -229,7 +229,7 @@ class CanvassController extends Controller
         ]);
     }
 
-    public function createCSReuse(string $doc, string $hash)
+    public function createCSReuse(Request $request, string $doc, string $hash)
     {
         $user = Auth::user();
         if (!$user) {
@@ -254,7 +254,11 @@ class CanvassController extends Controller
         $userPeminta = null;
 
         $poHeader = null;
-        $reuseFirst = TrPOReuse::query()->find($src);
+        $requestedCpny = strtoupper(trim((string) $request->query('cpny_id', '')));
+        $reuseFirst = TrPOReuse::query()
+            ->when($requestedCpny !== '', fn ($query) => $query->where('cpny_id', $requestedCpny))
+            ->find($src);
+        $sourceCpny = $reuseFirst->cpny_id ?? null;
 
         $isKontrak = false;
         $kontrakHeader = null;
@@ -266,7 +270,7 @@ class CanvassController extends Controller
         // helper: ambil bqid/bqtype + user peminta DARI SPPJ/SPPT SAJA
         // (karena hanya mereka yang punya bqid/bqtype)
         // =========================================================
-        $fillBqFromSppjSppt = function (?string $key) use (&$bqid, &$bqtype, &$userPeminta) {
+        $fillBqFromSppjSppt = function (?string $key) use (&$bqid, &$bqtype, &$userPeminta, &$sourceCpny) {
             if (!$key) {
                 return;
             }
@@ -276,6 +280,7 @@ class CanvassController extends Controller
                 $pj = TrSPPJ::query()
                     ->select(['bqid', 'bqtype', 'created_by'])
                     ->where('sppjid', $key)
+                    ->where('cpny_id', $sourceCpny)
                     ->first();
 
                 if ($pj) {
@@ -307,6 +312,7 @@ class CanvassController extends Controller
                 $pt = TrSPPT::query()
                     ->select($cols)
                     ->where('spptid', $key)
+                    ->where('cpny_id', $sourceCpny)
                     ->first();
 
                 if ($pt) {
@@ -331,12 +337,12 @@ class CanvassController extends Controller
         // =========================================================
         // helper: ambil budget_perpost/perpost dari sumber PB/PJ/PK/PT
         // =========================================================
-        $fillBudgetPerpostFromSource = function (?string $key) use (&$budgetPerpost) {
+        $fillBudgetPerpostFromSource = function (?string $key) use (&$budgetPerpost, &$sourceCpny) {
             if (!$key) {
                 return;
             }
 
-            $try = function (string $modelClass, string $keyCol, string $keyVal) use (&$budgetPerpost) {
+            $try = function (string $modelClass, string $keyCol, string $keyVal) use (&$budgetPerpost, &$sourceCpny) {
                 $m = new $modelClass();
                 $table = $m->getTable();
                 $conn = $m->getConnectionName() ?: config('database.default');
@@ -352,7 +358,8 @@ class CanvassController extends Controller
                     return false;
                 }
 
-                $row = $modelClass::query()->select($cols)->where($keyCol, $keyVal)->first();
+                $row = $modelClass::query()->select($cols)->where($keyCol, $keyVal)
+                    ->where('cpny_id', $sourceCpny)->first();
                 if (!$row) {
                     return false;
                 }
@@ -401,13 +408,14 @@ class CanvassController extends Controller
         // =========================================================
         // helper: prev csid
         // =========================================================
-        $findPrevCsid = function (?string $ref) use (&$prevCsid) {
+        $findPrevCsid = function (?string $ref) use (&$prevCsid, &$sourceCpny) {
             if (!$ref) {
                 return;
             }
 
             $prevCsid = TrCS::query()
                 ->where('sppbjktid', $ref) // kalau kolomnya refnbr -> ganti
+                ->where('cpny_id', $sourceCpny)
                 ->orderByDesc('created_at')
                 ->value('csid');
         };
@@ -418,17 +426,22 @@ class CanvassController extends Controller
         if ($reuseFirst) {
             $ponbrKey = $reuseFirst->ponbr;
 
-            $kontrakHeader = TrKontrak::query()->where('kontrakid', $ponbrKey)->first();
+            $kontrakHeader = TrKontrak::query()->where('kontrakid', $ponbrKey)
+                ->where('cpny_id', $sourceCpny)->first();
             if ($kontrakHeader) {
                 $isKontrak = true;
             } else {
                 $poHeader = TrPO::with(['creator:username,name'])
                     ->where('ponbr', $ponbrKey)
+                    ->where('cpny_id', $sourceCpny)
                     ->first();
                 abort_if(!$poHeader, 404);
             }
         } else {
-            $poHeader = TrPO::with(['creator:username,name'])->findOrFail($src);
+            $poHeader = TrPO::with(['creator:username,name'])
+                ->when($requestedCpny !== '', fn ($query) => $query->where('cpny_id', $requestedCpny))
+                ->findOrFail($src);
+            $sourceCpny = $poHeader->cpny_id;
         }
 
         // =========================================================
@@ -488,10 +501,10 @@ class CanvassController extends Controller
             $fillBudgetPerpostFromSource($sppbjktid);
 
             if ($sppbjktid) {
-                $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first()
-                    ?? TrSPPJ::where('sppjid', $sppbjktid)->first()
-                    ?? TrSPPK::where('sppkid', $sppbjktid)->first()
-                    ?? TrSPPT::where('spptid', $sppbjktid)->first();
+                $headerSource = TrSPPB::where('sppbid', $sppbjktid)->where('cpny_id', $sourceCpny)->first()
+                    ?? TrSPPJ::where('sppjid', $sppbjktid)->where('cpny_id', $sourceCpny)->first()
+                    ?? TrSPPK::where('sppkid', $sppbjktid)->where('cpny_id', $sourceCpny)->first()
+                    ?? TrSPPT::where('spptid', $sppbjktid)->where('cpny_id', $sourceCpny)->first();
 
                 if ($headerSource) {
                     $header = $headerSource;

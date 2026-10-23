@@ -68,7 +68,7 @@ class CsJobController extends Controller
 
         $mine     = vCsJobs::where('assignpurchasing', $u)->count();
         $revision = $this->revisionQueryForUser($user)
-            ->selectRaw('COUNT(DISTINCT ponbr) as total')->value('total');
+            ->selectRaw('COUNT(DISTINCT (ponbr, cpny_id, created_by)) as total')->value('total');
         $all      = vCsJobs::count();
         $sppbjkt  = vSppbjktOnProgress::count();
 
@@ -86,7 +86,7 @@ class CsJobController extends Controller
         return response()->json([
             'mine'      => vCsJobs::where('assignpurchasing', $u)->count(),
             'revision' => $this->revisionQueryForUser($user)
-                ->selectRaw('COUNT(DISTINCT ponbr) as total')->value('total'),
+                ->selectRaw('COUNT(DISTINCT (ponbr, cpny_id, created_by)) as total')->value('total'),
             'all'       => vCsJobs::count(),
             'sppbjkt'   => vSppbjktOnProgress::count(),
             'completed' => vSppbjktCompleted::where('completed_by', $u)->count(),
@@ -955,12 +955,20 @@ class CsJobController extends Controller
         $cpnyIds = $user ? $user->scopedCompanyIds() : [];
 
         $po = vCsRevision::query()
-            ->where('created_by', $username)
-            ->whereIn('cpny_id', $cpnyIds)
-            ->where('openordered', '>', 0)
-            ->select(['id', 'ponbr', 'podate', 'csid', 'sppbjktid', 'cpny_id',
-                'department_id', 'vendorname', 'created_by'])
-            ->selectRaw("po_reuse_id as reuse_id, id as po_id, NULL::bigint as kontrak_id, 'PO'::text as inventory_category");
+            ->join('tr_po_reuse as r', function ($join) {
+                $join->on('r.id', '=', 'v_po_reuse.po_reuse_id')
+                    ->on('r.cpny_id', '=', 'v_po_reuse.cpny_id')
+                    ->on('r.ponbr', '=', 'v_po_reuse.ponbr');
+            })
+            ->where('v_po_reuse.created_by', $username)
+            ->where('r.created_by', $username)
+            ->whereIn('v_po_reuse.cpny_id', $cpnyIds)
+            ->where('r.openordered', '>', 0)
+            ->whereNull('r.deleted_at')
+            ->select(['v_po_reuse.id', 'v_po_reuse.ponbr', 'v_po_reuse.podate',
+                'v_po_reuse.csid', 'v_po_reuse.sppbjktid', 'v_po_reuse.cpny_id',
+                'v_po_reuse.department_id', 'v_po_reuse.vendorname', 'r.created_by'])
+            ->selectRaw("r.id as reuse_id, v_po_reuse.id as po_id, NULL::bigint as kontrak_id, 'PO'::text as inventory_category");
 
         $kontrak = TrPOReuse::query()->from('tr_po_reuse as r')
             ->join('tr_kontrak as k', function ($join) {
@@ -1146,7 +1154,7 @@ class CsJobController extends Controller
         }
 
         $recordsTotal = (clone $base)
-            ->selectRaw('COUNT(DISTINCT ponbr) as total')
+            ->selectRaw('COUNT(DISTINCT (ponbr, cpny_id, created_by)) as total')
             ->value('total');
 
         $filteredBase = clone $base;
@@ -1164,7 +1172,7 @@ class CsJobController extends Controller
         }
 
         $recordsFiltered = (clone $filteredBase)
-            ->selectRaw('COUNT(DISTINCT ponbr) as total')
+            ->selectRaw('COUNT(DISTINCT (ponbr, cpny_id, created_by)) as total')
             ->value('total');
 
         $data = $filteredBase
@@ -1178,12 +1186,12 @@ class CsJobController extends Controller
                 MAX(inventory_category) as inventory_category,
                 MAX(csid) as csid,
                 MAX(sppbjktid) as sppbjktid,
-                MAX(cpny_id) as cpny_id,
+                cpny_id,
                 MAX(department_id) as department_id,
                 MAX(vendorname) as vendorname,
-                MAX(created_by) as created_by
+                created_by
             ")
-            ->groupBy('ponbr')
+            ->groupBy('ponbr', 'cpny_id', 'created_by')
             ->orderByRaw("MAX({$orderCol}) {$orderDir}")
             ->skip($start)
             ->take($length)
