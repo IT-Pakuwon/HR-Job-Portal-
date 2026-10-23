@@ -248,6 +248,10 @@
 
     @stack('scripts')
 
+    @unless ($isEmbed)
+        @include('layouts.partials.myapp-qr-modal')
+    @endunless
+
     {{-- Global session-expired handler: redirect to login on 401/419 (CSRF) for any jQuery or fetch call --}}
     <script>
         (function () {

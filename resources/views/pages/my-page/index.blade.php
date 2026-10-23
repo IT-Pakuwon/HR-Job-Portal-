@@ -10,6 +10,20 @@
                     'mp-locked');
             } catch (e) {}
         </script>
+        <script>
+            // My APP is for phones / tablets: a device with no touch screen (a laptop / desktop) is sent to the dashboard,
+            // which shows an "open on your phone" QR popup (?myapp_qr=1, see layouts/partials/myapp-qr-modal). Keyed on
+            // touch capability, not width or user agent, so a phone with "Request Desktop Site" on (spoofed UA, ~980px
+            // layout) still gets in, as does DevTools device emulation.
+            try {
+                const touch = (navigator.maxTouchPoints || 0) > 0 || window.matchMedia('(pointer: coarse)').matches ||
+                    'ontouchstart' in window;
+                if (!touch) {
+                    document.documentElement.classList.add('mp-desktop-block');
+                    location.replace(@json(route('dashboard') . '?myapp_qr=1'));
+                }
+            } catch (e) {}
+        </script>
         <link rel="manifest" href="{{ route('my-page.manifest') }}">
         <script>
             // Installed app: follow the phone/tablet light/dark setting until the user picks otherwise in Profile.
@@ -2589,9 +2603,13 @@
                 </button>
                 <button type="button" class="mp-row" id="mpStarsRow" hidden>
                     <i class="fa-solid fa-star" style="background:linear-gradient(135deg,#fbbf24,#f97316)"></i>
-                    <span class="t"><b>My trainings &amp; stars</b><small>Earned by attending on time and giving
+                    <span class="t"><span class="mp-tline"><b>My trainings &amp; stars</b><span class="mp-badge"
+                                id="mpStarsBadge">-</span></span><small>Earned by attending on time and giving
                             feedback</small></span>
-                    <span class="mp-badge" id="mpStarsBadge">-</span>
+                    <svg class="mp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 6l6 6-6 6" />
+                    </svg>
                 </button>
             </div>
 
@@ -4598,9 +4616,22 @@
             color: #94a3b8;
         }
 
+        /* title + star count share a line; the subtitle wraps under them instead of running beneath the badge */
+        .mp-row .t .mp-tline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .25rem .5rem;
+        }
+
+        .mp-row .t small {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
         .mp-badge {
             flex: none;
-            padding: .25rem .625rem;
+            padding: .125rem .5rem;
             border-radius: 9999px;
             background: #fef3c7;
             color: #b45309;
@@ -5367,6 +5398,11 @@
 
         .dark .mp-note.err {
             color: #f87171;
+        }
+
+        /* non-touch device: being redirected to the dashboard, show nothing meanwhile */
+        html.mp-desktop-block body {
+            visibility: hidden;
         }
     </style>
 </x-app-layout>
