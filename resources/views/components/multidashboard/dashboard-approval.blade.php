@@ -48,19 +48,19 @@
 
     <div class="dsh-kpis">
 
-        <div class="dsh-kpi dsh-kpi-static">
+        <div class="dsh-kpi" data-kpi="all" data-kpi-tab="waiting" role="button" tabindex="0" title="Show all waiting documents">
             <span class="dsh-kpi-l">Waiting Approval</span>
             <span id="waitingCount" class="dsh-kpi-n">0</span>
             <span id="waitingBar" class="hidden" style="width:0%"></span>
         </div>
 
-        <div class="dsh-kpi dsh-kpi-static">
+        <div class="dsh-kpi" data-kpi="long" data-kpi-tab="waiting" role="button" tabindex="0" title="Show documents waiting more than 3 days">
             <span class="dsh-kpi-l">Waiting &gt; 3 Days</span>
             <span id="longWaitingCount" class="dsh-kpi-n">0</span>
             <span id="longWaitingBar" class="hidden" style="width:0%"></span>
         </div>
 
-        <div class="dsh-kpi dsh-kpi-static">
+        <div class="dsh-kpi" data-kpi="today" data-kpi-tab="history" role="button" tabindex="0" title="Show documents approved today">
             <span class="dsh-kpi-l">Approved Today</span>
             <span id="approvedTodayCount" class="dsh-kpi-n">0</span>
             <span id="approvedTodayBar" class="hidden" style="width:0%"></span>
@@ -162,6 +162,7 @@
 
                         </button>
 
+                        @unless ($myPage ?? false)
                         <button
                             id="openAllWaiting"
                             class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
@@ -169,6 +170,7 @@
                             🚀 Open All
 
                         </button>
+                        @endunless
 
                     </div>
 
@@ -204,6 +206,11 @@
 </div>
 
 <style>
+    /* the stat card whose filter is applied to the list below */
+    .dsh-kpis .dsh-kpi.dsh-kpi-on {
+        border-color: var(--dsh-accent);
+        box-shadow: 0 0 0 1px var(--dsh-accent);
+    }
     /* room between the filter / button row and the document list */
     #approvalCardList { padding-top: .75rem; }
     #approvalDoctypeWrap .select2-selection--single {

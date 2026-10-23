@@ -38,6 +38,31 @@
     .ma-n { display: block; font-size: 1.375rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .ma-l { display: block; margin-top: .25rem; font-size: .75rem; color: var(--ma-muted); }
 
+    /* Select2 filter dropdowns (My Document / My Files): look like the other inputs, open as a rounded card under the field */
+    .ma-s2 { position: relative; }
+    #myActivityRoot .ma-s2 .select2-container { width: 100% !important; }
+    #myActivityRoot .ma-s2 .select2-selection--single { height: 34px; display: flex; align-items: center; border-radius: .5rem; border: 1px solid #cbd5e1;
+        background: #fff; padding: 0 2rem 0 .75rem; font-size: .75rem; transition: border-color .15s, box-shadow .15s; }
+    #myActivityRoot .ma-s2 .select2-selection--single:hover { border-color: #94a3b8; }
+    #myActivityRoot .ma-s2 .select2-container--open .select2-selection--single { border-color: #6366f1; box-shadow: 0 0 0 3px #6366f126; }
+    #myActivityRoot .ma-s2 .select2-selection__rendered { padding: 0 !important; line-height: 32px !important; color: #334155 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #myActivityRoot .ma-s2 .select2-selection__arrow { height: 32px !important; right: 8px !important; }
+    #myActivityRoot .ma-s2 .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
+    #myActivityRoot .ma-s2 .select2-dropdown { z-index: 60; margin-top: 4px; border-radius: .75rem; border: 1px solid #c7d2e1; overflow: hidden;
+        box-shadow: 0 12px 24px -8px #0f172a33; }
+    #myActivityRoot .ma-s2 .select2-results__options { max-height: 15rem; }
+    #myActivityRoot .ma-s2 .select2-results__option { font-size: .8125rem; padding: .5rem .75rem; }
+    #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #eef2ff; color: #4338ca; }
+    #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #e0e7ff; color: #4338ca; font-weight: 600; }
+    #myActivityRoot .ma-s2 .select2-search__field { border-radius: .375rem; border: 1px solid #cbd5e1; padding: .375rem .5rem; font-size: .75rem; outline: none; }
+    .dark #myActivityRoot .ma-s2 .select2-selection--single { background: #334155; border-color: #475569; }
+    .dark #myActivityRoot .ma-s2 .select2-selection__rendered { color: #e2e8f0 !important; }
+    .dark #myActivityRoot .ma-s2 .select2-dropdown { background: #1e293b; border-color: #475569; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option { color: #e2e8f0; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #4338ca; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #3730a3; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-search__field { background: #334155; border-color: #475569; color: #e2e8f0; }
+
     .ma-sep { flex: none; width: 1px; align-self: stretch; margin: .25rem .375rem; background: var(--ma-line); }
     .ma-mine { display: inline-flex; align-items: center; gap: .4rem; border-style: dashed; }
     .ma-mine.ma-grad { border-style: solid; border-color: transparent; color: #fff; background: linear-gradient(120deg, var(--ma-g1), var(--ma-g2)); }
@@ -82,14 +107,18 @@
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
                     <div class="grid grid-cols-2 gap-3 lg:col-span-4">
-                        <select x-model="docType" @change="loadDocs(1)" class="{{ $selectCls }}">
-                            <option value="">All Doctype</option>
-                            <template x-for="t in docTypes" :key="t"><option :value="t" x-text="t"></option></template>
-                        </select>
-                        <select x-model="docStatus" @change="loadDocs(1)" class="{{ $selectCls }}">
-                            <option value="">All Status</option>
-                            <template x-for="st in docStatuses" :key="st.code + st.label"><option :value="st.code" x-text="st.label"></option></template>
-                        </select>
+                        <div class="ma-s2 min-w-0">
+                            <select x-model="docType" x-init="$nextTick(() => s2($el, 'docType', 'docTypes', () => loadDocs(1), 8))" class="{{ $selectCls }}">
+                                <option value="">All Doctype</option>
+                                <template x-for="t in docTypes" :key="t"><option :value="t" x-text="t"></option></template>
+                            </select>
+                        </div>
+                        <div class="ma-s2 min-w-0">
+                            <select x-model="docStatus" x-init="$nextTick(() => s2($el, 'docStatus', 'docStatuses', () => loadDocs(1), -1))" class="{{ $selectCls }}">
+                                <option value="">All Status</option>
+                                <template x-for="st in docStatuses" :key="st.code + st.label"><option :value="st.code" x-text="st.label"></option></template>
+                            </select>
+                        </div>
                     </div>
                     <div class="lg:col-span-4">
                         <input type="text" x-model="docQ" @input.debounce.400ms="loadDocs(1)" placeholder="Search..."
@@ -263,8 +292,8 @@
 
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
-                    <div class="lg:col-span-4">
-                        <select x-model="fileExt" @change="loadFiles(1)" class="{{ $selectCls }}">
+                    <div class="ma-s2 min-w-0 lg:col-span-4">
+                        <select x-model="fileExt" x-init="$nextTick(() => s2($el, 'fileExt', 'fileExts', () => loadFiles(1), -1))" class="{{ $selectCls }}">
                             <option value="">All File Types</option>
                             <template x-for="e in fileExts" :key="e"><option :value="e" x-text="e.toUpperCase()"></option></template>
                         </select>
@@ -368,6 +397,20 @@
                 { mode: 'doc', label: 'Documents · Created by you', icon: MA_ICONS.doc },
                 { mode: 'file', label: 'Files · Attached by you', icon: MA_ICONS.file },
             ],
+
+            // Select2 on a filter <select>: Alpine owns the value (x-model), Select2 only draws it.
+            // Select2 fires a jQuery-only change, which x-model never hears, so push the value back by hand.
+            s2(el, key, listKey, onPick, minSearch) {
+                const $el = $(el);
+                if (!$.fn.select2) return;
+                $el.select2({ width: '100%', minimumResultsForSearch: minSearch, dropdownParent: $el.parent() });
+                $el.on('change', () => {
+                    if ($el.val() !== String(this[key] ?? '')) { this[key] = $el.val(); onPick(); }
+                });
+                const redraw = () => this.$nextTick(() => $el.val(String(this[key] ?? '')).trigger('change.select2'));
+                this.$watch(key, redraw);
+                this.$watch(listKey, redraw);
+            },
 
             count(mode) {
                 const pg = { msg: this.msgPg, doc: this.docPg, file: this.filePg }[mode];

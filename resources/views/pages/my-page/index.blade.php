@@ -2625,6 +2625,11 @@
             gap: .875rem;
         }
 
+        /* children keep their natural height so a short screen scrolls instead of squashing (and clipping) the list */
+        .mp-prof>* {
+            flex: none;
+        }
+
         .mp-pcard {
             display: flex;
             align-items: center;
