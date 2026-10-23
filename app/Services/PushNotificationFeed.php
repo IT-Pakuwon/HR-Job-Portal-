@@ -16,7 +16,8 @@ class PushNotificationFeed
         $username = strtolower(trim($username));
 
         return collect(DocumentNotificationService::buildForUser($username))
-            ->filter(fn ($i) => !empty($i['key']))
+            // New-email notifications (MAIL_*) are desktop-only: My APP neither pushes them nor lists them.
+            ->filter(fn ($i) => !empty($i['key']) && !str_starts_with((string) $i['key'], 'MAIL_'))
             ->concat(self::waitingApprovalItems($username))
             ->values();
     }

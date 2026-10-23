@@ -2834,7 +2834,7 @@
                     data-k="updates"></label>
             <label class="mp-opt"><span><b>Comments &amp; mentions</b><small>Someone commented on or mentioned you in a
                         document</small></span><input type="checkbox" class="mp-sw" data-k="comments"></label>
-            <label class="mp-opt"><span><b>Reminders &amp; others</b><small>Voucher expiry, trainings, emails,
+            <label class="mp-opt"><span><b>Reminders &amp; others</b><small>Voucher expiry, trainings,
                         agreements</small></span><input type="checkbox" class="mp-sw" data-k="others"></label>
             <label class="mp-opt"><span><b>Quiet hours</b><small>No pushes during this time. They arrive when it
                         ends.</small></span><input type="checkbox" class="mp-sw" id="mpQuietOn"></label>
