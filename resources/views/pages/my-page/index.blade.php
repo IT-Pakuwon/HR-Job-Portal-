@@ -1061,6 +1061,13 @@
                 display: none;
             }
 
+            /* Messages has only a search (no filter button), so nothing gives it flex:1 inside the flex row above
+               and it shrinks to the input's natural width — let it take the whole row */
+            #myActivityRoot .border-b.p-4>.grid>div:not(.mp-fsearch):has(> input[type="text"]) {
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+
             .mp-wrap input[type="text"],
             .mp-wrap select {
                 border-radius: .875rem !important;
@@ -2432,25 +2439,25 @@
 
     <nav class="mp-nav" id="mpNav" aria-label="My Page sections">
         <span class="mp-ind" id="mpInd" aria-hidden="true"></span>
-        <button type="button" data-target="tab-waiting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 11l9-8 9 8" />
-                <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
-            </svg><span>Home</span></button>
         <button type="button" data-target="my-tab-document"><svg viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
                 <path d="M14 3v5h5M9 13h6M9 17h4" />
             </svg><span>Docs</span></button>
-        <button type="button" data-target="my-tab-message"><svg viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
-            </svg><span>Messages</span></button>
         <button type="button" data-target="my-tab-files"><svg viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
                     d="M21 11.5l-8.6 8.6a5 5 0 0 1-7-7l8.6-8.6a3.4 3.4 0 0 1 5 5l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9" />
             </svg><span>Files</span></button>
+        <button type="button" data-target="tab-waiting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+            </svg><span>Home</span></button>
+        <button type="button" data-target="my-tab-message"><svg viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
+            </svg><span>Messages</span></button>
         <button type="button" data-click="btnMpProfile"><svg viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="8" r="4" />
@@ -2614,6 +2621,11 @@
                     <option value="1">1 minute</option>
                     <option value="5">5 minutes</option>
                     <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="240">4 hours</option>
+                    <option value="720">12 hours</option>
+                    <option value="1440">24 hours</option>
                 </select>
             </label>
             <p class="mp-note" id="mpLockNote"></p>
@@ -2754,8 +2766,11 @@
                     </div>
                 @endif
 
-                <div class="rounded-md border border-gray-200 bg-white p-3 dark:border-gray-700">
-                    <img data-mp-img src="" alt="" class="w-full max-w-lg">
+                {{-- Always pure white (inline !important, immune to dark-mode .bg-white remaps) with a quiet zone, so scanners read it in dark mode too. --}}
+                <div data-mp-frame class="w-full rounded-md border border-gray-200 p-4 dark:border-gray-200"
+                    style="background:#fff !important;">
+                    <img data-mp-img src="" alt="" class="mx-auto block w-full"
+                        style="background:#fff;image-rendering:pixelated;">
                 </div>
                 <p data-mp-title class="mt-4 text-sm font-semibold text-gray-800 dark:text-gray-100">
                     {{ $cfg['heading'] }}</p>
@@ -2808,6 +2823,9 @@
                     b.classList.toggle('shadow-sm', on);
                     b.classList.toggle('text-gray-500', !on);
                 });
+                // QR fills the frame (square, capped so it fits the screen height); barcode stays wide.
+                checkin.querySelector('[data-mp-img]').style.maxHeight = barcode ? '' : '70vh';
+                checkin.querySelector('[data-mp-img]').style.objectFit = 'contain';
                 checkin.querySelector('[data-mp-img]').src = (barcode ? barcodeUrl : checkinQrUrl) + '?t=' + Date
                     .now();
                 checkin.querySelector('[data-mp-title]').textContent = barcode ? 'HR Check-in Scanner' :

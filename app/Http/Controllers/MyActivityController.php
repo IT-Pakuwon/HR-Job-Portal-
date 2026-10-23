@@ -126,19 +126,30 @@ class MyActivityController extends Controller
         ] + $this->pageMeta($page, $total));
     }
 
-    // GET /my-activity/messages?q=
+    // GET /my-activity/messages?q=&scope=mine|others
+    //   mine   = comments the user wrote (anywhere)
+    //   others = comments other people wrote on documents the user created
     public function messages(Request $request)
     {
         $username = $this->username($request);
         if (!$username) return response()->json(['data' => []], 401);
         $this->perPage = $this->perPage($request);
 
-        $q = trim((string) $request->query('q'));
+        $q      = trim((string) $request->query('q'));
+        $others = $request->query('scope') === 'others';
 
-        $query = TrMessage::whereRaw("lower(trim(coalesce(username,''))) = ?", [$username])
-            ->where('status', 'A')
+        $query = TrMessage::where('status', 'A')
             ->where(fn ($w) => $w->whereNull('message_type')
                 ->orWhere('message_type', 'not like', 'S\_%'));  // skip system events
+
+        if ($others) {
+            $query->whereRaw("lower(trim(coalesce(username,''))) <> ?", [$username])
+                ->whereIn('refnbr', $this->ownDocIds($username));
+            // someone else's Private comment is not for the document owner to see
+            $query->where(fn ($w) => $w->whereNull('message_type')->orWhere('message_type', '!=', 'Private'));
+        } else {
+            $query->whereRaw("lower(trim(coalesce(username,''))) = ?", [$username]);
+        }
 
         if ($q !== '') {
             $query->where(fn ($w) => $w->where('message', 'ilike', "%{$q}%")
@@ -150,7 +161,7 @@ class MyActivityController extends Controller
 
         $messages = $query->orderByDesc('message_date')->orderByDesc('id')
             ->forPage($page, $this->perPage)
-            ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'message_date', 'message_type', 'message']);
+            ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'message_date', 'message_type', 'message', 'username', 'name']);
 
         // Resolve each commented document's link/type/status in one pass per view.
         $docs = $this->resolveDocuments($messages->pluck('refnbr')->filter()->unique()->values());
@@ -165,6 +176,7 @@ class MyActivityController extends Controller
                 'dept'    => $m->department_id ?: ($doc['dept'] ?? null),
                 'type'    => $doc['type'] ?? $m->doctype,
                 'private' => $m->message_type === 'Private',
+                'by'      => trim((string) ($m->name ?: $m->username)),
                 'text'    => Str::limit(TrMessage::plainText(strip_tags((string) $m->message)), 220),
                 'date'    => $m->message_date,
                 'href'    => $doc['href'] ?? null,
@@ -226,6 +238,28 @@ class MyActivityController extends Controller
         });
 
         return response()->json(['data' => $data, 'exts' => $exts] + $this->pageMeta($page, $total));
+    }
+
+    // Doc ids of everything the user created, across the same four views documents() reads.
+    private function ownDocIds(string $username): array
+    {
+        $ids = [];
+
+        foreach (self::VIEWS as $view) {
+            try {
+                $found = DB::connection($view['connection'])->table($view['table'])
+                    ->whereRaw("lower(trim(coalesce(created_user,''))) = ?", [$username])
+                    ->orderByDesc('docdate')->limit(self::DOC_FETCH_LIMIT)->pluck('docid');
+
+                foreach ($found as $id) $ids[$id] = true;
+            } catch (\Throwable $e) {
+                Log::warning('MyActivityController: own docs failed', [
+                    'table' => $view['table'], 'err' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return array_keys($ids);
     }
 
     // Requested page, clamped to 1..last so a stale page number after a new filter still lands on data.

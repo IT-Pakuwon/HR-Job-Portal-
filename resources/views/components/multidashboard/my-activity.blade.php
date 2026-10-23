@@ -20,6 +20,11 @@
     #myActivityRoot { --ma-g1: #0e7490; --ma-g2: #2563eb; --ma-line: #e2e8f0; --ma-soft: #f1f5f9; --ma-muted: #64748b; --ma-card: #fff; --ma-fg: #0f172a; }
     .dark #myActivityRoot { --ma-g1: #22d3ee; --ma-g2: #818cf8; --ma-line: #334155; --ma-soft: #273449; --ma-muted: #94a3b8; --ma-card: #1e293b; --ma-fg: #f1f5f9; }
 
+    .ma-seg { display: flex; gap: .25rem; margin: 1rem 1rem 0; padding: .25rem; border-radius: .875rem; background: var(--ma-soft); }
+    .ma-seg button { flex: 1 1 0; padding: .5rem .75rem; border-radius: .625rem; font-size: .75rem; font-weight: 600; color: var(--ma-muted); transition: background .15s, color .15s; touch-action: manipulation; }
+    .ma-seg button.on { background: var(--ma-card); color: var(--ma-fg); box-shadow: 0 1px 3px #0f172a22; }
+    @media (max-width: 768px), (display-mode: standalone) { .ma-seg { margin: .25rem 0 .5rem; } }
+    .ma-by { display: block; margin-bottom: .125rem; font-size: .6875rem; color: var(--ma-g2); }
     .ma-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding: 1rem 1.25rem .25rem; }
     @media (max-width: 640px) { .ma-tiles { grid-template-columns: 1fr; } }
     .ma-tile { display: flex; align-items: center; gap: .875rem; text-align: left; cursor: pointer; padding: .875rem 1rem; border-radius: .875rem;
@@ -220,6 +225,12 @@
         <div x-show="mode === 'msg' || mode === 'both'"
             :class="embedded ? '' : 'rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800'">
 
+            {{-- Comments I wrote  /  comments others wrote on my documents --}}
+            <div class="ma-seg" role="tablist">
+                <button type="button" role="tab" :aria-selected="msgScope === 'mine'" :class="msgScope === 'mine' && 'on'" @click="setMsgScope('mine')">My Comments</button>
+                <button type="button" role="tab" :aria-selected="msgScope === 'others'" :class="msgScope === 'others' && 'on'" @click="setMsgScope('others')">From Others</button>
+            </div>
+
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
                     <div class="lg:col-span-8">
@@ -265,6 +276,7 @@
                                     <td class="{{ $tdCls }}" x-text="m.dept || '-'"></td>
                                     <td class="{{ $tdCls }}" x-text="fmt(m.date)"></td>
                                     <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">
+                                        <b x-show="msgScope === 'others' && m.by" class="ma-by" x-text="m.by"></b>
                                         <span x-show="m.private" class="mr-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Private</span>
                                         <span class="whitespace-pre-line break-words" x-text="m.text"></span>
                                     </td>
@@ -384,7 +396,7 @@
             // 'both' = no tab bar on this dashboard, so show both panels below it
             mode: 'both', embedded: false, loaded: { doc: false, msg: false, file: false }, perPage: 10,
             docs: [], docTypes: [], docStatuses: [], docQ: '', docType: '', docStatus: '', docsLoading: false,
-            msgs: [], msgQ: '', msgsLoading: false,
+            msgs: [], msgQ: '', msgsLoading: false, msgScope: 'mine',
             files: [], fileExts: [], fileQ: '', fileExt: '', filesLoading: false,
             docPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
             msgPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
@@ -470,10 +482,19 @@
                 this.docsLoading = false;
             },
 
+            setMsgScope(scope) {
+                if (this.msgScope === scope) return;
+                this.msgScope = scope;
+                this.msgs = [];
+                this.loadMsgs(1);
+            },
+
             async loadMsgs(page = 1) {
                 this.msgsLoading = true;
+                const scope = this.msgScope;
                 try {
-                    const r = await this.get(cfg.messagesUrl, { q: this.msgQ, page, per_page: this.perPage });
+                    const r = await this.get(cfg.messagesUrl, { q: this.msgQ, page, per_page: this.perPage, scope });
+                    if (scope !== this.msgScope) return; // user switched tabs while this was loading
                     this.msgs = r.data; this.msgPg = r; this.loaded.msg = true;
                 }
                 catch (e) { this.msgs = []; }

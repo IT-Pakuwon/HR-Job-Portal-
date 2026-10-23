@@ -159,18 +159,12 @@ class MailboxService
             $messages = $folder->messages()
                 ->since($since)
                 ->leaveUnread()
+                ->setFetchBody(false)
                 ->limit($limit)
                 ->fetchOrderDesc()
                 ->get();
 
-            $seen = 0;
-            foreach ($messages as $message) {
-                if (static::upsertMessage($account, $folderPath, $message)) {
-                    $seen++;
-                }
-            }
-
-            return $seen;
+            return static::upsertEach($account, $folderPath, $folder, $messages);
         } finally {
             // Always release the connection, even when the fetch throws —
             // otherwise repeated failures exhaust the server's per-user limit.
@@ -235,16 +229,12 @@ class MailboxService
                 // already stored; re-upserting those is harmless (keyed on uid).
                 ->when($oldestSeenDate, fn ($q) => $q->before(Carbon::parse($oldestSeenDate)->addDay()))
                 ->leaveUnread()
+                ->setFetchBody(false)
                 ->limit($limit)
                 ->fetchOrderDesc()
                 ->get();
 
-            $seen = 0;
-            foreach ($messages as $message) {
-                if (static::upsertMessage($account, $folderPath, $message)) {
-                    $seen++;
-                }
-            }
+            $seen = static::upsertEach($account, $folderPath, $folder, $messages);
 
             return ['fetched' => $seen, 'hasMore' => $messages->count() >= $limit];
         } finally {
@@ -666,6 +656,33 @@ class MailboxService
         }
 
         return $items->values()->all();
+    }
+
+    /**
+     * $headers holds header-only messages (setFetchBody(false)). Loads each
+     * full body one at a time and frees it before the next, so peak memory is
+     * one message (inline images and all) instead of the whole batch.
+     */
+    protected static function upsertEach(MailboxAccount $account, string $folderPath, \Webklex\PHPIMAP\Folder $folder, $headers): int
+    {
+        $uids = collect($headers)->map(fn ($m) => (int) $m->uid)->filter(fn ($u) => $u > 0)->values();
+        unset($headers);
+
+        $seen = 0;
+        foreach ($uids as $uid) {
+            try {
+                $message = $folder->messages()->leaveUnread()->getMessageByUid($uid);
+                if (static::upsertMessage($account, $folderPath, $message)) {
+                    $seen++;
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Mailbox message skipped', ['folder' => $folderPath, 'uid' => $uid, 'err' => $e->getMessage()]);
+            }
+            unset($message);
+            gc_collect_cycles();
+        }
+
+        return $seen;
     }
 
     protected static function upsertMessage(MailboxAccount $account, string $folderPath, ImapMessage $message): bool
