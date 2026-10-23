@@ -23,7 +23,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-title" content="My APP">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <link rel="apple-touch-icon" href="{{ asset('images/pwa/myapp-180.png') }}">
     @endpush
 
@@ -2098,6 +2098,21 @@
 
             #myActivityRoot .border-b.p-4[data-mp-f="1"] {
                 padding: .5rem 0 .75rem !important;
+            }
+        }
+
+        /* ===== Installed app: the status bar sits on the brand gradient (status-bar-style is black-translucent) ===== */
+        @media (display-mode: standalone) {
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: env(safe-area-inset-top, 0px);
+                z-index: 2147483000;
+                pointer-events: none;
+                background: linear-gradient(120deg, var(--mp-g1) 0%, var(--mp-g2) 55%, var(--mp-g3) 100%);
             }
         }
 

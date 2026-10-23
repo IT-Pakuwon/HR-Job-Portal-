@@ -4,7 +4,8 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- My APP draws under the phone's status bar and home indicator (it pads itself with the safe-area insets) --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1{{ request()->routeIs('my-page') ? ', viewport-fit=cover' : '' }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Pakuwon System') }}</title>
