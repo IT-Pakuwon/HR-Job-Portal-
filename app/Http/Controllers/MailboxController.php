@@ -446,9 +446,11 @@ class MailboxController extends Controller
             return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
         }
 
-        $folders = MailboxService::listFolders($account);
         $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
-        if (!in_array($folder, $folders, true)) {
+        // The folder list is cached; a folder created on the server since then
+        // would be rejected, so re-read it once before giving up.
+        if (!in_array($folder, MailboxService::listFolders($account), true)
+            && !in_array($folder, MailboxService::refreshFolders($account), true)) {
             return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
         }
 
@@ -456,7 +458,8 @@ class MailboxController extends Controller
             $count = MailboxService::fetchNew($account, $folder);
             return response()->json(['success' => true, 'message' => "Synced {$count} message(s)."]);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'Sync failed: ' . $e->getMessage()], 422);
+            \Log::error('Mailbox sync failed', ['folder' => $folder, 'err' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Sync failed. Please try again later.'], 500);
         }
     }
 
@@ -472,9 +475,9 @@ class MailboxController extends Controller
             return response()->json(['success' => false, 'message' => 'Connect a mailbox first.'], 422);
         }
 
-        $folders = MailboxService::listFolders($account);
         $folder = $request->get('folder', MailboxService::DEFAULT_FOLDER);
-        if (!in_array($folder, $folders, true)) {
+        if (!in_array($folder, MailboxService::listFolders($account), true)
+            && !in_array($folder, MailboxService::refreshFolders($account), true)) {
             return response()->json(['success' => false, 'message' => 'Unknown folder.'], 422);
         }
 
@@ -485,7 +488,8 @@ class MailboxController extends Controller
                 : 'No older messages found.';
             return response()->json(['success' => true, 'message' => $message] + $result);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'Load failed: ' . $e->getMessage()], 422);
+            \Log::error('Mailbox load older failed', ['folder' => $folder, 'err' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Load failed. Please try again later.'], 500);
         }
     }
 

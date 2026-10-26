@@ -1510,7 +1510,7 @@
 
                                     </h3>
 
-                                    <div class="space-y-4">
+                                    <div class="ticket-info-grid space-y-4">
 
                                         <div>
 

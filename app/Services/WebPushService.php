@@ -17,17 +17,19 @@ class WebPushService
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<SysPushSubscription>  $subs
-     * @param  array  $payload  title, body, url (absolute), tag, icon?
-     * Returns the number of messages accepted by the push services. Dead subscriptions (404/410) are deleted.
+     * @param \Illuminate\Support\Collection<SysPushSubscription> $subs
+     * @param array                                               $payload title, body, url (absolute), tag, icon?
+     *                                                                     Returns the number of messages accepted by the push services. Dead subscriptions (404/410) are deleted.
      */
     public static function send($subs, array $payload): int
     {
-        if (!self::configured() || $subs->isEmpty()) return 0;
+        if (!self::configured() || $subs->isEmpty()) {
+            return 0;
+        }
 
         $webPush = new WebPush(['VAPID' => [
-            'subject'    => config('webpush.subject'),
-            'publicKey'  => config('webpush.public_key'),
+            'subject' => config('webpush.subject'),
+            'publicKey' => config('webpush.public_key'),
             'privateKey' => config('webpush.private_key'),
         ]], ['TTL' => 3600, 'urgency' => 'normal']);
 
@@ -37,15 +39,20 @@ class WebPushService
             $webPush->queueNotification(
                 Subscription::create(['endpoint' => $sub->endpoint, 'keys' => ['p256dh' => $sub->p256dh, 'auth' => $sub->auth]]),
                 json_encode($payload + [
-                    'icon'  => asset('images/pwa/myapp-192.png'),
-                    'badge' => asset('images/pwa/myapp-192.png'),
+                    'icon' => asset('images/pwa/myapp-192.png'),
+                    // Android keeps only the alpha channel of the badge, so it must be a white glyph on a
+                    // transparent background — the coloured 192 icon rendered as a solid white square.
+                    'badge' => asset('images/pwa/myapp-badge.png'),
                 ])
             );
         }
 
         $ok = 0;
         foreach ($webPush->flush() as $report) {
-            if ($report->isSuccess()) { $ok++; continue; }
+            if ($report->isSuccess()) {
+                ++$ok;
+                continue;
+            }
 
             if ($report->isSubscriptionExpired() && isset($byEndpoint[$report->getEndpoint()])) {
                 $byEndpoint[$report->getEndpoint()]->delete();

@@ -24,6 +24,11 @@
         };
         $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
         $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
+        $ifcaStatusClasses = match ($ifcaStatus) {
+            'On Progress IFCA' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-300',
+            'Processed to IFCA' => 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300',
+            default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+        };
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
@@ -44,10 +49,13 @@
                 <div class="flex h-[500px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
                             {{ $bast->bastid }}
+                            <span class="{{ $ifcaStatusClasses }} inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold">
+                                {{ $ifcaStatus }}
+                            </span>
                         </h1>
 
                         <div class="flex items-center gap-3">

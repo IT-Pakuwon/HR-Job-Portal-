@@ -825,6 +825,11 @@
                     } else if (s.status === 'CLOSED') {
                         menuItems += actionItem('viewScheduleBtn', s.id, null, iconView, 'View');
                         menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
+                        // Reopen only before the event starts (server enforces it too).
+                        let startAt = new Date(`${s.schedule_date}T${(s.start_time || '00:00').slice(0, 8)}`);
+                        if (new Date() < startAt) {
+                            menuItems += actionItem('statusScheduleBtn', s.id, 'PUBLISHED', iconPublish, 'Reopen', 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20');
+                        }
                     }
 
                     let actions = menuItems ? `
@@ -1094,7 +1099,7 @@
             });
 
             const statusConfirm = {
-                PUBLISHED: { title: 'Publish this schedule?', text: 'It will open for employee registration.', icon: 'question', confirmButtonText: 'Publish', confirmButtonColor: '#16a34a' },
+                PUBLISHED: { title: 'Open this schedule for registration?', text: 'Employees will be able to register again.', icon: 'question', confirmButtonText: 'Yes, open', confirmButtonColor: '#16a34a' },
                 CLOSED: { title: 'Close registration?', text: 'Employees will no longer be able to register for this schedule.', icon: 'question', confirmButtonText: 'Close', confirmButtonColor: '#2563eb' },
                 CANCELLED: { title: 'Cancel this schedule?', text: 'This cannot be undone.', icon: 'warning', confirmButtonText: 'Cancel Schedule', confirmButtonColor: '#dc2626' },
             };

@@ -1,6 +1,7 @@
 (function () {
 
     let activeTab = "waiting";
+    let kpiFilter = "all"; // all | long (waiting > 3 days) | today (approved today)
 
     let summaryRequest = null;
     let dataRequest = null;
@@ -481,7 +482,32 @@
         }).join("") + `</div>`;
     }
 
+    // Stat-card filter, same rules the summary counts use (docdate based).
+    const localDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    function applyKpiFilter(rows) {
+
+        if (kpiFilter === "all") return rows;
+
+        const today = localDate(new Date());
+        const cutoff = localDate(new Date(Date.now() - 3 * 86400000));
+
+        return rows.filter(row => {
+            const d = (row.docdate || "").toString().substring(0, 10);
+            if (!d) return false;
+            return kpiFilter === "long" ? d <= cutoff : d === today;
+        });
+    }
+
+    function syncKpiCards() {
+        $(".dsh-kpis .dsh-kpi[data-kpi]").each(function () {
+            $(this).toggleClass("dsh-kpi-on", $(this).data("kpi") === kpiFilter && kpiFilter !== "all");
+        });
+    }
+
     function applySearchFilter(rows) {
+
+        rows = applyKpiFilter(rows);
 
         const term = ($("#approvalSearch").val() || "").trim().toLowerCase();
 
@@ -610,9 +636,11 @@
             });
     }
 
-    function activateTab(tab) {
+    function activateTab(tab, kpi) {
 
         activeTab = tab;
+        kpiFilter = kpi || "all";
+        syncKpiCards();
         sortColumn = null;
         sortDirection = "asc";
 
@@ -740,6 +768,16 @@
 
         $("#tab-history")
             .on("click", () => activateTab("history"));
+
+        // Stat cards: open the matching tab filtered to that card; tapping the active card again clears it.
+        $(".dsh-kpis").on("click keydown", ".dsh-kpi[data-kpi]", function (e) {
+            if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            const kpi = $(this).data("kpi");
+            const tab = $(this).data("kpi-tab");
+            const same = kpi === kpiFilter && tab === activeTab;
+            activateTab(tab, same ? "all" : kpi);
+        });
 
         $("#refreshApproval")
             .on("click", () => performRefresh(true));

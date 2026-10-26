@@ -405,11 +405,9 @@
                     [2, 'desc']
                 ];
                 if (sc === 'returnjobs') return [
-                    [3, 'desc'],
                     [2, 'desc']
                 ];
                 return [
-                    [2, 'desc'],
                     [1, 'desc']
                 ];
             }

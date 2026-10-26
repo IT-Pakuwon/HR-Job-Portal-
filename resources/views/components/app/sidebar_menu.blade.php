@@ -475,7 +475,7 @@
                                 <!-- ================================================= -->
                                 <!-- APPLICATION -->
                                 <!-- ================================================= -->
-                                {{-- @php $app = ['applications','screens','menus']; @endphp
+                                {{-- $app = ['applications','screens','menus'];
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $app) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"

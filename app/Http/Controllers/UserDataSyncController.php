@@ -35,7 +35,8 @@ class UserDataSyncController extends Controller
             ->whereNotNull('employee_id')
             ->where('employee_id', '!=', '')
             ->orderBy('employee_id')
-            ->get(['employee_id', 'first_name', 'last_name', 'organization_name', 'job_position', 'status_talenta', 'birth_date'])
+            ->toBase()
+            ->get(['employee_id', 'first_name', 'last_name', 'organization_name', 'job_position', 'status_talenta'])
             ->map(function ($t) {
                 $org = trim((string) $t->organization_name);
                 $parts = explode(' - ', $org, 2);

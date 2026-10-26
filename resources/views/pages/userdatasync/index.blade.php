@@ -14,15 +14,163 @@
             </button>
         </div>
 
-        {{-- Summary cards = filters --}}
-        <div class="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-            <template x-for="c in cards" :key="c.key">
-                <button type="button" @click="setFilter(c.key)"
-                    class="rounded-xl border p-3 text-left shadow-sm transition"
-                    :class="filter === c.key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-transparent bg-white hover:border-gray-300 dark:bg-gray-800'">
-                    <div class="text-xl font-extrabold" :class="c.color" x-text="counts[c.key] ?? 0"></div>
-                    <div class="text-xs font-semibold text-gray-700 dark:text-gray-200" x-text="c.label"></div>
-                    <div class="text-[11px] leading-tight text-gray-500" x-text="c.hint"></div>
+        <p x-show="loading" class="mb-2 text-xs text-gray-500">Loading Talenta and user data…</p>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {{-- LEFT: Talenta --}}
+            <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800">
+                <div class="mb-2 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-gray-800 dark:text-white">Talenta (view_users_talenta)</h2>
+                    <span class="text-xs text-gray-500" x-text="filteredTalenta.length + ' rows'"></span>
+                </div>
+                <input type="text" x-model.debounce.200ms="qTalenta" placeholder="Search NPK, name, company, department..."
+                    class="form-input mb-2 w-full text-sm">
+                <div class="mb-2 grid grid-cols-3 gap-2">
+                    <select x-model="fT.company" class="form-select w-full text-xs">
+                        <option value="">All Company</option>
+                        <template x-for="v in talentaCompanies" :key="v"><option :value="v" x-text="v"></option></template>
+                    </select>
+                    <select x-model="fT.department" class="form-select w-full text-xs">
+                        <option value="">All Department</option>
+                        <template x-for="v in talentaDepartments" :key="v"><option :value="v" x-text="v"></option></template>
+                    </select>
+                    <select x-model="fT.status" class="form-select w-full text-xs">
+                        <option value="">All Status</option>
+                        <template x-for="v in talentaStatuses" :key="v"><option :value="v" x-text="v"></option></template>
+                    </select>
+                </div>
+                <div class="max-h-[60vh] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-gray-50 text-left dark:bg-gray-900">
+                            <tr>
+                                <th class="px-2 py-2">NPK</th>
+                                <th class="px-2 py-2">Name</th>
+                                <th class="px-2 py-2">Company</th>
+                                <th class="px-2 py-2">Department</th>
+                                <th class="px-2 py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="t in filteredTalenta.slice(0, 300)" :key="t.npk">
+                                <tr @click="pickTalenta(t)" class="cursor-pointer border-t border-gray-100 dark:border-gray-700"
+                                    :class="selTalenta && selTalenta.npk === t.npk ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40'">
+                                    <td class="px-2 py-1.5 font-mono" x-text="t.npk"></td>
+                                    <td class="px-2 py-1.5" x-text="t.name"></td>
+                                    <td class="px-2 py-1.5" x-text="t.company"></td>
+                                    <td class="px-2 py-1.5" x-text="t.department"></td>
+                                    <td class="px-2 py-1.5" x-text="t.status"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <p x-show="filteredTalenta.length > 300" class="p-2 text-center text-xs text-gray-500">Showing first 300 — refine your search.</p>
+                </div>
+            </div>
+
+            {{-- RIGHT: ms_user --}}
+            <div class="rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800">
+                <div class="mb-2 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-gray-800 dark:text-white">Users (ms_user)</h2>
+                    <span class="text-xs text-gray-500" x-text="filteredUsers.length + ' rows'"></span>
+                </div>
+                <div class="mb-2 flex gap-2">
+                    <input type="text" x-model.debounce.200ms="qUsers" placeholder="Search username, name, NPK..."
+                        class="form-input w-full text-sm">
+                    <label class="flex items-center gap-1 whitespace-nowrap text-xs">
+                        <input type="checkbox" x-model="onlyMismatch" class="form-checkbox"> Mismatch only
+                    </label>
+                </div>
+                <div class="mb-2 grid grid-cols-3 gap-2">
+                    <select x-model="fU.company" class="form-select w-full text-xs">
+                        <option value="">All Company</option>
+                        <template x-for="v in userCompanies" :key="v"><option :value="v" x-text="v"></option></template>
+                    </select>
+                    <select x-model="fU.department" class="form-select w-full text-xs">
+                        <option value="">All Department</option>
+                        <template x-for="v in userDepartments" :key="v"><option :value="v" x-text="v"></option></template>
+                    </select>
+                    <select x-model="fU.status" class="form-select w-full text-xs">
+                        <option value="">All Talenta Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Resigned">Resigned</option>
+                        <option value="__none">No Talenta match</option>
+                    </select>
+                </div>
+                <div class="max-h-[60vh] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-xs">
+                        <thead class="sticky top-0 bg-gray-50 text-left dark:bg-gray-900">
+                            <tr>
+                                <th class="px-2 py-2">Username</th>
+                                <th class="px-2 py-2">NPK</th>
+                                <th class="px-2 py-2">Name</th>
+                                <th class="px-2 py-2">Company</th>
+                                <th class="px-2 py-2">Department</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="u in filteredUsers.slice(0, 300)" :key="u.id">
+                                <tr @click="pickUser(u)" class="cursor-pointer border-t border-gray-100 dark:border-gray-700"
+                                    :class="selUser && selUser.id === u.id ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40'">
+                                    <td class="px-2 py-1.5" x-text="u.username"></td>
+                                    <td class="px-2 py-1.5 font-mono" x-text="u.npk || '-'"></td>
+                                    <td class="px-2 py-1.5" x-text="u.name"></td>
+                                    <td class="px-2 py-1.5" x-text="u.origin_cpny_id || '-'"></td>
+                                    <td class="px-2 py-1.5" x-text="u.origin_department_id || '-'"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <p x-show="filteredUsers.length > 300" class="p-2 text-center text-xs text-gray-500">Showing first 300 — refine your search.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Compare / apply --}}
+        <div class="mt-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800" x-show="selUser" x-cloak>
+            <h2 class="mb-1 text-sm font-bold text-gray-800 dark:text-white">
+                Update <span x-text="selUser?.username"></span>
+            </h2>
+            <p x-show="!selTalenta" class="mb-2 text-xs text-amber-600">No Talenta row selected — click one on the left.</p>
+
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-4" x-show="selTalenta">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">NPK / Employee ID</label>
+                    <input type="text" x-model="form.npk" class="form-input w-full text-sm">
+                    <p class="mt-1 text-xs text-gray-500">Now: <span x-text="selUser?.npk || '-'"></span></p>
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">Name</label>
+                    <input type="text" x-model="form.name" class="form-input w-full text-sm uppercase">
+                    <p class="mt-1 text-xs text-gray-500">Now: <span x-text="selUser?.name"></span></p>
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">Origin Company</label>
+                    <select x-model="form.origin_cpny_id" class="form-select w-full text-sm">
+                        <option value="">-- none --</option>
+                        <template x-for="c in companies" :key="c.cpny_id">
+                            <option :value="c.cpny_id" x-text="c.cpny_id + ' — ' + c.cpny_name"></option>
+                        </template>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">Talenta: <b x-text="selTalenta?.company"></b>
+                        <span x-show="!suggest.cpny" class="text-amber-600">(no match, choose manually)</span></p>
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-semibold">Origin Department</label>
+                    <select x-model="form.origin_department_id" class="form-select w-full text-sm">
+                        <option value="">-- none --</option>
+                        <template x-for="d in departments" :key="d.department_id">
+                            <option :value="d.department_id" x-text="d.department_id"></option>
+                        </template>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">Talenta: <b x-text="selTalenta?.department"></b>
+                        <span x-show="!suggest.dept" class="text-amber-600">(no match, choose manually)</span></p>
+                </div>
+            </div>
+
+            <div class="mt-3 flex items-center gap-3" x-show="selTalenta">
+                <button type="button" @click="save()" :disabled="saving"
+                    class="btn bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+                    <span x-text="saving ? 'Saving...' : 'Update ms_user'"></span>
                 </button>
             </template>
         </div>
@@ -227,10 +375,19 @@
             }).then(async r => ({ ok: r.ok, j: await r.json().catch(() => ({})) }));
 
             return {
-                rows: [], talentaDups: [], talenta: null, companies: [], departments: [],
-                loading: true, busy: false, msg: '', msgError: false,
-                filter: 'todo', q: '', fCompany: '', limit: 200, sel: {},
-                drawer: null, pick: null, tq: '', form: {}, drawerErr: '',
+                talenta: [], users: [], companies: [], departments: [],
+                loading: true,
+                talentaMap: new Map(), talentaSearch: [], userSearch: [],
+                filteredTalenta: [], filteredUsers: [],
+                talentaCompanies: [], talentaDepartments: [], talentaStatuses: [],
+                userCompanies: [], userDepartments: [],
+                qTalenta: '', qUsers: '', onlyMismatch: false,
+                fT: { company: '', department: '', status: '' },
+                fU: { company: '', department: '', status: '' },
+                selTalenta: null, selUser: null,
+                form: { npk: '', name: '', origin_cpny_id: '', origin_department_id: '' },
+                suggest: { cpny: false, dept: false },
+                saving: false, msg: '', msgError: false,
 
                 cards: [
                     { key: 'todo', label: 'Needs action', hint: 'everything below', color: 'text-gray-800 dark:text-white' },
@@ -335,23 +492,73 @@
                         fetch('{{ route('user-data-sync.talenta') }}', { headers: { Accept: 'application/json' } }).then(r => r.json()),
                         fetch('{{ route('user-data-sync.options') }}', { headers: { Accept: 'application/json' } }).then(r => r.json()),
                     ]);
-                    this.talenta = t.data; this.companies = o.companies; this.departments = o.departments;
+                    this.talenta = t.data;
+                    this.users = u.data;
+                    this.companies = o.companies;
+                    this.departments = o.departments;
+                    this.buildIndex();
+                    this.loading = false;
+
+                    // Alpine getters re-run on every access; cache the results and only recompute on change.
+                    this.$watch('qTalenta', () => this.refilterTalenta());
+                    this.$watch('fT', () => this.refilterTalenta());
+                    ['qUsers', 'onlyMismatch', 'fU'].forEach(k => this.$watch(k, () => this.refilterUsers()));
                 },
-                async open(r) {
-                    this.drawer = r; this.tq = ''; this.drawerErr = ''; this.pick = r.talenta;
-                    this.form = r.suggested ? { ...r.suggested }
-                        : { npk: r.npk || '', name: r.name, origin_cpny_id: r.cpny || '', origin_department_id: r.dept || '' };
-                    await this.ensureTalenta();
-                    // options load async: re-apply so the selects show the values
-                    const f = this.form; this.form = {}; this.$nextTick(() => this.form = f);
+
+                buildIndex() {
+                    this.talentaMap = new Map(this.talenta.map(t => [t.npk, t]));
+                    this.talentaSearch = this.talenta.map(t => norm(t.npk + ' ' + t.name + ' ' + t.organization));
+                    this.userSearch = this.users.map(u => norm(u.username + ' ' + u.name + ' ' + u.npk));
+                    this.talentaCompanies = this.uniq(this.talenta.map(t => t.company));
+                    this.talentaDepartments = this.uniq(this.talenta.map(t => t.department));
+                    this.talentaStatuses = this.uniq(this.talenta.map(t => t.status));
+                    this.userCompanies = this.uniq(this.users.map(u => u.origin_cpny_id));
+                    this.userDepartments = this.uniq(this.users.map(u => u.origin_department_id));
+                    this.refilterTalenta();
+                    this.refilterUsers();
+                },
+
+                talentaByNpk(npk) {
+                    return this.talentaMap.get(String(npk || '').trim());
                 },
                 get talentaHits() {
                     const q = norm(this.tq);
                     if (!q || !this.talenta) return [];
                     return this.talenta.filter(t => norm(t.npk + ' ' + t.name).includes(q)).slice(0, 12);
                 },
-                usePick(t) {
-                    this.pick = t; this.tq = '';
+
+                uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); },
+
+                refilterTalenta() {
+                    const q = norm(this.qTalenta), f = this.fT;
+                    this.filteredTalenta = this.talenta.filter((t, i) =>
+                        (!q || this.talentaSearch[i].includes(q)) &&
+                        (!f.company || t.company === f.company) &&
+                        (!f.department || t.department === f.department) &&
+                        (!f.status || t.status === f.status));
+                },
+                refilterUsers() {
+                    const q = norm(this.qUsers), f = this.fU;
+                    this.filteredUsers = this.users.filter((u, i) => {
+                        const t = this.talentaByNpk(u.npk);
+                        return (!q || this.userSearch[i].includes(q)) &&
+                            (!this.onlyMismatch || this.isMismatch(u)) &&
+                            (!f.company || u.origin_cpny_id === f.company) &&
+                            (!f.department || u.origin_department_id === f.department) &&
+                            (!f.status || (f.status === '__none' ? !t : (t && t.status === f.status)));
+                    });
+                },
+
+                pickUser(u) {
+                    this.selUser = u;
+                    this.msg = '';
+                    // auto-pick Talenta by NPK, else by exact name
+                    const t = this.talentaByNpk(u.npk) || this.talenta.find(x => norm(x.name) === norm(u.name));
+                    if (t) { this.pickTalenta(t); this.qTalenta = t.npk; } else { this.selTalenta = null; }
+                },
+                pickTalenta(t) {
+                    this.selTalenta = t;
+                    this.msg = '';
                     const co = this.companies.find(c => norm(c.cpny_id) === norm(t.company.split(' ')[0]));
                     const dp = this.departments.find(d => norm(d.department_id) === norm(t.department) || norm(d.department_name) === norm(t.department));
                     this.form = {

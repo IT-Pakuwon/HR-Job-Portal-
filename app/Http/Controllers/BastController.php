@@ -10,6 +10,7 @@ use App\Models\MsCompany;
 use App\Models\MsPenalty;
 use App\Models\MsTopdetail;
 use App\Models\SysCalendar;
+use App\Models\StagingIfcaPoGrn;
 use App\Models\TrApproval;
 use App\Models\TrBast;
 use App\Models\TrBASTRating;
@@ -350,6 +351,19 @@ class BastController extends Controller
         // ===== Header Bast
         $bast = TrBast::findOrFail($id);
 
+        $ifcaStatuses = StagingIfcaPoGrn::where('grn_no', $bast->bastid)
+            ->where('cpny_id', $bast->cpny_id)
+            ->distinct()
+            ->pluck('status')
+            ->map(fn ($status) => strtoupper(trim((string) $status)));
+
+        $ifcaStatus = 'Not Processed IFCA';
+        if ($ifcaStatuses->contains(fn ($status) => in_array($status, ['D', 'P'], true))) {
+            $ifcaStatus = 'On Progress IFCA';
+        } elseif ($ifcaStatuses->isNotEmpty() && $ifcaStatuses->every(fn ($status) => $status === 'C')) {
+            $ifcaStatus = 'Processed to IFCA';
+        }
+
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($bast->ponbr)) {
@@ -455,6 +469,7 @@ class BastController extends Controller
 
         return view('pages.bast.showbast', [
             'bast' => $bast,
+            'ifcaStatus' => $ifcaStatus,
             'hash' => $hash,
             'eid_bastid' => $eid_bastid,
             'poUrl' => $poUrl,

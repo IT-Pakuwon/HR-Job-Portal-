@@ -20,6 +20,11 @@
     #myActivityRoot { --ma-g1: #0e7490; --ma-g2: #2563eb; --ma-line: #e2e8f0; --ma-soft: #f1f5f9; --ma-muted: #64748b; --ma-card: #fff; --ma-fg: #0f172a; }
     .dark #myActivityRoot { --ma-g1: #22d3ee; --ma-g2: #818cf8; --ma-line: #334155; --ma-soft: #273449; --ma-muted: #94a3b8; --ma-card: #1e293b; --ma-fg: #f1f5f9; }
 
+    .ma-seg { display: flex; gap: .25rem; margin: 1rem 1rem 0; padding: .25rem; border-radius: .875rem; background: var(--ma-soft); }
+    .ma-seg button { flex: 1 1 0; padding: .5rem .75rem; border-radius: .625rem; font-size: .75rem; font-weight: 600; color: var(--ma-muted); transition: background .15s, color .15s; touch-action: manipulation; }
+    .ma-seg button.on { background: var(--ma-card); color: var(--ma-fg); box-shadow: 0 1px 3px #0f172a22; }
+    @media (max-width: 768px), (display-mode: standalone) { .ma-seg { margin: .25rem 0 .5rem; } }
+    .ma-by { display: block; margin-bottom: .125rem; font-size: .6875rem; color: var(--ma-g2); }
     .ma-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding: 1rem 1.25rem .25rem; }
     @media (max-width: 640px) { .ma-tiles { grid-template-columns: 1fr; } }
     .ma-tile { display: flex; align-items: center; gap: .875rem; text-align: left; cursor: pointer; padding: .875rem 1rem; border-radius: .875rem;
@@ -37,6 +42,31 @@
     #myActivityRoot[data-combined="1"] .ma-xcol { display: none; }
     .ma-n { display: block; font-size: 1.375rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
     .ma-l { display: block; margin-top: .25rem; font-size: .75rem; color: var(--ma-muted); }
+
+    /* Select2 filter dropdowns (My Document / My Files): look like the other inputs, open as a rounded card under the field */
+    .ma-s2 { position: relative; }
+    #myActivityRoot .ma-s2 .select2-container { width: 100% !important; }
+    #myActivityRoot .ma-s2 .select2-selection--single { height: 34px; display: flex; align-items: center; border-radius: .5rem; border: 1px solid #cbd5e1;
+        background: #fff; padding: 0 2rem 0 .75rem; font-size: .75rem; transition: border-color .15s, box-shadow .15s; }
+    #myActivityRoot .ma-s2 .select2-selection--single:hover { border-color: #94a3b8; }
+    #myActivityRoot .ma-s2 .select2-container--open .select2-selection--single { border-color: #6366f1; box-shadow: 0 0 0 3px #6366f126; }
+    #myActivityRoot .ma-s2 .select2-selection__rendered { padding: 0 !important; line-height: 32px !important; color: #334155 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #myActivityRoot .ma-s2 .select2-selection__arrow { height: 32px !important; right: 8px !important; }
+    #myActivityRoot .ma-s2 .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
+    #myActivityRoot .ma-s2 .select2-dropdown { z-index: 60; margin-top: 4px; border-radius: .75rem; border: 1px solid #c7d2e1; overflow: hidden;
+        box-shadow: 0 12px 24px -8px #0f172a33; }
+    #myActivityRoot .ma-s2 .select2-results__options { max-height: 15rem; }
+    #myActivityRoot .ma-s2 .select2-results__option { font-size: .8125rem; padding: .5rem .75rem; }
+    #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #eef2ff; color: #4338ca; }
+    #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #e0e7ff; color: #4338ca; font-weight: 600; }
+    #myActivityRoot .ma-s2 .select2-search__field { border-radius: .375rem; border: 1px solid #cbd5e1; padding: .375rem .5rem; font-size: .75rem; outline: none; }
+    .dark #myActivityRoot .ma-s2 .select2-selection--single { background: #334155; border-color: #475569; }
+    .dark #myActivityRoot .ma-s2 .select2-selection__rendered { color: #e2e8f0 !important; }
+    .dark #myActivityRoot .ma-s2 .select2-dropdown { background: #1e293b; border-color: #475569; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option { color: #e2e8f0; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #4338ca; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #3730a3; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-search__field { background: #334155; border-color: #475569; color: #e2e8f0; }
 
     .ma-sep { flex: none; width: 1px; align-self: stretch; margin: .25rem .375rem; background: var(--ma-line); }
     .ma-mine { display: inline-flex; align-items: center; gap: .4rem; border-style: dashed; }
@@ -82,14 +112,18 @@
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
                     <div class="grid grid-cols-2 gap-3 lg:col-span-4">
-                        <select x-model="docType" @change="loadDocs(1)" class="{{ $selectCls }}">
-                            <option value="">All Doctype</option>
-                            <template x-for="t in docTypes" :key="t"><option :value="t" x-text="t"></option></template>
-                        </select>
-                        <select x-model="docStatus" @change="loadDocs(1)" class="{{ $selectCls }}">
-                            <option value="">All Status</option>
-                            <template x-for="st in docStatuses" :key="st.code + st.label"><option :value="st.code" x-text="st.label"></option></template>
-                        </select>
+                        <div class="ma-s2 min-w-0">
+                            <select x-model="docType" x-init="$nextTick(() => s2($el, 'docType', 'docTypes', () => loadDocs(1), 8))" class="{{ $selectCls }}">
+                                <option value="">All Doctype</option>
+                                <template x-for="t in docTypes" :key="t"><option :value="t" x-text="t"></option></template>
+                            </select>
+                        </div>
+                        <div class="ma-s2 min-w-0">
+                            <select x-model="docStatus" x-init="$nextTick(() => s2($el, 'docStatus', 'docStatuses', () => loadDocs(1), -1))" class="{{ $selectCls }}">
+                                <option value="">All Status</option>
+                                <template x-for="st in docStatuses" :key="st.code + st.label"><option :value="st.code" x-text="st.label"></option></template>
+                            </select>
+                        </div>
                     </div>
                     <div class="lg:col-span-4">
                         <input type="text" x-model="docQ" @input.debounce.400ms="loadDocs(1)" placeholder="Search..."
@@ -191,6 +225,12 @@
         <div x-show="mode === 'msg' || mode === 'both'"
             :class="embedded ? '' : 'rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800'">
 
+            {{-- Comments I wrote  /  comments others wrote on my documents --}}
+            <div class="ma-seg" role="tablist">
+                <button type="button" role="tab" :aria-selected="msgScope === 'mine'" :class="msgScope === 'mine' && 'on'" @click="setMsgScope('mine')">My Comments</button>
+                <button type="button" role="tab" :aria-selected="msgScope === 'others'" :class="msgScope === 'others' && 'on'" @click="setMsgScope('others')">From Others</button>
+            </div>
+
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
                     <div class="lg:col-span-8">
@@ -236,6 +276,7 @@
                                     <td class="{{ $tdCls }}" x-text="m.dept || '-'"></td>
                                     <td class="{{ $tdCls }}" x-text="fmt(m.date)"></td>
                                     <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">
+                                        <b x-show="msgScope === 'others' && m.by" class="ma-by" x-text="m.by"></b>
                                         <span x-show="m.private" class="mr-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Private</span>
                                         <span class="whitespace-pre-line break-words" x-text="m.text"></span>
                                     </td>
@@ -263,8 +304,8 @@
 
             <div class="border-b border-slate-200 p-4 dark:border-slate-700">
                 <div class="grid gap-3 lg:grid-cols-12">
-                    <div class="lg:col-span-4">
-                        <select x-model="fileExt" @change="loadFiles(1)" class="{{ $selectCls }}">
+                    <div class="ma-s2 min-w-0 lg:col-span-4">
+                        <select x-model="fileExt" x-init="$nextTick(() => s2($el, 'fileExt', 'fileExts', () => loadFiles(1), -1))" class="{{ $selectCls }}">
                             <option value="">All File Types</option>
                             <template x-for="e in fileExts" :key="e"><option :value="e" x-text="e.toUpperCase()"></option></template>
                         </select>
@@ -355,7 +396,7 @@
             // 'both' = no tab bar on this dashboard, so show both panels below it
             mode: 'both', embedded: false, loaded: { doc: false, msg: false, file: false }, perPage: 10,
             docs: [], docTypes: [], docStatuses: [], docQ: '', docType: '', docStatus: '', docsLoading: false,
-            msgs: [], msgQ: '', msgsLoading: false,
+            msgs: [], msgQ: '', msgsLoading: false, msgScope: 'mine',
             files: [], fileExts: [], fileQ: '', fileExt: '', filesLoading: false,
             docPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
             msgPg: { page: 1, last_page: 1, total: 0, from: 0, to: 0 },
@@ -368,6 +409,20 @@
                 { mode: 'doc', label: 'Documents · Created by you', icon: MA_ICONS.doc },
                 { mode: 'file', label: 'Files · Attached by you', icon: MA_ICONS.file },
             ],
+
+            // Select2 on a filter <select>: Alpine owns the value (x-model), Select2 only draws it.
+            // Select2 fires a jQuery-only change, which x-model never hears, so push the value back by hand.
+            s2(el, key, listKey, onPick, minSearch) {
+                const $el = $(el);
+                if (!$.fn.select2) return;
+                $el.select2({ width: '100%', minimumResultsForSearch: minSearch, dropdownParent: $el.parent() });
+                $el.on('change', () => {
+                    if ($el.val() !== String(this[key] ?? '')) { this[key] = $el.val(); onPick(); }
+                });
+                const redraw = () => this.$nextTick(() => $el.val(String(this[key] ?? '')).trigger('change.select2'));
+                this.$watch(key, redraw);
+                this.$watch(listKey, redraw);
+            },
 
             count(mode) {
                 const pg = { msg: this.msgPg, doc: this.docPg, file: this.filePg }[mode];
@@ -427,10 +482,19 @@
                 this.docsLoading = false;
             },
 
+            setMsgScope(scope) {
+                if (this.msgScope === scope) return;
+                this.msgScope = scope;
+                this.msgs = [];
+                this.loadMsgs(1);
+            },
+
             async loadMsgs(page = 1) {
                 this.msgsLoading = true;
+                const scope = this.msgScope;
                 try {
-                    const r = await this.get(cfg.messagesUrl, { q: this.msgQ, page, per_page: this.perPage });
+                    const r = await this.get(cfg.messagesUrl, { q: this.msgQ, page, per_page: this.perPage, scope });
+                    if (scope !== this.msgScope) return; // user switched tabs while this was loading
                     this.msgs = r.data; this.msgPg = r; this.loaded.msg = true;
                 }
                 catch (e) { this.msgs = []; }

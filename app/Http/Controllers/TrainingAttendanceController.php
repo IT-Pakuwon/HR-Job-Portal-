@@ -54,9 +54,17 @@ class TrainingAttendanceController extends Controller
             ->groupBy('schedule_id')
             ->pluck('cnt', 'schedule_id');
 
+        $attendedCounts = TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where('status', TrLndTrainingRegistration::STATUS_APPROVED)
+            ->seated()
+            ->whereNotNull('completed_at')
+            ->select('schedule_id', DB::raw('count(*) as cnt'))
+            ->groupBy('schedule_id')
+            ->pluck('cnt', 'schedule_id');
+
         $levelLabels = StoGrading::labelsFor($details->pluck('schedule.job_level'));
 
-        $rows = $details->map(function ($d) use ($approvedCounts, $levelLabels) {
+        $rows = $details->map(function ($d) use ($approvedCounts, $attendedCounts, $levelLabels) {
             $schedule = $d->schedule;
             $training = $schedule?->training;
 
@@ -73,6 +81,7 @@ class TrainingAttendanceController extends Controller
                 'platform' => $d->training_platform,
                 'status' => $d->status,
                 'approved_count' => (int) ($approvedCounts[$d->schedule_id] ?? 0),
+                'attended_count' => (int) ($attendedCounts[$d->schedule_id] ?? 0),
             ];
         })->values();
 
@@ -563,11 +572,14 @@ class TrainingAttendanceController extends Controller
 
         $usernames = $attended->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+        $npks = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('npk', 'username');
 
         if ($request->filled('search')) {
             $term = strtolower($request->search);
-            $matching = $usernames->filter(function ($username) use ($names, $term) {
-                return str_contains(strtolower($username), $term) || str_contains(strtolower($names[$username] ?? ''), $term);
+            $matching = $usernames->filter(function ($username) use ($names, $npks, $term) {
+                return str_contains(strtolower($username), $term)
+                    || str_contains(strtolower($names[$username] ?? ''), $term)
+                    || str_contains(strtolower((string) ($npks[$username] ?? '')), $term);
             });
             $attended = $attended->whereIn('user_registration', $matching);
         }
@@ -578,11 +590,12 @@ class TrainingAttendanceController extends Controller
         $cpnyNames = MsCompany::whereIn('cpny_id', $attended->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
         $deptNames = MsDepartment::whereIn('department_id', $attended->pluck('department_id')->unique())->pluck('department_name', 'department_id');
 
-        $rows = $attended->groupBy('user_registration')->map(function ($rows, $username) use ($names, $trainingNames, $cpnyNames, $deptNames) {
+        $rows = $attended->groupBy('user_registration')->map(function ($rows, $username) use ($names, $npks, $trainingNames, $cpnyNames, $deptNames) {
             $latest = $rows->sortByDesc('completed_at')->first();
 
             return [
                 'username' => $username,
+                'npk' => $npks[$username] ?? null,
                 'name' => $names[$username] ?? $username,
                 'cpny_name' => $cpnyNames[$latest->cpny_id] ?? $latest->cpny_id,
                 'department_name' => $deptNames[$latest->department_id] ?? $latest->department_id,

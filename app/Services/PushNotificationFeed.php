@@ -16,7 +16,8 @@ class PushNotificationFeed
         $username = strtolower(trim($username));
 
         return collect(DocumentNotificationService::buildForUser($username))
-            ->filter(fn ($i) => !empty($i['key']))
+            // New-email notifications (MAIL_*) are desktop-only: My APP neither pushes them nor lists them.
+            ->filter(fn ($i) => !empty($i['key']) && !str_starts_with((string) $i['key'], 'MAIL_'))
             ->concat(self::waitingApprovalItems($username))
             ->values();
     }
@@ -25,17 +26,19 @@ class PushNotificationFeed
     {
         try {
             $user = User::whereRaw('lower(username) = ?', [$username])->where('status', 'A')->first();
-            if (!$user) return collect();
+            if (!$user) {
+                return collect();
+            }
 
             return app(ApprovalDashboardController::class)->waitingForUser($user)->map(function ($r) {
                 $desc = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($r['infohd'] ?? ''))));
 
                 return [
-                    'key'     => 'WAITAPPR_' . $r['docid'],
-                    'docid'   => $r['docid'],
-                    'label'   => 'Waiting Approval',
+                    'key' => 'WAITAPPR_'.$r['docid'],
+                    'docid' => $r['docid'],
+                    'label' => 'Waiting Approval',
                     'message' => $desc !== '' ? $desc : 'This document is waiting for your approval.',
-                    'href'    => rtrim((string) $r['url'], '/') . '/' . $r['hid'] . ($r['query'] ?? ''),
+                    'href' => rtrim((string) $r['url'], '/').'/'.$r['hid'].($r['query'] ?? ''),
                 ];
             });
         } catch (\Throwable $e) {

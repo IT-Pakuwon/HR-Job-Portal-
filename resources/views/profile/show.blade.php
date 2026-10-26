@@ -44,7 +44,7 @@
                     </div>
 
                     {{-- Inside the My Page app (?embed=1) install/logout live in the app bar instead --}}
-                    @if (!request()->boolean("embed") && strtoupper(trim((string) auth()->user()->group_cpny_id)) === 'JKT')
+                    @if (!request()->boolean("embed") && auth()->user()->isPrimaryAdmin() && strtoupper(trim((string) auth()->user()->group_cpny_id)) === 'JKT')
                     <button type="button" id="btnAddHomeScreen"
                         class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-cyan-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-cyan-800 hover:shadow-md sm:self-center">
                         <i class="fa-solid fa-mobile-screen-button text-[11px]"></i>
@@ -84,10 +84,10 @@
                             </div>
                         </div>
                         <div id="themeChoice" role="radiogroup" aria-label="Appearance"
-                            class="inline-flex rounded-full bg-gray-100 p-1 dark:bg-gray-700">
+                            class="flex w-full rounded-full bg-gray-100 p-1 sm:inline-flex sm:w-auto dark:bg-gray-700">
                             @foreach (['light' => ['Light', 'fa-sun'], 'dark' => ['Dark', 'fa-moon'], 'system' => ['Device', 'fa-mobile-screen']] as $val => [$label, $icon])
                                 <button type="button" role="radio" data-theme="{{ $val }}"
-                                    class="theme-opt inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 transition dark:text-gray-300">
+                                    class="theme-opt inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 transition sm:flex-none dark:text-gray-300">
                                     <i class="fa-solid {{ $icon }} text-[10px]"></i> {{ $label }}
                                 </button>
                             @endforeach

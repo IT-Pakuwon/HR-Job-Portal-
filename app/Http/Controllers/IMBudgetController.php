@@ -556,6 +556,61 @@ class IMBudgetController extends Controller
         $user_peminta  = $cs->user_peminta    ?? $request->input('user_peminta', $username);
         $keperluan  = $cs->keperluan;
 
+        $isFilled = fn ($value) => trim((string) $value) !== '';
+        $woid = strtoupper(trim((string) ($cs->woid ?? '')));
+        $spbid = strtoupper(trim((string) ($cs->spbid ?? '')));
+        $spb = $spbid !== '' ? TrSPB::query()
+            ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
+            ->where('cpny_id', $cpnyid)
+            ->first(['spbid', 'woid', 'created_by', 'department_id']) : null;
+
+        if ($woid === '' && $spb) {
+            $woid = strtoupper(trim((string) ($spb->woid ?? '')));
+        }
+
+        $wo = $woid !== '' ? TrWO::query()
+            ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
+            ->where('cpny_id', $cpnyid)
+            ->first(['woid', 'created_by', 'department_id', 'budget_use', 'pic_wo', 'pic_department']) : null;
+        $woUserPeminta = null;
+        $woDepartmentId = null;
+        $woBudgetUse = null;
+
+        if ($wo) {
+            $woBudgetUse = trim((string) $wo->budget_use);
+            if (strcasecmp($woBudgetUse, 'Penerima Kerja') === 0) {
+                $woUserPeminta = $isFilled($wo->pic_wo) ? trim((string) $wo->pic_wo) : trim((string) $wo->created_by);
+                $woDepartmentId = trim((string) $wo->pic_department);
+
+                if (!$isFilled($woDepartmentId)) {
+                    $receiver = $isFilled($wo->pic_wo)
+                        ? User::where('username', $woUserPeminta)->first(['origin_department_id', 'department_id'])
+                        : null;
+                    $woDepartmentId = trim((string) ($receiver->origin_department_id ?? ''));
+                    if (!$isFilled($woDepartmentId)) {
+                        $receiverDepartments = collect(explode(',', (string) ($receiver->department_id ?? '')))
+                            ->map(fn ($department) => trim($department))->filter()->unique()->values();
+                        $woDepartmentId = $receiverDepartments->count() === 1 ? $receiverDepartments->first() : '';
+                    }
+                }
+
+                if (!$isFilled($woDepartmentId)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Department penerima kerja WO {$woid} belum ditentukan. Lengkapi pic_department WO terlebih dahulu.",
+                    ], 422);
+                }
+            } else {
+                $woUserPeminta = trim((string) $wo->created_by);
+                $woDepartmentId = trim((string) $wo->department_id);
+            }
+
+            if ($isFilled($woUserPeminta)) {
+                $user_peminta = $woUserPeminta;
+                $departementid = $woDepartmentId;
+            }
+        }
+
         $imdoctype = null;
     
         $imdoctype = $this->resolveIMBudgetDoctypeFromValue($csid);     
@@ -830,133 +885,10 @@ class IMBudgetController extends Controller
            
 
             // === Tentukan penerima email ===
-            $isFilled = fn($v) => trim((string)$v) !== '';
 
             $recipientUsernames = [];
             $mailName = (string) $header->user_peminta;   // default utk body email
             $mailInfo = 'Request IM Budget Department ' . $header->department_id;
-
-            $woid  = strtoupper(trim((string)($cs->woid ?? '')));
-            $spbid = strtoupper(trim((string)($cs->spbid ?? '')));           
-
-            // $wo = null;
-            // $spb = null;
-
-            // // ===============================
-            // // PRIORITAS 1: BACA WO DULU
-            // // ===============================
-            // if ($woid !== '') {
-            //     $wo = TrWO::query()
-            //         ->select('woid', 'created_by', 'department_id')
-            //         ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
-            //         ->first();
-            // }
-
-            // if ($wo && $isFilled($wo->created_by)) {
-
-            //     $woCreatedBy = trim((string) $wo->created_by);
-            //     $woDepartmentId = trim((string) $wo->department_id);
-
-            //     // update user_peminta di header IMBudget
-            //     $header->user_peminta = $woCreatedBy;
-            //     $header->department_id = $woDepartmentId;
-            //     $header->updated_by = $username;
-            //     $header->updated_at = now();
-            //     $header->save();
-
-            //     $recipientUsernames = [$woCreatedBy];
-            //     $mailName = $woCreatedBy;
-            //     $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$woDepartmentId}";
-
-            // } else {
-
-            //     // ===============================
-            //     // PRIORITAS 2: JIKA WO TIDAK ADA / TIDAK VALID, BACA SPB
-            //     // ===============================
-            //     if ($spbid !== '') {
-            //         $spb = TrSPB::query()
-            //             ->select('spbid', 'created_by', 'department_id')
-            //             ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
-            //             ->first();
-            //     }
-
-            //     if ($spb && $isFilled($spb->created_by)) {
-
-            //         $spbCreatedBy = trim((string) $spb->created_by);
-            //         $spbDepartmentId = trim((string) $spb->department_id);
-
-            //         // update user_peminta di header IMBudget
-            //         $header->user_peminta = $spbCreatedBy;
-            //         $header->department_id = $spbDepartmentId;
-            //         $header->updated_by = $username;
-            //         $header->updated_at = now();
-            //         $header->save();
-
-            //         $recipientUsernames = [$spbCreatedBy];
-            //         $mailName = $spbCreatedBy;
-            //         $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$spbDepartmentId}";
-            //     }
-            // }
-
-            $wo = null;
-            $spb = null;
-
-            $woUserPeminta = null;
-            $woDepartmentId = null;
-            $woBudgetUse = null;
-
-            /*
-            |--------------------------------------------------------------------------
-            | PRIORITAS 1: BACA WO
-            |--------------------------------------------------------------------------
-            */
-            if ($woid !== '') {
-                $wo = TrWO::query()
-                    ->select(
-                        'woid',
-                        'created_by',
-                        'department_id',
-                        'budget_use',
-                        'pic_wo',
-                        'pic_department'
-                    )
-                    ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
-                    ->first();
-            }
-
-            if ($wo) {
-                $woCreatedBy = trim((string) ($wo->created_by ?? ''));
-                $woPicWo = trim((string) ($wo->pic_wo ?? ''));
-                $woDepartmentRequester = trim((string) ($wo->department_id ?? ''));
-                $woPicDepartment = trim((string) ($wo->pic_department ?? ''));
-                $woBudgetUse = trim((string) ($wo->budget_use ?? ''));
-
-                /*
-                |--------------------------------------------------------------------------
-                | budget_use = Pemberi Kerja
-                | - user_peminta = created_by
-                | - department_id = department_id
-                |
-                | budget_use = Penerima Kerja
-                | - user_peminta = pic_wo
-                | - department_id = pic_department
-                | - kalau pic_wo kosong, fallback ke created_by
-                | - kalau pic_department kosong, fallback ke department_id
-                |--------------------------------------------------------------------------
-                */
-                if (strcasecmp($woBudgetUse, 'Penerima Kerja') === 0) {
-                    $woUserPeminta = $isFilled($woPicWo)
-                        ? $woPicWo
-                        : $woCreatedBy;
-
-                    $woDepartmentId = $isFilled($woPicDepartment)
-                        ? $woPicDepartment
-                        : $woDepartmentRequester;
-                } else {
-                    $woUserPeminta = $woCreatedBy;
-                    $woDepartmentId = $woDepartmentRequester;
-                }
-            }
 
             /*
             |--------------------------------------------------------------------------
@@ -984,13 +916,6 @@ class IMBudgetController extends Controller
                 | PRIORITAS 2: JIKA WO TIDAK ADA / TIDAK VALID, BACA SPB
                 |--------------------------------------------------------------------------
                 */
-                if ($spbid !== '') {
-                    $spb = TrSPB::query()
-                        ->select('spbid', 'created_by', 'department_id')
-                        ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
-                        ->first();
-                }
-
                 if ($spb && $isFilled($spb->created_by)) {
                     $spbCreatedBy = trim((string) $spb->created_by);
                     $spbDepartmentId = trim((string) $spb->department_id);

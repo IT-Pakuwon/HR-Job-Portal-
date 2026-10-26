@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\Autonbr;
 use App\Models\User;
 use App\Models\TrPO;
+use App\Models\StagingIfcaPoApprove;
 use App\Models\TrPOdetail;
 use App\Models\MsVendor;
 use App\Models\MsCompany;
@@ -57,6 +58,19 @@ class PoController extends Controller
 
         // Header PO
         $po = TrPO::findOrFail($id);
+
+        $ifcaStatuses = StagingIfcaPoApprove::where('order_no', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
+            ->distinct()
+            ->pluck('status')
+            ->map(fn ($status) => strtoupper(trim((string) $status)));
+
+        $ifcaStatus = 'Not Processed IFCA';
+        if ($ifcaStatuses->contains(fn ($status) => in_array($status, ['D', 'P'], true))) {
+            $ifcaStatus = 'On Progress IFCA';
+        } elseif ($ifcaStatuses->isNotEmpty() && $ifcaStatuses->every(fn ($status) => $status === 'C')) {
+            $ifcaStatus = 'Processed to IFCA';
+        }
 
         // Detail PO
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
@@ -235,6 +249,7 @@ class PoController extends Controller
             'poHistory'   => $poHistory,
             'bastHistory' => $bastHistory,
             'rfcaList'    => $rfcaList,
+            'ifcaStatus'  => $ifcaStatus,
             'hash'        => $hash,
             'holidayDates'          => $holidayDates,
              'poTerms'     => $poTerms,

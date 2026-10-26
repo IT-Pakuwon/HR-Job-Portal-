@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\MyAppResetPasswordMail;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
@@ -9,7 +10,6 @@ use App\Models\SysUserRole;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\MyAppResetPasswordMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -33,17 +33,23 @@ class MyPageController extends Controller
     private function resolveAccount(string $login): array
     {
         $login = mb_strtolower(trim($login));
-        if ($login === '') return [null, null];
+        if ($login === '') {
+            return [null, null];
+        }
 
         $active = User::where('status', 'A')
             ->where(fn ($q) => $q->whereRaw('lower(username) = ?', [$login])->orWhereRaw('lower(email) = ?', [$login]))
             ->get();
 
         $byUsername = $active->filter(fn ($u) => mb_strtolower((string) $u->username) === $login);
-        if ($byUsername->count() === 1) return [$byUsername->first(), null];
+        if ($byUsername->count() === 1) {
+            return [$byUsername->first(), null];
+        }
 
         $byEmail = $active->filter(fn ($u) => mb_strtolower((string) $u->email) === $login);
-        if ($byEmail->count() === 1) return [$byEmail->first(), null];
+        if ($byEmail->count() === 1) {
+            return [$byEmail->first(), null];
+        }
         if ($byEmail->count() > 1) {
             return [null, 'This email is used by more than one account. Please sign in with your username instead.'];
         }
@@ -51,9 +57,11 @@ class MyPageController extends Controller
         return [null, null];
     }
 
+    // My APP is limited to the JKT group company, and for now to admin users only.
     private function isJkt(User $user): bool
     {
-        return strtoupper(trim((string) $user->group_cpny_id)) === 'JKT';
+        return $user->isPrimaryAdmin()
+            && strtoupper(trim((string) $user->group_cpny_id)) === 'JKT';
     }
 
     // Single-use marker: changes as soon as the password changes, which kills any reset link already sent.
@@ -70,19 +78,21 @@ class MyPageController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'login'    => ['required'],
+            'login' => ['required'],
             'password' => ['required'],
         ]);
 
         [$user, $ambiguous] = $this->resolveAccount($credentials['login']);
-        if ($ambiguous) throw ValidationException::withMessages(['login' => [$ambiguous]]);
+        if ($ambiguous) {
+            throw ValidationException::withMessages(['login' => [$ambiguous]]);
+        }
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
         }
 
         if (!$this->isJkt($user)) {
-            throw ValidationException::withMessages(['login' => ['My APP is only available for the JKT group company.']]);
+            throw ValidationException::withMessages(['login' => ['My APP is currently only available for admin users of the JKT group company.']]);
         }
 
         Auth::login($user, $request->boolean('remember'));
@@ -102,7 +112,9 @@ class MyPageController extends Controller
         $data = $request->validate(['login' => ['required', 'string', 'max:255']]);
 
         [$user, $ambiguous] = $this->resolveAccount($data['login']);
-        if ($ambiguous) throw ValidationException::withMessages(['login' => [$ambiguous]]);
+        if ($ambiguous) {
+            throw ValidationException::withMessages(['login' => [$ambiguous]]);
+        }
 
         if ($user && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
             try {
@@ -130,8 +142,8 @@ class MyPageController extends Controller
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'u'        => ['required', 'string'],
-            's'        => ['required', 'string'],
+            'u' => ['required', 'string'],
+            's' => ['required', 'string'],
             'password' => ['required', 'string', PasswordRule::default(), 'confirmed'],
         ]);
 
@@ -165,7 +177,7 @@ class MyPageController extends Controller
 
         // My APP is limited to the JKT group company.
         if (!$this->isJkt($user)) {
-            abort(403, 'My APP is only available for the JKT group company.');
+            abort(403, 'My APP is currently only available for admin users of the JKT group company.');
         }
 
         return view('pages.my-page.index', [
@@ -196,21 +208,21 @@ class MyPageController extends Controller
     public function manifest()
     {
         return response()->json([
-            'name'             => 'My APP',
-            'short_name'       => 'My APP',
-            'description'      => 'Waiting approval, approval history, documents, messages and files.',
-            'id'               => '/my-page',
-            'start_url'        => '/my-page',
-            'scope'            => '/my-page',
-            'display'          => 'standalone',
-            'orientation'      => 'any',
+            'name' => 'My APP',
+            'short_name' => 'My APP',
+            'description' => 'Waiting approval, approval history, documents, messages and files.',
+            'id' => '/my-page',
+            'start_url' => '/my-page',
+            'scope' => '/my-page',
+            'display' => 'standalone',
+            'orientation' => 'any',
             'background_color' => '#0b1a6b',
-            'theme_color'      => '#0b1a6b',
-            'icons'            => [
-                ['src' => asset('images/pwa/myapp-192.png') . '?v=' . $this->iconVersion(), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-512.png') . '?v=' . $this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-1080.png') . '?v=' . $this->iconVersion(), 'sizes' => '1080x1080', 'type' => 'image/png', 'purpose' => 'any'],
-                ['src' => asset('images/pwa/myapp-maskable-512.png') . '?v=' . $this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            'theme_color' => '#0b1a6b',
+            'icons' => [
+                ['src' => asset('images/pwa/myapp-192.png').'?v='.$this->iconVersion(), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-512.png').'?v='.$this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-1080.png').'?v='.$this->iconVersion(), 'sizes' => '1080x1080', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => asset('images/pwa/myapp-maskable-512.png').'?v='.$this->iconVersion(), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
             ],
         ], 200, ['Content-Type' => 'application/manifest+json']);
     }

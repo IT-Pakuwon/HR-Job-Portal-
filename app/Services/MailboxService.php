@@ -143,37 +143,60 @@ class MailboxService
             $client->connect();
         }
 
-        $folder = $client->getFolder($folderPath);
+        try {
+            $folder = $client->getFolder($folderPath);
 
-        $lastSeenDate = MailboxEmail::where('username', $account->username)
-            ->where('folder', $folderPath)
-            ->max('email_date');
+            $lastSeenDate = MailboxEmail::where('username', $account->username)
+                ->where('folder', $folderPath)
+                ->max('email_date');
 
-        // Re-check the last day even if we've synced before, in case messages
-        // arrived slightly out of order; otherwise fall back to a wider window.
-        $since = $lastSeenDate
-            ? Carbon::parse($lastSeenDate)->subDay()
-            : Carbon::now()->subDays($lookbackDays);
+            // Re-check the last day even if we've synced before, in case messages
+            // arrived slightly out of order; otherwise fall back to a wider window.
+            $since = $lastSeenDate
+                ? Carbon::parse($lastSeenDate)->subDay()
+                : Carbon::now()->subDays($lookbackDays);
 
-        $messages = $folder->messages()
-            ->since($since)
-            ->leaveUnread()
-            ->limit($limit)
-            ->fetchOrderDesc()
-            ->get();
+            $messages = $folder->messages()
+                ->since($since)
+                ->leaveUnread()
+                ->setFetchBody(false)
+                ->limit($limit)
+                ->fetchOrderDesc()
+                ->get();
 
-        $seen = 0;
-        foreach ($messages as $message) {
-            if (static::upsertMessage($account, $folderPath, $message)) {
-                $seen++;
+            return static::upsertEach($account, $folderPath, $folder, $messages);
+        } finally {
+            // Always release the connection, even when the fetch throws —
+            // otherwise repeated failures exhaust the server's per-user limit.
+            if ($ownsClient) {
+                static::safeDisconnect($client);
             }
         }
+    }
 
-        if ($ownsClient) {
+    /**
+     * Disconnect without letting a failure during cleanup mask the original
+     * exception (or fail an otherwise successful operation).
+     */
+    protected static function safeDisconnect(ImapClient $client): void
+    {
+        try {
             $client->disconnect();
+        } catch (\Throwable $e) {
+            // Already closed / dropped connection — nothing to release.
         }
+    }
 
-        return $seen;
+    /**
+     * Re-read the folder list from the server and replace the cache. Used
+     * when a requested folder isn't in the cached list (e.g. it was created
+     * on the server after the list was cached).
+     */
+    public static function refreshFolders(MailboxAccount $account): array
+    {
+        Cache::forget(static::folderCacheKey($account));
+
+        return static::listFolders($account);
     }
 
     /**
@@ -193,32 +216,30 @@ class MailboxService
         $client = static::imapClient($account);
         $client->connect();
 
-        $folder = $client->getFolder($folderPath);
+        try {
+            $folder = $client->getFolder($folderPath);
 
-        $oldestSeenDate = MailboxEmail::where('username', $account->username)
-            ->where('folder', $folderPath)
-            ->min('email_date');
+            $oldestSeenDate = MailboxEmail::where('username', $account->username)
+                ->where('folder', $folderPath)
+                ->min('email_date');
 
-        $messages = $folder->messages()
-            // IMAP's BEFORE is date-only precision, so add a day to still
-            // catch messages earlier the same calendar day as the oldest one
-            // already stored; re-upserting those is harmless (keyed on uid).
-            ->when($oldestSeenDate, fn ($q) => $q->before(Carbon::parse($oldestSeenDate)->addDay()))
-            ->leaveUnread()
-            ->limit($limit)
-            ->fetchOrderDesc()
-            ->get();
+            $messages = $folder->messages()
+                // IMAP's BEFORE is date-only precision, so add a day to still
+                // catch messages earlier the same calendar day as the oldest one
+                // already stored; re-upserting those is harmless (keyed on uid).
+                ->when($oldestSeenDate, fn ($q) => $q->before(Carbon::parse($oldestSeenDate)->addDay()))
+                ->leaveUnread()
+                ->setFetchBody(false)
+                ->limit($limit)
+                ->fetchOrderDesc()
+                ->get();
 
-        $seen = 0;
-        foreach ($messages as $message) {
-            if (static::upsertMessage($account, $folderPath, $message)) {
-                $seen++;
-            }
+            $seen = static::upsertEach($account, $folderPath, $folder, $messages);
+
+            return ['fetched' => $seen, 'hasMore' => $messages->count() >= $limit];
+        } finally {
+            static::safeDisconnect($client);
         }
-
-        $client->disconnect();
-
-        return ['fetched' => $seen, 'hasMore' => $messages->count() >= $limit];
     }
 
     /**
@@ -291,22 +312,24 @@ class MailboxService
         $client = static::imapClient($account);
         $client->connect();
 
-        $client->getFolder(self::DRAFTS_FOLDER)->appendMessage($mime->toString(), ['\\Draft']);
+        try {
+            $client->getFolder(self::DRAFTS_FOLDER)->appendMessage($mime->toString(), ['\\Draft']);
 
-        // The new draft copy above is already saved — cleaning up the old
-        // copy it replaces must not surface as a "save failed" error, or a
-        // retry after seeing that error would pile up further duplicate
-        // drafts on top of the one that already saved fine.
-        if ($existingDraft && strcasecmp($existingDraft->folder, self::DRAFTS_FOLDER) === 0) {
-            try {
-                static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
-                $existingDraft->delete();
-            } catch (\Throwable $e) {
-                // Next save/send of this draft will retry the cleanup.
+            // The new draft copy above is already saved — cleaning up the old
+            // copy it replaces must not surface as a "save failed" error, or a
+            // retry after seeing that error would pile up further duplicate
+            // drafts on top of the one that already saved fine.
+            if ($existingDraft && strcasecmp($existingDraft->folder, self::DRAFTS_FOLDER) === 0) {
+                try {
+                    static::expungeRemoteMessage($client, $existingDraft->folder, $existingDraft->uid);
+                    $existingDraft->delete();
+                } catch (\Throwable $e) {
+                    // Next save/send of this draft will retry the cleanup.
+                }
             }
+        } finally {
+            static::safeDisconnect($client);
         }
-
-        $client->disconnect();
 
         // The draft is already appended (and any previous copy already
         // removed) — this is only refreshing our local cache of the Drafts
@@ -328,11 +351,19 @@ class MailboxService
         $client = static::imapClient($account);
         $client->connect();
 
+        try {
+            return static::moveMessageOnClient($client, $account, $email, $targetFolder);
+        } finally {
+            static::safeDisconnect($client);
+        }
+    }
+
+    protected static function moveMessageOnClient(ImapClient $client, MailboxAccount $account, MailboxEmail $email, string $targetFolder): bool
+    {
         $source = $client->getFolder($email->folder);
         $message = static::getMessageByUidWithRetry($source, $email->uid);
 
         if (!$message) {
-            $client->disconnect();
             return false;
         }
 
@@ -360,12 +391,10 @@ class MailboxService
             $copySucceeded = true;
         }
         if (!$copySucceeded) {
-            $client->disconnect();
             return false;
         }
 
         $message->delete();
-        $client->disconnect();
 
         $email->delete();
         if ($copied) {
@@ -627,6 +656,33 @@ class MailboxService
         }
 
         return $items->values()->all();
+    }
+
+    /**
+     * $headers holds header-only messages (setFetchBody(false)). Loads each
+     * full body one at a time and frees it before the next, so peak memory is
+     * one message (inline images and all) instead of the whole batch.
+     */
+    protected static function upsertEach(MailboxAccount $account, string $folderPath, \Webklex\PHPIMAP\Folder $folder, $headers): int
+    {
+        $uids = collect($headers)->map(fn ($m) => (int) $m->uid)->filter(fn ($u) => $u > 0)->values();
+        unset($headers);
+
+        $seen = 0;
+        foreach ($uids as $uid) {
+            try {
+                $message = $folder->messages()->leaveUnread()->getMessageByUid($uid);
+                if (static::upsertMessage($account, $folderPath, $message)) {
+                    $seen++;
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Mailbox message skipped', ['folder' => $folderPath, 'uid' => $uid, 'err' => $e->getMessage()]);
+            }
+            unset($message);
+            gc_collect_cycles();
+        }
+
+        return $seen;
     }
 
     protected static function upsertMessage(MailboxAccount $account, string $folderPath, ImapMessage $message): bool

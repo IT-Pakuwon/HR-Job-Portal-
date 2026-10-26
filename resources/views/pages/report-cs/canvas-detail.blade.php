@@ -496,19 +496,12 @@
 
         });
         $('#exportBtn').click(function() {
+            const params = new URLSearchParams({ report: 'detail' });
+            const filters = table.ajax.params() || {};
+            ['date_from', 'date_to', 'csid', 'ponbr', 'sppbjktid', 'inventoryid', 'status', 'department']
+                .forEach(key => params.set(key, filters[key] ?? ''));
 
-            let url = "{{ route('report.cs.export') }}?report=detail";
-
-            url += "&date_from=" + $('#date_from').val();
-            url += "&date_to=" + $('#date_to').val();
-            url += "&csid=" + $('#csid').val();
-            url += "&ponbr=" + $('#ponbr').val();
-            url += "&sppbjktid=" + $('#sppbjktid').val();
-            url += "&inventoryid=" + $('#inventoryid').val();
-            url += "&status=" + $('#status').val();
-            url += "&department=" + $('#cs_department').val();
-
-            window.location.href = url;
+            window.location.href = "{{ route('report.cs.export') }}?" + params.toString();
 
         });
 

@@ -35,7 +35,9 @@ class TrainingSessionController extends Controller
     protected const ALLOWED_STATUS_TRANSITIONS = [
         'DRAFT' => ['PUBLISHED', 'CANCELLED'],
         'PUBLISHED' => ['CLOSED', 'CANCELLED'],
-        'CLOSED' => [],
+        // CLOSED -> PUBLISHED is "Reopen registration"; scheduleStatus() only
+        // honours it while the event has not started yet.
+        'CLOSED' => ['PUBLISHED'],
         'CANCELLED' => [],
     ];
 
@@ -971,11 +973,36 @@ class TrainingSessionController extends Controller
         }
 
         $user = Auth::user();
-
-        $detail->update([
+        $attributes = [
             'status' => self::STATUS_CODE_MAP[$request->status],
             'updated_by' => $user->username ?? 'system',
-        ]);
+        ];
+
+        if ($currentLabel === 'CLOSED') {
+            // Reopen: only before the event starts (same start boundary as
+            // the attendance window — date + start time, start of day if unset).
+            $date = $detail->schedule_date;
+            $start = $date
+                ? ($detail->schedule_start_time
+                    ? Carbon::parse($date->format('Y-m-d').' '.$detail->schedule_start_time)
+                    : $date->copy()->startOfDay())
+                : null;
+
+            if (!$start || !now()->lessThan($start)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registration tidak bisa dibuka kembali karena training sudah dimulai',
+                ], 422);
+            }
+
+            // A lapsed deadline would keep blocking registrations even though
+            // the status is open again, so extend it to the event date.
+            if ($detail->registration_deadline && Carbon::parse($detail->registration_deadline)->endOfDay()->isPast()) {
+                $attributes['registration_deadline'] = $date->format('Y-m-d');
+            }
+        }
+
+        $detail->update($attributes);
 
         return response()->json([
             'success' => true,

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\MsVendor;
 use App\Models\MsCompany;
 use App\Models\TrIssue;
+use App\Models\StagingIfcaIcStkIssue;
 use App\Models\TrIssuedetail;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
@@ -410,6 +411,19 @@ class IssueController extends Controller
         /** @var TrIssue $iss */
         $iss = TrIssue::findOrFail($id);
 
+        $ifcaStatuses = StagingIfcaIcStkIssue::where('issue_id', $iss->issueid)
+            ->where('cpny_id', $iss->cpny_id)
+            ->distinct()
+            ->pluck('status')
+            ->map(fn ($status) => strtoupper(trim((string) $status)));
+
+        $ifcaStatus = 'Not Processed IFCA';
+        if ($ifcaStatuses->contains(fn ($status) => in_array($status, ['D', 'P'], true))) {
+            $ifcaStatus = 'On Progress IFCA';
+        } elseif ($ifcaStatuses->isNotEmpty() && $ifcaStatuses->every(fn ($status) => $status === 'C')) {
+            $ifcaStatus = 'Processed to IFCA';
+        }
+
         // ===== Detail Issue (berdasarkan issueid)
         $issdetail = TrIssuedetail::where('issueid', $iss->issueid)
             ->orderBy('issue_no', 'asc')
@@ -446,6 +460,7 @@ class IssueController extends Controller
         return view('pages.issue.showissue', [
             'iss'         => $iss,
             'issdetail'   => $issdetail,
+            'ifcaStatus'  => $ifcaStatus,
             'hash'        => $hash,
             'eid_issueid' => $eid_issueid,
             'spbUrl'      => $spbUrl,

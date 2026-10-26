@@ -1889,6 +1889,34 @@
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
         }
+        /* Feedback form: inputs sit one shade darker than their question card so they stand out, and the
+           light-mode near-black accents (number badge, focus ring) get visible dark-mode colours. */
+        html.dark .feedbackModal-qNum {
+            background: #755ff8;
+            color: #fff;
+        }
+        html.dark .feedbackModal-textarea,
+        html.dark .feedbackModal-choice:not(:has(input:checked)),
+        html.dark .feedbackModal-ratingItem:not(:has(input:checked)) {
+            background: #1f2937;
+        }
+        html.dark .feedbackModal-choice:not(:has(input:disabled)):hover,
+        html.dark .feedbackModal-ratingItem:not(:has(input:disabled)):hover {
+            border-color: #6b7280;
+        }
+        html.dark .feedbackModal-textarea::placeholder {
+            color: #6b7280;
+        }
+        html.dark .feedbackModal-textarea:focus {
+            border-color: #755ff8;
+            box-shadow: 0 0 0 3px rgba(117, 95, 248, .25);
+        }
+        html.dark .feedbackModal-textarea:disabled {
+            background: #111827;
+        }
+        html.dark .feedbackModal-ratingScale {
+            color: #9ca3af;
+        }
         html.dark .dateCardOption {
             border-color: #4b5563;
         }
