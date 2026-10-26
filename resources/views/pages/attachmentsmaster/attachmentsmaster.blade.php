@@ -189,13 +189,17 @@
                     {
                         data: 'id',
                         render: function(data, type, row) {
+                            const open = row.can_open ?
+                                `<a href="/attachments-master/legacy/${row.id}/view" target="_blank" rel="noopener" title="Open file" class="ml-2 text-indigo-600 hover:text-indigo-800">&#128065;</a>` :
+                                '';
                             return `
-                                <div class="flex justify-center">
+                                <div class="flex items-center justify-center">
                                     <label class="switch">
                                         <input type="checkbox" class="toggleStatus"
-                                            data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            data-id="${row.id}" data-source="${row.source}" ${row.status === 'A' ? 'checked' : ''}>
                                         <span class="slider round"></span>
                                     </label>
+                                    ${open}
                                 </div>
                             `;
                         }
@@ -206,7 +210,13 @@
                     },
                     {
                         data: 'doctype',
-                        defaultContent: '-'
+                        defaultContent: '-',
+                        render: function(data, type, row) {
+                            if (type !== 'display') return data;
+                            return row.source === 'legacy' ?
+                                `${data} <span class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">Legacy</span>` :
+                                data;
+                        }
                     },
                     {
                         data: 'attachment_date',
@@ -280,7 +290,8 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     data: {
-                        status: newStatus
+                        status: newStatus,
+                        source: $(this).data('source')
                     },
                     success: function() {
                         table.ajax.reload(null, false);
