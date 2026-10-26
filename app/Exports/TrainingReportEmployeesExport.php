@@ -31,7 +31,7 @@ class TrainingReportEmployeesExport implements
 
     public function headings(): array
     {
-        return ['Name', 'Company', 'Department', 'Training', 'Date', 'Stars'];
+        return ['NPK', 'Name', 'Company', 'Department', 'Training', 'Date', 'Stars'];
     }
 
     public function collection()
@@ -63,11 +63,14 @@ class TrainingReportEmployeesExport implements
 
         $usernames = $attended->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+        $npks = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('npk', 'username');
 
         if (!empty($this->filters['search'])) {
             $term = strtolower($this->filters['search']);
-            $matching = $usernames->filter(function ($username) use ($names, $term) {
-                return str_contains(strtolower($username), $term) || str_contains(strtolower($names[$username] ?? ''), $term);
+            $matching = $usernames->filter(function ($username) use ($names, $npks, $term) {
+                return str_contains(strtolower($username), $term)
+                    || str_contains(strtolower($names[$username] ?? ''), $term)
+                    || str_contains(strtolower((string) ($npks[$username] ?? '')), $term);
             });
             $attended = $attended->whereIn('user_registration', $matching);
         }
@@ -79,6 +82,7 @@ class TrainingReportEmployeesExport implements
         $deptNames = MsDepartment::whereIn('department_id', $attended->pluck('department_id')->unique())->pluck('department_name', 'department_id');
 
         return $attended->sortBy('user_registration')->map(fn ($r) => [
+            'npk' => $npks[$r->user_registration] ?? '',
             'name' => $names[$r->user_registration] ?? $r->user_registration,
             'company' => $cpnyNames[$r->cpny_id] ?? $r->cpny_id,
             'department' => $deptNames[$r->department_id] ?? $r->department_id,

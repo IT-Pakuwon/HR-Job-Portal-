@@ -1642,6 +1642,33 @@
                 radial-gradient(circle at 100% 100%, transparent .8rem, var(--mp-dip) calc(.8rem + .6px)) right top / 3.05rem .8rem no-repeat;
         }
 
+        /* frosted strip behind the floating bar: content scrolling under/around it is blurred and faded, not see-through */
+        .mp-nav-blur {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mp-nav-blur {
+                display: block;
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: calc(6.25rem + env(safe-area-inset-bottom));
+                z-index: 39;
+                pointer-events: none;
+                background: linear-gradient(to top, #f3f4f6f2 0%, #f3f4f6cc 55%, #f3f4f600 100%);
+                -webkit-backdrop-filter: blur(12px);
+                backdrop-filter: blur(12px);
+                -webkit-mask-image: linear-gradient(to top, #000 0%, #000 60%, transparent 100%);
+                mask-image: linear-gradient(to top, #000 0%, #000 60%, transparent 100%);
+            }
+
+            .dark .mp-nav-blur {
+                background: linear-gradient(to top, #111827f2 0%, #111827cc 55%, #11182700 100%);
+            }
+        }
+
         .mp-ind {
             display: none;
         }
@@ -2592,6 +2619,7 @@
 
     <div class="mp-ptr" id="mpPtr" aria-hidden="true"><i></i><span>Pull to refresh</span></div>
 
+    <div class="mp-nav-blur" aria-hidden="true"></div>
     <nav class="mp-nav" id="mpNav" aria-label="My Page sections">
         <span class="mp-ind" id="mpInd" aria-hidden="true"></span>
         <button type="button" data-target="my-tab-document"><svg viewBox="0 0 24 24" fill="none"

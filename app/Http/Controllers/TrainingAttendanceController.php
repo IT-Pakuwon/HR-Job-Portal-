@@ -572,11 +572,14 @@ class TrainingAttendanceController extends Controller
 
         $usernames = $attended->pluck('user_registration')->unique();
         $names = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('name', 'username');
+        $npks = $usernames->isEmpty() ? collect() : User::whereIn('username', $usernames)->pluck('npk', 'username');
 
         if ($request->filled('search')) {
             $term = strtolower($request->search);
-            $matching = $usernames->filter(function ($username) use ($names, $term) {
-                return str_contains(strtolower($username), $term) || str_contains(strtolower($names[$username] ?? ''), $term);
+            $matching = $usernames->filter(function ($username) use ($names, $npks, $term) {
+                return str_contains(strtolower($username), $term)
+                    || str_contains(strtolower($names[$username] ?? ''), $term)
+                    || str_contains(strtolower((string) ($npks[$username] ?? '')), $term);
             });
             $attended = $attended->whereIn('user_registration', $matching);
         }
@@ -587,11 +590,12 @@ class TrainingAttendanceController extends Controller
         $cpnyNames = MsCompany::whereIn('cpny_id', $attended->pluck('cpny_id')->unique())->pluck('cpny_name', 'cpny_id');
         $deptNames = MsDepartment::whereIn('department_id', $attended->pluck('department_id')->unique())->pluck('department_name', 'department_id');
 
-        $rows = $attended->groupBy('user_registration')->map(function ($rows, $username) use ($names, $trainingNames, $cpnyNames, $deptNames) {
+        $rows = $attended->groupBy('user_registration')->map(function ($rows, $username) use ($names, $npks, $trainingNames, $cpnyNames, $deptNames) {
             $latest = $rows->sortByDesc('completed_at')->first();
 
             return [
                 'username' => $username,
+                'npk' => $npks[$username] ?? null,
                 'name' => $names[$username] ?? $username,
                 'cpny_name' => $cpnyNames[$latest->cpny_id] ?? $latest->cpny_id,
                 'department_name' => $deptNames[$latest->department_id] ?? $latest->department_id,

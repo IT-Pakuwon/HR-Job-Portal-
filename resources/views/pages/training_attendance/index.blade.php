@@ -193,6 +193,7 @@
                         <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-900/50">
                                 <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    <th class="py-2.5 px-4">NPK</th>
                                     <th class="py-2.5 px-4">Name</th>
                                     <th class="py-2.5 px-4">Company</th>
                                     <th class="py-2.5 px-4">Department</th>
@@ -476,8 +477,13 @@
         function checkEventReadiness(event) {
             if (!event) return;
 
-            if (event.schedule_date.slice(0, 10) !== todayDateStr()) {
+            const eventDate = event.schedule_date.slice(0, 10);
+            const today = todayDateStr();
+
+            if (eventDate > today) {
                 toast('warning', 'This event has not started yet — today is not the event date.');
+            } else if (eventDate < today) {
+                toast('warning', 'This event is already done — the event date has passed.');
             }
 
             if (event.status !== 'C') {
@@ -1308,6 +1314,7 @@
             pageRows.forEach((r) => {
                 $body.append(`
                     <tr class="reportEmployeeRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-username="${r.username}">
+                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.npk ?? '-'}</td>
                         <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
                         <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
