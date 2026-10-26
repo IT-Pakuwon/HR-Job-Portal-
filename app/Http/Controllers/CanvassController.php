@@ -8,6 +8,9 @@ use App\Models\Autonbr;
 use App\Models\Bq;
 use App\Models\BudgetDetail;
 use App\Models\MsCompany;
+use App\Models\MsInventory;
+use App\Models\MsSite;
+use App\Models\BusinessUnit;
 use App\Models\MsPurchSetting;
 use App\Models\MsTop;
 use App\Models\TrApproval;
@@ -1823,6 +1826,67 @@ class CanvassController extends Controller
         }
     }
 
+    private function csInventoryContext(array $details, string $companyId): array
+    {
+        $ids = collect($details)->pluck('inventoryid')
+            ->map(fn ($id) => strtoupper(trim((string) $id)))->filter()->unique();
+        $inventories = MsInventory::whereIn('inventoryid', $ids->all())
+            ->get(['inventoryid', 'item_type', 'item_sub_type', 'item_category'])
+            ->keyBy(fn ($inventory) => strtoupper(trim($inventory->inventoryid)));
+        $businessUnits = BusinessUnit::where('cpny_id', $companyId)->where('status', 'A')
+            ->get(['business_unit_id', 'ifca_entity_cd', 'solomon_cpny_id'])->keyBy('business_unit_id');
+        $defaultSite = MsSite::where('cpny_id', $companyId)->get(['siteid', 'site_default'])
+            ->first(fn ($site) => in_array(strtolower(trim((string) $site->site_default)), ['1', 'true', 't'], true));
+
+        return [$inventories, $businessUnits, $defaultSite->siteid ?? null];
+    }
+
+    private function resolveCsInventoryFields(
+        string $inventoryId,
+        array $payload,
+        array $sources,
+        $inventory,
+        $businessUnits,
+        string $companyId,
+        ?string $defaultSiteId,
+        int $lineNo
+    ): array {
+        $normalize = function ($value) {
+            $value = trim((string) $value);
+            return in_array(strtolower($value), ['', '-', 'null', 'undefined'], true) ? null : $value;
+        };
+        $sources = collect($sources)->filter(function ($source) use ($inventoryId, $companyId, $normalize) {
+            return $source && strcasecmp(trim((string) $source->inventoryid), trim($inventoryId)) === 0
+                && ($normalize($source->budget_cpny_id ?? null) === null || trim($source->budget_cpny_id) === $companyId);
+        });
+        $firstValue = function (string $field) use ($payload, $sources, $normalize) {
+            return $normalize($payload[$field] ?? null)
+                ?? $sources->map(fn ($source) => $normalize($source->{$field} ?? null))->first(fn ($value) => $value !== null);
+        };
+
+        $resolved = [];
+        foreach (['inventory_type' => 'item_type', 'inventory_sub_type' => 'item_sub_type', 'inventory_category' => 'item_category'] as $field => $masterField) {
+            $resolved[$field] = $firstValue($field) ?? $normalize($inventory->{$masterField} ?? null);
+        }
+        $businessUnit = $businessUnits->get($firstValue('budget_business_unit_id') ?? '');
+        $resolved['siteid'] = $firstValue('siteid')
+            ?? $normalize($businessUnit->ifca_entity_cd ?? null)
+            ?? $normalize($businessUnit->solomon_cpny_id ?? null)
+            ?? $normalize($defaultSiteId);
+
+        $errors = [];
+        foreach ($resolved as $field => $value) {
+            if ($value === null) {
+                $errors["details.{$lineNo}.{$field}"] = "{$field} inventory {$inventoryId} belum tersedia. Lengkapi dokumen sumber, master inventory, atau mapping site company.";
+            }
+        }
+        if ($errors) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+
+        return $resolved;
+    }
+
     public function saveCS(Request $request)
     {
         $doc = strtoupper($request->input('doc'));
@@ -2182,6 +2246,7 @@ class CanvassController extends Controller
             // Simpan detail CS
             // ==============================
             $lineNo = 0;
+            [$inventories, $businessUnits, $defaultSiteId] = $this->csInventoryContext($details, (string) $cpnyId);
 
             foreach ($details as $d) {
                 ++$lineNo;
@@ -2219,6 +2284,11 @@ class CanvassController extends Controller
                 $prevDet = (!empty($prev_csid) && isset($prevDetIndex[$matchKey])) ? $prevDetIndex[$matchKey] : null;
                 $prevLoc = (!empty($prev_csid) && isset($prevLocIndex[$matchKey])) ? $prevLocIndex[$matchKey] : null;
 
+                $finalInventoryId = $d['inventoryid'] ?? ($src->inventoryid ?? ($prevDet->inventoryid ?? null));
+                $inventoryFields = $this->resolveCsInventoryFields((string) $finalInventoryId, $d,
+                    [$src, $prevDet, $prevLoc], $inventories->get(strtoupper(trim((string) $finalInventoryId))),
+                    $businessUnits, (string) $cpnyId, $defaultSiteId, $lineNo);
+
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
                 $det->csid = $csid;
@@ -2226,15 +2296,15 @@ class CanvassController extends Controller
                 $det->cs_no = $lineNo;
                 $det->sppbjkt_no = $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
 
-                $det->inventoryid = $d['inventoryid'] ?? ($src->inventoryid ?? null);
+                $det->inventoryid = $finalInventoryId;
                 $det->inventory_descr = $d['inventory_descr'] ?? ($src->inventory_descr ?? null);
-                $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? ($prevDet->inventory_type ?? null));
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? ($prevDet->inventory_sub_type ?? null));
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? ($prevDet->inventory_category ?? null));
+                $det->inventory_type = $inventoryFields['inventory_type'];
+                $det->inventory_sub_type = $inventoryFields['inventory_sub_type'];
+                $det->inventory_category = $inventoryFields['inventory_category'];
 
                 $det->qty = $guardMoney($d['qty'] ?? ($src->qty ?? 0), "detail[{$lineNo}].qty");
                 $det->uom = $d['uom'] ?? ($src->uom ?? null);
-                $det->siteid = $d['siteid'] ?? ($src->siteid ?? ($prevDet->siteid ?? null));
+                $det->siteid = $inventoryFields['siteid'];
 
                 $det->type_multiplier = $src->type_multiplier ?? ($prevDet->type_multiplier ?? null);
                 $det->base_multiplier = isset($src->base_multiplier)
@@ -2325,6 +2395,10 @@ class CanvassController extends Controller
                 'csid' => $csid,
                 'attachments' => $uploadResult,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::connection('pgsql')->rollBack();
+
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             DB::connection('pgsql')->rollBack();
             report($e);
@@ -4048,6 +4122,7 @@ class CanvassController extends Controller
             // =========================================================
             // 4. DELETE OLD DETAIL THEN REBUILD
             // =========================================================
+            [$inventories, $businessUnits, $defaultSiteId] = $this->csInventoryContext($details, (string) $cpnyId);
             TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
 
             $lineNo = 0;
@@ -4109,6 +4184,10 @@ class CanvassController extends Controller
                 $finalInventoryId = $d['inventoryid'] ?? ($src->inventoryid ?? ($prevDet->inventoryid ?? null));
                 $finalUom = $d['uom'] ?? ($src->uom ?? ($prevDet->uom ?? null));
 
+                $inventoryFields = $this->resolveCsInventoryFields((string) $finalInventoryId, $d,
+                    [$src, $prevDet], $inventories->get(strtoupper(trim((string) $finalInventoryId))),
+                    $businessUnits, (string) $cpnyId, $defaultSiteId, $lineNo);
+
                 $det = new TrCSdetail();
                 $det->setConnection('pgsql');
 
@@ -4118,15 +4197,15 @@ class CanvassController extends Controller
                 // $det->sppbjkt_no = $requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
                 $det->sppbjkt_no = $intOrNull($requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null));
 
-                $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? ($prevDet->inventory_type ?? null));
+                $det->inventory_type = $inventoryFields['inventory_type'];
                 $det->inventoryid = $finalInventoryId;
                 $det->inventory_descr = $d['inventory_descr'] ?? ($src->inventory_descr ?? ($prevDet->inventory_descr ?? null));
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? ($prevDet->inventory_sub_type ?? null));
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? ($prevDet->inventory_category ?? null));
+                $det->inventory_sub_type = $inventoryFields['inventory_sub_type'];
+                $det->inventory_category = $inventoryFields['inventory_category'];
 
                 $det->qty = $finalQty;
                 $det->uom = $finalUom;
-                $det->siteid = $d['siteid'] ?? ($src->siteid ?? ($prevDet->siteid ?? null));
+                $det->siteid = $inventoryFields['siteid'];
 
                 $det->type_multiplier = $src->type_multiplier ?? ($prevDet->type_multiplier ?? null);
                 $det->base_multiplier = isset($src->base_multiplier)
@@ -4317,6 +4396,10 @@ class CanvassController extends Controller
                 'status' => $cs->status,
                 'submitdate' => optional($cs->submitdate)->toDateTimeString(),
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::connection('pgsql')->rollBack();
+
+            return response()->json(['ok' => false, 'message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             \DB::connection('pgsql')->rollBack();
             report($e);

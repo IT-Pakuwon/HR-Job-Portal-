@@ -13,6 +13,7 @@ use App\Models\Budget;
 use App\Models\BudgetDetail;
 use App\Models\BusinessUnit;
 use App\Models\MsCompany;
+use App\Models\MsInventory;
 use App\Models\MsSite;
 use App\Models\MsTenant;
 use App\Models\SysUserRole;
@@ -275,6 +276,59 @@ class SpptController extends Controller
         return view('pages.sppts.createsppts', compact('usercpny', 'usercpny2', 'userdept', 'userdept2'));
     }
 
+    private function spptInventoryContext(array $inventoryIds, string $companyId): array
+    {
+        $ids = collect($inventoryIds)->map(fn ($id) => strtoupper(trim((string) $id)))->filter()->unique();
+        $inventories = MsInventory::whereIn('inventoryid', $ids->all())
+            ->get(['inventoryid', 'item_type', 'item_sub_type', 'item_category'])
+            ->keyBy(fn ($inventory) => strtoupper(trim($inventory->inventoryid)));
+        $defaultSite = MsSite::where('cpny_id', $companyId)->get(['siteid', 'site_default'])
+            ->first(fn ($site) => in_array(strtolower(trim((string) $site->site_default)), ['1', 'true', 't'], true));
+
+        return [$inventories, $defaultSite->siteid ?? null];
+    }
+
+    private function resolveSpptInventoryFields(
+        string $inventoryId,
+        array $fields,
+        $inventory,
+        ?TrSPPTdetail $existing,
+        ?string $siteFromBu,
+        ?string $defaultSiteId,
+        $rowIndex
+    ): array {
+        $normalize = function ($value) {
+            $value = trim((string) $value);
+            return in_array(strtolower($value), ['', '-', 'null', 'undefined'], true) ? null : $value;
+        };
+        $sameInventory = $existing && strcasecmp(trim((string) $existing->inventoryid), trim($inventoryId)) === 0;
+        $resolved = [];
+        foreach (['inventory_type' => 'item_type', 'inventory_sub_type' => 'item_sub_type', 'inventory_category' => 'item_category'] as $field => $masterField) {
+            $resolved[$field] = $normalize($inventory->{$masterField} ?? null)
+                ?? ($sameInventory ? $normalize($existing->{$field}) : null)
+                ?? $normalize($fields[$field] ?? null);
+        }
+
+        $sameBudget = $sameInventory
+            && $normalize($existing->budget_cpny_id) === $normalize($fields['cpny_id'] ?? null)
+            && $normalize($existing->budget_business_unit_id) === $normalize($fields['business_unit_id'] ?? null);
+        $resolved['siteid'] = $normalize($siteFromBu)
+            ?? ($sameBudget ? $normalize($existing->siteid) : null)
+            ?? $normalize($defaultSiteId);
+
+        $errors = [];
+        foreach ($resolved as $field => $value) {
+            if ($value === null) {
+                $errors["{$field}.{$rowIndex}"] = "{$field} inventory {$inventoryId} belum tersedia. Lengkapi master inventory, mapping site Business Unit, atau default site company.";
+            }
+        }
+        if ($errors) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+
+        return $resolved;
+    }
+
     public function storeSppt(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -445,32 +499,12 @@ class SpptController extends Controller
             // === 2) detail ===
             $totalQty = 0;
             $totalOpenOrdered = 0;
-            $rowCount = max(count($inventoryIds), count($qtys));
-
-            // ===== default site fallback (ambil sekali per header cpny) =====
-            $defaultSiteId = null;
-            // try {
-            //     $defaultSiteId = MsSite::query()
-            //         ->where('cpny_id', $request->cpnyid)
-            //         ->where(function($q){
-            //             $q->where('site_default', true)
-            //             ->orWhere('site_default', 'true')
-            //             ->orWhere('site_default', 1)
-            //             ->orWhere('site_default', '1');
-            //         })
-            //         ->value('siteid'); // langsung ambil siteid saja
-            // } catch (\Throwable $e) {
-            //     // optional: log saja, jangan hentikan proses
-            //     \Log::warning('Failed to get default site', [
-            //         'cpnyid' => $request->cpnyid,
-            //         'err' => $e->getMessage(),
-            //     ]);
-            // }
+            [$inventories, $defaultSiteId] = $this->spptInventoryContext($inventoryIds, (string) $header->cpny_id);
+            $inventoryCategories = [];
 
             $buSiteCache = [];
 
-            for ($i = 0; $i < $rowCount; ++$i) {
-                $invId = $inventoryIds[$i] ?? null;
+            foreach ($inventoryIds as $i => $invId) {
                 $productName = $productNames[$i] ?? null;
                 // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
                 $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
@@ -497,9 +531,6 @@ class SpptController extends Controller
                 } elseif ($typeMultiplier === 'D') {
                     $baseQty = $qty / $rate;
                 }
-
-                // $siteFromForm = trim((string)($siteids[$i] ?? ''));
-                // $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
 
                 // ============================
                 // SiteID dari Business Unit
@@ -531,26 +562,26 @@ class SpptController extends Controller
                     }
                 }
 
-                // final siteid: dari BU kalau ada, kalau tidak fallback ke default site company
-                $finalSiteId = $siteFromBu ?: $defaultSiteId;
-
-                // kalau kamu wajib punya siteid:
-                if (empty($finalSiteId)) {
-                    throw new \Exception("SiteID kosong. BU={$buIdRow} tidak punya ifca_entity_cd/solomon_cpny_id dan default site company tidak ditemukan (cpny={$request->cpnyid}).");
-                }
+                $inventoryFields = $this->resolveSpptInventoryFields((string) $invId, [
+                    'inventory_type' => $item_types[$i] ?? null,
+                    'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
+                    'inventory_category' => $item_categories[$i] ?? null,
+                ], $inventories->get(strtoupper(trim($invId))), null, $siteFromBu, $defaultSiteId, $i);
+                $inventoryCategories[$i] = $inventoryFields['inventory_category'];
+                $inventorySubTypes[$i] = $inventoryFields['inventory_sub_type'];
 
                 $detail = new TrSPPTdetail();
                 $detail->spptid = $docid;
                 $detail->sppt_no = $i + 1;   // nomor urut detail
                 $detail->inventoryid = $invId;
                 $detail->inventory_descr = $productName;
-                $detail->siteid = $finalSiteId;
+                $detail->siteid = $inventoryFields['siteid'];
                 $detail->qty = $qty;
                 $detail->uom = $uom;
                 $detail->note = $notes[$i] ?? null;
-                $detail->inventory_type = $item_types[$i] ?? null;
-                $detail->inventory_sub_type = $inventorySubTypes[$i] ?? null;
-                $detail->inventory_category = $item_categories[$i] ?? null;
+                $detail->inventory_type = $inventoryFields['inventory_type'];
+                $detail->inventory_sub_type = $inventoryFields['inventory_sub_type'];
+                $detail->inventory_category = $inventoryFields['inventory_category'];
                 $detail->base_uom = $baseUom;            // = purchase_unit
                 $detail->base_multiplier = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier = $typeMultiplier ?: null; // = 'M' / 'D' / null
@@ -772,6 +803,10 @@ class SpptController extends Controller
                 'eid' => $eid,
                 'is_draft' => $isDraft,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -988,35 +1023,35 @@ class SpptController extends Controller
         $header->is_urgent = $request->is_urgent;
         $header->status = $isDraft ? 'H' : 'P';
         $header->updated_by = $username;
-        $header->save();
 
         // arrays utama
-        $detailIds = array_values($request->input('detail_id', []));
-        $inventoryIds = array_values($request->input('inventoryid', []));
-        $productNames = array_values($request->input('product_name', []));
-        $qtys = array_values($request->input('qty', []));
-        $uoms = array_values($request->input('stock_unit', []));
-        $notes = array_values($request->input('note', []));
-        $locIds = array_values($request->input('location_id', []));
-        $subLocIds = array_values($request->input('sub_location_id', []));
-        $actIds = array_values($request->input('activity_id', []));
-        $buIds = array_values($request->input('business_unit_id', []));
-        $deptFinIds = array_values($request->input('department_fin_id', []));
-        $actDescrs = array_values($request->input('activity_descr', []));
-        $coaIds = array_values($request->input('coa_id', []));
-        $itemTypes = array_values($request->input('item_type', []));
-        $itemCats = array_values($request->input('item_category', []));
+        $detailIds = $request->input('detail_id', []);
+        $inventoryIds = $request->input('inventoryid', $request->input('inventory_id', []));
+        $productNames = $request->input('product_name', []);
+        $qtys = $request->input('qty', []);
+        $uoms = $request->input('stock_unit', $request->input('uom', []));
+        $notes = $request->input('note', []);
+        $locIds = $request->input('location_id', []);
+        $subLocIds = $request->input('sub_location_id', []);
+        $actIds = $request->input('activity_id', []);
+        $buIds = $request->input('business_unit_id', []);
+        $deptFinIds = $request->input('department_fin_id', []);
+        $actDescrs = $request->input('activity_descr', []);
+        $coaIds = $request->input('coa_id', []);
+        $itemTypes = $request->input('item_type', []);
+        $itemCats = $request->input('item_category', []);
 
-        $inventorySubTypes = array_values($request->input('item_sub_type', []));
+        $inventorySubTypes = $request->input('item_sub_type', []);
 
         // arrays UoM tambahan
-        $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
+        $purchaseUnits = $request->input('purchase_unit', []);      // hidden dari UI
+        $uomMultDivs = $request->input('uom_unitmultdiv', []);    // 'M'/'D'
+        $uomRates = $request->input('uom_unitrate', []);       // bisa "12.000"
 
         DB::beginTransaction();
 
         try {
+            $header->save();
             // hapus baris yang di-mark delete
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
@@ -1025,12 +1060,13 @@ class SpptController extends Controller
                 }
             }
 
-            $rowCount = max(count($inventoryIds), count($qtys));
             $savedDetails = [];
             $buSiteCache = [];
+            $inventoryCategories = [];
+            [$inventories, $defaultSiteId] = $this->spptInventoryContext($inventoryIds, (string) $header->cpny_id);
+            $existingDetails = TrSPPTdetail::where('spptid', $header->spptid)->get()->keyBy('id');
 
-            for ($i = 0; $i < $rowCount; ++$i) {
-                $invId = $inventoryIds[$i] ?? null;
+            foreach ($inventoryIds as $i => $invId) {
                 $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
                 if (empty($invId) || $qty <= 0) {
                     continue;
@@ -1083,24 +1119,28 @@ class SpptController extends Controller
                     }
                 }
 
-                // final siteid: dari BU kalau ada, kalau tidak fallback ke default site company
-                $finalSiteId = $siteFromBu ?: $defaultSiteId;
-
-                // kalau kamu wajib punya siteid:
-                if (empty($finalSiteId)) {
-                    throw new \Exception("SiteID kosong. BU={$buIdRow} tidak punya ifca_entity_cd/solomon_cpny_id dan default site company tidak ditemukan (cpny={$request->cpnyid}).");
-                }
+                $idDetail = $detailIds[$i] ?? null;
+                $existing = $idDetail ? $existingDetails->get($idDetail) : null;
+                $inventoryFields = $this->resolveSpptInventoryFields((string) $invId, [
+                    'inventory_type' => $itemTypes[$i] ?? null,
+                    'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
+                    'inventory_category' => $itemCats[$i] ?? null,
+                    'cpny_id' => $header->cpny_id,
+                    'business_unit_id' => $buIdRow,
+                ], $inventories->get(strtoupper(trim($invId))), $existing, $siteFromBu, $defaultSiteId, $i);
+                $inventoryCategories[$i] = $inventoryFields['inventory_category'];
+                $inventorySubTypes[$i] = $inventoryFields['inventory_sub_type'];
 
                 $data = [
                     'inventoryid' => $invId,
                     'inventory_descr' => $productNames[$i] ?? null,
                     'qty' => $qty,
                     'uom' => $displayUom,
-                    'siteid' => $finalSiteId,
+                    'siteid' => $inventoryFields['siteid'],
                     'note' => $notes[$i] ?? null,
-                    'inventory_type' => $itemTypes[$i] ?? null,
-                    'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
-                    'inventory_category' => $itemCats[$i] ?? null,
+                    'inventory_type' => $inventoryFields['inventory_type'],
+                    'inventory_sub_type' => $inventoryFields['inventory_sub_type'],
+                    'inventory_category' => $inventoryFields['inventory_category'],
 
                     // >>> ini yang ditambahkan <<<
                     'base_uom' => $baseUom,                       // purchase_unit
@@ -1123,12 +1163,8 @@ class SpptController extends Controller
                     'updated_by' => $username,
                 ];
 
-                $idDetail = $detailIds[$i] ?? null;
-
                 if ($idDetail) {
-                    $detail = TrSPPTdetail::where('id', $idDetail)
-                        ->where('spptid', $header->spptid)
-                        ->first();
+                    $detail = $existing;
                     if ($detail) {
                         $detail->fill($data)->save();
                     } else {
@@ -1371,6 +1407,10 @@ class SpptController extends Controller
                 'eid' => $eid,
                 'is_draft' => $isDraft,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

@@ -1165,7 +1165,7 @@
                     <td class="border p-3 siteid-column hidden">
                         <input type="text" name="siteid[]"
                             class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                            placeholder="-" readonlyvalue="{{ $d->siteid ?? '' }}">
+                            placeholder="-" readonly>
                     </td>
 
                     <td class="p-3 border"><input type="text" name="note[]" class="w-full border-none bg-transparent p-2" placeholder="Note"></td>
