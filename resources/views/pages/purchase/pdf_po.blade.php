@@ -292,9 +292,9 @@
                             NPWP, copy SKT,
                             copy SPPKP (bila ada), copy Akta Perusahaan.
                         </li>
-                        <li>STTS asli merupakan tanda terima sah untuk pengambilan giro kemudian.
+                        <li>Invoice Register merupakan tanda terima sah untuk bukti penerimaan dokumen di finance.
                             (Khusus Jakarta)</li>
-                        <li>Kehilangan PO/STTB/STTS merupakan tanggung jawab Supplier sepenuhnya.</li>
+                        <li>Kehilangan PO/STTB merupakan tanggung jawab Supplier sepenuhnya.</li>
                         <li>Maksimal penagihan adalah 2 (dua) bulan dari tanggal STTB. Jika melebihi
                             batas waktu tersebut,
                             maka tagihan dianggap hangus.
