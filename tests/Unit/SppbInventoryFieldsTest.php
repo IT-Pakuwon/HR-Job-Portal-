@@ -35,12 +35,12 @@ class SppbInventoryFieldsTest extends TestCase
         parent::tearDown();
     }
 
-    private function resolve(array $fields = [], ?MsInventory $inventory = null, ?TrSPPBdetail $existing = null, ?string $defaultSite = 'DEFAULT'): array
+    private function resolve(array $fields = [], ?MsInventory $inventory = null, ?TrSPPBdetail $existing = null, ?string $defaultSite = 'DEFAULT', bool $preserveExistingSite = true): array
     {
         $method = new ReflectionMethod(SppbController::class, 'resolveSppbInventoryFields');
         $method->setAccessible(true);
 
-        return $method->invoke(new SppbController(), 'ITEM01', $fields, $inventory, $existing, ['DEFAULT', 'SELECTED'], $defaultSite, 3);
+        return $method->invoke(new SppbController(), 'ITEM01', $fields, $inventory, $existing, $defaultSite, 3, $preserveExistingSite);
     }
 
     private function inventory(): MsInventory
@@ -107,10 +107,24 @@ class SppbInventoryFieldsTest extends TestCase
         $this->assertSame('SELECTED', $resolved['siteid']);
     }
 
-    public function test_site_outside_selected_company_is_rejected(): void
+    public function test_inventory_integration_site_is_kept_without_a_local_site_master_entry(): void
     {
-        $this->expectException(ValidationException::class);
-        $this->resolve(['siteid' => 'OTHER_COMPANY'], $this->inventory());
+        $resolved = $this->resolve(['siteid' => '0201'], $this->inventory(), null, null);
+        $this->assertSame('0201', $resolved['siteid']);
+    }
+
+    public function test_existing_integration_site_is_kept_when_edit_form_is_empty(): void
+    {
+        $existing = new TrSPPBdetail(['inventoryid' => 'ITEM01', 'siteid' => '0201']);
+        $resolved = $this->resolve([], $this->inventory(), $existing, null);
+        $this->assertSame('0201', $resolved['siteid']);
+    }
+
+    public function test_changing_company_does_not_reuse_previous_company_site(): void
+    {
+        $existing = new TrSPPBdetail(['inventoryid' => 'ITEM01', 'siteid' => '0201']);
+        $resolved = $this->resolve([], $this->inventory(), $existing, 'NEW_COMPANY_SITE', false);
+        $this->assertSame('NEW_COMPANY_SITE', $resolved['siteid']);
     }
 
     public function test_incomplete_inventory_is_rejected_with_row_specific_errors(): void

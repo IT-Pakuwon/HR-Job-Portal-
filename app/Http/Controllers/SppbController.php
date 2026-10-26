@@ -332,7 +332,7 @@ class SppbController extends Controller
             strtolower(trim((string) $site->site_default)), ['1', 'true', 't'], true
         ));
 
-        return [$inventories, $sites->pluck('siteid')->all(), $defaultSite->siteid ?? null];
+        return [$inventories, $defaultSite->siteid ?? null];
     }
 
     private function resolveSppbInventoryFields(
@@ -340,15 +340,15 @@ class SppbController extends Controller
         array $fields,
         $inventory,
         ?TrSPPBdetail $existing,
-        array $siteIds,
         ?string $defaultSiteId,
-        $rowIndex
+        $rowIndex,
+        bool $preserveExistingSite = true
     ): array {
         $normalize = function ($value) {
             $value = trim((string) $value);
             return in_array(strtolower($value), ['', '-', 'null', 'undefined'], true) ? null : $value;
         };
-        $sameInventory = $existing && strcasecmp(trim($existing->inventoryid), trim($inventoryId)) === 0;
+        $sameInventory = $existing && strcasecmp(trim((string) $existing->inventoryid), trim($inventoryId)) === 0;
         $resolved = [];
         foreach (['inventory_type' => 'item_type', 'inventory_sub_type' => 'item_sub_type', 'inventory_category' => 'item_category'] as $field => $masterField) {
             $resolved[$field] = $normalize($inventory->{$masterField} ?? null)
@@ -357,14 +357,10 @@ class SppbController extends Controller
         }
 
         $siteId = $normalize($fields['siteid'] ?? null);
-        if ($siteId !== null && !in_array($siteId, $siteIds, true)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                "siteid.{$rowIndex}" => "SiteID {$siteId} untuk inventory {$inventoryId} tidak terdaftar pada company yang dipilih.",
-            ]);
-        }
-        $existingSite = $sameInventory ? $normalize($existing->siteid) : null;
+        // Inventory integration site codes need not exist in the local ms_site table.
+        $existingSite = $sameInventory && $preserveExistingSite ? $normalize($existing->siteid) : null;
         $resolved['siteid'] = $siteId
-            ?? (in_array($existingSite, $siteIds, true) ? $existingSite : null)
+            ?? $existingSite
             ?? $normalize($defaultSiteId);
 
         $errors = [];
@@ -552,7 +548,7 @@ class SppbController extends Controller
             // === 2) detail ===
             $totalQty = 0;
             $totalOpenOrdered = 0;
-            [$inventories, $siteIds, $defaultSiteId] = $this->sppbInventoryContext($inventoryIds, (string) $header->cpny_id);
+            [$inventories, $defaultSiteId] = $this->sppbInventoryContext($inventoryIds, (string) $header->cpny_id);
 
             foreach ($inventoryIds as $i => $invId) {
                 $productName = $productNames[$i] ?? null;
@@ -587,7 +583,7 @@ class SppbController extends Controller
                     'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
                     'inventory_category' => $inventoryCategories[$i] ?? null,
                     'siteid' => $siteids[$i] ?? null,
-                ], $inventories->get(strtoupper(trim($invId))), null, $siteIds, $defaultSiteId, $i);
+                ], $inventories->get(strtoupper(trim($invId))), null, $defaultSiteId, $i);
                 $inventoryCategories[$i] = $inventoryFields['inventory_category'];
                 $inventorySubTypes[$i] = $inventoryFields['inventory_sub_type'];
 
@@ -970,6 +966,7 @@ class SppbController extends Controller
         };
 
         $header = TrSPPB::findOrFail($id);
+        $previousCompanyId = (string) $header->cpny_id;
 
         $oldItrId    = $header->itrecommendid;
         $oldTicketId = $header->ticketid;
@@ -1029,7 +1026,7 @@ class SppbController extends Controller
 
             $savedDetails = [];
             $inventoryCategories = [];
-            [$inventories, $siteIds, $defaultSiteId] = $this->sppbInventoryContext($inventoryIds, (string) $header->cpny_id);
+            [$inventories, $defaultSiteId] = $this->sppbInventoryContext($inventoryIds, (string) $header->cpny_id);
             $existingDetails = TrSPPBdetail::where('sppbid', $header->sppbid)->get()->keyBy('id');
 
             foreach ($inventoryIds as $i => $invId) {
@@ -1045,7 +1042,8 @@ class SppbController extends Controller
                     'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
                     'inventory_category' => $itemCats[$i] ?? null,
                     'siteid' => $siteids[$i] ?? null,
-                ], $inventories->get(strtoupper(trim($invId))), $existing, $siteIds, $defaultSiteId, $i);
+                ], $inventories->get(strtoupper(trim($invId))), $existing, $defaultSiteId, $i,
+                    $previousCompanyId === (string) $header->cpny_id);
                 $inventoryCategories[$i] = $inventoryFields['inventory_category'];
                 $inventorySubTypes[$i] = $inventoryFields['inventory_sub_type'];
 
