@@ -24,7 +24,13 @@ Artisan::command('inspire', function () {
 //     ->withoutOverlapping()
 //     ->runInBackground();
 
-// Build the H-1 OM dashboard snapshot every 15 minutes.
-Schedule::command('om:snapshot-refresh')
+// Build the H-1 OM dashboard snapshot every 15 minutes (Data Hub rebuild).
+Schedule::command('datahub:om-snapshot-refresh')
     ->everyFifteenMinutes()
     ->withoutOverlapping();
+
+// Legacy command, replaced by datahub:om-snapshot-refresh above. Kept (not scheduled) until the
+// old Data Hub code is deleted; scheduling both would run every BigQuery MERGE twice.
+// Schedule::command('om:snapshot-refresh')
+//     ->everyFifteenMinutes()
+//     ->withoutOverlapping();

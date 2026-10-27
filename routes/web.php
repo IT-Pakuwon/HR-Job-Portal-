@@ -2796,6 +2796,38 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/{mall}/kaizen-main', 'kaizenMain')->name('kaizen-main');
             });
 
+        // Data Hub (rebuild) — runs beside the legacy /data-hub routes above until cut over.
+        Route::prefix('datahub-dashboard')->name('datahub-dashboard.')->group(function () {
+            Route::controller(App\Http\Controllers\DataHub\DataHubController::class)
+                ->middleware('access:DATAHUB,VIEW')
+                ->group(function () {
+                    Route::get('/', 'menu')->name('index');
+                    Route::get('/category/{category}', 'category')->name('category');
+                });
+        });
+
+        // OM Dashboard — one URL for everyone; the mall comes from the user's company scope
+        // (?mall= only when an all-company user switches). See App\Services\DataHub\Om\OmMalls.
+        Route::prefix('om-dashboard')
+            ->name('datahub-dashboard.om.')
+            ->middleware('access:OMDASHBOARD,VIEW')
+            ->controller(App\Http\Controllers\DataHub\OmDashboardController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/state', 'updateState')->name('state');
+                Route::get('/overview-traffic', 'overviewTraffic')->name('overview-traffic');
+                Route::get('/overview-chart', 'overviewChart')->name('overview-chart');
+                Route::get('/overview-issue', 'overviewIssue')->name('overview-issue');
+                Route::get('/overview-detail', 'overviewDetail')->name('overview-detail');
+                Route::get('/overview-budget', 'overviewBudget')->name('overview-budget');
+                Route::get('/overview-work-detail', 'overviewWorkDetail')->name('overview-work-detail');
+                Route::get('/department-all', 'departmentAll')->name('department-all');
+                Route::get('/department-main', 'departmentMain')->name('department-main');
+                Route::get('/department-equipment', 'departmentEquipment')->name('department-equipment');
+                Route::get('/department-inventory', 'departmentInventory')->name('department-inventory');
+                Route::get('/kaizen-main', 'kaizenMain')->name('kaizen-main');
+            });
+
         Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
         Route::prefix('my-activity')->controller(App\Http\Controllers\MyActivityController::class)->name('my-activity.')->group(function () {
