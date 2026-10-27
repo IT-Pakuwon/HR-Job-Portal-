@@ -7421,21 +7421,26 @@ class CanvassController extends Controller
         );
     }
 
+    private function poReuseSourceQuery(string $prevCsid, string $cpnyId, ?string $prevPonbr = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TrPOReuse::on('pgsql')
+            ->where('cpny_id', $cpnyId)
+            ->whereNull('deleted_at')
+            ->orderBy('id');
+
+        // A later reuse may reference another CS, but the source PO stays the same.
+        $prevPonbr = trim((string) $prevPonbr);
+        if ($prevPonbr !== '') {
+            return $query->where('ponbr', $prevPonbr);
+        }
+
+        return $query->where('csid', $prevCsid);
+    }
+
     private function updateOrderedOnPOReuse(array $details, string $prevCsid, string $cpnyId, ?string $prevPonbr = null): void
     {
-        // Ambil semua baris reuse yang terkait CS sebelumnya (CS awal)
-        $reuseRows = TrPOReuse::on('pgsql')
-            ->where('csid', $prevCsid)
-            ->when($cpnyId, function ($q) use ($cpnyId) {
-                return $q->where('cpny_id', $cpnyId);
-            })
-            ->when($prevPonbr !== null && trim($prevPonbr) !== '', function ($q) use ($prevPonbr) {
-                return $q->where('ponbr', $prevPonbr);
-            })
-            ->whereNull('deleted_at')
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->get();
+        $reuseRows = $this->poReuseSourceQuery($prevCsid, $cpnyId, $prevPonbr)
+            ->lockForUpdate()->get();
 
         if ($reuseRows->isEmpty()) {
             throw new \RuntimeException("Sumber PO reuse tidak ditemukan untuk CS {$prevCsid}, PO {$prevPonbr}.");
@@ -7884,16 +7889,8 @@ class CanvassController extends Controller
             return;
         }
 
-        $reuseRows = TrPOReuse::on('pgsql')
-            ->where('csid', $prevCsid)
-            ->where('cpny_id', $cs->cpny_id)
-            ->when(!empty($cs->prev_ponbr), function ($query) use ($cs) {
-                $query->where('ponbr', $cs->prev_ponbr);
-            })
-            ->whereNull('deleted_at')
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->get();
+        $reuseRows = $this->poReuseSourceQuery($prevCsid, $cs->cpny_id, $cs->prev_ponbr)
+            ->lockForUpdate()->get();
 
         if ($reuseRows->isEmpty()) {
             throw new \RuntimeException("PO reuse source for CS {$prevCsid} was not found.");
