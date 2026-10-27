@@ -1008,41 +1008,46 @@ class ReportCanvassSheetController extends Controller
         $rows = $rows->map(function ($row) use ($users, $departments) {
             $vendor = '';
             $unitPrice = 0;
-            $totalPrice = 0;
+            $dpp = 0;
             for ($i = 1; $i <= 6; $i++) {
                 if ($row->{"vendor{$i}selected"}) {
                     $vendor = $row->{"vendorname{$i}"};
                     $unitPrice = $row->{"vendorprice{$i}"};
-                    $totalPrice = $row->{"vendortotalprice{$i}"};
+                    $dpp = $row->{"vendortotalprice{$i}"};
                     break;
                 }
             }
 
-            $budgetDepartment = $row->budget_department_fin_id ?? '';
-            $account = $row->budget_account_id ?? '';
+            $tax = $dpp * 0.11;   // adjust if tax code dynamic
+            $total = $dpp + $tax;
 
             return [
+                'CS_ID' => $row->csid,
                 'Date' => $row->csdate
-                    ? Carbon::parse($row->csdate)->format('d M Y')
+                    ? Carbon::parse($row->csdate)->format('Y-m-d')
                     : '',
-                'CS No' => $row->csid,
-                'SPPB/J/K/T' => $row->sppbjktid,
-                'PO / SPK' => $row->ponbr ?? '',
-                'BAST No' => collect(json_decode($row->bast_documents ?? '[]', true) ?: [])
-                    ->map(fn ($document) => $document['number'] . ' - ' . $this->bastStatusLabel($document['status'] ?? null))
-                    ->implode(', ') ?: ($row->bast_number ?: '-'),
+                'Cpny' => $row->cpny_id,
+                'PO' => $row->ponbr ?? '',
+                'SPPBJKT' => $row->sppbjktid,
+                'BAST No' => $row->bast_number ?? '',
+                'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
                 'Department' => $departments[$row->department_id] ?? '',
                 'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
-                'Purchaser' => $users[$row->cs_created_by] ?? $row->cs_created_by,
                 'Purpose' => $row->keperluan,
-                'Inventory ID' => $row->inventoryid,
-                'Item Description' => $row->inventory_descr,
+                'InventoryID' => $row->inventoryid,
+                'Description' => $row->inventory_descr,
                 'Qty' => (float) ($row->qty ?? 0),
-                'UOM' => $row->uom ?? '-',
-                'Budget Department' => $budgetDepartment . ($account !== '' ? ' - ' . $account : ''),
+                'UOM' => $row->uom,
                 'Vendor' => $vendor,
                 'Unit Price' => (float) ($unitPrice ?? 0),
-                'Total Price' => (float) ($totalPrice ?? 0),
+                'DPP' => (float) ($dpp ?? 0),
+                'Tax' => (float) ($tax ?? 0),
+                'Grand Total' => (float) ($total ?? 0),
+                'Budget Year' => $row->budget_perpost ?? '',
+                'Budget Business Unit' => $row->budget_business_unit_id ?? '',
+                'Budget Department' => $row->budget_department_fin_id ?? '',
+                'COA' => $row->budget_account_id ?? '',
+                'Activity Description' => $row->budget_activity_descr ?? '',
                 'Status' => $this->csStatusLabel($row->status),
             ];
         });
@@ -1051,7 +1056,9 @@ class ReportCanvassSheetController extends Controller
             new \App\Exports\ArrayExport($rows, [
                 'Qty' => '#,##0.00',
                 'Unit Price' => '#,##0.00',
-                'Total Price' => '#,##0.00',
+                'DPP' => '#,##0.00',
+                'Tax' => '#,##0.00',
+                'Grand Total' => '#,##0.00',
             ]),
             'report_canvass_sheet_detail.xlsx'
         );
