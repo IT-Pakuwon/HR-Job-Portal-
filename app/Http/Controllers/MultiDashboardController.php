@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Auth;
 
 class MultiDashboardController extends Controller
 {
-    public function index()
+    public function index(?string $screen = null)
     {
         $user = Auth::user();
 
-        $homepage = strtoupper($user->homepage ?? 'DASHAPPROVAL');
+        $homepage = strtoupper($screen ?? $user->homepage ?? 'DASHAPPROVAL');
 
         $akses_cc = $user
             ? SysUserRole::where('username', $user->username)
@@ -58,25 +58,34 @@ class MultiDashboardController extends Controller
         ]);
     }
 
+    /** The approval dashboard regardless of the user's chosen homepage (OM dashboard menu link). */
+    public function approval()
+    {
+        return $this->index('DASHAPPROVAL');
+    }
+
+    /** Homepage screen_id => dashboard component. Also the list offered in the user's "Homepage Dashboard" dropdown. */
+    public const DASHBOARD_COMPONENTS = [
+        'DASHAPPROVAL' => 'dashboard-approval',
+        'DASHIT' => 'dashboard-it',
+        'DASHOM' => 'dashboard-om',
+        'DASHWH' => 'dashboard-warehouse',
+        'DASHOPR' => 'dashboard-operational',
+        'DASHCC' => 'dashboard-costcontrol',
+        'DASHPURCH' => 'purchasing-dashboard',
+        'DASHHR' => 'dashboard-hr',
+        'DASHGA' => 'dashboard-ga',
+        'DASHVPCOLL' => 'dashboard-vpcollection',
+        'DASHVPPRMTN' => 'dashboard-vppromotion',
+        'DASHVPLOYALTY' => 'dashboard-vployalty',
+        'DASHFIN' => 'dashboard-finance',
+        'DASHTREAS' => 'dashboard-treasury',
+        'DASHCORPTEK' => 'dashboard-corporate-teknik',
+        'RECRUITDASH' => 'dashboard-recruitment',
+    ];
+
     protected function resolveComponent(string $screenId): string
     {
-        return match (strtoupper($screenId)) {
-            'DASHAPPROVAL' => 'dashboard-approval',
-            'DASHIT' => 'dashboard-it',
-            'DASHWH' => 'dashboard-warehouse',
-            'DASHOPR' => 'dashboard-operational',
-            'DASHCC' => 'dashboard-costcontrol',
-            'DASHPURCH' => 'purchasing-dashboard',
-            'DASHHR' => 'dashboard-hr',
-            'DASHGA' => 'dashboard-ga',
-            'DASHVPCOLL' => 'dashboard-vpcollection',
-            'DASHVPPRMTN' => 'dashboard-vppromotion',
-            'DASHVPLOYALTY' => 'dashboard-vployalty',
-            'DASHFIN' => 'dashboard-finance',
-            'DASHTREAS' => 'dashboard-treasury',
-            'DASHCORPTEK' => 'dashboard-corporate-teknik',
-            'RECRUITDASH' => 'dashboard-recruitment',
-            default => 'dashboard-approval',
-        };
+        return self::DASHBOARD_COMPONENTS[strtoupper($screenId)] ?? 'dashboard-approval';
     }
 }

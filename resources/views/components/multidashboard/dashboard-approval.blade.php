@@ -1,5 +1,7 @@
-<div class="space-y-4">
+@php $dashCd = 'DASHAPPROVAL'; @endphp
+<div class="space-y-4" @unless ($embedded ?? false) x-data="{ panel: null }" @dash-open-panel.window="panel = '{{ \App\Models\DashboardMenu::panelKey($dashCd) }}'; $nextTick(() => $refs.dashPanel && $refs.dashPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }))" @endunless>
 
+    @unless ($embedded ?? false)
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
         <div>
@@ -28,7 +30,7 @@
                 </button>
             </div>
 
-            @unless ($myPage ?? false)
+            @unless (($myPage ?? false) || ($embedded ?? false))
             <button id="updateNotificationBtn" type="button" title="Update Notification"
                 class="relative flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,6 +47,11 @@
         </div>
 
     </div>
+
+    @endunless
+    @unless (($myPage ?? false) || ($embedded ?? false))
+    <x-multidashboard.dashboard-top :dash-cd="$dashCd" />
+    @endunless
 
     <div class="dsh-kpis">
 
@@ -68,12 +75,7 @@
 
     </div>
 
-    @unless ($myPage ?? false)
-    <div class="grid grid-cols-12 gap-6">
-        <x-multidashboard.dashboard-favourite />
-    </div>
-    @endunless
-
+    <x-multidashboard.dashboard-panel :dash-cd="$dashCd" :off="$embedded ?? false">
     <div
         class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
@@ -162,7 +164,7 @@
 
                         </button>
 
-                        @unless ($myPage ?? false)
+                        @unless (($myPage ?? false) || ($embedded ?? false))
                         <button
                             id="openAllWaiting"
                             class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
@@ -202,15 +204,12 @@
         </div>
 
     </div>
+    </x-multidashboard.dashboard-panel>
 
 </div>
 
 <style>
     /* the stat card whose filter is applied to the list below */
-    .dsh-kpis .dsh-kpi.dsh-kpi-on {
-        border-color: var(--dsh-accent);
-        box-shadow: 0 0 0 1px var(--dsh-accent);
-    }
     /* room between the filter / button row and the document list */
     #approvalCardList { padding-top: .75rem; }
     #approvalDoctypeWrap .select2-selection--single {

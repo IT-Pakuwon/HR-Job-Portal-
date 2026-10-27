@@ -1,4 +1,5 @@
-<div class="space-y-4">
+@php $dashCd = 'DASHCORPTEK'; @endphp
+<div class="space-y-4" x-data="{ panel: null }" @dash-open-panel.window="panel = '{{ \App\Models\DashboardMenu::panelKey($dashCd) }}'; $nextTick(() => $refs.dashPanel && $refs.dashPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
         <div>
@@ -43,6 +44,8 @@
 
     </div>
 
+    <x-multidashboard.dashboard-top :dash-cd="$dashCd" />
+
     <div class="dsh-kpis">
 
         <div class="dsh-kpi dsh-kpi-static">
@@ -65,10 +68,7 @@
 
     </div>
 
-    <div class="grid grid-cols-12 gap-6">
-        <x-multidashboard.dashboard-favourite />
-    </div>
-
+    <x-multidashboard.dashboard-panel :dash-cd="$dashCd">
     <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
         <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -202,6 +202,7 @@
         </div>
 
     </div>
+    </x-multidashboard.dashboard-panel>
 </div>
 
 <style>

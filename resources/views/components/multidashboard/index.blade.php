@@ -21,8 +21,8 @@
             </div>
         @endif
 
-        @if(View::exists($viewPath))
-            {{-- One merged "My Activity" tab on every dashboard. --}}
+        @if(View::exists($viewPath) && $dashboardComponent !== 'dashboard-om')
+            {{-- One merged "My Activity" tab on every dashboard (except OM, which has none). --}}
             @include('components.multidashboard.my-activity', ['combined' => true])
         @endif
 

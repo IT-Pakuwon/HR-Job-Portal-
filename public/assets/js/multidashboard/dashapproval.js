@@ -170,6 +170,10 @@
     // ── Stat cards: count + relative-share progress bar ──
     function renderSummary(data) {
 
+        // Let other widgets (e.g. the dashboard Menu tile badge) show the same waiting count.
+        window.__approvalWaiting = data.waiting || 0;
+        window.dispatchEvent(new CustomEvent('approval-summary', { detail: { waiting: window.__approvalWaiting } }));
+
         const stats = {
             waiting: { count: data.waiting || 0 },
             longWaiting: { count: data.long_waiting || 0 },

@@ -88,6 +88,7 @@ use App\Http\Controllers\LegalNewAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
+use App\Http\Controllers\DashboardMenuController;
 use App\Http\Controllers\ManageApprovalController;
 use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
@@ -2843,6 +2844,8 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');
+        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
 
         Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
             Route::get('/json', 'json')->name('json');
@@ -3223,6 +3226,11 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/approvals-groupbiaya/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya.update');
         Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
         Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
+
+        Route::get('/dashboard-menu', [DashboardMenuController::class, 'index'])->name('dashboard-menu');
+        Route::post('/dashboard-menu/tile', [DashboardMenuController::class, 'saveTile'])->name('dashboard-menu.tile');
+        Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');
+        Route::patch('/dashboard-menu/map/{dash}/row', [DashboardMenuController::class, 'saveRow'])->name('dashboard-menu.map.row');
 
         Route::get('/manage-approvals', [ManageApprovalController::class, 'index'])->name('manage-approvals');
         Route::get('/manage-approvals/json', [ManageApprovalController::class, 'search'])->name('manage-approvals.json');

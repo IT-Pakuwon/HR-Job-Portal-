@@ -24,6 +24,17 @@ class MailboxAccount extends Model
         'status',
     ];
 
+    /**
+     * The Mailbox menu entry only makes sense once the user has connected a mailbox
+     * (JKT group + an active account). Shared by the sidebar and the dashboard Menu tiles.
+     */
+    public static function isConnectedFor($user): bool
+    {
+        return $user
+            && strtoupper(trim((string) $user->group_cpny_id)) === 'JKT'
+            && static::where('username', $user->username)->where('status', true)->exists();
+    }
+
     protected $casts = [
         'imap_password' => 'encrypted',
         'imap_validate_cert' => 'boolean',

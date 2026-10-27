@@ -63,7 +63,7 @@
 </style>
 
 <div class="col-span-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-    x-data="favouriteMenus({{ $favouriteCatalog->toJson() }})" x-init="init()">
+    x-data="favouriteMenus({{ $favouriteCatalog->toJson() }}, {{ ($collapseWhenEmpty ?? false) ? 'true' : 'false' }})" x-init="init()">
 
     <div class="flex items-center justify-between" :class="expanded ? 'mb-3' : ''">
         <button type="button" @click="toggleExpanded()" class="flex items-center gap-2">
@@ -196,7 +196,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
-function favouriteMenus(catalog) {
+function favouriteMenus(catalog, collapseWhenEmpty = false) {
     return {
         items: [],
         catalog: catalog,
@@ -205,6 +205,7 @@ function favouriteMenus(catalog) {
         showAddModal: false,
         search: '',
         expanded: true,
+        autoExpand: false,
 
         palette: [
             { bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400' },
@@ -247,7 +248,11 @@ function favouriteMenus(catalog) {
         },
 
         init() {
-            this.expanded = localStorage.getItem('favourites_expanded') !== '0';
+            const saved = localStorage.getItem('favourites_expanded');
+            this.expanded = saved !== '0';
+            // collapseWhenEmpty: closed while there are no favourites; otherwise the saved choice (default open).
+            this.autoExpand = collapseWhenEmpty;
+            if (this.autoExpand) this.expanded = false;
             this.load();
             window.addEventListener('favourites-changed', () => this.load());
         },
@@ -263,6 +268,7 @@ function favouriteMenus(catalog) {
                 if (!res.ok) return;
                 const { data = [] } = await res.json();
                 this.items = data;
+                if (this.autoExpand) { this.expanded = data.length > 0 ? localStorage.getItem('favourites_expanded') !== '0' : false; this.autoExpand = false; }
                 this.$nextTick(() => this.initSortable());
             } catch (e) {
                 console.error('favourite menus load failed', e);

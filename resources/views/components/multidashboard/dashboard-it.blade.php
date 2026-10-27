@@ -1,4 +1,5 @@
-<div class="space-y-4">
+@php $dashCd = 'DASHIT'; @endphp
+<div class="space-y-4" x-data="{ panel: null }" @dash-open-panel.window="panel = '{{ \App\Models\DashboardMenu::panelKey($dashCd) }}'; $nextTick(() => $refs.dashPanel && $refs.dashPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
         <div>
@@ -43,6 +44,8 @@
 
     </div>
 
+    <x-multidashboard.dashboard-top :dash-cd="$dashCd" />
+
     {{-- KPI cards: each one opens its matching tab below (the bars stay hidden because dashit.js still writes to them) --}}
     <div class="dsh-kpis">
         @foreach ([
@@ -59,10 +62,7 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-12 gap-6">
-        <x-multidashboard.dashboard-favourite />
-    </div>
-
+    <x-multidashboard.dashboard-panel :dash-cd="$dashCd">
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
         <div class="border-b border-slate-200 px-4 pt-2 dark:border-slate-700">
@@ -185,6 +185,7 @@
         </div>
 
     </div>
+    </x-multidashboard.dashboard-panel>
 </div>
 
 <style>
@@ -314,6 +315,22 @@
             n.classList.toggle('dsh-has', (parseInt(n.textContent, 10) || 0) > 0);
         }).observe(n, { childList: true, characterData: true, subtree: true });
     });
+
+    // Ring the KPI card whose tab is showing (dashit.js marks the active tab with .dsh-tab-on).
+    (function () {
+        var cards = document.querySelectorAll('.dsh-kpi[data-open-tab]');
+        function sync() {
+            cards.forEach(function (c) {
+                var tab = document.getElementById('tab-' + c.dataset.openTab);
+                c.classList.toggle('dsh-kpi-on', !!tab && tab.classList.contains('dsh-tab-on'));
+            });
+        }
+        var mo = new MutationObserver(sync);
+        document.querySelectorAll('.dsh-tabbar button[id^="tab-"]').forEach(function (b) {
+            mo.observe(b, { attributes: true, attributeFilter: ['class'] });
+        });
+        sync();
+    })();
 </script>
 
 <script src="{{ asset('assets/js/multidashboard/dashit.js') }}?v={{ file_exists(public_path('assets/js/multidashboard/dashit.js')) ? filemtime(public_path('assets/js/multidashboard/dashit.js')) : time() }}"></script>

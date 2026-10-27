@@ -69,10 +69,7 @@ class AppServiceProvider extends ServiceProvider
                 if (!Auth::check()) {
                     return $data;
                 }
-                $connected = strtoupper(trim((string) Auth::user()->group_cpny_id)) === 'JKT'
-                    && \App\Models\MailboxAccount::where('username', Auth::user()->username)
-                        ->where('status', true)->exists();
-                if ($connected) {
+                if (\App\Models\MailboxAccount::isConnectedFor(Auth::user())) {
                     return $data;
                 }
                 $data['rootMenus'] = $data['rootMenus']->reject(fn ($m) => $m->menu_id === 'MAILBOX')->values();
