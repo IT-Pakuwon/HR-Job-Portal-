@@ -683,6 +683,15 @@
             slotMinTime: '07:00:00',
             slotMaxTime: '22:00:00',
 
+            views: {
+                resourceTimelineDay: {
+                    titleFormat: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+                },
+                timeGridDay: {
+                    titleFormat: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+                }
+            },
+
             headerToolbar: {
                 left: 'today prev,next',
                 center: 'title',
