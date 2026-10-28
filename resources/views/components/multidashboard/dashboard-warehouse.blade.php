@@ -65,7 +65,7 @@
         </div>
 
         <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">GRN Solomon (P)</span>
+            <span class="dsh-kpi-l">GRN Ifca (P)</span>
             <span id="whGrnSolomonCount" class="dsh-kpi-n">0</span>
             <span id="whGrnSolomonBar" class="hidden" style="width:0%"></span>
         </div>
@@ -90,7 +90,7 @@
                 <button id="wh-tab-approval-history">📋 Approval History</button>
                 <button id="wh-tab-sppb">📦 SPPB On Progress</button>
                 <button id="wh-tab-po-solomon">🛒 PO Solomon</button>
-                <button id="wh-tab-grn-solomon">📥 GRN Solomon</button>
+                <button id="wh-tab-grn-solomon">📥 GRN Ifca</button>
                 <button id="wh-tab-issue-solomon">📤 Issue Solomon</button>
             </div>
         </div>
