@@ -1,5 +1,5 @@
 @php $dashCd = 'DASHFIN'; @endphp
-<div class="space-y-4" x-data="{ panel: null }" @dash-open-panel.window="panel = '{{ \App\Models\DashboardMenu::panelKey($dashCd) }}'; $nextTick(() => $refs.dashPanel && $refs.dashPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
+<div class="space-y-4" x-data="{ panel: null }">
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 
@@ -83,7 +83,6 @@
     </div>
 
     {{-- Main Card --}}
-    <x-multidashboard.dashboard-panel :dash-cd="$dashCd">
     <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
         {{-- Tabs --}}
@@ -181,7 +180,6 @@
         </div>
 
     </div>
-    </x-multidashboard.dashboard-panel>
 
 </div>
 

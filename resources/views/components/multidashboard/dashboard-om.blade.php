@@ -11,7 +11,7 @@
             <p class="text-xs text-slate-500 dark:text-slate-400">Favourites • Menu</p>
         </div>
 
-        {{-- Auto-refresh pill for the embedded Approval Dashboard (ids are driven by dashapproval.js). --}}
+        {{-- Auto-refresh pill for the embedded Approval Dashboard (ids are driven by Dashboard-Panel/approval.js). --}}
         <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <span class="h-2 w-2 rounded-full bg-green-500"></span>
             <span class="text-slate-500 dark:text-slate-400">Next refresh</span>
@@ -38,9 +38,9 @@
 
     </div>
 
-    {{-- Approval Dashboard listing, opened from the Menu tile above. --}}
+    {{-- Approval Dashboard listing, opened from the Menu tile above (other panels load via the Menu component). --}}
     <div x-ref="omPanel" x-show="panel === 'approval'" x-cloak style="display: none;">
-        @include('components.multidashboard.dashboard-approval', ['embedded' => true])
+        @include('components.panel.approval', ['embedded' => true])
     </div>
 
 </div>

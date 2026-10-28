@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2"
-        x-data="dashMenuAdmin(@js($tiles), @js($dashboards), @js($sysMenus), @js($dashPanels))">
+        x-data="dashMenuAdmin(@js($tiles), @js($dashboards), @js($sysMenus), @js($templatePanelKeys))">
 
         <div class="mb-4 flex items-center gap-3">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
@@ -126,9 +126,18 @@
                         <div x-show="pickOpen" x-cloak x-transition.origin.top
                             class="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-600 dark:bg-gray-800">
                             <div class="border-b border-gray-100 p-2 dark:border-white/10">
+                                <div class="mb-2 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+                                    <template x-for="k in [['menu','fa-bars','Menu'],['panel','fa-window-maximize','Panel'],['link','fa-arrow-up-right-from-square','Link']]" :key="k[0]">
+                                        <button type="button" @click="pickType = k[0]; pickQ = ''"
+                                            :class="pickType === k[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+                                            class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition">
+                                            <i class="fa-solid text-[10px]" :class="k[1]"></i><span x-text="k[2]"></span>
+                                        </button>
+                                    </template>
+                                </div>
                                 <div class="relative">
                                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
-                                    <input type="text" x-ref="pickSearch" x-model="pickQ" placeholder="Search menu…"
+                                    <input type="text" x-ref="pickSearch" x-model="pickQ" :placeholder="'Search ' + pickType + '…'"
                                         class="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
                                 </div>
                             </div>
@@ -149,7 +158,15 @@
                                         </template>
                                     </div>
                                 </template>
-                                <p x-show="!pickGroups.length" class="px-3 py-6 text-center text-xs text-gray-400">No matching menu.</p>
+                                <p x-show="!pickGroups.length" class="px-3 py-6 text-center text-xs text-gray-400"
+                                    x-text="pickType === 'panel' ? 'No panel left to add — every panel is already on this dashboard.' : (pickType === 'link' ? (tiles.some(t => t.external_url && t.status === 'A') ? 'No link left to add — every link is already on this dashboard.' : 'No external link tiles yet. Create one below.') : 'No matching menu.')"></p>
+                            </div>
+                            <div x-show="pickType === 'link'" class="border-t border-gray-100 p-1.5 dark:border-white/10">
+                                <button type="button" @click="pickOpen = false; edit(null, 'link')"
+                                    class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-500/10">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                    <span x-text="pickType === 'link' ? 'New external link…' : 'New custom page tile…'"></span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -184,7 +201,7 @@
                     <div class="min-w-0">
                         <h2 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             Custom tiles
-                            <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400" x-text="tiles.length"></span>
+                            <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400" x-text="shownTiles.length"></span>
                         </h2>
                         <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">For shortcuts that aren't sidebar items — panels and external links.</p>
                     </div>
@@ -192,13 +209,20 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto px-5 py-4">
-                    <div class="mb-3 flex justify-end">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <div class="inline-flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+                            <template x-for="f in [['all','All'],['panel','Panel'],['link','Link']]" :key="f[0]">
+                                <button type="button" @click="tileType = f[0]"
+                                    :class="tileType === f[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+                                    class="rounded-lg px-3 py-1 text-xs font-semibold transition" x-text="f[1]"></button>
+                            </template>
+                        </div>
                         <button type="button" @click="edit(null)" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
                             <i class="fa-solid fa-plus text-[10px]"></i> New tile
                         </button>
                     </div>
                 <ul class="space-y-2">
-                    <template x-for="t in tiles" :key="t.menu_key">
+                    <template x-for="t in shownTiles" :key="t.menu_key">
                         <li class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 transition hover:border-indigo-200 hover:bg-indigo-50/50 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-indigo-500/40"
                             :class="t.status !== 'A' ? 'opacity-60' : ''">
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
@@ -216,9 +240,6 @@
                                         :class="t.route_name ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300' : (t.external_url ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300')">
                                         <i class="fa-solid text-[9px]" :class="t.route_name ? 'fa-link' : (t.external_url ? 'fa-arrow-up-right-from-square' : 'fa-window-maximize')"></i>
                                         <span class="max-w-56 truncate" x-text="t.route_name ? t.route_name : (t.external_url ? t.external_url.replace('https://', '') : 'panel: ' + t.panel_key)"></span>
-                                    </span>
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                                        <i class="fa-solid fa-user-shield text-[9px]"></i><span x-text="t.role_id || 'Everyone'"></span>
                                     </span>
                                     <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
                                         <span class="h-1.5 w-1.5 rounded-full" :class="t.status === 'A' ? 'bg-green-500' : 'bg-gray-400'"></span><span x-text="t.status === 'A' ? 'Active' : 'Inactive'"></span>
@@ -273,15 +294,47 @@
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Icon <span class="font-normal text-gray-400">— SVG path "d" value (24×24 outline)</span></label>
-                            <input type="text" x-model="form.icon_path" class="{{ $inp }} font-mono text-xs">
+                            <div class="mb-1.5 flex items-center justify-between">
+                                <label class="text-xs font-semibold text-gray-600 dark:text-gray-300">Icon</label>
+                                <span class="text-[11px] text-gray-400"><span x-text="iconChoices.length"></span> available</span>
+                            </div>
+                            <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/5">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 ring-1 ring-indigo-200 dark:bg-indigo-900/40 dark:ring-indigo-500/30">
+                                        <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="form.icon_path || 'M12 4.5v15m7.5-7.5h-15'" :class="form.icon_path ? '' : 'opacity-30'" />
+                                        </svg>
+                                    </span>
+                                    <div class="relative min-w-0 flex-1">
+                                        <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400"></i>
+                                        <input type="text" x-model="iconQ" placeholder="Search icons by name…" class="{{ $inp }} pl-8 text-xs">
+                                    </div>
+                                </div>
+                                <div class="mt-3 grid max-h-44 grid-cols-6 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-8" style="scrollbar-width: thin;">
+                                    <template x-for="ic in iconChoices" :key="ic.path">
+                                        <button type="button" :title="ic.label" @click="form.icon_path = ic.path"
+                                            :class="form.icon_path === ic.path ? 'border-indigo-500 bg-indigo-50 text-indigo-600 ring-2 ring-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-500/30' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-300'"
+                                            class="flex h-11 items-center justify-center rounded-xl border transition">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="ic.path" />
+                                            </svg>
+                                        </button>
+                                    </template>
+                                </div>
+                                <p x-show="!iconChoices.length" class="py-4 text-center text-xs text-gray-400">No icon matches.</p>
+                                <details class="mt-3 text-xs">
+                                    <summary class="cursor-pointer select-none font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400">Use a custom SVG path instead</summary>
+                                    <input type="text" x-model="form.icon_path" placeholder='SVG path "d" value (24×24 outline)' class="{{ $inp }} mt-2 font-mono text-xs">
+                                </details>
+                            </div>
                         </div>
 
                         {{-- What the tile opens --}}
                         <div>
                             <label class="mb-1.5 block text-xs font-semibold text-gray-600 dark:text-gray-300">When clicked, the tile…</label>
-                            <div class="mb-2 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
-                                <template x-for="k in [['route','fa-link','Opens a page'],['panel','fa-window-maximize','Opens a panel'],['link','fa-arrow-up-right-from-square','External link']]" :key="k[0]">
+                            {{-- "Opens a page" (route) is retired for new tiles; it only shows when editing a tile that already uses one --}}
+                            <div class="mb-2 grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5" :class="form.route_name ? 'grid-cols-3' : 'grid-cols-2'">
+                                <template x-for="k in [['route','fa-link','Opens a page'],['panel','fa-window-maximize','Opens a panel'],['link','fa-arrow-up-right-from-square','External link']].filter(k => k[0] !== 'route' || form.route_name)" :key="k[0]">
                                     <button type="button" @click="form.kind = k[0]"
                                         :class="form.kind === k[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
                                         class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition">
@@ -296,9 +349,9 @@
                             <div x-show="form.kind === 'panel'">
                                 <select x-select2="form.panel_key" data-s2-nosearch class="{{ $inp }}">
                                     <option value="">Choose a panel…</option>
-                                    @foreach ($panelKeys as $pk)<option value="{{ $pk }}">{{ $pk }}</option>@endforeach
+                                    @foreach (\App\Models\DashboardMenu::templatePanels() as $pk => $label)<option value="{{ $pk }}">{{ $label }}</option>@endforeach
                                 </select>
-                                <p class="mt-1 text-[11px] text-gray-400">Each dashboard owns one panel (its main card). A panel tile hides that card until the tile is clicked, and can only be added to the dashboard that owns it.</p>
+                                <p class="mt-1 text-[11px] text-gray-400">Any dashboard can show these panels as a Menu tile.</p>
                             </div>
                             <div x-show="form.kind === 'link'">
                                 <input type="url" x-model="form.external_url" placeholder="https://…" class="{{ $inp }}">
@@ -306,20 +359,12 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Who can see it</label>
-                                <select x-select2="form.role_id" class="{{ $inp }}">
-                                    <option value="">Everyone</option>
-                                    @foreach ($roles as $r)<option value="{{ $r->role_id }}">{{ $r->role_id }} — {{ $r->role_name }}</option>@endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Status</label>
-                                <select x-select2="form.status" data-s2-nosearch class="{{ $inp }}">
-                                    <option value="A">Active</option><option value="I">Inactive (hidden everywhere)</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Status</label>
+                            <select x-select2="form.status" data-s2-nosearch class="{{ $inp }}">
+                                <option value="A">Active</option><option value="I">Inactive (hidden everywhere)</option>
+                            </select>
+                            <p class="mt-1 text-[11px] text-gray-400">Whoever is assigned to a dashboard sees the tiles on it.</p>
                         </div>
 
                         <p x-show="formError" class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-500/10" x-text="formError"></p>
@@ -376,7 +421,7 @@
                 cleanup(() => { try { $el.off('change').select2('destroy'); } catch (e) { /* already gone */ } });
             });
         });
-        function dashMenuAdmin(tiles, dashboards, sysMenus, dashPanels) {
+        function dashMenuAdmin(tiles, dashboards, sysMenus, templatePanelKeys) {
             const csrf = '{{ csrf_token() }}';
             const tileUrl = '{{ route('dashboard-menu.tile') }}';
             const mapUrl = (d) => '{{ url('/dashboard-menu/map') }}/' + d;
@@ -388,7 +433,7 @@
 
             return {
                 tiles, dashboards, sysMenus,
-                dash: dashboards[0]?.code, pickOpen: false, pickQ: '', dashOpen: false, dashQ: '', drawer: false,
+                dash: dashboards[0]?.code, pickOpen: false, pickQ: '', pickType: 'menu', dashOpen: false, dashQ: '', drawer: false, tileType: 'all', iconQ: '', icons: @js($iconLibrary),
                 form: null, isNew: false, formError: '', busy: false, msg: '', ok: true,
 
                 get currentDash() { return this.dashboards.find(d => d.code === this.dash) || { code: '', name: '', items: [] }; },
@@ -402,7 +447,10 @@
                 tile(key) { return this.tiles.find(t => t.menu_key === key); },
                 has(t, key) { return this.current.items.some(i => i.t === t && i.key === key); },
                 // A panel tile only works on the dashboard that owns that panel (OM also hosts 'approval').
-                panelOk(t) { return !t || !t.panel_key || dashPanels[this.dash] === t.panel_key || (this.dash === 'DASHOM' && t.panel_key === 'approval'); },
+                // A template panel (tab) works on any dashboard; a dashboard card only on its owner (OM also hosts 'approval').
+                panelOk(t) { return !t || !t.panel_key || templatePanelKeys.includes(t.panel_key) || (this.dash === 'DASHOM' && t.panel_key === 'approval'); },
+                get iconChoices() { const q = this.iconQ.trim().toLowerCase(); return q ? this.icons.filter(i => i.label.toLowerCase().includes(q)) : this.icons; },
+                get shownTiles() { return this.tiles.filter(t => this.tileType === 'all' || (this.tileType === 'link' ? !!t.external_url : !!t.panel_key)); },
                 get availableTiles() { return this.tiles.filter(t => t.status === 'A' && this.panelOk(t) && !this.has('c', t.menu_key)); },
                 get availableSys() {
                     const groups = {};
@@ -415,15 +463,19 @@
                         return { kind: 'menu', name: m?.menu_name || it.key, icon: m?.icon_path, sub: 'Sidebar · ' + (m?.group ? m.group + ' › ' : '') + it.key };
                     }
                     const t = this.tile(it.key);
-                    return { kind: t?.panel_key ? 'panel' : (t?.external_url ? 'link' : 'menu'), name: t?.menu_name || it.key, icon: t?.icon_path, sub: 'Custom · ' + it.key + (t && t.status !== 'A' ? ' — inactive (hidden)' : (!this.panelOk(t) ? ' — this panel belongs to another dashboard (hidden)' : '')) };
+                    return { kind: t?.panel_key ? 'panel' : (t?.external_url ? 'link' : 'menu'), name: t?.menu_name || it.key, icon: t?.icon_path, sub: 'Custom · ' + it.key + (t && t.status !== 'A' ? ' — inactive (hidden)' : (!this.panelOk(t) ? ' — not a panel template (hidden)' : '')) };
                 },
                 // Groups for the picker: custom tiles first, then sidebar menus; filtered by the search box.
                 get pickGroups() {
                     const q = this.pickQ.trim().toLowerCase();
                     const hit = (m) => !q || m.name.toLowerCase().includes(q) || m.group.toLowerCase().includes(q);
                     const groups = [];
-                    const custom = this.availableTiles.map(t => ({ t: 'c', key: t.menu_key, name: t.menu_name, icon: t.icon_path, group: 'Custom tiles' })).filter(hit);
-                    if (custom.length) groups.push({ group: 'Custom tiles', items: custom });
+                    const kindOf = (t) => t.panel_key ? 'panel' : (t.external_url ? 'link' : 'menu');
+                    const label = { menu: 'Custom tiles', panel: 'Panels', link: 'External links' }[this.pickType];
+                    const custom = this.availableTiles.filter(t => kindOf(t) === this.pickType)
+                        .map(t => ({ t: 'c', key: t.menu_key, name: t.menu_name, icon: t.icon_path, group: label })).filter(hit);
+                    if (custom.length) groups.push({ group: label, items: custom });
+                    if (this.pickType !== 'menu') return groups;
                     this.availableSys.forEach(g => {
                         const items = g.items.map(m => ({ t: 's', key: m.menu_id, name: m.menu_name, icon: m.icon_path, group: g.group })).filter(hit);
                         if (items.length) groups.push({ group: g.group, items });
@@ -437,10 +489,10 @@
                 move(i, dir) { const k = this.current.items; [k[i], k[i + dir]] = [k[i + dir], k[i]]; },
                 flash(text, ok = true) { this.msg = text; this.ok = ok; setTimeout(() => this.msg = '', 4000); },
 
-                edit(t) {
+                edit(t, kind = 'panel') {
                     this.isNew = !t; this.formError = '';
-                    this.form = t ? { ...t, kind: t.external_url ? 'link' : (t.panel_key ? 'panel' : 'route'), menu_desc: t.menu_desc || '', icon_path: t.icon_path || '', route_name: t.route_name || '', external_url: t.external_url || '', panel_key: t.panel_key || '', role_id: t.role_id || '' }
-                        : { kind: 'route', menu_key: '', menu_name: '', menu_desc: '', icon_path: '', route_name: '', external_url: '', panel_key: '', role_id: '', status: 'A' };
+                    this.form = t ? { ...t, kind: t.external_url ? 'link' : (t.panel_key ? 'panel' : 'route'), menu_desc: t.menu_desc || '', icon_path: t.icon_path || '', route_name: t.route_name || '', external_url: t.external_url || '', panel_key: t.panel_key || '' }
+                        : { kind, menu_key: '', menu_name: '', menu_desc: '', icon_path: '', route_name: '', external_url: '', panel_key: '', status: 'A' };
                 },
 
                 async send(url, method, body) {
@@ -462,7 +514,7 @@
                     const r = await this.send(tileUrl, 'POST', this.form);
                     if (r.error) { this.formError = r.error; return; }
                     const i = this.tiles.findIndex(t => t.menu_key === this.form.menu_key);
-                    const row = { ...this.form, route_name: this.form.route_name || null, external_url: this.form.external_url || null, panel_key: this.form.panel_key || null, role_id: this.form.role_id || null };
+                    const row = { ...this.form, route_name: this.form.route_name || null, external_url: this.form.external_url || null, panel_key: this.form.panel_key || null, role_id: null };
                     i >= 0 ? this.tiles.splice(i, 1, row) : this.tiles.push(row);
                     this.form = null; this.flash('Tile saved.');
                 },

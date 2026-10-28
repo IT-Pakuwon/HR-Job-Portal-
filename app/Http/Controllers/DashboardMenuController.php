@@ -22,7 +22,10 @@ class DashboardMenuController extends Controller
 
         $this->ensurePanelTiles($db);
 
-        $tiles = $db->table('ms_dashboard_menu')->orderBy('menu_name')->get();
+        // Retired dashboard-card tiles (panel_key not in components/panel) are left out; OM keeps its Approval panel.
+        $validPanels = array_merge(DashboardMenu::panelKeys(), ['approval']);
+        $tiles = $db->table('ms_dashboard_menu')->orderBy('menu_name')->get()
+            ->filter(fn ($t) => !$t->panel_key || in_array($t->panel_key, $validPanels, true))->values();
 
         $maps = $db->table('ms_dashboard_menu_map')->orderBy('sort_no')->get()
             ->groupBy('dash_cd')
@@ -56,6 +59,13 @@ class DashboardMenuController extends Controller
             })
             ->sortBy(fn ($m) => ($m['group'] ?? '') . '|' . $m['menu_name'])->values();
 
+        // Icon library for the tile form: every distinct icon already used by a sidebar item or a tile, so a
+        // tile's icon can be picked instead of pasted. Labelled by the first item that uses it.
+        $iconLibrary = $all->map(fn ($m) => ['path' => $m->menu_icon, 'label' => $m->menu_name])
+            ->concat($tiles->map(fn ($t) => ['path' => $t->icon_path, 'label' => $t->menu_name]))
+            ->filter(fn ($i) => $i['path'] && !str_starts_with(trim($i['path']), '<'))
+            ->unique('path')->sortBy('label')->values();
+
         // Named GET routes without URL parameters are valid tile targets.
         $routes = collect(Route::getRoutes()->getRoutes())
             ->filter(fn ($r) => $r->getName() && in_array('GET', $r->methods()) && !str_contains($r->uri(), '{'))
@@ -67,8 +77,8 @@ class DashboardMenuController extends Controller
             'sysMenus' => $sysMenus,
             'routeNames' => $routes,
             'panelKeys' => DashboardMenu::panelKeys(),
-            'dashPanels' => DashboardMenu::dashboardPanels(),
-            'roles' => SysRole::where('status', 'A')->orderBy('role_id')->get(['role_id', 'role_name']),
+            'iconLibrary' => $iconLibrary,
+            'templatePanelKeys' => array_keys(DashboardMenu::templatePanels()),
         ]);
     }
 
@@ -135,12 +145,12 @@ class DashboardMenuController extends Controller
             return response()->json(['message' => 'One or more tiles no longer exist. Reload the page.'], 422);
         }
 
-        // A dashboard can only open its own panel (OM also hosts Approval); any other panel tile would do nothing.
+        // Reject panel tiles that aren't a panel template (OM also keeps its embedded Approval panel).
         $badPanel = $catalogKeys->isEmpty() ? collect() : $db->table('ms_dashboard_menu')
             ->whereIn('menu_key', $catalogKeys)->whereNotNull('panel_key')->pluck('panel_key')
             ->reject(fn ($p) => DashboardMenu::panelAllowed($dash, $p));
         if ($badPanel->isNotEmpty()) {
-            return response()->json(['message' => 'A panel tile can only be added to the dashboard that owns that panel.'], 422);
+            return response()->json(['message' => 'One or more panel tiles are not a valid panel.'], 422);
         }
 
         // Only a panel tile can be "open by default"; at most one per dashboard.
@@ -182,8 +192,8 @@ class DashboardMenuController extends Controller
     }
 
     /**
-     * Every dashboard owns a panel (see DashboardMenu::dashboardPanels()); make sure the catalog has a tile for it,
-     * so a newly added dashboard shows up here without a hand-written SQL insert.
+     * Make sure the catalog has a tile for every panel template (components/panel), so a new
+     * template shows up here without a hand-written SQL insert.
      */
     protected function ensurePanelTiles($db): void
     {
@@ -193,16 +203,14 @@ class DashboardMenuController extends Controller
             return;
         }
 
-        $screenNames = $db->table('sys_screen')->where('application_id', 'DASHBOARD')->pluck('screen_name', 'screen_id');
         $icon = 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z';
-        $codeByKey = array_flip(DashboardMenu::dashboardPanels());
+        $templates = DashboardMenu::templatePanels();
 
         foreach ($missing as $key) {
-            $code = $codeByKey[$key] ?? null;
             $db->table('ms_dashboard_menu')->insertOrIgnore([
-                'menu_key'   => 'PNL_' . strtoupper($key),
-                'menu_name'  => ($code ? $screenNames->get($code) : null) ?: ucfirst($key) . ' Dashboard',
-                'menu_desc'  => 'Open the ' . $key . ' dashboard panel',
+                'menu_key'   => 'PNL_' . strtoupper(str_replace('-', '_', $key)),
+                'menu_name'  => $templates[$key],
+                'menu_desc'  => 'Open the ' . $templates[$key] . ' panel',
                 'icon_path'  => $icon,
                 'panel_key'  => $key,
                 'status'     => 'A',
@@ -226,10 +234,23 @@ class DashboardMenuController extends Controller
 
         abort_unless(array_key_exists($dash, MultiDashboardController::DASHBOARD_COMPONENTS), 404);
         abort_unless(DashboardMenu::panelAllowed($dash, $data['panel']), 422, 'That panel does not belong to this dashboard.');
-        abort_unless(DashboardMenu::forDashboard($dash, $user)->contains(fn ($i) => ($i['panel'] ?? null) === $data['panel']), 422, 'This dashboard has no tile for that panel.');
+        $panels = DashboardMenu::forDashboard($dash, $user)->pluck('panel')->filter()->unique();
+        abort_unless($panels->contains($data['panel']), 422, 'This dashboard has no tile for that panel.');
+
+        // Only one default per dashboard: pinning one panel switches every other panel's default off for this user
+        // (an explicit false also overrides the admin default of that other panel).
+        $now = now();
+        $rows = $panels->map(fn ($p) => [
+            'username' => $user->username, 'dash_cd' => $dash, 'panel_key' => $p,
+            'open_default' => $p === $data['panel'] ? (bool) $data['open'] : false,
+            'updated_at' => $now,
+        ]);
+        if (!$data['open']) {
+            $rows = $rows->filter(fn ($r) => $r['panel_key'] === $data['panel']);
+        }
 
         DB::connection(self::CONN)->table('ms_dashboard_menu_user_pref')->upsert(
-            [['username' => $user->username, 'dash_cd' => $dash, 'panel_key' => $data['panel'], 'open_default' => (bool) $data['open'], 'updated_at' => now()]],
+            $rows->values()->all(),
             ['username', 'dash_cd', 'panel_key'],
             ['open_default', 'updated_at']
         );

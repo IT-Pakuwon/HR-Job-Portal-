@@ -35,3 +35,19 @@ UPDATE sys_menu
 SET menu_icon = 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z',
     updated_by = 'system', updated_at = now()
 WHERE menu_id = 'ALLDASHBOARD' AND (menu_icon IS NULL OR menu_icon = '');
+
+-- ── Group the Data Hub screens under the DATAHUB application ─────────
+-- Access Rights (Step 6) lists screens by application; DATAHUB had none, so its group was empty.
+-- AccessRightMiddleware matches on screen_id only, so moving the application is safe.
+-- "All Data" (ALLDASHBOARD) is gated by access:DATAHUB,VIEW, so it takes screen DATAHUB.
+UPDATE sys_screen SET application_id = 'DATAHUB', updated_by = 'system', updated_at = now()
+WHERE screen_id IN ('DATAHUB', 'OMDASHBOARD') AND application_id = 'DASHBOARD';
+
+UPDATE sys_access_right SET application_id = 'DATAHUB', updated_by = 'system', updated_at = now()
+WHERE screen_id IN ('DATAHUB', 'OMDASHBOARD') AND application_id = 'DASHBOARD';
+
+UPDATE sys_menu SET application_id = 'DATAHUB', updated_by = 'system', updated_at = now()
+WHERE menu_id IN ('DATAHUB', 'OMDASHBOARD') AND application_id = 'DASHBOARD';
+
+UPDATE sys_menu SET screen_id = 'DATAHUB', updated_by = 'system', updated_at = now()
+WHERE menu_id = 'ALLDASHBOARD' AND screen_id IS NULL;

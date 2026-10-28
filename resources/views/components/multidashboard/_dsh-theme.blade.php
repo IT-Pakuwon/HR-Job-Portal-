@@ -56,11 +56,6 @@
     .dsh-kpi-static {
         cursor: default;
     }
-    /* a held panel makes every KPI card a way to open it */
-    body:has([data-panel-held]) .dsh-kpi-static {
-        cursor: pointer;
-    }
-
     .dsh-kpi-static:hover {
         border-color: var(--dsh-line);
     }
@@ -219,21 +214,5 @@
         }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
         else setup();
-    })();
-</script>
-
-<script>
-    // A KPI card click also opens the dashboard's panel when a Menu tile is keeping it hidden
-    // (the root's Alpine listens for this). The dashboard's own handler still switches the tab.
-    // Static KPI cards (no tab of their own) open the panel too, but only when one is being held.
-    (function () {
-        function open(e) {
-            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
-            if (e.target.closest('.dsh-kpis .dsh-kpi') && document.querySelector('[data-panel-held]')) {
-                window.dispatchEvent(new CustomEvent('dash-open-panel'));
-            }
-        }
-        document.addEventListener('click', open, true);
-        document.addEventListener('keydown', open, true);
     })();
 </script>

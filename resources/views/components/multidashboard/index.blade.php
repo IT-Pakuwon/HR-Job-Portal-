@@ -21,6 +21,9 @@
             </div>
         @endif
 
+        {{-- Panels of other dashboards chosen on this dashboard's Menu tiles (see dashboard-menu). --}}
+        <div id="dashForeignPanelHost" class="mt-4 empty:hidden"></div>
+
         @if(View::exists($viewPath) && $dashboardComponent !== 'dashboard-om')
             {{-- One merged "My Activity" tab on every dashboard (except OM, which has none). --}}
             @include('components.multidashboard.my-activity', ['combined' => true])

@@ -2844,8 +2844,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');
-        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
+        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
 
         Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
             Route::get('/json', 'json')->name('json');

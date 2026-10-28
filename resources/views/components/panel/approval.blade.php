@@ -1,0 +1,245 @@
+{{-- Approval panel: Waiting Approval / Approval History lists. Behaviour lives in public/assets/js/Dashboard-Panel/approval.js
+     (fixed element ids, so only one approval panel can be on a page). Rendered with @include so it sees the page's
+     $embedded, $myPage, $doctypes, $akses_cc and $isGA. --}}
+    {{-- The KPI cards (Waiting / Waiting > 3 Days / Approved Today) are gone. This hidden counter stays because
+         approval.js fills it and the My Page home-screen badge reads it. --}}
+    <span id="waitingCount" class="hidden">0</span>
+
+    <div
+        class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+
+        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+
+            <div class="flex flex-wrap gap-3">
+
+                <button id="tab-waiting">
+                    ✅ Waiting Approval
+                </button>
+
+                <button id="tab-history">
+                    📋 Approval History
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="border-b border-slate-200 p-4 dark:border-slate-700">
+
+            <div class="grid gap-3 lg:grid-cols-12">
+
+                <div class="lg:col-span-4">
+
+                    <div id="approvalDoctypeWrap">
+                        <select id="approvalDoctype"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                            <option value="ALL">
+                                All Doctype
+                            </option>
+
+                            @foreach($doctypes ?? collect() as $dt)
+                                <option value="{{ $dt->doctype }}">
+                                    {{ $dt->doctype }}
+                                    {{ $dt->doctype_descr ? ' - '.$dt->doctype_descr : '' }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-4">
+
+                    <input
+                        id="approvalSearch"
+                        type="text"
+                        placeholder="Search document..."
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                </div>
+
+                <div class="lg:col-span-2">
+
+                    <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="hidden shrink-0 sm:inline">Show</span>
+                        <select id="approvalPageSize"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="hidden shrink-0 sm:inline">Entries</span>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-2">
+
+                    <div class="flex gap-2">
+
+                        <button
+                            id="applyApprovalFilter"
+                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 01.8 1.6l-6.3 8.4v5.5a1 1 0 01-1.45.9l-3-1.5A1 1 0 019.5 18v-4l-6.3-8.4A1 1 0 013 4z" />
+                            </svg>
+
+                            Filter
+
+                        </button>
+
+                        @unless (($myPage ?? false) || ($embedded ?? false))
+                        <button
+                            id="openAllWaiting"
+                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
+
+                            🚀 Open All
+
+                        </button>
+                        @endunless
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="p-4">
+            <div id="approvalCardList" class="divide-y divide-slate-100 dark:divide-slate-700"></div>
+            <div id="approvalEmptyState" class="hidden py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                No data available
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <span id="approvalPaginationInfo">Showing 0 to 0 of 0 entries</span>
+            <div class="flex gap-2">
+                <button id="approvalPrevPage"
+                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
+                    Previous
+                </button>
+                <button id="approvalNextPage"
+                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
+                    Next
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+
+<style>
+    /* the stat card whose filter is applied to the list below */
+    /* room between the filter / button row and the document list */
+    #approvalCardList { padding-top: .75rem; }
+    #approvalDoctypeWrap .select2-selection--single {
+        height: 34px;
+        display: flex;
+        align-items: center;
+        border-radius: 0.5rem;
+        border: 1px solid #cbd5e1;
+        background-color: #fff;
+        padding: 0 2rem 0 0.75rem;
+        font-size: 0.75rem;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    #approvalDoctypeWrap .select2-selection--single:hover {
+        border-color: #94a3b8;
+    }
+    #approvalDoctypeWrap .select2-container--open .select2-selection--single {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    #approvalDoctypeWrap .select2-selection__rendered {
+        padding: 0;
+        line-height: 32px;
+        color: #334155;
+    }
+    #approvalDoctypeWrap .select2-selection__arrow {
+        height: 32px;
+        right: 8px;
+    }
+    #approvalDoctypeWrap .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent;
+    }
+
+    #approvalDoctypeWrap .select2-dropdown {
+        border-radius: 0.5rem;
+        border-color: #c7d2e1;
+        overflow: hidden;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    }
+    #approvalDoctypeWrap .select2-search__field {
+        border-radius: 0.375rem;
+        border: 1px solid #cbd5e1;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+        outline: none;
+    }
+    #approvalDoctypeWrap .select2-search__field:focus {
+        border-color: #6366f1;
+    }
+    #approvalDoctypeWrap .select2-results__option {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+    #approvalDoctypeWrap .select2-results__option--highlighted[aria-selected] {
+        background-color: #eef2ff;
+        color: #4338ca;
+    }
+    #approvalDoctypeWrap .select2-results__option[aria-selected="true"] {
+        background-color: #e0e7ff;
+        color: #4338ca;
+        font-weight: 600;
+    }
+
+    .dark #approvalDoctypeWrap .select2-selection--single {
+        background-color: #334155;
+        border-color: #475569;
+        color: #e2e8f0;
+    }
+    .dark #approvalDoctypeWrap .select2-selection__rendered {
+        color: #e2e8f0;
+    }
+    .dark #approvalDoctypeWrap .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent;
+    }
+    .dark #approvalDoctypeWrap .select2-dropdown {
+        background-color: #1e293b;
+        border-color: #475569;
+    }
+    .dark #approvalDoctypeWrap .select2-search__field {
+        background-color: #334155;
+        border-color: #475569;
+        color: #e2e8f0;
+    }
+    .dark #approvalDoctypeWrap .select2-results__option {
+        color: #e2e8f0;
+    }
+    .dark #approvalDoctypeWrap .select2-results__option--highlighted[aria-selected] {
+        background-color: #4338ca;
+        color: #fff;
+    }
+    .dark #approvalDoctypeWrap .select2-results__option[aria-selected="true"] {
+        background-color: #3730a3;
+        color: #fff;
+    }
+</style>
+
+@include('partials.private-note-widget', ['doctype' => 'VCR', 'floatingButton' => false, 'akses_cc' => ($akses_cc ?? false) || ($isGA ?? false)])
+
+<script>
+    window.privateNoteAccess = {
+        costCtrl: @json($akses_cc ?? false),
+        ga: @json($isGA ?? false),
+    };
+</script>
+
+<script src="{{ asset('assets/js/Dashboard-Panel/approval.js') }}?v={{ file_exists(public_path('assets/js/Dashboard-Panel/approval.js')) ? filemtime(public_path('assets/js/Dashboard-Panel/approval.js')) : time() }}"></script>

@@ -912,7 +912,7 @@
                 font-weight: 600;
             }
 
-            /* Approval / History cards (rendered by dashapproval.js) */
+            /* Approval / History cards (rendered by Dashboard-Panel/approval.js) */
             .mp-wrap #approvalCardList>a {
                 --acc: #3b82f6;
                 position: relative;

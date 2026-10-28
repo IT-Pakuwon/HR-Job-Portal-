@@ -17,56 +17,73 @@ class DashboardMenu extends Model
     public $timestamps = false;
 
     /**
-     * Each dashboard owns one in-page panel (its main tabbed card), keyed after its view:
-     * 'dashboard-it' => 'it', 'purchasing-dashboard' => 'purchasing', 'dashboard-corporate-teknik' => 'corporateteknik'.
-     * Derived from MultiDashboardController::DASHBOARD_COMPONENTS, so a new dashboard needs no entry here.
-     * A panel tile for that key, assigned to that dashboard, keeps the card hidden until the tile (or a KPI card)
-     * is clicked. DASHOM has no card of its own but also hosts the Approval Dashboard embedded as a panel.
+     * Panel templates: one Blade component per dashboard tab (resources/views/components/panel/<key>.blade.php,
+     * rendered by <x-panel.shell>). Not tied to a dashboard — any dashboard can show any of them as a Menu tile.
      *
-     * @return array<string,string> dash code => panel key
+     * @return array<string,string> panel key => label
      */
-    public static function dashboardPanels(): array
+    public static function templatePanels(): array
     {
-        $map = [];
-        foreach (\App\Http\Controllers\MultiDashboardController::DASHBOARD_COMPONENTS as $code => $component) {
-            if ($code === 'DASHOM') {
-                continue;
-            }
-            $map[$code] = str_replace('-', '', preg_replace('/^dashboard-|-dashboard$/', '', $component));
-        }
-
-        return $map;
+        return [
+            'it-ticket'         => 'IT · Ticket',
+            'it-access'         => 'IT · Access Request',
+            'it-recommendation' => 'IT · IT Recommendation',
+            'ga-voucher-taxi'   => 'GA · Voucher Taxi',
+            'ga-booking-car'    => 'GA · Booking Car',
+            'ga-parking'        => 'GA · Parking',
+            'hr-prf'            => 'HR · PRF',
+            'hr-applicant'      => 'HR · Applicant',
+            'hr-self-register'  => 'HR · Self Register',
+            'opr-workorder'     => 'Operational · Work Order',
+            'recruit-applicant'      => 'Recruitment · Applicant',
+            'recruit-self-register'  => 'Recruitment · Self Register',
+            'corptek-ticket'         => 'Corporate Teknik · Ticket',
+            'corptek-berita-acara'   => 'Corporate Teknik · Berita Acara',
+            'cost-po'                => 'Cost Control · Pending PO',
+            'cost-issue'             => 'Cost Control · Pending Issue',
+            'cost-budget'            => 'Cost Control · Budget Monitoring',
+            'cost-imbudget'          => 'Cost Control · IM Budget',
+            'cost-expired'           => 'Cost Control · Expired List',
+            'cost-waiting-settlement' => 'Cost Control · Waiting For Settlement',
+            'vpcoll-expired'         => 'VP Collection · Expired Voucher List',
+            'vpcoll-settlement'      => 'VP Collection · Waiting For Settlement',
+            'vpprmtn-expired'        => 'VP Promotion · Expired Product List',
+            'vpprmtn-settlement'     => 'VP Promotion · Waiting For Settlement',
+            'vployalty-expired'      => 'VP Loyalty · Expired Voucher & Product List',
+            'fin-rfca-purchase'      => 'Finance · RFCA Purchase Waiting',
+            'fin-calr-purchase'      => 'Finance · CALR Purchase Waiting',
+            'fin-rfp-nonpurch'       => 'Finance · RFP & RFCA Non-Purchase Waiting',
+            'fin-calr-nonpurch'      => 'Finance · CALR Non-Purchase Waiting',
+            'treas-rfca-purchase'    => 'Treasury · RFCA Purchase Waiting',
+            'treas-calr-purchase'    => 'Treasury · CALR Purchase Waiting',
+            'treas-rfp-nonpurch'     => 'Treasury · RFP & RFCA Non-Purchase Waiting',
+            'treas-calr-nonpurch'    => 'Treasury · CALR Non-Purchase Waiting',
+            'wh-sppb'                => 'Warehouse · SPPB On Progress',
+            'wh-po-solomon'          => 'Warehouse · PO Solomon',
+            'wh-grn-solomon'         => 'Warehouse · GRN Solomon',
+            'wh-issue-solomon'       => 'Warehouse · Issue Solomon',
+            'purch-cs'               => 'Purchasing · CS',
+            'purch-po-unsend'        => 'Purchasing · PO Unsend',
+        ];
     }
 
-    /** The panel key a dashboard owns (null for a dashboard without a card, e.g. OM). */
-    public static function panelKey(string $dashCd): ?string
+    public static function isTemplatePanel(?string $panelKey): bool
     {
-        return static::dashboardPanels()[strtoupper($dashCd)] ?? null;
+        return $panelKey !== null && array_key_exists($panelKey, static::templatePanels());
     }
 
     /** Every panel_key a custom tile may use. */
     public static function panelKeys(): array
     {
-        return array_values(array_unique(static::dashboardPanels()));
+        return array_keys(static::templatePanels());
     }
 
-    /** Can this dashboard open that panel? Each dashboard owns one; OM also hosts the Approval panel. */
+    /** Can this dashboard open that panel? Any template panel; OM also keeps its embedded Approval panel. */
     public static function panelAllowed(string $dashCd, ?string $panelKey): bool
     {
-        if (!$panelKey) {
-            return true;
-        }
-        $dashCd = strtoupper($dashCd);
-
-        return $panelKey === static::panelKey($dashCd)
-            || ($dashCd === 'DASHOM' && $panelKey === 'approval');
-    }
-    /** True when the dashboard shows a tile for its own panel, i.e. the panel starts hidden. */
-    public static function holdsPanel(string $dashCd, string $panelKey, $user = null): bool
-    {
-        $user = $user ?: auth()->user();
-
-        return static::forDashboard($dashCd, $user)->contains(fn ($i) => ($i['panel'] ?? null) === $panelKey);
+        return !$panelKey
+            || array_key_exists($panelKey, static::templatePanels())
+            || (strtoupper($dashCd) === 'DASHOM' && $panelKey === 'approval');
     }
 
     /**
@@ -132,6 +149,7 @@ class DashboardMenu extends Model
                     'desc'  => $row->menu_desc,
                     'href'  => static::resolveHref($m->menu_route, $m->menu_url),
                     'panel' => null,
+                    'kind'  => 'menu',
                     'external' => false,
                     'badge' => static::BADGES['sys:' . $m->menu_id] ?? null,
                     'icon'  => $m->menu_icon,
@@ -139,7 +157,7 @@ class DashboardMenu extends Model
             }
 
             $t = $catalog->get($row->menu_key);
-            if (!$t || ($t->role_id && !$roles->contains($t->role_id))) {
+            if (!$t) {
                 return null;
             }
 
@@ -150,6 +168,7 @@ class DashboardMenu extends Model
                 'external' => (bool) $t->external_url,
                 'badge' => $t->panel_key ? (static::BADGES['panel:' . $t->panel_key] ?? null) : null,
                 'panel' => $t->panel_key,
+                'kind'  => $t->panel_key ? 'panel' : ($t->external_url ? 'link' : 'menu'),
                 // the user's own pin wins over the admin default
                 'default' => $t->panel_key ? (bool) ($prefs[$t->panel_key] ?? ($row->is_default ?? false)) : false,
                 'icon'  => $t->icon_path,

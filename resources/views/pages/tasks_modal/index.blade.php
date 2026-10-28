@@ -35,8 +35,6 @@
                         </li>
                         <li><a href="{{ route('groups') }}"
                                 class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Group</a></li>
-                        <li><a href="{{ route('mastercard') }}"
-                                class="block px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700">Master Card</a></li>
                     </ul>
                 </div>
                 <span class="mx-2">/</span>
