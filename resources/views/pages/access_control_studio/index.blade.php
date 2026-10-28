@@ -460,9 +460,18 @@
                     </div>
                 </div>
                 <div class="mb-1 grid grid-cols-2 gap-3">
-                    <div>
+                    <div class="relative" id="mnu_icon_picker">
                         <label class="studio-label">Icon (optional)</label>
-                        <input type="text" id="mnu_menu_icon" name="menu_icon" class="studio-input">
+                        <input type="hidden" id="mnu_menu_icon" name="menu_icon">
+                        <div id="mnu_icon_toggle" role="button" tabindex="0" class="studio-input flex cursor-pointer items-center gap-2 text-left">
+                            <span id="mnu_icon_preview" class="flex h-6 w-6 items-center justify-center text-indigo-500"></span>
+                            <span id="mnu_icon_label" class="flex-1 truncate text-gray-400">Choose icon</span>
+                            <button type="button" id="mnu_icon_clear" class="hidden text-base leading-none text-gray-400 hover:text-red-500" title="Clear">&times;</button>
+                        </div>
+                        <div id="mnu_icon_panel" class="absolute bottom-full left-0 z-50 mb-1 hidden w-80 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-600 dark:bg-gray-800">
+                            <input type="text" id="mnu_icon_search" placeholder="Search icon..." class="studio-input mb-2">
+                            <div id="mnu_icon_grid" class="grid max-h-56 grid-cols-6 gap-1 overflow-y-auto"></div>
+                        </div>
                     </div>
                     <div>
                         <label class="studio-label">Sort Order</label>
@@ -1135,8 +1144,93 @@
                 return html;
             }
 
+            // ---- Menu icon picker (stores a single SVG path "d", rendered by the sidebar) ----
+            const MNU_ICONS = [
+                ['Home', 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                ['Dashboard', 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
+                ['User', 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
+                ['Users', 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],
+                ['Team', 'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z'],
+                ['Settings', 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z'],
+                ['Document', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+                ['Agreement', 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z'],
+                ['Form', 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'],
+                ['List', 'M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008'],
+                ['Calendar', 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
+                ['Clock', 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['Chart', 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+                ['Briefcase', 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                ['Building', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-5 0h5'],
+                ['Location', 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z'],
+                ['Mail', 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                ['Chat', 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'],
+                ['Bell', 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],
+                ['Lock', 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
+                ['Key', 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'],
+                ['Shield', 'M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z'],
+                ['Approval', 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['Folder', 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z'],
+                ['Tag', 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'],
+                ['Ticket', 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z'],
+                ['Money', 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['Cart', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
+                ['Training', 'M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z'],
+                ['Search', 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'],
+                ['Database', 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4'],
+                ['Globe', 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9'],
+                ['Star', 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'],
+            ];
+            const mnuIconSvg = (d, cls = 'h-5 w-5') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+
+            function mnuSetIcon(d) {
+                d = d || '';
+                $('#mnu_menu_icon').val(d);
+                const known = MNU_ICONS.find(i => i[1] === d);
+                $('#mnu_icon_preview').html(d ? mnuIconSvg(d) : '');
+                $('#mnu_icon_label').text(d ? (known ? known[0] : 'Custom icon') : 'Choose icon')
+                    .toggleClass('text-gray-400', !d).toggleClass('text-gray-700 dark:text-gray-200', !!d);
+                $('#mnu_icon_clear').toggleClass('hidden', !d);
+            }
+
+            function mnuRenderIconGrid(term) {
+                term = (term || '').toLowerCase();
+                const current = $('#mnu_menu_icon').val();
+                const html = MNU_ICONS.filter(i => i[0].toLowerCase().includes(term)).map(i =>
+                    `<button type="button" class="mnu-icon-opt flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 dark:text-gray-300 dark:hover:bg-gray-700 ${i[1] === current ? 'bg-indigo-50 text-indigo-600 ring-1 ring-indigo-300 dark:bg-gray-700' : ''}" data-path="${i[1]}" title="${i[0]}">${mnuIconSvg(i[1])}<span class="w-full truncate text-[9px]">${i[0]}</span></button>`
+                ).join('');
+                $('#mnu_icon_grid').html(html || '<p class="col-span-6 py-3 text-center text-xs text-gray-400">No icon found</p>');
+            }
+
+            $('#mnu_icon_toggle').on('click keydown', function(e) {
+                if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+                e.preventDefault();
+                const panel = $('#mnu_icon_panel');
+                if (panel.hasClass('hidden')) {
+                    $('#mnu_icon_search').val('');
+                    mnuRenderIconGrid('');
+                    panel.removeClass('hidden');
+                    $('#mnu_icon_search').trigger('focus');
+                } else {
+                    panel.addClass('hidden');
+                }
+            });
+            $('#mnu_icon_search').on('input', function() { mnuRenderIconGrid(this.value); });
+            $('#mnu_icon_grid').on('click', '.mnu-icon-opt', function() {
+                mnuSetIcon($(this).data('path'));
+                $('#mnu_icon_panel').addClass('hidden');
+            });
+            $('#mnu_icon_clear').on('click', function(e) {
+                e.stopPropagation();
+                mnuSetIcon('');
+            });
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#mnu_icon_picker').length) $('#mnu_icon_panel').addClass('hidden');
+            });
+
             function mnuResetForm() {
                 $('#mnu_form')[0].reset();
+                mnuSetIcon('');
+                $('#mnu_icon_panel').addClass('hidden');
                 $('#mnu_id').val('');
                 $('#mnu_application_id').val(null).trigger('change');
                 $('#mnu_screen_id').val(null).trigger('change');
@@ -1172,7 +1266,7 @@
                     $('#mnu_menu_name').val(data.menu_name);
                     $('#mnu_menu_route').val(data.menu_route);
                     $('#mnu_menu_url').val(data.menu_url);
-                    $('#mnu_menu_icon').val(data.menu_icon);
+                    mnuSetIcon(data.menu_icon);
                     $('#mnu_menu_sort_order').val(data.menu_sort_order);
                     $('#mnu_application_id').val(data.application_id).trigger('change');
                     $('#mnu_screen_id').val(data.screen_id).trigger('change');
