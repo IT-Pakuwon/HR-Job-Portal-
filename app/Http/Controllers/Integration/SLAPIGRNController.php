@@ -25,7 +25,7 @@ class SLAPIGRNController extends Controller
     public function filters()
     {
         $companies = BusinessUnit::query()
-            ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
+            ->where('integration_type', 'SOLOMON')
             ->whereNotNull('cpny_id')
             ->where('cpny_id', '<>', '')
             ->distinct()
@@ -161,7 +161,7 @@ class SLAPIGRNController extends Controller
                     'business_unit_id',
                     'integration_type',
                 ])
-                ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
+                ->where('integration_type', 'SOLOMON')
                 ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $businessUnitKeys)
                 ->get()
                 ->keyBy(function ($r) {
@@ -222,6 +222,10 @@ class SLAPIGRNController extends Controller
             $bu = $businessUnitMap->get($buKey);
     
             $integrationType = strtoupper((string) ($bu->integration_type ?? ''));
+
+            if ($integrationType !== 'SOLOMON') {
+                return null;
+            }
     
             return [
                 'key'              => $key,
@@ -316,6 +320,14 @@ class SLAPIGRNController extends Controller
             ], 422);
         }
 
+        return response()->json($this->processGRNSLPairs($pairs, $username));
+    }
+
+    /**
+     * Shared Solomon delivery for the manual process and scheduler.
+     */
+    private function processGRNSLPairs(array $pairs, string $username): array
+    {
         $sentOk = 0;
         $sentFail = 0;
         $failed = [];
@@ -325,6 +337,22 @@ class SLAPIGRNController extends Controller
             $receiptNo = $p['receipt_no'];
 
             try {
+                // Validate on the server as well, including manually submitted IDs.
+                $businessUnitId = ViewStagingGRN::query()
+                    ->where('cpny_id', $cpnyId)
+                    ->where('grn_no', $receiptNo)
+                    ->min('business_unit_id');
+
+                $isSolomon = $businessUnitId !== null && BusinessUnit::query()
+                    ->where('cpny_id', $cpnyId)
+                    ->where('business_unit_id', $businessUnitId)
+                    ->where('integration_type', 'SOLOMON')
+                    ->exists();
+
+                if (!$isSolomon) {
+                    throw new \RuntimeException("GRN bukan transaksi SOLOMON: {$cpnyId} / {$receiptNo}");
+                }
+
                 $stillP = StagingIfcaPoGrn::query()
                     ->where('cpny_id', $cpnyId)
                     ->where('grn_no', $receiptNo)
@@ -481,11 +509,62 @@ class SLAPIGRNController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'ok' => $sentFail === 0,
             'sent_success_P_to_C' => $sentOk,
             'sent_failed' => $sentFail,
             'failed' => $failed,
+        ];
+    }
+
+    /**
+     * Process pending SOLOMON GRN dated H-14 through today.
+     */
+    public function SchedulerProcessGRNSL(): array
+    {
+        $fromDt = now()->subDays(14)->startOfDay();
+        $toDt = now()->endOfDay();
+
+        $headers = ViewStagingGRN::query()
+            ->select(['cpny_id', 'grn_no', DB::raw('MIN(business_unit_id) as business_unit_id')])
+            ->whereBetween('grn_date', [$fromDt, $toDt])
+            ->groupBy('cpny_id', 'grn_no')
+            ->orderBy('cpny_id')
+            ->orderBy('grn_no')
+            ->get();
+
+        $pairs = [];
+        foreach ($headers as $header) {
+            $isSolomon = BusinessUnit::query()
+                ->where('cpny_id', $header->cpny_id)
+                ->where('business_unit_id', $header->business_unit_id)
+                ->where('integration_type', 'SOLOMON')
+                ->exists();
+
+            if (!$isSolomon) {
+                continue;
+            }
+
+            $isPending = StagingIfcaPoGrn::query()
+                ->where('cpny_id', $header->cpny_id)
+                ->where('grn_no', $header->grn_no)
+                ->where('status', 'P')
+                ->exists();
+
+            if ($isPending) {
+                $pairs[] = [
+                    'cpny_id' => (string) $header->cpny_id,
+                    'receipt_no' => (string) $header->grn_no,
+                ];
+            }
+        }
+
+        $result = $this->processGRNSLPairs($pairs, 'SCHEDULER');
+
+        return array_merge($result, [
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_grn' => count($pairs),
         ]);
     }
 }

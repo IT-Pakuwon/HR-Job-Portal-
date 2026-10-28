@@ -10,7 +10,7 @@ class AutoSchedulerProcessPOHold extends Command
 {
     protected $signature = 'ifca:pohold-auto-process';
 
-    protected $description = 'Auto process IFCA PO Hold H ke D dari H-3 sampai hari ini';
+    protected $description = 'Auto process IFCA PO Hold H ke D dari H-21 sampai hari ini';
 
     public function handle()
     {

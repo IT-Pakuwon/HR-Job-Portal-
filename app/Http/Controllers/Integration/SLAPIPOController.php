@@ -314,6 +314,14 @@ class SLAPIPOController extends Controller
             ], 422);
         }
 
+        return response()->json($this->processPOSLPairs($pairs, $username));
+    }
+
+    /**
+     * Shared SOLOMON P -> C delivery for manual and scheduled processing.
+     */
+    private function processPOSLPairs(array $pairs, string $username): array
+    {
         $sentOk = 0;
         $sentFail = 0;
         $failed = [];
@@ -491,11 +499,43 @@ class SLAPIPOController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'ok' => $sentFail === 0,
             'sent_success_P_to_C' => $sentOk,
             'sent_failed' => $sentFail,
             'failed' => $failed,
+        ];
+    }
+
+    /**
+     * Process SOLOMON PO reviewed from H-14 through today.
+     */
+    public function SchedulerProcessPOSL(): array
+    {
+        $fromDt = Carbon::now()->subDays(14)->startOfDay();
+        $toDt = Carbon::now()->endOfDay();
+
+        $pairs = StagingIfcaPoApprove::query()
+            ->select(['cpny_id', 'order_no'])
+            ->where('integration_type', 'SOLOMON')
+            ->where('status', 'P')
+            ->whereBetween('reviewed_at', [$fromDt, $toDt])
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('order_no')
+            ->get()
+            ->map(fn ($row) => [
+                'cpny_id' => (string) $row->cpny_id,
+                'order_no' => (string) $row->order_no,
+            ])
+            ->all();
+
+        $result = $this->processPOSLPairs($pairs, 'SCHEDULER');
+
+        return array_merge($result, [
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_po' => count($pairs),
         ]);
     }
 }

@@ -813,7 +813,7 @@ class IFCAAPIGRNController extends Controller
      */
     public function SchedulerProcessGRN(): array
     {
-        $fromDt = now()->subDays(3)->startOfDay();
+        $fromDt = now()->subDays(14)->startOfDay();
         $toDt = now()->endOfDay();
 
         $pairs = ViewStagingGRN::query()

@@ -10,7 +10,7 @@ class AutoSchedulerProcessGRN extends Command
 {
     protected $signature = 'ifca:grn-auto-process';
 
-    protected $description = 'Auto process GRN H ke P dan P-IFCA ke C dari H-3 sampai hari ini';
+    protected $description = 'Auto process GRN H ke P dan P-IFCA ke C dari H-14 sampai hari ini';
 
     public function handle()
     {
