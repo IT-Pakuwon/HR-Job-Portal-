@@ -3,8 +3,9 @@
     <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
         {{-- Tabs --}}
-        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-            <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 dark:border-slate-700">
+            <div class="flex min-w-0 flex-wrap items-center gap-3">
+                <div class="flex flex-wrap gap-3">
                 <button id="tab-approval">📝 Waiting Approval</button>
                 <button id="tab-approval-history">📋 Approval History</button>
                 <button id="tab-rfca-purchase-tp">💳 RFCA Purchase Waiting</button>
@@ -12,6 +13,9 @@
                 <button id="tab-rfp-nonpurch-fr-done">📄 RFP & RFCA Non-Purchase Waiting</button>
                 <button id="tab-calr-nonpurch-fr-done">📑 CALR Non-Purchase Waiting</button>
             </div>
+            </div>
+
+            <x-multidashboard.component.refresh-pill time-id="dashboardRefreshTime" button-id="refreshDashboard" />
         </div>
 
         {{-- Filters --}}

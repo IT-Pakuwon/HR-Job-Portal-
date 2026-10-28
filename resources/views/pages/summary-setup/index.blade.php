@@ -13,6 +13,13 @@
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">{{ $label }} Summary — Layout</h1>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Design what the {{ $label }} Summary panel shows. Drag cards to reorder, click one to change it. Applies to everyone who opens the panel.</p>
             </div>
+            <div class="flex shrink-0 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700">
+                @foreach (['om' => 'OM', 'gm' => 'GM'] as $key => $tab)
+                    <a href="{{ route('summary-setup', $key) }}"
+                        @click="if (dirty && !confirm('Discard unsaved changes?')) $event.preventDefault()"
+                        class="rounded-md px-3 py-1 text-xs font-semibold {{ $p === $key ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-800 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300' }}">{{ $tab }}</a>
+                @endforeach
+            </div>
             @endunless
             <span x-show="dirty" x-cloak class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Unsaved changes</span>
             <div class="flex shrink-0 items-center gap-2">

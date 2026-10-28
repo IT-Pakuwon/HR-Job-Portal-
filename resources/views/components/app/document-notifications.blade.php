@@ -11,7 +11,7 @@
         && strtoupper(trim((string) auth()->user()->group_cpny_id)) === 'JKT'
         && \App\Models\SysMenu::where('menu_id', 'MAILBOX')->where('status', 'A')->exists();
 @endphp
-<div x-data="docNotifications({{ \Illuminate\Support\Js::from($mailboxConnected) }})" x-init="init()" class="flex items-center gap-1">
+<div x-data="docNotifications({{ \Illuminate\Support\Js::from($mailboxConnected) }})" x-init="init()" class="flex items-center gap-1 sm:gap-3">
 
   <div class="relative">
 

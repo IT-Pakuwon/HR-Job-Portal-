@@ -122,8 +122,7 @@
 
                         $addSearchItem('dashboard-setup', 'Dashboard Setup', 'Dashboard Setup');
                         $addSearchItem('dashboard-menu', 'Dashboard Menu', 'Dashboard Setup');
-                        $addSearchItem('summary-setup', 'OM Summary', 'Dashboard Setup', ['p' => 'om']);
-                        $addSearchItem('summary-setup', 'GM Summary', 'Dashboard Setup', ['p' => 'gm']);
+                        $addSearchItem('summary-setup.home', 'Summary Setup', 'Dashboard Setup');
 
                         $addSearchItem('tenancy.user.index', 'User', 'Tenancy Setup');
                         $addSearchItem('tenancy.organization.index', 'Organization', 'Tenancy Setup');
@@ -829,11 +828,8 @@
                                                 class="{{ Request::segment(1) === 'dashboard-menu' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard
                                                 Menu</a>
                                         </li>
-                                        <li><a href="{{ route('summary-setup', 'om') }}"
-                                                class="{{ Request::segment(1) === 'summary-setup' && Request::segment(2) === 'om' ? 'text-indigo-600' : '' }} sidebar-link text-sm">OM Summary</a>
-                                        </li>
-                                        <li><a href="{{ route('summary-setup', 'gm') }}"
-                                                class="{{ Request::segment(1) === 'summary-setup' && Request::segment(2) === 'gm' ? 'text-indigo-600' : '' }} sidebar-link text-sm">GM Summary</a>
+                                        <li><a href="{{ route('summary-setup.home') }}"
+                                                class="{{ Request::segment(1) === 'summary-setup' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Summary Setup</a>
                                         </li>
                                     </ul>
                                 </li>

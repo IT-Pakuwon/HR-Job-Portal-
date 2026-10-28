@@ -10,6 +10,17 @@ class UpdateNotificationController extends Controller
 {
     use HasAutonbr;
 
+    public function index()
+    {
+        $notifications = MsNews::where('status', 'A')
+            ->whereNull('deleted_at')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get(['news_title', 'news_descr', 'news_type', 'created_at']);
+
+        return view('pages.update-notification.index', compact('notifications'));
+    }
+
     public function json(Request $request)
     {
         abort_unless($request->ajax(), 404);
@@ -40,7 +51,8 @@ class UpdateNotificationController extends Controller
         $user = $request->user();
         $username = $user->username ?? '';
 
-        abort_unless($user && $user->isAdmin(), 403);
+        // admin only — adminsby is intentionally excluded
+        abort_unless($user && $user->isPrimaryAdmin(), 403);
 
         $validated = $request->validate([
             'description' => 'required|string',

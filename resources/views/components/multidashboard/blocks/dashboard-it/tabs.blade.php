@@ -1,15 +1,19 @@
 {{-- Work tabs of dashboard-it. Placed by Dashboard Setup (DashboardLayout block "tabs"); dashboard-top includes it. --}}
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-        <div class="border-b border-slate-200 px-4 pt-2 dark:border-slate-700">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 dark:border-slate-700">
 
-            <div class="dsh-tabbar">
+            <div class="flex min-w-0 flex-wrap items-center gap-3">
+                <div class="dsh-tabbar">
                 <button id="tab-approval" type="button" class="dsh-tab">Waiting Approval</button>
                 <button id="tab-approval-history" type="button" class="dsh-tab">Approval History</button>
                 <button id="tab-ticket" type="button" class="dsh-tab">Ticket</button>
                 <button id="tab-access" type="button" class="dsh-tab">Access Request</button>
                 <button id="tab-recommendation" type="button" class="dsh-tab">IT Recommendation</button>
             </div>
+            </div>
+
+            <x-multidashboard.component.refresh-pill time-id="dashboardRefreshTime" button-id="refreshDashboard" />
         </div>
 
         <div class="border-b border-slate-200 p-4 dark:border-slate-700">

@@ -340,7 +340,7 @@
     }
 
     $(document).ready(function () {
-        const btn = document.getElementById('updateNotificationBtn');
+        const btn = document.getElementById('updateNotificationToast');
         if (!btn) return;
 
         loadNotifications();
@@ -376,7 +376,7 @@
 
         $(document).on('click', '#updateNotificationToastSeeMore', function () {
             hidePopup();
-            openPanel();
+            window.open('/update-notification', '_blank', 'noopener');
             markAllSeen();
         });
 

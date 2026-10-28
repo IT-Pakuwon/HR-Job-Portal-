@@ -96,7 +96,7 @@
         gap: .4rem;
         white-space: nowrap;
         cursor: pointer;
-        padding: .5rem .75rem .625rem;
+        padding: .625rem .75rem .5rem;
         font-size: .8125rem;
         font-weight: 600;
         color: var(--dsh-muted);

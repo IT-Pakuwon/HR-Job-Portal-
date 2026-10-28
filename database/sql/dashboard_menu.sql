@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS ms_dashboard_menu (
     menu_desc   VARCHAR(255),
     icon_path   TEXT,
     route_name  VARCHAR(100),
+    external_url VARCHAR(1000),
     panel_key   VARCHAR(30),
     role_id     VARCHAR(50),
     status      VARCHAR(5) DEFAULT 'A',
@@ -58,6 +59,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- v3: custom tiles may open an external https URL (new tab) instead of a route/panel.
+-- (also in the CREATE TABLE above for fresh installs; this line upgrades databases created before v3)
 ALTER TABLE ms_dashboard_menu ADD COLUMN IF NOT EXISTS external_url VARCHAR(1000);
 
 -- v4: DASHOM's Mailbox tile is the real sidebar item (sys_menu 'MAILBOX'), not a custom tile.

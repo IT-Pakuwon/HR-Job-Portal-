@@ -2858,6 +2858,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/summary-panel/{panel}', [App\Http\Controllers\SummaryPanelController::class, 'data'])->name('summary-panel.data');
 
         Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
+            Route::get('/', 'index')->name('index');
             Route::get('/json', 'json')->name('json');
             Route::post('/', 'store')->name('store');
         });
@@ -3246,8 +3247,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');
         Route::patch('/dashboard-menu/map/{dash}/row', [DashboardMenuController::class, 'saveRow'])->name('dashboard-menu.map.row');
 
-        // Dashboard Setup > OM Summary / GM Summary (layout of the Summary panels; table on pgsql5)
+        // Dashboard Setup > Summary Setup (OM | GM switcher; layout of the Summary panels; table on pgsql2)
         Route::prefix('summary-setup')->controller(App\Http\Controllers\SummarySetupController::class)->group(function () {
+            Route::get('/', fn () => redirect()->route('summary-setup', 'om'))->name('summary-setup.home');
             Route::get('/{p}', 'index')->whereIn('p', ['om', 'gm'])->name('summary-setup');
             Route::put('/{p}', 'save')->whereIn('p', ['om', 'gm'])->name('summary-setup.save');
             Route::delete('/{p}', 'reset')->whereIn('p', ['om', 'gm'])->name('summary-setup.reset');

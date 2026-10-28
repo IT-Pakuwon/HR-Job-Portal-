@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Summary panels (OM Summary / GM Summary) — admin layout override.
--- Run against the PGSQL5 connection (db_das_test). Idempotent.
+-- Run against the PGSQL2 connection (db_iamsystem_test2). Idempotent.
 --
 -- config/summary_panels.php is the catalog + default layout. A row here overrides ONE widget of ONE panel
 -- (order, visibility, width, title, colour, chart height). A panel with no rows follows the config default;

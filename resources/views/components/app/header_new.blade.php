@@ -21,12 +21,12 @@
         <x-app.document-notifications />
 
         <a href="{{ route('manual', ['root' => 'faq']) }}"
-            class="relative hidden rounded-lg p-2 text-gray-600 hover:bg-gray-100 sm:block dark:text-gray-300 dark:hover:bg-gray-700"
+            class="relative hidden h-11 w-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 sm:flex dark:text-gray-300 dark:hover:bg-gray-700"
             title="Manual Book"
             x-data="{ seen: localStorage.getItem('manualBookSeen') === 'true' }"
             @click="seen = true; localStorage.setItem('manualBookSeen', 'true')">
             <i class="fas fa-book text-lg"></i>
-            <span x-show="!seen" class="absolute right-1 top-1 flex h-2 w-2">
+            <span x-show="!seen" class="absolute right-2 top-2 flex h-2 w-2">
                 <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
                 <span class="relative inline-flex h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-white dark:ring-gray-800"></span>
             </span>

@@ -10,14 +10,14 @@ use Throwable;
  * touching the Blade renderer, the JSON endpoint or the JS:
  *
  *   1. config/summary_panels.php          — the catalog (All Reports cards) + each panel's default cards
- *   2. ms_summary_layout (pgsql5, today)  — admin layout: which cards, order / width / title / colour / height
+ *   2. ms_summary_layout (pgsql2)         — admin layout: which cards, order / width / title / colour / height
  *   3. per-user layout (planned, DB)      — hide / reorder for one user
  *
  * A layer only stores card ids + settings; every card it can pick is a catalog entry.
  */
 class SummaryLayout
 {
-    public const CONN = 'pgsql5';
+    public const CONN = 'pgsql2';
     public const TABLE = 'ms_summary_layout';
     public const SPANS = [3, 4, 5, 6, 7, 8, 12];
     public const COLORS = ['violet', 'blue', 'green', 'orange', 'red', 'pink', 'cyan'];
