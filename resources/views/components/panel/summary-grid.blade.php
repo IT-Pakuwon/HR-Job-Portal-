@@ -12,7 +12,8 @@
 <div data-sp-root data-sp-url="{{ route('summary-panel.data', $panel) }}" data-sp-period="{{ \App\Services\Dashboard\SummaryPanels\SummaryLayout::period($panel) }}"
     x-init="(function (el, tries) { (function go() { if (window.SummaryPanel) return SummaryPanel.mount(el); if (tries-- > 0) return setTimeout(go, 100); el.querySelectorAll('[data-sp-widget]').forEach(w => w.textContent = 'Could not load the panel script — reload the page'); })(); })($el, 100)">
 
-    <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div class="min-w-0">
             <h2 class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{{ $title ?: ($cfg['title'] ?? '') }}</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">{{ $cfg['subtitle'] ?? '' }} · <span data-sp="updated">loading…</span></p>
@@ -53,12 +54,13 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
+    {{-- one connected surface: cells are flat, the 1px gap shows the divider colour --}}
+    <div class="grid grid-cols-1 gap-px overflow-hidden rounded-b-2xl border-t border-slate-200 bg-slate-200 dark:border-slate-700/60 dark:bg-slate-700/60 lg:grid-cols-12">
         @foreach ($widgets as $w)
             @php $c = $hex[$w['color'] ?? 'violet'] ?? $hex['violet']; $span = $spans[$w['span'] ?? 12] ?? 'lg:col-span-12'; @endphp
             @if (($w['type'] ?? '') === 'insight')
                 {{-- insight strip has its own frame --}}
-                <div class="{{ $span }} rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                <div class="{{ $span }} bg-white p-3.5 dark:bg-slate-900">
                     <div class="mb-1.5 flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0c-.943.945-1.657 1.657-1.657 3.657h-3.758c0-2-.714-2.712-1.657-3.657z" /></svg>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Summary Insight</span>
@@ -66,11 +68,12 @@
                     <div data-sp-widget="{{ $w['id'] }}" data-sp-type="insight" class="text-xs text-slate-400">Loading insights…</div>
                 </div>
             @else
-                <x-card-chart.card-shell :title="$w['title'] ?? ''" :subtitle="$w['subtitle'] ?? ''" :color="$w['color'] ?? 'violet'" class="{{ $span }}">
+                <x-card-chart.card-shell :title="$w['title'] ?? ''" :subtitle="$w['subtitle'] ?? ''" :color="$w['color'] ?? 'violet'" class="{{ $span }} rounded-none! border-0! shadow-none! hover:shadow-none!">
                     <div data-sp-widget="{{ $w['id'] }}" data-sp-type="{{ $w['type'] }}" data-sp-height="{{ $w['height'] ?? 260 }}" data-sp-color="{{ $w['color'] ?? 'violet' }}"
                         data-sp-from="{{ $c[0] }}" data-sp-to="{{ $c[1] }}" class="px-5 pb-4 pt-2 text-xs text-slate-400">Loading…</div>
                 </x-card-chart.card-shell>
             @endif
         @endforeach
+    </div>
     </div>
 </div>
