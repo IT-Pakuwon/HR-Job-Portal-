@@ -469,7 +469,7 @@
                 has(t, key) { return this.current.items.some(i => i.t === t && i.key === key); },
                 // A panel tile only works on the dashboard that owns that panel (OM also hosts 'approval').
                 // A template panel (tab) works on any dashboard; a dashboard card only on its owner (OM also hosts 'approval').
-                panelOk(t) { return !t || !t.panel_key || templatePanelKeys.includes(t.panel_key) || (this.dash === 'DASHOM' && t.panel_key === 'approval'); },
+                panelOk(t) { return !t || !t.panel_key || templatePanelKeys.includes(t.panel_key) || (['DASHOM', 'DASHGM'].includes(this.dash) && t.panel_key === 'approval'); },
                 get iconChoices() { const q = this.iconQ.trim().toLowerCase(); return q ? this.icons.filter(i => i.label.toLowerCase().includes(q)) : this.icons; },
                 get shownTiles() { return this.tiles.filter(t => this.tileType === 'all' || (this.tileType === 'link' ? !!t.external_url : !!t.panel_key)); },
                 get availableTiles() { return this.tiles.filter(t => t.status === 'A' && this.panelOk(t) && !this.has('c', t.menu_key)); },

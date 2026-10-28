@@ -31,8 +31,8 @@
             $dashCode = array_search($dashboardComponent, \App\Http\Controllers\MultiDashboardController::DASHBOARD_COMPONENTS, true);
             $hasActivityPanel = $dashCode && \App\Models\DashboardMenu::forDashboard($dashCode, auth()->user())->contains(fn ($i) => ($i['panel'] ?? null) === 'my-activity');
         @endphp
-        @if(View::exists($viewPath) && $dashboardComponent !== 'dashboard-om' && !$hasActivityPanel)
-            {{-- One merged "My Activity" tab on every dashboard (except OM, which has none). --}}
+        @if(View::exists($viewPath) && !in_array($dashboardComponent, ['dashboard-om', 'dashboard-gm'], true) && !$hasActivityPanel)
+            {{-- One merged "My Activity" tab on every dashboard (except OM and GM, which have none). --}}
             @include('components.multidashboard.my-activity', ['combined' => true])
         @endif
 

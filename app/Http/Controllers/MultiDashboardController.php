@@ -69,6 +69,7 @@ class MultiDashboardController extends Controller
         'DASHAPPROVAL' => 'dashboard-approval',
         'DASHIT' => 'dashboard-it',
         'DASHOM' => 'dashboard-om',
+        'DASHGM' => 'dashboard-gm',
         'DASHWH' => 'dashboard-warehouse',
         'DASHOPR' => 'dashboard-operational',
         'DASHCC' => 'dashboard-costcontrol',

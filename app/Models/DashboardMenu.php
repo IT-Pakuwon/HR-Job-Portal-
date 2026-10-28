@@ -97,7 +97,7 @@ class DashboardMenu extends Model
     {
         return !$panelKey
             || array_key_exists($panelKey, static::templatePanels())
-            || (strtoupper($dashCd) === 'DASHOM' && $panelKey === 'approval');
+            || (in_array(strtoupper($dashCd), ['DASHOM', 'DASHGM'], true) && $panelKey === 'approval');
     }
 
     /**
