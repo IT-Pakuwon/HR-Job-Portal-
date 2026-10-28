@@ -10,7 +10,7 @@ class AutoSchedulerProcessIssueHold extends Command
 {
     protected $signature = 'ifca:issuehold-auto-process';
 
-    protected $description = 'Auto process IFCA Issue Hold H ke D dari H-3 sampai hari ini';
+    protected $description = 'Auto process IFCA Issue Hold H ke D dari H-21 sampai hari ini';
 
     public function handle()
     {

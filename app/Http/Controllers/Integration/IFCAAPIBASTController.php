@@ -314,6 +314,54 @@ class IFCAAPIBASTController extends Controller
             return response()->json(['ok' => false, 'message' => 'Format ids tidak valid.'], 422);
         }
     
+        $result = $this->processBASTPairs($pairs, $username);
+        return response()->json($result, !empty($result['ok']) ? 200 : 500);
+    }
+
+    /**
+     * Require an IFCA mapping for every business unit in the source BAST.
+     */
+    private function isIfcaBAST(string $cpny, string $grn): bool
+    {
+        $lines = ViewStagingBAST::query()
+            ->where('cpny_id', $cpny)
+            ->where('grn_no', $grn)
+            ->get(['business_unit_id']);
+
+        if ($lines->isEmpty()) {
+            return false;
+        }
+
+        foreach ($lines->pluck('business_unit_id')->unique() as $businessUnitId) {
+            if (trim((string) $businessUnitId) === '' || !BusinessUnit::query()
+                ->where('cpny_id', $cpny)
+                ->where('business_unit_id', $businessUnitId)
+                ->where('integration_type', 'IFCA')
+                ->exists()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function processBASTPairs(array $pairs, string $username): array
+    {
+        $pairs = array_values(array_filter($pairs, fn ($pair) =>
+            $this->isIfcaBAST((string) $pair['cpny_id'], (string) $pair['grn_no'])
+        ));
+
+        if (empty($pairs)) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada BAST IFCA yang dapat diproses.',
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_C' => 0,
+            ];
+        }
+
         $keys = array_values(array_unique(array_map(fn($p) => (string)$p['key'], $pairs)));
     
         // Map existing staging status per (cpny_id||grn_no)
@@ -443,10 +491,10 @@ class IFCAAPIBASTController extends Controller
             DB::connection($stagingConn)->commit();
         } catch (\Throwable $e) {
             DB::connection($stagingConn)->rollBack();
-            return response()->json([
+            return [
                 'ok' => false,
                 'message' => 'Gagal insert staging GRN (H->P): ' . $e->getMessage(),
-            ], 500);
+            ];
         }
     
         // =========================
@@ -455,11 +503,11 @@ class IFCAAPIBASTController extends Controller
         try {
             $token = $this->getIfcaToken($username);
         } catch (\Throwable $e) {
-            return response()->json([
+            return [
                 'ok' => false,
                 'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
                 'inserted_H_to_P' => $insertedHtoP,
-            ], 500);
+            ];
         }
     
         foreach ($pairs as $p) {
@@ -467,6 +515,11 @@ class IFCAAPIBASTController extends Controller
             $grn  = (string)$p['grn_no'];
             $key  = (string)$p['key'];
     
+            // Recheck integration mapping before sending an existing P document.
+            if (!$this->isIfcaBAST($cpny, $grn)) {
+                continue;
+            }
+
             // refresh status staging (karena barusan bisa saja insert)
             $cntAll = StagingIfcaPoGrn::query()
                 ->where('cpny_id', $cpny)
@@ -529,13 +582,13 @@ class IFCAAPIBASTController extends Controller
             }
         }
     
-        return response()->json([
+        return [
             'ok' => true,
             'inserted_H_to_P' => $insertedHtoP,
             'sent_success_P_to_C' => $sentOkPtoC,
             'sent_failed_still_P' => $sentFailP,
             'skipped_C' => $skippedC,
-        ]);
+        ];
     }
 
     // ======================
@@ -717,5 +770,36 @@ class IFCAAPIBASTController extends Controller
         $v = trim($v);
         if ($v === '') return '';
         return mb_substr($v, 0, $max);
+    }
+
+    /**
+     * Stage and send IFCA BAST only, including pending retries.
+     */
+    public function SchedulerProcessBAST(): array
+    {
+        $fromDt = now()->subDays(14)->startOfDay();
+        $toDt = now()->endOfDay();
+
+        $pairs = ViewStagingBAST::query()
+            ->select(['cpny_id', 'grn_no'])
+            ->whereBetween('grn_date', [$fromDt, $toDt])
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('grn_no')
+            ->get()
+            ->map(fn ($row) => [
+                'cpny_id' => (string) $row->cpny_id,
+                'grn_no' => (string) $row->grn_no,
+                'key' => (string) $row->cpny_id . '||' . (string) $row->grn_no,
+            ])
+            ->filter(fn ($pair) => $this->isIfcaBAST($pair['cpny_id'], $pair['grn_no']))
+            ->values()
+            ->all();
+
+        return array_merge($this->processBASTPairs($pairs, 'scheduler'), [
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_bast' => count($pairs),
+        ]);
     }
 }

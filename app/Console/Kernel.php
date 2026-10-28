@@ -130,6 +130,30 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/ifca-grn-auto.log'));
 
+        // Auto Process GRN SOLOMON P -> C
+        $schedule->command('ifca:grnsl-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-grnsl-auto.log'));
+
+        // Auto Process PO SOLOMON P -> C
+        $schedule->command('ifca:posl-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-posl-auto.log'));
+
+        // Auto Process Issue SOLOMON P -> C
+        $schedule->command('ifca:issuesl-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-issuesl-auto.log'));
+
+        // Auto Process IFCA BAST H -> P -> C
+        $schedule->command('ifca:bast-auto-process')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-bast-auto.log'));
+
         // // Sync user DAS ke PostgreSQL tiap 5 menit
         // $schedule->command('sync:users-das-to-pg --chunk=500')
         //     ->everyFiveMinutes()

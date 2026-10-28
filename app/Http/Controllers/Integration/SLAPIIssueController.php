@@ -349,6 +349,14 @@ class SLAPIIssueController extends Controller
             ], 422);
         }
 
+        return response()->json($this->processIssueSLPairs($pairs, $username));
+    }
+
+    /**
+     * Shared SOLOMON P -> C delivery for manual and scheduled processing.
+     */
+    private function processIssueSLPairs(array $pairs, string $username): array
+    {
         $sentOk   = 0;
         $sentFail = 0;
         $failed   = [];
@@ -499,7 +507,7 @@ class SLAPIIssueController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'ok'                  => $sentFail === 0,
             'sent_success_P_to_C' => $sentOk,
             'sent_failed'         => $sentFail,
@@ -507,6 +515,38 @@ class SLAPIIssueController extends Controller
             'message'             => $sentFail === 0
                 ? 'Process selesai.'
                 : 'Sebagian data gagal diproses.',
+        ];
+    }
+
+    /**
+     * Process SOLOMON Issue reviewed from H-14 through today.
+     */
+    public function SchedulerProcessIssueSL(): array
+    {
+        $fromDt = Carbon::now()->subDays(14)->startOfDay();
+        $toDt = Carbon::now()->endOfDay();
+
+        $pairs = StagingIfcaIcStkIssue::query()
+            ->select(['cpny_id', 'issue_id'])
+            ->where('integration_type', 'SOLOMON')
+            ->where('status', 'P')
+            ->whereBetween('reviewed_at', [$fromDt, $toDt])
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('issue_id')
+            ->get()
+            ->map(fn ($row) => [
+                'cpny_id' => (string) $row->cpny_id,
+                'issue_id' => (string) $row->issue_id,
+            ])
+            ->all();
+
+        $result = $this->processIssueSLPairs($pairs, 'SCHEDULER');
+
+        return array_merge($result, [
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_issue' => count($pairs),
         ]);
     }
 }
