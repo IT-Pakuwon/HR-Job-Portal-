@@ -15,8 +15,11 @@
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
     <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div class="min-w-0">
-            <h2 class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{{ $title ?: ($cfg['title'] ?? '') }}</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400">{{ $cfg['subtitle'] ?? '' }} · <span data-sp="updated">loading…</span></p>
+            <h2 class="flex items-center gap-2 truncate text-base font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+                <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span><span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span></span>
+                {{ $title ?: ($cfg['title'] ?? '') }}
+            </h2>
+            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ $cfg['subtitle'] ?? '' }} · <span data-sp="updated">loading…</span></p>
         </div>
         {{-- Filter bar: one pill — company · period · refresh (same look as the All Reports filter bar) --}}
         <div class="inline-flex max-w-full flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-800">
@@ -60,7 +63,7 @@
             @php $c = $hex[$w['color'] ?? 'violet'] ?? $hex['violet']; $span = $spans[$w['span'] ?? 12] ?? 'lg:col-span-12'; @endphp
             @if (($w['type'] ?? '') === 'insight')
                 {{-- insight strip has its own frame --}}
-                <div class="{{ $span }} bg-white p-3.5 dark:bg-slate-900">
+                <div class="{{ $span }} @container bg-white p-3.5 dark:bg-slate-900">
                     <div class="mb-1.5 flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0c-.943.945-1.657 1.657-1.657 3.657h-3.758c0-2-.714-2.712-1.657-3.657z" /></svg>
                         <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Summary Insight</span>
@@ -68,10 +71,32 @@
                     <div data-sp-widget="{{ $w['id'] }}" data-sp-type="insight" class="text-xs text-slate-400">Loading insights…</div>
                 </div>
             @else
-                <x-card-chart.card-shell :title="$w['title'] ?? ''" :subtitle="$w['subtitle'] ?? ''" :color="$w['color'] ?? 'violet'" class="{{ $span }} rounded-none! border-0! shadow-none! hover:shadow-none!">
+                {{-- flat cell: soft colour wash from the top, a gradient icon chip, no card chrome (the container is the card) --}}
+                @php
+                    $icons = [
+                        'split'  => 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                        'kpi'    => 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6',
+                        'mix'    =>'M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6zM13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z',
+                        'donut'  => 'M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6zM13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z',
+                        'column' => 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z',
+                        'table'  => 'M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5',
+                    ];
+                    $icon = $icons[$w['type'] ?? ''] ?? $icons['column'];
+                @endphp
+                <section class="{{ $span }} @container group relative flex min-w-0 flex-col bg-white transition-colors dark:bg-slate-900"
+                    style="background-image:linear-gradient(180deg,{{ $c[0] }}14 0,transparent 140px)">
+                    <header class="flex items-center gap-3 px-5 pb-1 pt-4 group-[.sp-empty]:opacity-50 group-[.sp-empty]:grayscale">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white shadow-md" style="background:linear-gradient(135deg,{{ $c[0] }},{{ $c[1] }});box-shadow:0 4px 10px -2px {{ $c[0] }}66">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" /></svg>
+                        </span>
+                        <div class="min-w-0">
+                            <p class="truncate text-[10px] font-bold uppercase tracking-widest" style="color:{{ $c[1] }}">{{ $w['subtitle'] ?? '' }}</p>
+                            <h3 class="truncate text-sm font-bold text-slate-800 dark:text-white">{{ $w['title'] ?? '' }}</h3>
+                        </div>
+                    </header>
                     <div data-sp-widget="{{ $w['id'] }}" data-sp-type="{{ $w['type'] }}" data-sp-height="{{ $w['height'] ?? 260 }}" data-sp-color="{{ $w['color'] ?? 'violet' }}"
-                        data-sp-from="{{ $c[0] }}" data-sp-to="{{ $c[1] }}" class="px-5 pb-4 pt-2 text-xs text-slate-400">Loading…</div>
-                </x-card-chart.card-shell>
+                        data-sp-from="{{ $c[0] }}" data-sp-to="{{ $c[1] }}" class="flex-1 px-5 pb-4 pt-3 text-xs text-slate-400">Loading…</div>
+                </section>
             @endif
         @endforeach
     </div>

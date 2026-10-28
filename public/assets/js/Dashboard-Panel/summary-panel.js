@@ -46,31 +46,41 @@
                           '<span class="shrink-0 text-xs font-extrabold tabular-nums text-slate-900 dark:text-white">' + esc(t.value) + '</span></li>';
                   }).join('') + '</ul></div>'
                 : '';
-            el.innerHTML =
-                '<div class="flex items-start justify-between gap-4">' +
-                  '<div class="min-w-0"><p class="' + LABEL + '">' + esc(l.label) + '</p><p class="mt-1 text-xl ' + BIG + '">' + esc(l.value) + '</p>' +
+            el.className += ' flex flex-col'; // so the content can spread over the cell's full height
+            el.innerHTML = '<div class="flex flex-1 flex-col justify-between gap-3"><div>' +
+                '<div class="flex flex-col items-stretch gap-3 @sm:flex-row @sm:items-start @sm:justify-between @sm:gap-4">' +
+                  '<div class="min-w-0"><p class="' + LABEL + '">' + esc(l.label) + '</p><p class="mt-1 bg-clip-text text-2xl font-extrabold tabular-nums text-transparent" style="background-image:linear-gradient(to right,' + el.dataset.spFrom + ',' + el.dataset.spTo + ')">' + esc(l.value) + '</p>' +
                   (l.hint ? '<p class="mt-0.5 text-[10px] text-slate-400">' + esc(l.hint) + '</p>' : '') + '</div>' +
-                  '<div class="h-10 w-px self-center bg-slate-100 dark:bg-slate-700/60"></div>' +
-                  '<div class="min-w-0 text-right"><p class="' + LABEL + '">' + esc(r.label) + '</p><p class="mt-1 text-xl ' + BIG + '">' + esc(r.value) + '</p></div>' +
-                '</div>' + bar + top;
+                  '<div class="hidden h-10 w-px self-center @sm:block bg-slate-100 dark:bg-slate-700/60"></div>' +
+                  '<div class="min-w-0 @sm:text-right"><p class="' + LABEL + '">' + esc(r.label) + '</p><p class="mt-1 text-xl ' + BIG + '">' + esc(r.value) + '</p></div>' +
+                '</div>' + bar + '</div>' + top + '</div>';
         },
 
         table: function (el, d) {
+            // narrow widget: drop every other middle column (e.g. Budget, Remaining) so the rest stays readable
+            function hide(i, n) { return n > 3 && i > 0 && i < n - 1 && i % 2 === 1 ? 'hidden @xl:table-cell' : ''; }
             var cols = d.columns || [], rows = d.rows || [];
+            if (!rows.length) return empty(el);
             function al(c, i) { return (c && c.align) || (i === 0 ? 'left' : 'right'); }
             var head = cols.map(function (c, i) {
-                return '<th class="whitespace-nowrap bg-slate-50 px-4 py-2.5 text-' + al(c, i) + ' text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:bg-slate-800/50 dark:text-slate-500">' + esc(c.label) + '</th>';
+                return '<th class="' + hide(i, cols.length) + ' whitespace-nowrap bg-slate-50 px-4 py-2.5 text-' + al(c, i) + ' text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:bg-slate-800/50 dark:text-slate-500">' + esc(c.label) + '</th>';
             }).join('');
             var body = rows.length ? rows.map(function (row) {
-                return '<tr class="text-slate-700 dark:text-slate-200">' + row.map(function (cell, i) {
-                    var inner = cell && typeof cell === 'object'
-                        ? '<span class="rounded-full px-2 py-0.5 text-[10px] font-bold ' + (BADGE[cell.badge] || BADGE.warn) + '">' + esc(cell.text) + '</span>'
-                        : esc(cell);
-                    return '<td class="px-4 py-2.5 text-' + al(cols[i], i) + (i === 0 ? ' font-semibold' : ' tabular-nums') + '">' + inner + '</td>';
+                return '<tr class="text-slate-700 transition-colors hover:bg-slate-50/80 dark:text-slate-200 dark:hover:bg-slate-800/60">' + row.map(function (cell, i) {
+                    var inner;
+                    if (cell && typeof cell === 'object') {
+                        // usage badge → value + a mini meter, so heavy rows stand out at a glance
+                        var pct = Math.max(0, Math.min(100, parseFloat(String(cell.text).replace(',', '.')) || 0));
+                        var tone = { good: '#10B981', warn: '#F59E0B', bad: '#EF4444' }[cell.badge] || '#F59E0B';
+                        if (pct <= 0) inner = '<span class="text-[11px] font-semibold text-slate-300 dark:text-slate-600">—</span>';
+                        else inner = '<span class="inline-flex min-w-20 flex-col items-end gap-1"><span class="text-[11px] font-bold" style="color:' + tone + '">' + esc(cell.text) + '</span>' +
+                            '<span class="block h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700/60"><span class="block h-full rounded-full" style="width:' + Math.max(pct, 4) + '%;background:' + tone + '"></span></span></span>';
+                    } else inner = esc(cell);
+                    return '<td class="' + hide(i, cols.length) + ' px-4 py-2.5 text-' + al(cols[i], i) + (i === 0 ? ' font-semibold' : ' tabular-nums') + '">' + inner + '</td>';
                 }).join('') + '</tr>';
             }).join('') : '<tr><td colspan="' + Math.max(cols.length, 1) + '" class="px-4 py-8 text-center text-slate-400">No data available</td></tr>';
             // the card's own padding is px-5; let the table run edge to edge
-            el.className = el.className.replace('px-5 pb-4 pt-2', 'pb-1 pt-2');
+            el.className = el.className.replace('px-5 pb-4 pt-3', 'pb-1 pt-2');
             el.innerHTML = '<div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="border-t border-slate-100 dark:border-slate-700/60">' + head +
                 '</tr></thead><tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">' + body + '</tbody></table></div>' +
                 (d.note ? '<p class="px-4 pb-2 pt-1 text-right text-[10px] font-medium text-slate-400 dark:text-slate-500">' + esc(d.note) + '</p>' : '');
@@ -89,7 +99,7 @@
 
         insight: function (el, d) {
             var items = d.items || [];
-            el.className = 'grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2 xl:grid-cols-3';
+            el.className = 'grid grid-cols-1 gap-x-6 gap-y-1 @md:grid-cols-2 @3xl:grid-cols-3';
             el.innerHTML = items.length ? items.map(function (i) {
                 // text may carry <b>; the server writes it, so only <b> is let through
                 var text = esc(i.text).replace(/&lt;(\/?)b&gt;/g, '<$1b>');
@@ -98,16 +108,43 @@
             }).join('') : '<span class="text-xs text-slate-400">No insights</span>';
         },
 
+        // a row of headline tiles: label, big number, share of the total as a thin meter
+        kpi: function (el, d) {
+            var items = d.items || [];
+            if (!items.length) return empty(el);
+            el.className = '@container flex-1 px-5 pb-4 pt-3';
+            // laid out by the width of the widget itself (not the screen): a narrow column stacks the tiles, a wide one puts them side by side
+            el.innerHTML = '<div class="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:grid-cols-4">' + items.map(function (i) {
+                var c = i.color || '#6366F1';
+                return '<div class="relative overflow-hidden rounded-xl border border-slate-100 bg-white/70 p-3.5 dark:border-slate-700/60 dark:bg-slate-800/40">' +
+                    '<span class="absolute inset-y-0 left-0 w-1" style="background:' + c + '"></span>' +
+                    '<p class="' + LABEL + '">' + esc(i.label) + '</p>' +
+                    '<p class="mt-1 whitespace-nowrap text-2xl ' + BIG + '">' + esc(i.value) + '</p>' +
+                    '<p class="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">' + esc(i.hint || '') + '</p>' +
+                    (i.pct == null ? '' : '<div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700/60"><div class="h-full rounded-full transition-all duration-700" style="width:' + Math.max(0, Math.min(100, i.pct)) + '%;background:' + c + '"></div></div>') +
+                    '</div>';
+            }).join('') + '</div>';
+        },
+
         donut: function (el, d) { chart(el, d, 'donut', 'initDonut', { series: d.series, labels: d.labels, legendPosition: 'bottom' }); },
         // Used · Reserved · Remaining as one bar with each part's amount and share (a donut hides the small parts)
         mix: function (el, d) {
             if (!window.CardChart || !window.CardChart.stackedBar) { el.textContent = 'Chart library not loaded'; return; }
-            el.className = 'px-5 pb-4 pt-2';
+            el.className = 'flex-1 px-5 pb-4 pt-2';
             el.innerHTML = '';
             window.CardChart.stackedBar(el, { segments: d.segments || [], total: d.total, totalLabel: d.totalLabel });
         },
         column: function (el, d) { chart(el, d, 'column', 'initColumn', { series: d.series, categories: d.categories }); },
     };
+
+    // nothing to show: a quiet note centred in the cell, and the header chip fades (.sp-empty)
+    function empty(el, text) {
+        el.className = 'flex flex-1 flex-col items-center justify-center gap-1.5 px-5 pb-6 pt-4 text-center text-xs text-slate-400';
+        el.innerHTML = '<svg class="h-6 w-6 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>' +
+            '<span>' + esc(text || 'No data for this period') + '</span>';
+        var sec = el.closest('section');
+        if (sec) sec.classList.add('sp-empty');
+    }
 
     function chart(el, d, type, init, cfg) {
         if (!window.ApexCharts || !window.CardChart || !window.CardChart[init]) { el.textContent = 'Chart library not loaded'; return; }
@@ -115,13 +152,11 @@
         var s = cfg.series || [];
         var has = type === 'donut' ? s.some(function (v) { return v > 0; }) : s.some(function (x) { return (x.data || []).some(function (v) { return v > 0; }); });
         if (!has) {
-            el.className = 'px-5 pb-4 pt-8 text-center text-xs text-slate-400';
-            el.textContent = 'No data available';
-            return;
+            return empty(el);
         }
         cfg.height = +el.dataset.spHeight || 260;
         cfg.color = el.dataset.spColor || 'violet';
-        el.className = 'px-2 pb-3 pt-1';
+        el.className = 'flex-1 px-2 pb-3 pt-1';
         el.innerHTML = '';
         var host = document.createElement('div');
         host.dataset.chartType = type;
@@ -232,6 +267,8 @@
                         }
                         var d = (res.widgets || {})[el.dataset.spWidget];
                         if (!d || d.error) { el.textContent = (d && d.error) || 'No data'; return; }
+                        var sec = el.closest('section');
+                        if (sec) sec.classList.remove('sp-empty');
                         try { (DRAW[el.dataset.spType] || function (e) { e.textContent = 'Unknown widget type'; })(el, d); }
                         catch (e) { el.textContent = 'Could not draw'; }
                     })

@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
  * Reports and the company scoping (the user's cpny_id) in one place — the controller.
  *
  * Shapes (see summary-panel.js):
+ *   kpi    ['items' => [['label', 'value', 'hint', 'color' => hex, 'pct' => 0-100|null]]]   (a row of headline tiles)
  *   stat   ['value', 'hint', 'trend' => up|down|flat, 'delta']
  *   split  ['left' => [label,value,hint], 'right' => [label,value], 'pct', 'barLabel']
  *   table  ['columns' => [[label, align]], 'rows' => [[cell, ...]]]   cell = scalar | ['text', 'badge' => good|warn|bad]
@@ -196,6 +197,24 @@ class SummaryData
                 'value' => $this->idr((float) $r['total_used']),
             ], $top['data'] ?? []),
         ];
+    }
+
+    /** Headline tiles for the top of a Budget panel: total, used, reserved and remaining, each with its share of the total. */
+    protected function budgetKpi(): array
+    {
+        $d = $this->report('budgetSummary')['data'] ?? [];
+        $total = max(0, (float) ($d['total_budget'] ?? 0));
+        $used = max(0, (float) ($d['total_used'] ?? 0));
+        $reserve = max(0, (float) ($d['total_reserve'] ?? 0));
+        $remaining = max(0, (float) ($d['total_remaining'] ?? 0));
+        $share = fn (float $v) => $total > 0 ? round($v / $total * 100, 1) : 0;
+
+        return ['items' => [
+            ['label' => 'Total Budget', 'value' => $this->idr($total), 'hint' => 'Original + Additional', 'color' => '#6366F1', 'pct' => null],
+            ['label' => 'Used', 'value' => $this->idr($used), 'hint' => $share($used) . '% of total', 'color' => '#EF4444', 'pct' => $share($used)],
+            ['label' => 'Reserved', 'value' => $this->idr($reserve), 'hint' => $share($reserve) . '% of total', 'color' => '#F59E0B', 'pct' => $share($reserve)],
+            ['label' => 'Remaining', 'value' => $this->idr($remaining), 'hint' => $share($remaining) . '% of total', 'color' => '#10B981', 'pct' => $share($remaining)],
+        ]];
     }
 
     protected function budgetMix(): array

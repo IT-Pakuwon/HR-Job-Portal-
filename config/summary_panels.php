@@ -12,7 +12,7 @@
  | Card fields:
  |   id      unique
  |   group   section of All Reports it comes from (label only)
- |   type    stat | split | table | donut | mix | column | list | insight   (drawn by public/assets/js/Dashboard-Panel/summary-panel.js)
+ |   type    kpi | stat | split | table | donut | mix | column | list | insight   (drawn by public/assets/js/Dashboard-Panel/summary-panel.js)
  |   source  key resolved by App\Services\Dashboard\SummaryPanels\SummaryData ('budget.total' -> budgetTotal())
  |   span    width out of 12 on large screens (phones are always full width)
  |   color   violet|blue|green|orange|red|pink|cyan
@@ -23,6 +23,7 @@ return [
 
     'catalog' => [
         // ── Budget (All Reports > Budget Overview) ─────────────────────────────
+        ['id' => 'budget_kpi',      'group' => 'Budget', 'type' => 'kpi',    'source' => 'budget.kpi',           'span' => 12, 'title' => 'Budget at a Glance',       'subtitle' => 'Budget',            'color' => 'blue'],
         ['id' => 'budget_total',    'group' => 'Budget', 'type' => 'split',  'source' => 'budget.total',         'span' => 4, 'title' => 'Total Budget',              'subtitle' => 'Budget',            'color' => 'green'],
         ['id' => 'budget_mix',      'group' => 'Budget', 'type' => 'mix',    'source' => 'budget.mix',           'span' => 4, 'title' => 'Used · Reserved · Remaining', 'subtitle' => 'Breakdown',        'color' => 'cyan'],
         ['id' => 'budget_absorb',   'group' => 'Budget', 'type' => 'column', 'source' => 'budget.monthly',       'span' => 4, 'title' => 'Cumulative Budget Used',    'subtitle' => 'Monthly Absorption', 'color' => 'violet', 'height' => 240],
@@ -66,12 +67,12 @@ return [
         'om-summary' => [
             'title'    => 'OM · Summary',
             'subtitle' => 'Operations at a glance',
-            'default'  => ['budget_total', 'budget_mix', 'budget_absorb', 'budget_dept', 'budget_activity', 'vpl_top_out'],
+            'default'  => ['budget_kpi', 'budget_total', 'budget_mix', 'budget_absorb', 'budget_dept', 'budget_activity', 'vpl_top_out'],
         ],
         'gm-summary' => [
             'title'    => 'GM · Summary',
             'subtitle' => 'Group performance at a glance',
-            'default'  => ['budget_total', 'budget_mix', 'budget_absorb', 'budget_company', 'budget_dept', 'vpl_overview', 'vpl_top_out'],
+            'default'  => ['budget_kpi', 'budget_total', 'budget_mix', 'budget_absorb', 'budget_company', 'budget_dept', 'vpl_overview', 'vpl_top_out'],
         ],
     ],
 
