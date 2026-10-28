@@ -106,8 +106,10 @@ class LegalNewAgreementController extends Controller
                 'checklist' => true,
                 // Can also be started from an existing PSM / OLA (second Jobs source).
                 'from_psm' => true,
-                // Others has no Routing section on its process sheet.
-                'routing' => ! $others,
+                // Others only routes when asked: the "Route" button on its process sheet opens Routing
+                // (no Cetak needed first); PSM / OLA and Addendum start Routing once Cetak is added.
+                'routing' => true,
+                'routing_optional' => $others,
                 // An Addendum's follow-ups are FU_ADDENDUM; Others has none.
                 'follow_up_types' => $others ? null : ['FU_ADDENDUM'],
                 'page' => $p,
@@ -1004,7 +1006,7 @@ class LegalNewAgreementController extends Controller
             'cancelled' => $cancelled,
             'canUpdateDocs' => ! $completed && ! $cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
             'canManage' => $agreement->canBeUpdatedBy((string) auth()->user()->username),
-            'processes' => $this->processesFor($agreement),
+            'processes' => $this->processesFor($agreement, (bool) $draft),
             'picLegalNames' => array_values($this->picLabels($agreement->picLegalList())),
             'picLeasingNames' => array_values($this->picLabels($agreement->picLeasingList())),
             'attachments' => app(LegalAgreementController::class)->agreementAttachments($agreement),
@@ -1085,7 +1087,7 @@ class LegalNewAgreementController extends Controller
      *  - Everything else is added by the creator with "Add Process" from the
      *    PROCESS rows of ms_agreement_category, in the order they were added.
      */
-    protected function processesFor(TrAgreement $agreement)
+    protected function processesFor(TrAgreement $agreement, bool $draft = false)
     {
         $categories = $this->processCategories();
 
@@ -1100,7 +1102,10 @@ class LegalNewAgreementController extends Controller
             ->keyBy(fn ($a) => substr($a->agreement_activity_type, strlen(self::PROCESS_PREFIX)));
 
         // Legacy 'PROCESS:PRINT' rows saved before Start / End existed only carry response_date.
-        $toRow = function (string $id, ?TrAgreementActivity $row) use ($categories, $agreement) {
+        // $key is the row's key: the category id, or "<id>#<n>" for the n-th time it was added.
+        $toRow = function (string $key, ?TrAgreementActivity $row) use ($categories, $agreement) {
+            $id = $this->processBaseId($key);
+            $nth = str_contains($key, '#') ? (int) substr($key, strpos($key, '#') + 1) : 1;
             $type = $categories[$id]->agreementcategory_type ?? 'PROCESS';
             $isDoc = $id === self::PROCESS_DOC;
             $isStart = $id === self::PROCESS_START;
@@ -1108,8 +1113,8 @@ class LegalNewAgreementController extends Controller
 
             return (object) [
                 'type' => $type,
-                'process_id' => $id,
-                'descr' => $isStart ? $this->processStartLabel() : ($categories[$id]->agreementcategory_descr ?? $row?->response_summary ?? $id),
+                'process_id' => $key,
+                'descr' => $isStart ? $this->processStartLabel() : (($categories[$id]->agreementcategory_descr ?? $row?->response_summary ?? $id).($nth > 1 ? " #{$nth}" : '')),
                 'editable' => true,
                 'removable' => ! $isDoc && ! $isStart,
                 'start_locked' => $isDoc || $isStart,
@@ -1129,25 +1134,30 @@ class LegalNewAgreementController extends Controller
             $rows->push($toRow(self::PROCESS_DOC, $saved->get(self::PROCESS_DOC)));
         }
 
-        $rows->push($toRow(self::PROCESS_START, $saved->get(self::PROCESS_START)));
+        // A Draft is only collecting documents: the Process step (and everything after it) starts once Processed.
+        if (! $draft) {
+            $rows->push($toRow(self::PROCESS_START, $saved->get(self::PROCESS_START)));
+        }
 
         foreach ($saved as $id => $row) {
-            if (! in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
+            if (! $draft && ! in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
                 $rows->push($toRow($id, $row));
             }
         }
 
-        $used = $rows->pluck('process_id')->all();
+        $used = $rows->pluck('process_id')->map(fn ($k) => $this->processBaseId($k))->all();
         $routing = $rows->where('type', 'ROUTING')->values();
 
         return (object) [
             'rows' => $rows->where('type', '!=', 'ROUTING')->values(),
             'routing' => $routing,
             // Routing starts once Cetak is on the list (or already has rows, e.g. saved before this rule).
-            'routingVisible' => $this->kind()['routing'] && (in_array('PRINT', $used, true) || $routing->isNotEmpty()),
+            // Others: only once it has routing rows; the Route button reveals the section otherwise.
+            'routingVisible' => $this->kind()['routing'] && ($routing->isNotEmpty() || (! ($this->kind()['routing_optional'] ?? false) && in_array('PRINT', $used, true))),
             // For the Add Process dropdown: [type => [id => name]], PROCESS before ROUTING.
+            // A process can be added more than once (Cetak, Konfirmasi, Review ...), so used ones stay.
             'available' => $categories
-                ->reject(fn ($c) => $c->agreementcategory_system || in_array($c->agreementcategory_id, $used, true))
+                ->reject(fn ($c) => $c->agreementcategory_system)
                 ->groupBy('agreementcategory_type')
                 ->sortKeys()
                 ->map(fn ($group) => $group->pluck('agreementcategory_descr', 'agreementcategory_id')->all())
@@ -1202,7 +1212,6 @@ class LegalNewAgreementController extends Controller
     protected function processCategories()
     {
         return MsAgreementCategory::query()->activeProcesses()->get()
-            // Others has no Routing section, so none of the ROUTING names apply to it.
             ->reject(fn ($c) => ! $this->kind()['routing'] && $c->agreementcategory_type === 'ROUTING')
             ->keyBy('agreementcategory_id');
     }
@@ -1247,6 +1256,32 @@ class LegalNewAgreementController extends Controller
         return self::PROCESS_PREFIX.$id;
     }
 
+    // "PRINT#2" (second Cetak) -> "PRINT".
+    protected function processBaseId(string $key): string
+    {
+        return explode('#', $key)[0];
+    }
+
+    // Key for a process being added again: the id itself while no active row holds it, else "<id>#<n>".
+    protected function nextProcessKey(TrAgreement $agreement, string $id): string
+    {
+        $types = TrAgreementActivity::query()
+            ->where('agreement_id', $agreement->agreement_id)
+            ->where(fn ($q) => $q->where('agreement_activity_type', $this->processType($id))
+                ->orWhere('agreement_activity_type', 'like', $this->processType($id).'#%'))
+            ->get(['agreement_activity_type', 'deleted_at']);
+
+        $baseActive = $types->contains(fn ($t) => $t->agreement_activity_type === $this->processType($id) && ! $t->deleted_at);
+
+        if (! $baseActive) {
+            return $id;
+        }
+
+        $max = $types->map(fn ($t) => str_contains($t->agreement_activity_type, '#') ? (int) substr($t->agreement_activity_type, strpos($t->agreement_activity_type, '#') + 1) : 1)->max();
+
+        return $id.'#'.($max + 1);
+    }
+
     /**
      * Creator / PIC Legal: save one or more processes (Start / End + notes). A process
      * with no row yet is added (this is what "Add Process" posts); process[<id>][remove]
@@ -1264,6 +1299,7 @@ class LegalNewAgreementController extends Controller
         $request->validate([
             'process' => 'required|array',
             'process.*.remove' => 'nullable|boolean',
+            'process.*.add' => 'nullable|boolean',
             'process.*.date_start' => 'nullable|date',
             'process.*.date_end' => 'nullable|date',
             'process.*.note' => 'nullable|string|max:2000',
@@ -1281,7 +1317,9 @@ class LegalNewAgreementController extends Controller
             ->map(fn ($t) => substr($t, strlen(self::PROCESS_PREFIX)))
             ->all();
 
-        if (array_diff(array_keys($submitted), $categories->keys()->all(), $existing)) {
+        $known = array_merge($categories->keys()->all(), array_map(fn ($k) => $this->processBaseId($k), $existing));
+
+        if (array_diff(array_map(fn ($k) => $this->processBaseId((string) $k), array_keys($submitted)), $known)) {
             return response()->json(['success' => false, 'message' => 'Unknown process.'], 422);
         }
 
@@ -1290,18 +1328,27 @@ class LegalNewAgreementController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            foreach ($submitted as $id => $input) {
+            foreach ($submitted as $key => $input) {
+                $key = (string) $key;
+                $id = $this->processBaseId($key);
+
+                // "Add Process" on one already on the sheet adds another copy of it (Cetak #2 ...).
+                if (! empty($input['add']) && ! in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
+                    $key = $this->nextProcessKey($agreement, $id);
+                }
+
                 $isDoc = $id === self::PROCESS_DOC;
                 $isStart = $id === self::PROCESS_START;
                 $system = $isDoc || $isStart;
-                $descr = $isStart ? $this->processStartLabel() : ($categories[$id]->agreementcategory_descr ?? $id);
+                $nth = str_contains($key, '#') ? (int) substr($key, strpos($key, '#') + 1) : 1;
+                $descr = $isStart ? $this->processStartLabel() : (($categories[$id]->agreementcategory_descr ?? $id).($nth > 1 ? " #{$nth}" : ''));
                 $note = filled($input['note'] ?? null) ? $input['note'] : null;
                 $start = ! $system && ! empty($input['date_start']) ? Carbon::parse($input['date_start'])->startOfDay() : null;
                 $end = ! empty($input['date_end']) ? Carbon::parse($input['date_end'])->startOfDay() : null;
 
                 $row = TrAgreementActivity::query()
                     ->where('agreement_id', $agreement->agreement_id)
-                    ->where('agreement_activity_type', $this->processType($id))
+                    ->where('agreement_activity_type', $this->processType($key))
                     ->orderByRaw('deleted_at is not null')
                     ->orderBy('id')
                     ->first();
@@ -1332,7 +1379,7 @@ class LegalNewAgreementController extends Controller
                 }
 
                 // Routing only starts once Cetak is on the list.
-                if (! $row && ($categories[$id]->agreementcategory_type ?? null) === 'ROUTING' && ! in_array('PRINT', $existing, true)) {
+                if (! $row && ! ($this->kind()['routing_optional'] ?? false) && ($categories[$id]->agreementcategory_type ?? null) === 'ROUTING' && ! in_array('PRINT', array_map(fn ($k) => $this->processBaseId($k), $existing), true)) {
                     DB::connection('pgsql5')->rollBack();
 
                     return response()->json(['success' => false, 'message' => "{$descr}: add Cetak before routing."], 422);
@@ -1387,7 +1434,7 @@ class LegalNewAgreementController extends Controller
                     TrAgreementActivity::create($attrs + [
                         'agreement_id' => $agreement->agreement_id,
                         'cpny_id' => $agreement->cpny_id,
-                        'agreement_activity_type' => $this->processType($id),
+                        'agreement_activity_type' => $this->processType($key),
                         'agreement_step_id' => $agreement->agreement_step_id,
                         'agreement_step_order' => $agreement->agreement_step_order,
                         'response_summary' => $descr,

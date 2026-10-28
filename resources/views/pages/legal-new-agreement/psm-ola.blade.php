@@ -602,6 +602,7 @@
                 if (!$row.find('.add-proc-start').val()) { Swal.fire({ icon: 'warning', title: 'Pick a Start date' }); return; }
 
                 postProcess({
+                    [`process[${id}][add]`]: 1,
                     [`process[${id}][date_start]`]: $row.find('.add-proc-start').val(),
                     [`process[${id}][date_end]`]: $row.find('.add-proc-end').val(),
                     [`process[${id}][note]`]: $row.find('.add-proc-note').val(),
