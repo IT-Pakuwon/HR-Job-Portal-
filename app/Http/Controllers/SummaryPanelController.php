@@ -17,7 +17,7 @@ class SummaryPanelController extends Controller
     {
         abort_unless(SummaryLayout::panel($panel), 404);
 
-        $period = in_array($request->query('period'), ['today', 'week', 'month', 'year'], true) ? $request->query('period') : 'year';
+        $period = in_array($request->query('period'), SummaryLayout::PERIODS, true) ? $request->query('period') : SummaryLayout::period($panel);
 
         // Companies the user may pick from (the report controller already limits this to their own). The chosen
         // ones (?companies=AW,EP) are cut down to that list, so the filter can never widen access.

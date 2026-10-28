@@ -134,9 +134,9 @@
         if (root.__sp) return;
         var url = root.dataset.spUrl;
         // companies = codes applied to the data; options = what the user may pick [{code, label}]; draft = ticks while the list is open
-        var state = { period: 'year', companies: [], options: [], draft: [], seq: 0 };
+        // the period is the admin's default (Dashboard Setup); a click only lasts until the panel is opened again
+        var state = { period: root.dataset.spPeriod || 'today', companies: [], options: [], draft: [], seq: 0 };
         try {
-            state.period = localStorage.getItem('summaryPanelPeriod') || 'year';
             state.companies = (localStorage.getItem('summaryPanelCompanies') || '').split(',').filter(Boolean);
         } catch (e) {}
         root.__sp = state;
@@ -250,7 +250,6 @@
             var p = e.target.closest('[data-sp-period]');
             if (p) {
                 state.period = p.dataset.spPeriod;
-                try { localStorage.setItem('summaryPanelPeriod', state.period); } catch (e2) {}
                 return load();
             }
             if (e.target.closest('[data-sp="refresh"]')) load(true);

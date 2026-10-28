@@ -22,6 +22,22 @@ class SummaryLayout
     public const SPANS = [3, 4, 5, 6, 7, 8, 12];
     public const COLORS = ['violet', 'blue', 'green', 'orange', 'red', 'pink', 'cyan'];
 
+    public const PERIODS = ['today', 'week', 'month', 'year'];
+
+    /** The period the panel opens on: the admin's choice (ms_summary_layout.default_period), else today. */
+    public static function period(string $panel): string
+    {
+        try {
+            $p = DB::connection(self::CONN)->table(self::TABLE)->where('panel_key', $panel)->whereNotNull('default_period')->value('default_period');
+        } catch (Throwable $e) {
+            report($e); // column not added yet: fall back to today
+
+            return 'today';
+        }
+
+        return in_array($p, self::PERIODS, true) ? $p : 'today';
+    }
+
     /** The panel's config (title, subtitle, default ids), or null for an unknown panel. */
     public static function panel(string $panel): ?array
     {

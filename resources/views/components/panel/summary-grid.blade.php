@@ -9,7 +9,7 @@
     // static class names so Tailwind keeps them
     $spans = [3 => 'lg:col-span-3', 4 => 'lg:col-span-4', 5 => 'lg:col-span-5', 6 => 'lg:col-span-6', 7 => 'lg:col-span-7', 8 => 'lg:col-span-8', 12 => 'lg:col-span-12'];
 @endphp
-<div data-sp-root data-sp-url="{{ route('summary-panel.data', $panel) }}"
+<div data-sp-root data-sp-url="{{ route('summary-panel.data', $panel) }}" data-sp-period="{{ \App\Services\Dashboard\SummaryPanels\SummaryLayout::period($panel) }}"
     x-init="(function (el, tries) { (function go() { if (window.SummaryPanel) return SummaryPanel.mount(el); if (tries-- > 0) return setTimeout(go, 100); el.querySelectorAll('[data-sp-widget]').forEach(w => w.textContent = 'Could not load the panel script — reload the page'); })(); })($el, 100)">
 
     <div class="mb-3 flex flex-wrap items-center justify-between gap-3">

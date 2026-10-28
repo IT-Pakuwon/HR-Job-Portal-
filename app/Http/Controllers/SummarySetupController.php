@@ -23,6 +23,7 @@ class SummarySetupController extends Controller
             'panel'   => $panel,
             'config'  => SummaryLayout::panel($panel),
             'widgets' => SummaryLayout::resolved($panel),
+            'period'  => SummaryLayout::period($panel),
             'spans'   => SummaryLayout::SPANS,
             'colors'  => SummaryLayout::COLORS,
         ]);
@@ -35,6 +36,7 @@ class SummarySetupController extends Controller
         $ids = collect(SummaryLayout::catalog($panel))->pluck('id')->all();
 
         $data = $request->validate([
+            'period'                => ['required', Rule::in(SummaryLayout::PERIODS)],
             'widgets'               => ['required', 'array', 'min:1'],
             'widgets.*.id'          => ['required', 'distinct', Rule::in($ids)],
             'widgets.*.is_visible'  => ['required', 'boolean'],
@@ -59,6 +61,7 @@ class SummarySetupController extends Controller
                 'height'     => $w['height'] ?? null,
                 'created_by' => $user, 'created_at' => $now,
                 'updated_by' => $user, 'updated_at' => $now,
+                'default_period' => $data['period'], // panel-level, repeated on every row
             ];
         }
 

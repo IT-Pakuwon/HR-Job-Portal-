@@ -1,7 +1,7 @@
 <x-app-layout>
     @php $label = strtoupper($p); $embedded = request()->boolean('embed'); @endphp
     <div class="max-w-9xl mx-auto w-full p-2"
-        x-data="summarySetup(@js($widgets), @js(route('summary-setup.save', $p)), @js(route('summary-setup.reset', $p)))">
+        x-data="summarySetup(@js($widgets), @js(route('summary-setup.save', $p)), @js(route('summary-setup.reset', $p)), @js($period))">
 
         {{-- Header --}}
         <div class="mb-4 flex flex-wrap items-center gap-3 {{ $embedded ? 'justify-end' : '' }}">
@@ -21,6 +21,15 @@
                 @endforeach
             </div>
             @endunless
+            <label class="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-300" title="The period the panel opens on, for everyone">
+                <i class="fa-regular fa-calendar"></i> Default period
+                <select x-model="period" @change="touch()"
+                    class="rounded-lg border border-gray-300 py-1 pl-2 pr-7 text-xs font-semibold text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                    @foreach (['today' => 'Today', 'week' => 'This Week', 'month' => 'This Month', 'year' => 'This Year'] as $v => $l)
+                        <option value="{{ $v }}">{{ $l }}</option>
+                    @endforeach
+                </select>
+            </label>
             <span x-show="dirty" x-cloak class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Unsaved changes</span>
             <div class="flex shrink-0 items-center gap-2">
                 <button type="button" @click="reset()" :disabled="busy"
@@ -208,7 +217,7 @@
     </div>
 
     <script>
-        function summarySetup(widgets, saveUrl, resetUrl) {
+        function summarySetup(widgets, saveUrl, resetUrl, period) {
             const HEX = { violet: ['#8B5CF6', '#7C3AED'], blue: ['#3B82F6', '#06B6D4'], green: ['#10B981', '#06B6D4'], orange: ['#F59E0B', '#D97706'], red: ['#EF4444', '#F43F5E'], pink: ['#EC4899', '#C026D3'], cyan: ['#06B6D4', '#3B82F6'] };
             const BAR = 'rounded-full';
             return {
@@ -219,6 +228,7 @@
                     }
                 },
                 list: widgets.map(w => ({ id: w.id, group: w.group || '', type: w.type, source: w.source, is_visible: !!w.is_visible, span: +w.span || 12, title: w.title || '', color: w.color || 'violet', height: +w.height || 260 })),
+                period,
                 sel: null, dragId: null, overId: null,
                 dirty: false, busy: false, msg: '', ok: true,
 
@@ -297,7 +307,7 @@
                 },
                 async save() {
                     const widgets = this.list.map(w => ({ id: w.id, is_visible: w.is_visible, span: w.span, title: w.type === 'insight' ? null : w.title, color: w.type === 'insight' ? null : w.color, height: (w.type === 'donut' || w.type === 'column') ? w.height : null }));
-                    if (await this.call(saveUrl, 'PUT', { widgets })) { this.dirty = false; this.flash(true, 'Layout saved.'); }
+                    if (await this.call(saveUrl, 'PUT', { period: this.period, widgets })) { this.dirty = false; this.flash(true, 'Layout saved.'); }
                 },
                 async reset() {
                     const ask = window.Swal ? (await Swal.fire({ title: 'Reset to default?', text: 'The saved layout is removed and the panel goes back to the default cards.', icon: 'question', showCancelButton: true, confirmButtonColor: '#4f46e5' })).isConfirmed : confirm('Reset to the default layout?');
