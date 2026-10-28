@@ -5,7 +5,7 @@
     let summaryRequest = null;
     let dataRequest = null;
 
-    let countdown = 20;
+    let countdown = window.dashRefreshSeconds || 20;
     let countdownTimer = null;
     let allDoctypeOptions = [];
     let isHovering = false;
@@ -87,7 +87,7 @@
     }
 
     function resetCountdown() {
-        countdown = 20;
+        countdown = window.dashRefreshSeconds || 20;
         updateCountdown();
     }
 
@@ -183,6 +183,8 @@
 
         Object.entries(stats).forEach(([key, s]) => {
             $(`#${key}Count`).text(s.count);
+            // KPI cards placed by Dashboard Setup: any element marked data-kpi-count="<key>" shows the same number
+            $(`[data-kpi-count="${key}"]`).text(s.count).toggleClass('dsh-has', s.count > 0);
 
             const pct = Math.round((s.count / total) * 100);
             $(`#${key}Bar`).css("width", `${pct}%`);
@@ -739,6 +741,11 @@
     }
 
     function bindEvents() {
+
+        // KPI card -> the tab it counts (the tab buttons keep doing the real work)
+        $(document).on("click", "[data-open-approval-tab]", function () {
+            $("#tab-" + $(this).data("openApprovalTab")).trigger("click");
+        });
 
         $("#tab-waiting")
             .on("click", () => activateTab("waiting"));

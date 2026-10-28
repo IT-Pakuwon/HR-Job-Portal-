@@ -1,3 +1,4 @@
+@props(['compact' => false])
 <div class="col-span-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
     x-data="todoList()" x-init="init()">
 
@@ -19,7 +20,8 @@
     </div>
 
     <div x-show="expanded" x-collapse>
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        {{-- compact = a narrow column (under Your Progress): calendar above, list below --}}
+        <div class="grid grid-cols-1 gap-4 {{ $compact ? '' : 'lg:grid-cols-[22rem_minmax(0,1fr)]' }}">
 
             {{-- Left: week calendar. Click a day to filter, click it again to show every task. --}}
             <div class="rounded-xl bg-gray-50 p-3 dark:bg-gray-900/40">
@@ -84,7 +86,11 @@
                         class="shrink-0 rounded-lg bg-indigo-500 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-600 disabled:opacity-40">Add</button>
                 </form>
 
-                <ul class="mt-3 max-h-72 space-y-1.5 overflow-y-auto pr-1">
+                {{-- Meetings and tasks side by side on wide screens (rows stretched across the whole width looked empty); stacked when narrow or when there is no meeting. --}}
+                <div class="mt-3 grid grid-cols-1 gap-4" @unless ($compact) :class="visibleMeetings.length ? 'xl:grid-cols-2' : ''" @endunless>
+                <div x-show="visibleMeetings.length" class="min-w-0" style="display: none;">
+                <p class="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">Meetings</p>
+                <ul class="max-h-72 space-y-1.5 overflow-y-auto pr-1">
                     <template x-for="m in visibleMeetings" :key="m.docid">
                         <li class="flex items-center gap-3 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 dark:border-sky-500/30 dark:bg-sky-500/10">
                             <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-300">
@@ -100,7 +106,12 @@
                             <span class="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-300">Meeting</span>
                         </li>
                     </template>
+                </ul>
+                </div>
 
+                <div class="min-w-0">
+                <p x-show="visibleMeetings.length" class="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500" style="display: none;">Tasks</p>
+                <ul class="max-h-72 space-y-1.5 overflow-y-auto pr-1">
                     <template x-for="t in visible" :key="t.id">
                         <li class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 transition hover:border-indigo-200 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-indigo-500/40">
                             <input type="checkbox" :checked="t.is_done" @change="toggle(t)"
@@ -132,6 +143,8 @@
                         <span class="text-xs text-gray-400 dark:text-gray-500">Type above and press Enter to add one.</span>
                     </li>
                 </ul>
+                </div>
+                </div>
             </div>
         </div>
     </div>

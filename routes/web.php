@@ -3237,6 +3237,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
         Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
 
+        // Dashboard Setup: arrange the blocks of each dashboard (table ms_dashboard_layout on pgsql2)
+        Route::get('/dashboard-setup', [App\Http\Controllers\DashboardLayoutController::class, 'index'])->name('dashboard-setup');
+        Route::put('/dashboard-setup/{dash}', [App\Http\Controllers\DashboardLayoutController::class, 'save'])->name('dashboard-setup.save');
+        Route::delete('/dashboard-setup/{dash}', [App\Http\Controllers\DashboardLayoutController::class, 'reset'])->name('dashboard-setup.reset');
         Route::get('/dashboard-menu', [DashboardMenuController::class, 'index'])->name('dashboard-menu');
         Route::post('/dashboard-menu/tile', [DashboardMenuController::class, 'saveTile'])->name('dashboard-menu.tile');
         Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');

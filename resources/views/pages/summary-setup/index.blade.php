@@ -1,10 +1,11 @@
 <x-app-layout>
-    @php $label = strtoupper($p); @endphp
+    @php $label = strtoupper($p); $embedded = request()->boolean('embed'); @endphp
     <div class="max-w-9xl mx-auto w-full p-2"
         x-data="summarySetup(@js($widgets), @js(route('summary-setup.save', $p)), @js(route('summary-setup.reset', $p)))">
 
         {{-- Header --}}
-        <div class="mb-4 flex flex-wrap items-center gap-3">
+        <div class="mb-4 flex flex-wrap items-center gap-3 {{ $embedded ? 'justify-end' : '' }}">
+            @unless ($embedded)
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
                 <i class="fa-solid fa-chart-pie"></i>
             </div>
@@ -12,6 +13,7 @@
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">{{ $label }} Summary — Layout</h1>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Design what the {{ $label }} Summary panel shows. Drag cards to reorder, click one to change it. Applies to everyone who opens the panel.</p>
             </div>
+            @endunless
             <span x-show="dirty" x-cloak class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Unsaved changes</span>
             <div class="flex shrink-0 items-center gap-2">
                 <button type="button" @click="reset()" :disabled="busy"
@@ -203,6 +205,12 @@
             const HEX = { violet: ['#8B5CF6', '#7C3AED'], blue: ['#3B82F6', '#06B6D4'], green: ['#10B981', '#06B6D4'], orange: ['#F59E0B', '#D97706'], red: ['#EF4444', '#F43F5E'], pink: ['#EC4899', '#C026D3'], cyan: ['#06B6D4', '#3B82F6'] };
             const BAR = 'rounded-full';
             return {
+                init() {
+                    // inside Dashboard Setup the parent page asks "anything unsaved?" before it swaps this screen
+                    if (@js(request()->boolean('embed'))) {
+                        this.$watch('dirty', v => { try { parent.postMessage({ type: 'dash-setup-dirty', source: 'summary', dirty: v }, location.origin); } catch (e) {} });
+                    }
+                },
                 list: widgets.map(w => ({ id: w.id, group: w.group || '', type: w.type, source: w.source, is_visible: !!w.is_visible, span: +w.span || 12, title: w.title || '', color: w.color || 'violet', height: +w.height || 260 })),
                 sel: null, dragId: null, overId: null,
                 dirty: false, busy: false, msg: '', ok: true,

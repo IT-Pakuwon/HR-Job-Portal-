@@ -1,0 +1,123 @@
+{{-- Work tabs of dashboard-it. Placed by Dashboard Setup (DashboardLayout block "tabs"); dashboard-top includes it. --}}
+    <div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+
+        <div class="border-b border-slate-200 px-4 pt-2 dark:border-slate-700">
+
+            <div class="dsh-tabbar">
+                <button id="tab-approval" type="button" class="dsh-tab">Waiting Approval</button>
+                <button id="tab-approval-history" type="button" class="dsh-tab">Approval History</button>
+                <button id="tab-ticket" type="button" class="dsh-tab">Ticket</button>
+                <button id="tab-access" type="button" class="dsh-tab">Access Request</button>
+                <button id="tab-recommendation" type="button" class="dsh-tab">IT Recommendation</button>
+            </div>
+        </div>
+
+        <div class="border-b border-slate-200 p-4 dark:border-slate-700">
+
+            <div class="grid gap-3 lg:grid-cols-12">
+
+                <div class="lg:col-span-4">
+
+                    <div id="dashboardFilterWrap">
+                        <select id="dashboardFilter"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                            <option value="ALL">
+                                All Doctype
+                            </option>
+
+                        </select>
+                    </div>
+
+                    <div id="statusFilterWrap">
+                        <select id="statusFilter"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                            <option value="ALL">All Status</option>
+
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-4">
+
+                    <input
+                        id="dashboardSearch"
+                        type="text"
+                        placeholder="Search..."
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                </div>
+
+                <div class="lg:col-span-2">
+
+                    <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <span class="hidden shrink-0 sm:inline">Show</span>
+                        <select id="dashboardPageSize"
+                            class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="hidden shrink-0 sm:inline">Entries</span>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-2">
+
+                    <div class="flex gap-2">
+
+                        <button
+                            id="applyFilter"
+                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 01.8 1.6l-6.3 8.4v5.5a1 1 0 01-1.45.9l-3-1.5A1 1 0 019.5 18v-4l-6.3-8.4A1 1 0 013 4z" />
+                            </svg>
+
+                            Filter
+
+                        </button>
+
+                        <button
+                            id="openAllDocument"
+                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
+
+                            🚀 Open All
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="p-4">
+            <div id="dashboardCardList" class="divide-y divide-slate-100 dark:divide-slate-700"></div>
+            <div id="dashboardEmptyState" class="hidden py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                No data available
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <span id="paginationInfo">Showing 0 to 0 of 0 entries</span>
+            <div class="flex gap-2">
+                <button id="prevPage"
+                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
+                    Previous
+                </button>
+                <button id="nextPage"
+                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
+                    Next
+                </button>
+            </div>
+        </div>
+
+    </div>

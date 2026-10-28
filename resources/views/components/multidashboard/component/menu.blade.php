@@ -41,9 +41,13 @@
         <script src="{{ asset('assets/js/' . $js) }}?v={{ filemtime(public_path('assets/js/' . $js)) }}"></script>
     @endforeach
 @endif
+@if ($templateItems->contains(fn ($i) => $i['panel'] === 'my-activity'))
+    {{-- My Activity panel: its data script, loaded up front like the engines above --}}
+    <script src="{{ asset('assets/js/multidashboard/my-activity.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/my-activity.js')) }}"></script>
+@endif
 @foreach ($templateItems as $ti)
     <template x-teleport="#dashForeignPanelHost">
-        <div x-show="panel === '{{ $ti['panel'] }}'" x-cloak style="display: none;" @if (!empty($ti['default'])) x-init="panel = panel || '{{ $ti['panel'] }}'" @endif>
+        <div x-show="panel === '{{ $ti['panel'] }}'" x-cloak class="min-w-0 overflow-x-auto" style="display: none;" @if (!empty($ti['default'])) x-init="panel = panel || '{{ $ti['panel'] }}'" @endif>
             <template x-if="panel === '{{ $ti['panel'] }}'">
                 <div>
                     <x-dynamic-component :component="'panel.' . $ti['panel']" :title="$ti['name']" />

@@ -8,7 +8,8 @@
     <div
         class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        {{-- tabs left, refresh pill at the right. The dashboard theme (_dsh-theme) sets this bar to padding-top .5rem / padding-bottom 0 so the underline tabs touch the divider; the pill's mb-2 gives it the same gap below as above. --}}
+        <div class="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
 
             <div class="flex flex-wrap gap-3">
 
@@ -21,6 +22,23 @@
                 </button>
 
             </div>
+
+            @if ($panelPill ?? false)
+                {{-- Auto-refresh pill (ids are driven by Dashboard-Panel/approval.js; one per page, so only the page that asks for it gets it). --}}
+                <div class="mb-2 ml-auto flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                    <span class="h-2 w-2 rounded-full bg-green-500"></span>
+                    <span class="text-slate-500 dark:text-slate-400">Next refresh</span>
+                    <span id="approvalCountdown" class="font-semibold tabular-nums text-slate-900 dark:text-white">--</span>
+                    <button id="refreshApproval" type="button" title="Refresh now"
+                        class="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                        Refresh
+                    </button>
+                </div>
+            @endif
 
         </div>
 

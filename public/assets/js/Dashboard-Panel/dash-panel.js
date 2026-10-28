@@ -5,7 +5,7 @@
  *   DashPanel.types['it-ticket'] = { icon, badgeBg, title(row), link(row), subtitle(row), date(row), status(row), statusValue(row), searchFields(row) }
  */
 (function () {
-    const REFRESH_SECONDS = 60;
+    const REFRESH_SECONDS = window.dashRefreshSeconds || 20;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 

@@ -1,3 +1,4 @@
+@props(['compact' => false])
 {{-- Your Progress: what is still outstanding on this dashboard's panels. Fed by the Main Menu tile counts
      (component/menu emits `dash-progress`); renders nothing when the dashboard has no count-bearing tile.
      Progress = how much of today's peak backlog has been cleared (peak is remembered per day in this browser). --}}
@@ -13,7 +14,7 @@
     .dp-pulse { animation: dp-pulse-kf 2s ease-out infinite; }
 </style>
 
-<div class="relative col-span-full overflow-hidden rounded-2xl border bg-white p-3 shadow-sm transition-colors dark:bg-gray-800"
+<div class="relative {{ $compact ? '' : 'col-span-full' }} overflow-hidden rounded-2xl border bg-white p-3 shadow-sm transition-colors dark:bg-gray-800"
     :class="ready && left === 0 ? 'border-emerald-300 dark:border-emerald-500/40' : 'border-gray-200 dark:border-gray-700'"
     x-data="progressCard()" x-init="init()"
     @dash-progress.window="update($event.detail)"
@@ -27,7 +28,8 @@
         </template>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,27rem)_minmax(0,1fr)]">
+    {{-- compact = one slot of a three-card row (hero above, checklist below); otherwise hero left, checklist right --}}
+    <div class="grid grid-cols-1 gap-3 {{ $compact ? '' : 'lg:grid-cols-[minmax(0,27rem)_minmax(0,1fr)]' }}">
 
         {{-- Hero: greeting, ring, mood --}}
         <div class="relative overflow-hidden rounded-xl p-4 text-white transition-all duration-700"

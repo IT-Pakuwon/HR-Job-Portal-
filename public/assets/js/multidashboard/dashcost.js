@@ -77,7 +77,7 @@
                 pendingRows = null;
                 pendingTab = null;
                 renderCardList(rows, tab, false);
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             }
 
             if (refreshPending) {
@@ -138,7 +138,7 @@
             })
             .then((res) => {
                 renderSummary(res.data || {});
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") console.error(err);
@@ -660,7 +660,7 @@
                 }
 
                 renderCardList(rows, tab, resetPage);
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") console.error(err);

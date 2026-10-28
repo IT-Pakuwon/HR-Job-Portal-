@@ -1,7 +1,10 @@
 <x-app-layout>
+    {{-- Hosted by Dashboard Setup (?embed=1): the title, section heading and dashboard picker are the host's, so they are left out here. --}}
+    @php $embedded = request()->boolean('embed'); @endphp
     <div class="max-w-9xl mx-auto w-full p-2"
         x-data="dashMenuAdmin(@js($tiles), @js($dashboards), @js($sysMenus), @js($templatePanelKeys))">
 
+        @unless ($embedded)
         <div class="mb-4 flex items-center gap-3">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
                 <i class="fa-solid fa-table-cells-large"></i>
@@ -12,6 +15,8 @@
             </div>
         </div>
 
+        @endunless
+
         <div x-show="msg" x-cloak x-transition
             :class="ok ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'"
             class="mb-3 rounded-lg border px-3 py-2 text-sm" x-text="msg"></div>
@@ -20,6 +25,7 @@
 
             {{-- ============ Per-dashboard tile list ============ --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                @unless ($embedded)
                 <div class="mb-4">
                     <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Tiles per dashboard</h2>
                     <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Pick a dashboard, then choose which tiles it shows and in what order.</p>
@@ -66,6 +72,7 @@
                         </div>
                     </div>
                 </div>
+                @endunless
 
                 <ul class="space-y-2">
                     <template x-for="(it, i) in current.items" :key="it.t + it.key">
@@ -171,6 +178,14 @@
                         </div>
                     </div>
 
+                    @if ($embedded)
+                    {{-- the side handle is awkward inside a frame: same drawer, opened from here --}}
+                    <button type="button" @click="drawer = true"
+                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 dark:border-indigo-500/40 dark:bg-gray-800 dark:text-indigo-300">
+                        <i class="fa-solid fa-sliders text-xs"></i> Custom tiles
+                        <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200" x-text="tiles.length"></span>
+                    </button>
+                    @endif
                     <button type="button" @click="saveMap()" :disabled="busy"
                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">
                         <i class="fa-solid fa-floppy-disk text-xs"></i> Save all
@@ -183,7 +198,7 @@
             </section>
 
             {{-- ============ Custom tiles drawer (handle sticks to the right edge) ============ --}}
-            <button type="button" x-show="!drawer" @click="drawer = true"
+            <button type="button" x-show="!drawer && {{ $embedded ? 'false' : 'true' }}" @click="drawer = true"
                 class="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl bg-indigo-600 px-2 py-4 text-white shadow-lg transition-all hover:pr-3 hover:bg-indigo-700"
                 title="Custom tiles">
                 <i class="fa-solid fa-sliders text-sm"></i>
@@ -433,7 +448,13 @@
 
             return {
                 tiles, dashboards, sysMenus,
-                dash: dashboards[0]?.code, pickOpen: false, pickQ: '', pickType: 'menu', dashOpen: false, dashQ: '', drawer: false, tileType: 'all', iconQ: '', icons: @js($iconLibrary),
+                init() {
+                    // inside Dashboard Setup the parent page asks "anything unsaved?" before it swaps this screen
+                    if (@js(request()->boolean('embed'))) {
+                        this.$watch(() => this.unsaved(this.current), v => { try { parent.postMessage({ type: 'dash-setup-dirty', source: 'menu', dirty: v }, location.origin); } catch (e) {} });
+                    }
+                },
+                dash: (dashboards.find(d => d.code === @js(request('dash'))) || dashboards[0])?.code, pickOpen: false, pickQ: '', pickType: 'menu', dashOpen: false, dashQ: '', drawer: false, tileType: 'all', iconQ: '', icons: @js($iconLibrary),
                 form: null, isNew: false, formError: '', busy: false, msg: '', ok: true,
 
                 get currentDash() { return this.dashboards.find(d => d.code === this.dash) || { code: '', name: '', items: [] }; },

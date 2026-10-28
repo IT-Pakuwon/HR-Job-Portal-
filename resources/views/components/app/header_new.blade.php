@@ -10,12 +10,13 @@
         </svg>
     </button>
 
-    <!-- Global document search (jump to a document by ID or name) -->
-    <div class="min-w-0 flex-1 sm:w-72 sm:flex-none">
-        <x-app.global-search />
-    </div>
+    {{-- Page title: a page can @push('header-title') to show its name here (large screens) --}}
+    <div class="hidden min-w-0 flex-1 items-center pl-2 lg:flex">@stack('header-title')</div>
 
     <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
+        <!-- Global document search: a magnifier that expands in place (jump to a document by ID or name) -->
+        <x-app.global-search />
+
         <!-- Document status notifications (revised / rejected) -->
         <x-app.document-notifications />
 

@@ -73,7 +73,7 @@
                 pendingRows = null;
                 pendingTab = null;
                 renderCardList(rows, tab, false);
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             }
 
             if (refreshPending) {
@@ -125,7 +125,7 @@
 
             renderSummary(res.data || {});
 
-            startCountdown(20);
+            startCountdown(window.dashRefreshSeconds || 20);
 
         })
         .catch(err => {
@@ -649,7 +649,7 @@
                 resetPage
             );
 
-            startCountdown(20);
+            startCountdown(window.dashRefreshSeconds || 20);
 
         })
         .catch(err => {

@@ -120,6 +120,7 @@
                         $addSearchItem('project-archive', 'Project Archive', 'Project Setup');
                         $addSearchItem('task-archive', 'Task Archive', 'Project Setup');
 
+                        $addSearchItem('dashboard-setup', 'Dashboard Setup', 'Dashboard Setup');
                         $addSearchItem('dashboard-menu', 'Dashboard Menu', 'Dashboard Setup');
                         $addSearchItem('summary-setup', 'OM Summary', 'Dashboard Setup', ['p' => 'om']);
                         $addSearchItem('summary-setup', 'GM Summary', 'Dashboard Setup', ['p' => 'gm']);
@@ -445,6 +446,7 @@
                                 'budgetmonitor',
                                 'ifcaintegration',
                                 'project-archive',
+                                'dashboard-setup',
                                 'dashboard-menu',
                                 'summary-setup',
                                 'task-archive',
@@ -801,7 +803,7 @@
                                 <!-- ================================================= -->
                                 <!-- DASHBOARD SETUP -->
                                 <!-- ================================================= -->
-                                @php $dashboardSetup = ['dashboard-menu', 'summary-setup']; @endphp
+                                @php $dashboardSetup = ['dashboard-setup', 'dashboard-menu', 'summary-setup']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $dashboardSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -820,6 +822,9 @@
                                     </button>
 
                                     <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('dashboard-setup') }}"
+                                                class="{{ Request::segment(1) === 'dashboard-setup' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard Setup</a>
+                                        </li>
                                         <li><a href="{{ route('dashboard-menu') }}"
                                                 class="{{ Request::segment(1) === 'dashboard-menu' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard
                                                 Menu</a>

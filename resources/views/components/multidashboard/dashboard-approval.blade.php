@@ -49,10 +49,14 @@
     </div>
 
     @endunless
-    @unless (($myPage ?? false) || ($embedded ?? false))
-    <x-multidashboard.dashboard-top :dash-cd="$dashCd" />
-    @endunless
-
-@include('components.panel.approval')
+    @if (!(($myPage ?? false) || ($embedded ?? false)))
+    {{-- the approval panel (Waiting Approval / Approval History) is this dashboard's "tabs" block, see blocks/dashboard-approval/tabs;
+         a component does not see the page's variables, so the ones the panel reads go along --}}
+    <x-multidashboard.dashboard-top :dash-cd="$dashCd"
+        :block-data="['doctypes' => $doctypes ?? collect(), 'akses_cc' => $akses_cc ?? false, 'isGA' => $isGA ?? false, 'myPage' => false, 'embedded' => false]" />
+    @else
+    {{-- My Page / embedded: no top area, the panel stands alone --}}
+    @include('components.panel.approval')
+    @endif
 </div>
 

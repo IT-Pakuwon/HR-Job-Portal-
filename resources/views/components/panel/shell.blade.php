@@ -8,8 +8,11 @@
 
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h2 class="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{{ $title }}</h2>
-        <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span class="hidden sm:inline">Next refresh <span data-dp="countdown" class="font-semibold tabular-nums text-slate-900 dark:text-white">--</span></span>
+        {{-- Auto-refresh pill: the same one the Approval panel shows --}}
+        <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <span class="h-2 w-2 rounded-full bg-green-500"></span>
+            <span class="hidden text-slate-500 sm:inline dark:text-slate-400">Next refresh</span>
+            <span data-dp="countdown" class="font-semibold tabular-nums text-slate-900 dark:text-white">--</span>
             <button type="button" data-dp="refresh" title="Refresh now"
                 class="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

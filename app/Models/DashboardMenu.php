@@ -66,6 +66,7 @@ class DashboardMenu extends Model
             'purch-po-unsend'        => 'Purchasing · PO Unsend',
             'om-summary'             => 'OM · Summary',
             'gm-summary'             => 'GM · Summary',
+            'my-activity'            => 'My Activity',
         ];
     }
 
