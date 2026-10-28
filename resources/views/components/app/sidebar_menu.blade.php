@@ -74,13 +74,13 @@
                 // so search never surfaces a link the current user can't actually see/click.
                 $settingsIcon = 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z';
 
-                $addSearchItem = function ($routeName, $label, $parent) use ($menuSearchIndex, $settingsIcon) {
+                $addSearchItem = function ($routeName, $label, $parent, $params = []) use ($menuSearchIndex, $settingsIcon) {
                     if (Route::has($routeName)) {
                         $menuSearchIndex->push([
                             'menu_name'   => $label,
                             'menu_icon'   => $settingsIcon,
                             'parent_name' => $parent,
-                            'url'         => route($routeName),
+                            'url'         => route($routeName, $params),
                         ]);
                     }
                 };
@@ -121,6 +121,8 @@
                         $addSearchItem('task-archive', 'Task Archive', 'Project Setup');
 
                         $addSearchItem('dashboard-menu', 'Dashboard Menu', 'Dashboard Setup');
+                        $addSearchItem('summary-setup', 'OM Summary', 'Dashboard Setup', ['p' => 'om']);
+                        $addSearchItem('summary-setup', 'GM Summary', 'Dashboard Setup', ['p' => 'gm']);
 
                         $addSearchItem('tenancy.user.index', 'User', 'Tenancy Setup');
                         $addSearchItem('tenancy.organization.index', 'Organization', 'Tenancy Setup');
@@ -444,6 +446,7 @@
                                 'ifcaintegration',
                                 'project-archive',
                                 'dashboard-menu',
+                                'summary-setup',
                                 'task-archive',
                                 'tenancy',
                             ];
@@ -798,7 +801,7 @@
                                 <!-- ================================================= -->
                                 <!-- DASHBOARD SETUP -->
                                 <!-- ================================================= -->
-                                @php $dashboardSetup = ['dashboard-menu']; @endphp
+                                @php $dashboardSetup = ['dashboard-menu', 'summary-setup']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $dashboardSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -820,6 +823,12 @@
                                         <li><a href="{{ route('dashboard-menu') }}"
                                                 class="{{ Request::segment(1) === 'dashboard-menu' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard
                                                 Menu</a>
+                                        </li>
+                                        <li><a href="{{ route('summary-setup', 'om') }}"
+                                                class="{{ Request::segment(1) === 'summary-setup' && Request::segment(2) === 'om' ? 'text-indigo-600' : '' }} sidebar-link text-sm">OM Summary</a>
+                                        </li>
+                                        <li><a href="{{ route('summary-setup', 'gm') }}"
+                                                class="{{ Request::segment(1) === 'summary-setup' && Request::segment(2) === 'gm' ? 'text-indigo-600' : '' }} sidebar-link text-sm">GM Summary</a>
                                         </li>
                                     </ul>
                                 </li>

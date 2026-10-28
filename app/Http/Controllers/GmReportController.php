@@ -86,6 +86,20 @@ class GmReportController extends Controller
             ->filter()->unique()->values()->all();
     }
 
+    /** Companies a caller narrowed this instance to (the Summary panels' multi-company filter); null = no narrowing. */
+    private ?array $narrowedTo = null;
+
+    /**
+     * Narrow every query of this instance to these companies. Only ever narrows: a user limited to some companies
+     * keeps only the overlap, and callers must pass a non-empty list already checked against companies().
+     */
+    public function restrictTo(array $companies): static
+    {
+        $this->narrowedTo = array_values(array_unique(array_map('strtoupper', $companies))) ?: null;
+
+        return $this;
+    }
+
     private function allowedCompanies(): array
     {
         $user = Auth::user();
@@ -93,8 +107,16 @@ class GmReportController extends Controller
             return [];
         }
         $u = User::query()->where('username', $user->username)->first();
+        $allowed = $this->csvToArray(optional($u)->cpny_id);
 
-        return $this->csvToArray(optional($u)->cpny_id);
+        if ($this->narrowedTo === null) {
+            return $allowed;
+        }
+
+        // [] normally means "no restriction", so an empty overlap must NOT fall back to it — use a code nobody has
+        $narrowed = empty($allowed) ? $this->narrowedTo : array_values(array_intersect($allowed, $this->narrowedTo));
+
+        return $narrowed ?: ['-'];
     }
 
     /**
@@ -549,6 +571,48 @@ class GmReportController extends Controller
         ->get();
 
         return response()->json(['data' => $rows]);
+    }
+
+    // ── API: Biggest spend (by activity) ──────────────────────────────────────
+    // One company in scope -> its top 3 activities; several -> the single top activity of each company.
+    // Feeds the "Total Budget" summary card, so the numbers share budgetSummary's company scoping and period.
+
+    public function budgetTopSpend(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
+
+        $allowed = $this->allowedCompanies();
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
+
+        $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('activity_id')->whereNotNull('cpny_id');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
+
+        $rows = $q->selectRaw("
+            cpny_id,
+            activity_id,
+            MAX(activity_descr) AS activity_descr,
+            {$exprs['used']}    AS total_used
+        ")
+        ->groupBy('cpny_id', 'activity_id')
+        ->havingRaw("{$exprs['used']} > 0")
+        ->orderByRaw("{$exprs['used']} DESC")
+        ->get();
+
+        $byCompany = $rows->groupBy('cpny_id');
+        $single = $byCompany->count() <= 1;
+
+        $data = $byCompany->map(fn ($list) => $list->take($single ? 3 : 1)->values())
+            ->flatten(1)
+            ->sortByDesc('total_used')
+            ->values();
+
+        return response()->json(['data' => $data, 'single' => $single]);
     }
 
     // ── Export helpers ────────────────────────────────────────────────────────

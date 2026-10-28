@@ -3,9 +3,9 @@
 -- Run against the PGSQL2 connection (same DB as sys_screen). Idempotent.
 --   ms_dashboard_menu     : catalog of tiles (defined once, reused anywhere)
 --   ms_dashboard_menu_map : which tiles each dashboard (sys_screen.screen_id) shows, in order
--- A tile is either a link (route_name) or opens an in-page panel (panel_key,
--- must be a panel the dashboard-menu component knows about). role_id (optional)
--- hides the tile from users lacking that role.
+-- A tile is an external link (external_url) or opens an in-page panel (panel_key =
+-- a key of DashboardMenu::templatePanels(), code in components/panel/<key>.blade.php).
+-- Whoever is assigned to the dashboard sees the tile; role_id is no longer written.
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS ms_dashboard_menu (
     menu_key    VARCHAR(30)  PRIMARY KEY,

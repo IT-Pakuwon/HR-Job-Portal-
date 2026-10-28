@@ -17,6 +17,15 @@
         labels: ['Direct','Organic Search','Referral','Social','Email'],
     };
 
+    // Big numbers shortened the way the cards write rupiah: 503,6M (miliar) / 6,7Jt (juta); below a million stays whole
+    function compact(v) {
+        var n = Math.abs(v), f = function (x, s) { return (v < 0 ? '-' : '') + (Math.round(x * 10) / 10).toLocaleString('id-ID') + s; };
+        if (n >= 1e12) return f(n / 1e12, 'T');
+        if (n >= 1e9) return f(n / 1e9, 'M');
+        if (n >= 1e6) return f(n / 1e6, 'Jt');
+        return v.toLocaleString();
+    }
+
     function isDark() { return document.documentElement.classList.contains('dark'); }
 
     function init(el) {
@@ -56,12 +65,12 @@
                                 label: 'Total',
                                 fontSize: '13px', fontWeight: 600,
                                 color: dark ? '#94A3B8' : '#64748B',
-                                formatter: function() { return total.toLocaleString(); },
+                                formatter: function() { return compact(total); },
                             },
                             value: {
-                                fontSize: '22px', fontWeight: 700,
+                                fontSize: '20px', fontWeight: 700,
                                 color: dark ? '#F8FAFC' : '#0F172A',
-                                formatter: function(v) { return parseInt(v).toLocaleString(); },
+                                formatter: function(v) { return compact(parseInt(v)); },
                             },
                         },
                     },
@@ -69,7 +78,7 @@
             },
             dataLabels: { enabled: false },
             stroke: { width: 0 },
-            tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
+            tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return compact(v); } } },
             legend: {
                 show: true,
                 position: legendPosition,
@@ -80,7 +89,7 @@
                 formatter: function(seriesName, opts) {
                     var val = opts.w.globals.series[opts.seriesIndex];
                     var pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                    return seriesName + ':  ' + val.toLocaleString() + ' (' + pct + '%)';
+                    return seriesName + ':  ' + compact(val) + ' (' + pct + '%)';
                 },
             },
             responsive: [{

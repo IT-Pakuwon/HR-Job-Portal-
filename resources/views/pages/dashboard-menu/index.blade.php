@@ -110,7 +110,7 @@
                     </template>
                     <li x-show="!current.items.length" class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-400 dark:border-white/10">
                         <i class="fa-regular fa-rectangle-list mb-1 block text-lg text-gray-300"></i>
-                        No tiles — the Menu card is hidden on this dashboard.
+                        No tiles — the Main Menu card is hidden on this dashboard.
                     </li>
                 </ul>
 
@@ -179,7 +179,7 @@
                         <i class="fa-solid fa-circle-exclamation"></i> Unsaved changes on this dashboard — Save all keeps the order, new tiles, subtitles and defaults.
                     </span>
                 </div>
-                <p class="mt-3 text-[11px] leading-relaxed text-gray-400">Sidebar items appear only for users whose roles grant that menu — same as the sidebar. A dashboard only shows the Menu card if its view includes it, and panel tiles need that dashboard to contain the panel.</p>
+                <p class="mt-3 text-[11px] leading-relaxed text-gray-400">Sidebar items appear only for users whose roles grant that menu — same as the sidebar. A dashboard only shows the Main Menu card if its view includes it, and panel tiles need that dashboard to contain the panel.</p>
             </section>
 
             {{-- ============ Custom tiles drawer (handle sticks to the right edge) ============ --}}

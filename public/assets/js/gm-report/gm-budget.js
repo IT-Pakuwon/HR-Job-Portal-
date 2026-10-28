@@ -7,13 +7,10 @@
     var utils     = window.gmUtils;
     var PAGE_SIZE = 15;
 
-    var charts        = { donut: null, trend: null };
+    var charts        = { trend: null };
     var xhrSum        = null, xhrDept = null, xhrCompany = null, xhrAct = null, xhrMonth = null;
     var deptRows      = [], deptPage = 1, deptSort = null;
     var actRows       = [], actPage  = 1, actSort  = null;
-    var lastDonutData = null; // { used, reserve, remaining } — kept for resize re-render
-    var donutLegendPos = null; // track current rendered legend position
-    var donutSelected  = null; // { label, val } when a segment is clicked, null = show total
     var lastBudgetSummary = null; // cached for computeBudgetInsights (needs summary + dept rows together)
 
     // ── Summary Insight ─────────────────────────────────────────────────────────────
@@ -84,139 +81,19 @@
         utils.renderInsights('gmBudgetInsights', insights);
     }
 
-    // ── Donut chart (Used / Reserved / Remaining) ──────────────────────────────
-    function buildDonutOpts(used, reserve, remaining, containerWidth) {
-        var dark       = utils.isDark();
-        var hasReserve = reserve > 0;
-        var series = hasReserve
-            ? [Math.max(0, Math.round(used)), Math.max(0, Math.round(reserve)), Math.max(0, Math.round(remaining))]
-            : [Math.max(0, Math.round(used)), Math.max(0, Math.round(remaining))];
-        var labels = hasReserve ? ['Used', 'Reserved', 'Remaining'] : ['Used', 'Remaining'];
-        var colors = hasReserve ? ['#EF4444', '#F59E0B', '#10B981'] : ['#EF4444', '#10B981'];
-
-        // Legend goes to bottom when there isn't enough horizontal room;
-        // right is the default for wide cards (> 460 px).
-        var wide       = containerWidth > 460;
-        var legendPos  = wide ? 'right' : 'bottom';
-        var chartH     = wide ? 210 : (containerWidth < 340 ? 300 : 260);
-
-        return {
-            series : series,
-            labels : labels,
-            chart: {
-                type: 'donut', height: chartH,
-                toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
-                foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
-                animations: { enabled: true, easing: 'easeinout', speed: 600 },
-                events: {
-                    dataPointSelection: function (e, ctx, cfg) {
-                        var pts    = cfg.selectedDataPoints;
-                        var hasSel = pts && pts[0] && pts[0].length > 0;
-                        donutSelected = hasSel ? {
-                            label: cfg.w.globals.labels[pts[0][0]],
-                            val:   cfg.w.globals.series[pts[0][0]],
-                        } : null;
-                        ctx.updateOptions({
-                            plotOptions: { pie: { donut: { labels: { total: {
-                                label: donutSelected ? donutSelected.label : 'Total',
-                                formatter: function (w) {
-                                    return donutSelected
-                                        ? utils.idr(donutSelected.val)
-                                        : utils.idr(w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0));
-                                },
-                            }}}}}
-                        }, false, false);
-                    },
-                },
-            },
-            colors: colors,
-            plotOptions: {
-                pie: {
-                    donut: {
-                        size: wide ? '70%' : '65%',
-                        labels: {
-                            show: true,
-                            total: {
-                                show: true, showAlways: true, label: 'Total',
-                                fontSize: '12px', fontWeight: 600,
-                                color: dark ? '#CBD5E1' : '#64748B',
-                                formatter: function (w) {
-                                    return utils.idr(
-                                        w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0)
-                                    );
-                                },
-                            },
-                            name: {
-                                show: true,
-                                fontSize: '12px', fontWeight: 600,
-                                color: dark ? '#CBD5E1' : '#64748B',
-                            },
-                            value: {
-                                fontSize: wide ? '16px' : '14px', fontWeight: 700,
-                                color: dark ? '#F1F5F9' : '#0F172A',
-                                formatter: function (v) { return utils.idr(parseFloat(v)); },
-                            },
-                        },
-                    },
-                },
-            },
-            dataLabels: { enabled: false },
-            stroke: { width: 0 },
-            tooltip: {
-                theme: dark ? 'dark' : 'light',
-                fixed: wide
-                    ? { enabled: true, position: 'topLeft', offsetX: 10, offsetY: 10 }
-                    : { enabled: false },
-                y: {
-                    formatter: function (v, o) {
-                        if (!o || !o.w || !o.w.globals) return utils.idr(v);
-                        var s     = o.w.globals.series || [];
-                        var total = s.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
-                        var pct   = total > 0 ? (v / total * 100).toFixed(1) : '0.0';
-                        return utils.idr(v) + ' (' + pct + '%)';
-                    },
-                },
-            },
-            legend: {
-                show: true,
-                position: legendPos,
-                horizontalAlign: wide ? 'right' : 'center',
-                fontSize: '12px',
-                markers: { radius: 6 },
-                itemMargin: { horizontal: wide ? 8 : 10, vertical: 4 },
-                formatter: function (seriesName, o) {
-                    if (!o || !o.w || !o.w.globals) return seriesName;
-                    var s     = o.w.globals.series || [];
-                    var total = s.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
-                    var val   = parseFloat(s[o.seriesIndex]) || 0;
-                    var pct   = total > 0 ? (val / total * 100).toFixed(1) : '0.0';
-                    return seriesName + ' <b>' + pct + '%</b>';
-                },
-            },
-        };
-    }
-
+    // ── Breakdown bar (Used / Reserved / Remaining) ────────────────────────────
+    // A stacked bar, not a donut: Remaining is usually ~95%+ of the budget, which turns a donut into one solid ring
+    // and hides Used / Reserved. The bar (card-chart/stacked-bar.js) lists each part's amount and share instead.
     function renderDonut(used, reserve, remaining) {
         var el = document.getElementById('gmBudgetDonut');
-        if (!el) return;
+        if (!el || !window.CardChart || !window.CardChart.stackedBar) return;
 
-        lastDonutData = { used: used, reserve: reserve, remaining: remaining };
+        var u = Math.max(0, parseFloat(used) || 0), r = Math.max(0, parseFloat(reserve) || 0), m = Math.max(0, parseFloat(remaining) || 0);
+        var segments = [{ label: 'Used', value: u, color: '#EF4444', text: utils.idr(u) }];
+        if (r > 0) segments.push({ label: 'Reserved', value: r, color: '#F59E0B', text: utils.idr(r) });
+        segments.push({ label: 'Remaining', value: m, color: '#10B981', text: utils.idr(m) });
 
-        var containerW = el.offsetWidth || 400;
-        var wide       = containerW > 460;
-        var legendPos  = wide ? 'right' : 'bottom';
-        var opts       = buildDonutOpts(used, reserve, remaining, containerW);
-
-        // Destroy & recreate when legend position changes (updateOptions can't switch sides)
-        if (charts.donut && donutLegendPos !== legendPos) {
-            charts.donut.destroy();
-            charts.donut = null;
-        }
-        donutLegendPos = legendPos;
-
-        if (charts.donut) { charts.donut.updateOptions(opts); return; }
-        charts.donut = new ApexCharts(el, opts);
-        charts.donut.render();
+        window.CardChart.stackedBar(el, { segments: segments, total: utils.idr(u + r + m), totalLabel: 'Total' });
     }
 
     // ── Inline % bar helper ────────────────────────────────────────────────────
@@ -572,47 +449,8 @@
                 tooltip: { theme: dark ? 'dark' : 'light' },
                 grid:    { borderColor: dark ? '#334155' : '#F1F5F9' },
             };
-            if (charts.donut) charts.donut.updateOptions({
-                chart:   themeOpts.chart,
-                tooltip: themeOpts.tooltip,
-                plotOptions: {
-                    pie: {
-                        donut: {
-                            labels: {
-                                total: { color: dark ? '#CBD5E1' : '#64748B' },
-                                name:  { color: dark ? '#CBD5E1' : '#64748B' },
-                                value: { color: dark ? '#F1F5F9' : '#0F172A' },
-                            },
-                        },
-                    },
-                },
-            });
             if (charts.trend) charts.trend.updateOptions(themeOpts);
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    }
-
-    // ── Donut resize watcher — re-renders when the grid column changes width ──
-    // Uses ResizeObserver (supported on all modern browsers). Falls back to a
-    // debounced window resize listener for older environments.
-    function watchDonutResize() {
-        var el = document.getElementById('gmBudgetDonut');
-        if (!el) return;
-
-        var debounceTimer = null;
-        function onResize() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(function () {
-                if (lastDonutData) {
-                    renderDonut(lastDonutData.used, lastDonutData.reserve, lastDonutData.remaining);
-                }
-            }, 150);
-        }
-
-        if (window.ResizeObserver) {
-            new ResizeObserver(onResize).observe(el);
-        } else {
-            window.addEventListener('resize', onResize);
-        }
     }
 
     // ── Listen for filter change — fired by gm-filter.js ──────────────────────
@@ -630,7 +468,6 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     function init() {
         watchDarkMode();
-        watchDonutResize();
 
         deptSort = utils.bindTableSort(
             'gmDeptTableBody',

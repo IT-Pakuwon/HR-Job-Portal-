@@ -6,13 +6,18 @@
 @endphp
 @if ($topItems->isNotEmpty())
     <div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-        <x-multidashboard.dashboard-menu :dash-cd="$dashCd" :items="$topItems" />
+        <x-multidashboard.component.menu :dash-cd="$dashCd" :items="$topItems" />
         <div>
-            <x-multidashboard.dashboard-favourite />
+            <x-multidashboard.component.favourite />
         </div>
     </div>
 @else
     <div class="grid grid-cols-12 gap-6">
-        <x-multidashboard.dashboard-favourite />
+        <x-multidashboard.component.favourite />
     </div>
 @endif
+
+<div class="mt-4 grid grid-cols-1 gap-4">
+    <x-multidashboard.component.progress />
+    <x-multidashboard.component.todo />
+</div>

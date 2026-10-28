@@ -154,6 +154,7 @@ use App\Http\Controllers\SysCalendarController;
 // INTEGRATION
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
+use App\Http\Controllers\TodoController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
@@ -2837,6 +2838,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/files', 'files')->name('files');
         });
 
+        Route::prefix('todo')->controller(TodoController::class)->name('todo.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/toggle', 'toggle')->name('toggle');
@@ -2844,7 +2852,10 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
+        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');
+        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
+        Route::get('/dashboard-menu/badges', [DashboardMenuController::class, 'badges'])->name('dashboard-menu.badges');
+        Route::get('/summary-panel/{panel}', [App\Http\Controllers\SummaryPanelController::class, 'data'])->name('summary-panel.data');
 
         Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
             Route::get('/json', 'json')->name('json');
@@ -3230,6 +3241,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/dashboard-menu/tile', [DashboardMenuController::class, 'saveTile'])->name('dashboard-menu.tile');
         Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');
         Route::patch('/dashboard-menu/map/{dash}/row', [DashboardMenuController::class, 'saveRow'])->name('dashboard-menu.map.row');
+
+        // Dashboard Setup > OM Summary / GM Summary (layout of the Summary panels; table on pgsql5)
+        Route::prefix('summary-setup')->controller(App\Http\Controllers\SummarySetupController::class)->group(function () {
+            Route::get('/{p}', 'index')->whereIn('p', ['om', 'gm'])->name('summary-setup');
+            Route::put('/{p}', 'save')->whereIn('p', ['om', 'gm'])->name('summary-setup.save');
+            Route::delete('/{p}', 'reset')->whereIn('p', ['om', 'gm'])->name('summary-setup.reset');
+        });
 
         Route::get('/manage-approvals', [ManageApprovalController::class, 'index'])->name('manage-approvals');
         Route::get('/manage-approvals/json', [ManageApprovalController::class, 'search'])->name('manage-approvals.json');

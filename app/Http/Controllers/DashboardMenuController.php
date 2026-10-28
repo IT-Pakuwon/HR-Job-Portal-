@@ -7,6 +7,7 @@ use App\Models\SysMenu;
 use App\Models\SysRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
@@ -218,6 +219,45 @@ class DashboardMenuController extends Controller
             ]);
         }
     }
+    /**
+     * Count bubbles for panel tiles: how many rows each panel's list currently shows this user.
+     * Each count comes from the panel's own JSON endpoint (same middleware, same company/role scoping),
+     * so the badge always equals what opening the panel shows. Cached 30s per user.
+     */
+    public function badges(Request $request)
+    {
+        $keys = collect((array) $request->query('keys'))->filter(fn ($k) => is_string($k) && DashboardMenu::isTemplatePanel($k))->unique()->take(60);
+        $user = $request->user();
+        $counts = [];
+
+        foreach ($keys as $key) {
+            $counts['p:' . $key] = Cache::remember('dash-badge:' . $user->username . ':' . $key, 30, function () use ($request, $key) {
+                $url = DashboardMenu::panelUrl($key);
+                if (!$url) {
+                    return 0;
+                }
+                try {
+                    $sub = Request::create($url, 'GET', [], [], [], ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest', 'HTTP_ACCEPT' => 'application/json']);
+                    $sub->setUserResolver($request->getUserResolver());
+                    if ($request->hasSession()) {
+                        $sub->setLaravelSession($request->session());
+                    }
+                    app()->instance('request', $sub); // controllers type-hint Request, so they must receive the sub-request
+                    $res = app('router')->dispatch($sub);
+                    $body = json_decode($res->getContent(), true);
+
+                    return $res->getStatusCode() === 200 && is_array($body['data'] ?? null) ? count($body['data']) : 0;
+                } catch (\Throwable $e) {
+                    return 0; // a panel the user may not open (403/404) simply has no badge
+                } finally {
+                    app()->instance('request', $request);
+                }
+            });
+        }
+
+        return response()->json(['counts' => $counts]);
+    }
+
     /**
      * A user pins (or un-pins) a panel to open by default for themself. Any signed-in user may do this,
      * but only for a panel tile that dashboard actually shows them.

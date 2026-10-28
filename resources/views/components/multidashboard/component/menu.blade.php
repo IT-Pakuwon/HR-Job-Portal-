@@ -15,10 +15,31 @@
     // lazily: x-if only builds one when its tile is open, so unopened panels cost nothing.
     $templateItems = $menuItems->filter(fn ($i) => !empty($i['panel']) && \App\Models\DashboardMenu::isTemplatePanel($i['panel']))->values();
     $templatePanels = $templateItems->pluck('panel')->all();
+    // template panels whose tile carries a count bubble (counted server-side by DashboardMenuController::badges)
+    $panelBadgeKeys = $templateItems->filter(fn ($i) => str_starts_with((string) ($i['badge'] ?? ''), 'p:'))->pluck('panel')->values()->all();
+    // "Your Progress" (To Do card): one line per tile that carries a count, in tile order
+    $progressItems = $menuItems->filter(fn ($i) => !empty($i['badge']))->map(fn ($i) => [
+        'badge' => $i['badge'],
+        'label' => match ($i['badge']) {
+            'approval' => 'Waiting Approval',
+            'mailbox'  => 'Unread Emails',
+            default    => trim(str_replace(' · ', ' ', $i['name'])),
+        },
+        'panel' => $i['panel'] ?? null,
+        'href'  => $i['href'] ?? null,
+        'host'  => !empty($i['panel']) && \App\Models\DashboardMenu::isTemplatePanel($i['panel']),
+    ])->values()->all();
 @endphp
 @if ($templateItems->isNotEmpty())
     {{-- Engine for <x-panel.*> templates; loaded only where a panel tile exists, before Alpine mounts a panel. --}}
     <script src="{{ asset('assets/js/Dashboard-Panel/dash-panel.js') }}?v={{ file_exists(public_path('assets/js/Dashboard-Panel/dash-panel.js')) ? filemtime(public_path('assets/js/Dashboard-Panel/dash-panel.js')) : time() }}"></script>
+@endif
+@if ($templateItems->contains(fn ($i) => str_ends_with((string) $i['panel'], '-summary')))
+    {{-- Summary panels (OM / GM Summary): chart widgets + their engine, loaded up front like dash-panel.js so a panel
+         opened later (after the page's load event) can mount at once. --}}
+    @foreach (['card-chart/donut-chart.js', 'card-chart/column-chart.js', 'card-chart/stacked-bar.js', 'Dashboard-Panel/summary-panel.js'] as $js)
+        <script src="{{ asset('assets/js/' . $js) }}?v={{ filemtime(public_path('assets/js/' . $js)) }}"></script>
+    @endforeach
 @endif
 @foreach ($templateItems as $ti)
     <template x-teleport="#dashForeignPanelHost">
@@ -60,28 +81,49 @@
                 } catch (e) { this.pins = before; }
             },
             badges: { mailbox: 0, approval: window.__approvalWaiting || 0 },
+            // which count sources have answered yet (Your Progress waits for them)
+            ready: { panel: false, mailbox: false, approval: window.__approvalWaiting !== undefined },
+            async loadPanelBadges() {
+                try {
+                    const res = await fetch('{{ route('dashboard-menu.badges') }}?' + @js($panelBadgeKeys).map(k => 'keys[]=' + encodeURIComponent(k)).join('&'), { headers: { 'Accept': 'application/json' } });
+                    if (res.ok) { Object.assign(this.badges, (await res.json()).counts || {}); this.ready.panel = true; this.emitProgress(); }
+                } catch (e) { /* retried on next poll */ }
+            },
             badgeText(src) { const n = this.badges[src] || 0; return n > 99 ? '99+' : n; },
             async loadMailbox() {
                 try {
                     const res = await fetch('{{ Route::has('mailbox.unread-count') ? route('mailbox.unread-count') : '' }}', { headers: { 'Accept': 'application/json' } });
-                    if (res.ok) this.badges.mailbox = (await res.json()).count || 0;
+                    if (res.ok) { this.badges.mailbox = (await res.json()).count || 0; this.ready.mailbox = true; this.emitProgress(); }
                 } catch (e) { /* retried on next poll */ }
             },
+            // Tells the To Do card (Your Progress) what is left, whenever a count changes.
+            emitProgress() {
+                const items = @js($progressItems).map(i => ({ ...i, count: this.ready[i.badge.startsWith('p:') ? 'panel' : i.badge] ? (this.badges[i.badge] || 0) : null }));
+                window.__dashProgress = items;
+                window.dispatchEvent(new CustomEvent('dash-progress', { detail: items }));
+            },
             init() {
+                this.emitProgress();
+                this.$watch('badges', () => this.emitProgress());
+                @if ($panelBadgeKeys)
+                    this.loadPanelBadges();
+                    setInterval(() => { if (document.visibilityState !== 'hidden') this.loadPanelBadges(); }, 30000);
+                @endif
                 @if ($menuItems->contains('badge', 'mailbox') && Route::has('mailbox.unread-count'))
                     this.loadMailbox();
                     setInterval(() => { if (document.visibilityState !== 'hidden') this.loadMailbox(); }, 30000);
                 @endif
             }
         }"
-        @approval-summary.window="badges.approval = $event.detail.waiting">
+        @approval-summary.window="badges.approval = $event.detail.waiting; ready.approval = true; emitProgress()"
+        @dash-open-panel.window="panel = $event.detail.panel; $nextTick(() => (($event.detail.host ? document.getElementById('dashForeignPanelHost') : $refs.omPanel))?.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
 
         <div class="flex items-center justify-between" :class="expanded ? 'mb-3' : ''">
             <button type="button" @click="toggle()" class="flex items-center gap-2">
                 <svg class="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
                 </svg>
-                <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Menu</h2>
+                <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Main Menu</h2>
                 <svg class="h-3.5 w-3.5 text-gray-400 transition-transform" :class="expanded ? '' : '-rotate-90'"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />

@@ -64,12 +64,25 @@ class DashboardMenu extends Model
             'wh-issue-solomon'       => 'Warehouse · Issue Solomon',
             'purch-cs'               => 'Purchasing · CS',
             'purch-po-unsend'        => 'Purchasing · PO Unsend',
+            'om-summary'             => 'OM · Summary',
+            'gm-summary'             => 'GM · Summary',
         ];
     }
 
     public static function isTemplatePanel(?string $panelKey): bool
     {
         return $panelKey !== null && array_key_exists($panelKey, static::templatePanels());
+    }
+
+    /** The JSON endpoint a template panel lists from (read from its Blade template, the single source of truth). */
+    public static function panelUrl(string $panelKey): ?string
+    {
+        if (!static::isTemplatePanel($panelKey)) {
+            return null;
+        }
+        $file = resource_path('views/components/panel/' . $panelKey . '.blade.php');
+
+        return is_file($file) && preg_match('/\burl="([^"]+)"/', file_get_contents($file), $m) ? $m[1] : null;
     }
 
     /** Every panel_key a custom tile may use. */
@@ -93,6 +106,7 @@ class DashboardMenu extends Model
     public const BADGES = [
         'sys:MAILBOX'    => 'mailbox',   // unread emails (mailbox.unread-count)
         'panel:approval' => 'approval',  // waiting approvals (same number as the Approval Dashboard KPI)
+        // every other template panel gets 'p:<panel_key>' = the rows its list shows (see DashboardMenuController::badges)
     ];
 
     /**
@@ -166,7 +180,7 @@ class DashboardMenu extends Model
                 'desc'  => $row->menu_desc ?: $t->menu_desc,
                 'href'  => static::resolveHref($t->route_name, $t->external_url),
                 'external' => (bool) $t->external_url,
-                'badge' => $t->panel_key ? (static::BADGES['panel:' . $t->panel_key] ?? null) : null,
+                'badge' => $t->panel_key ? (static::BADGES['panel:' . $t->panel_key] ?? (static::panelUrl($t->panel_key) ? 'p:' . $t->panel_key : null)) : null, // a panel without a list (the Summary panels) has nothing to count, so no bubble and no "All clear" row
                 'panel' => $t->panel_key,
                 'kind'  => $t->panel_key ? 'panel' : ($t->external_url ? 'link' : 'menu'),
                 // the user's own pin wins over the admin default

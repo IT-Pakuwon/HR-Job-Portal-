@@ -20,6 +20,15 @@
         categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
     };
 
+    // Axis ticks shortened the way the cards write rupiah: 8M (miliar) / 6,5Jt (juta); below a million stays whole
+    function compact(v) {
+        var n = Math.abs(v), f = function (x, s) { return (v < 0 ? '-' : '') + (Math.round(x * 10) / 10).toLocaleString('id-ID') + s; };
+        if (n >= 1e12) return f(n / 1e12, 'T');
+        if (n >= 1e9) return f(n / 1e9, 'M');
+        if (n >= 1e6) return f(n / 1e6, 'Jt');
+        return v.toLocaleString();
+    }
+
     function isDark() { return document.documentElement.classList.contains('dark'); }
 
     function init(el) {
@@ -57,9 +66,9 @@
                 axisBorder: { show: false }, axisTicks: { show: false },
                 labels: { style: { fontSize: '11px' } },
             },
-            yaxis: { labels: { style: { fontSize: '11px' }, formatter: function(v) { return v.toLocaleString(); } } },
+            yaxis: { labels: { style: { fontSize: '11px' }, formatter: function(v) { return compact(v); } } },
             grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', strokeDashArray: 4, padding: { left: 4, right: 4 } },
-            tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
+            tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return compact(v); } } },
             legend: {
                 show: series.length > 1, position: 'top', horizontalAlign: 'right',
                 fontSize: '12px', markers: { shape: 'circle', size: 6 },
@@ -80,4 +89,7 @@
     function boot() { document.querySelectorAll('[data-chart-type="column"]').forEach(init); }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+
+    window.CardChart = window.CardChart || {};
+    window.CardChart.initColumn = init;
 })();

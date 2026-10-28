@@ -8,7 +8,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h1 class="text-xl font-bold text-slate-900 dark:text-white">OM Dashboard</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Favourites • Menu</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Favourites • Main Menu</p>
         </div>
 
         {{-- Auto-refresh pill for the embedded Approval Dashboard (ids are driven by Dashboard-Panel/approval.js). --}}
@@ -30,13 +30,17 @@
     {{-- Menu on the left, My Favourites on the right (stacked on small screens). --}}
     <div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
 
-        <x-multidashboard.dashboard-menu dash-cd="DASHOM" />
+        <x-multidashboard.component.menu dash-cd="DASHOM" />
 
         <div>
-            <x-multidashboard.dashboard-favourite />
+            <x-multidashboard.component.favourite />
         </div>
 
     </div>
+
+    <x-multidashboard.component.progress />
+
+    <x-multidashboard.component.todo />
 
     {{-- Approval Dashboard listing, opened from the Menu tile above (other panels load via the Menu component). --}}
     <div x-ref="omPanel" x-show="panel === 'approval'" x-cloak style="display: none;">
