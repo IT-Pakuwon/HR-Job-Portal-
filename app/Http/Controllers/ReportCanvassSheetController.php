@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ReportCsDetailExport;
 use App\Models\MsDepartment;
 use App\Models\MsSPPBJKTCounting;
 use App\Models\User;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;   // ← ADD THIS
-use Illuminate\Http\Request;
+use Carbon\CarbonPeriod;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Http\Request;   // ← ADD THIS
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Auth;
 
 class ReportCanvassSheetController extends Controller
 {
@@ -1000,20 +1003,20 @@ class ReportCanvassSheetController extends Controller
 
         $query = $this->applyUserScope($query);
 
-        $rows = $query->orderByDesc('h.csdate')->orderByDesc('h.csid')->get();
+        $query->orderByDesc('h.csdate')->orderByDesc('h.csid')->orderBy('d.id');
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
 
-        $rows = $rows->map(function ($row) use ($users, $departments) {
+        $mapRow = function ($row) use ($users, $departments) {
             $vendor = '';
             $unitPrice = 0;
             $dpp = 0;
-            for ($i = 1; $i <= 6; $i++) {
+            for ($i = 1; $i <= 6; ++$i) {
                 if ($row->{"vendor{$i}selected"}) {
                     $vendor = $row->{"vendorname{$i}"};
                     $unitPrice = $row->{"vendorprice{$i}"};
-                    $dpp = $row->{"vendortotalprice{$i}"};
+                    $dpp = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
                     break;
                 }
             }
@@ -1029,7 +1032,9 @@ class ReportCanvassSheetController extends Controller
                 'Cpny' => $row->cpny_id,
                 'PO' => $row->ponbr ?? '',
                 'SPPBJKT' => $row->sppbjktid,
-                'BAST No' => $row->bast_number ?? '',
+                'BAST No' => collect(json_decode($row->bast_documents ?? '[]', true) ?: [])
+                    ->map(fn ($document) => $document['number'].' - '.$this->bastStatusLabel($document['status'] ?? null))
+                    ->implode(', ') ?: ($row->bast_number ?? ''),
                 'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
                 'Department' => $departments[$row->department_id] ?? '',
                 'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
@@ -1050,17 +1055,42 @@ class ReportCanvassSheetController extends Controller
                 'Activity Description' => $row->budget_activity_descr ?? '',
                 'Status' => $this->csStatusLabel($row->status),
             ];
-        });
+        };
 
-        return Excel::download(
-            new \App\Exports\ArrayExport($rows, [
-                'Qty' => '#,##0.00',
-                'Unit Price' => '#,##0.00',
-                'DPP' => '#,##0.00',
-                'Tax' => '#,##0.00',
-                'Grand Total' => '#,##0.00',
-            ]),
-            'report_canvass_sheet_detail.xlsx'
-        );
+        $files = new Filesystem();
+        $exportDirectory = storage_path('app/temp/report-cs');
+        $tempPath = null;
+        $previousTimeLimit = (int) ini_get('max_execution_time');
+
+        try {
+            $files->ensureDirectoryExists($exportDirectory);
+            $tempPath = tempnam($exportDirectory, 'cs_');
+            if ($tempPath === false) {
+                throw new \RuntimeException('Tidak dapat membuat file sementara export Report CS.');
+            }
+            if (function_exists('set_time_limit') && $previousTimeLimit > 0) {
+                @set_time_limit(max(300, $previousTimeLimit));
+            }
+
+            (new ReportCsDetailExport($query, $mapRow))->writeTo($tempPath);
+
+            return response()->download($tempPath, 'report_canvass_sheet_detail.xlsx', [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $exception) {
+            if ($tempPath && is_file($tempPath)) {
+                $files->delete($tempPath);
+            }
+            Log::error('Report CS Excel export failed', [
+                'exception' => $exception,
+                'filters' => $request->only(['date_from', 'date_to', 'csid', 'ponbr', 'sppbjktid', 'inventoryid', 'status', 'department']),
+            ]);
+
+            throw $exception;
+        } finally {
+            if (function_exists('set_time_limit') && $previousTimeLimit > 0) {
+                @set_time_limit($previousTimeLimit);
+            }
+        }
     }
 }

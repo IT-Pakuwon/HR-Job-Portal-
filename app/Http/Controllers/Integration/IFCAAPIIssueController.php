@@ -929,7 +929,7 @@ class IFCAAPIIssueController extends Controller
     public function SchedulerProcessIssueHold(): array
     {
         $username = 'scheduler';
-        $fromDt = now()->subDays(3)->startOfDay();
+        $fromDt = now()->subDays(21)->startOfDay();
         $toDt = now()->endOfDay();
 
         $pairs = ViewStagingIssue::query()
@@ -1210,7 +1210,7 @@ class IFCAAPIIssueController extends Controller
     public function SchedulerProcessIssueOnProgress(): array
     {
         $username = 'scheduler';
-        $fromDt = now()->subDays(3)->startOfDay();
+        $fromDt = now()->subDays(14)->startOfDay();
         $toDt = now()->endOfDay();
         $sentOkPtoC = 0;
         $sentFailP = 0;

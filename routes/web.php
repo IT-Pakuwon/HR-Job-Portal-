@@ -3420,6 +3420,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
         Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
         Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
+        Route::get('/attachments-master/legacy/{id}/view', [AttachmentMasterController::class, 'viewLegacy'])->where('id', '[0-9]+')->name('attachments-master.legacy.view');
         Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
             ->name('attachments.delete');
 

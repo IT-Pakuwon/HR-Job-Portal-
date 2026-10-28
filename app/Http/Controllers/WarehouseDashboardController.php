@@ -65,6 +65,7 @@ class WarehouseDashboardController extends Controller
 
         $grnSolomon = StagingIfcaPoGrn::query()
             ->where('status', 'P')
+            ->where('item_type', '<>', 'SE')
             ->when(!empty($allowedCpny), fn($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->selectRaw("COUNT(DISTINCT cpny_id || '||' || grn_no) as cnt")
             ->value('cnt') ?? 0;
@@ -176,6 +177,7 @@ class WarehouseDashboardController extends Controller
 
         $data = StagingIfcaPoGrn::query()
             ->where('status', 'P')
+            ->where('item_type', '<>', 'SE')
             ->when(!empty($allowedCpny), fn($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->selectRaw("cpny_id, grn_no, MIN(grn_date) as grn_date, MIN(order_no) as order_no, MAX(updated_at) as last_update")
             ->groupBy('cpny_id', 'grn_no')

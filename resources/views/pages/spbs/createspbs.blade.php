@@ -1286,8 +1286,8 @@
                 const item_category = $btn.data('item_category') || '';
                 const purchase_unit = $btn.data('purchase_unit') || '';
                 const stock = $btn.data('stock') || '';
-                const cost = $btn.data('cost') ?? '';
-                const siteid = $btn.data('siteid') || '';
+                const cost = $btn.data('cost') || '';
+                const siteid = String($btn.attr('data-siteid') || '').trim();
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
                 console.log('chooseInventory CLICKED →', {

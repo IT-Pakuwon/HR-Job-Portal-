@@ -1026,7 +1026,7 @@ class IFCAAPIPOController extends Controller
     public function SchedulerProcessPOHold(): array
     {
         $username = 'scheduler';
-        $fromDt = now()->subDays(3)->startOfDay();
+        $fromDt = now()->subDays(21)->startOfDay();
         $toDt = now()->endOfDay();
 
         $pairs = ViewStagingPO::query()
@@ -1350,7 +1350,7 @@ class IFCAAPIPOController extends Controller
     public function SchedulerProcessPOOnProgress(): array
     {
         $username = 'scheduler';
-        $fromDt = now()->subDays(3)->startOfDay();
+        $fromDt = now()->subDays(14)->startOfDay();
         $toDt = now()->endOfDay();
         $sentOkPtoC = 0;
         $sentFailP = 0;

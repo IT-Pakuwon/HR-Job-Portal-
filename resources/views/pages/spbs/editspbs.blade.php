@@ -285,7 +285,7 @@
                                                         <td class="siteid-column border p-3">
                                                             <div class="siteid-wrapper">
                                                                 <input type="hidden" name="siteid[]"
-                                                                    class="siteid-hidden" value="">
+                                                                    class="siteid-hidden" value="{{ $d->siteid ?? '' }}">
                                                                 <input type="text"
                                                                     class="siteid-display w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     placeholder="-" readonly
@@ -1591,8 +1591,8 @@
                 const item_category = $btn.data('item_category') || '';
                 const purchase_unit = $btn.data('purchase_unit') || '';
                 const stock = $btn.data('stock') || '';
-                const cost = $btn.data('cost') ?? '';
-                const siteid = $btn.data('siteid') || '';
+                const cost = $btn.data('cost') || '';
+                const siteid = String($btn.attr('data-siteid') || '').trim();
 
 
                 // DEBUG: lihat apa yang sebenarnya kebaca dari tombol

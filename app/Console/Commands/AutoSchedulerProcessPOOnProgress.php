@@ -10,7 +10,7 @@ class AutoSchedulerProcessPOOnProgress extends Command
 {
     protected $signature = 'ifca:poonprogress-auto-process';
 
-    protected $description = 'Auto process IFCA PO OnProgress P-IFCA ke C dari H-3 sampai hari ini';
+    protected $description = 'Auto process IFCA PO OnProgress P-IFCA ke C dari H-14 sampai hari ini';
 
     public function handle()
     {
