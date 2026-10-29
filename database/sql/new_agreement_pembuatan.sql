@@ -205,3 +205,18 @@ WHERE agreementcategory_id = 'CREATE' AND agreementcategory_type = 'PROCESS' AND
 UPDATE tr_agreement_activity
 SET agreement_activity_type = 'PROCESS:PROCESS', response_summary = 'Process PSM / OLA'
 WHERE agreement_activity_type = 'PROCESS:CREATE';
+
+
+-- ── Routing list revised (2026-10-29) ─────────────────────────────────
+-- Block 1 (PGSQL5). Ibu Ivy removed (soft delete), Direktur 3 added, order:
+-- Marketing/Leasing 2, Direktur 1 3, Tenant 4, Direktur 2 5, Direktur 3 6, Kirim 1 set 7.
+UPDATE ms_agreement_category SET status = 'I', deleted_by = 'system', deleted_at = now(), updated_at = now()
+WHERE agreementcategory_id = 'ROUTE_IVY' AND agreementcategory_type = 'ROUTING' AND deleted_at IS NULL;
+
+UPDATE ms_agreement_category c SET agreementcategory_order = v.ord, updated_by = 'system', updated_at = now()
+FROM (VALUES ('ROUTE_MARKETING', 2), ('ROUTE_DIREKTUR_1', 3), ('ROUTE_TENANT', 4), ('ROUTE_DIREKTUR_2', 5), ('SEND_TENANT', 7)) AS v(id, ord)
+WHERE c.agreementcategory_id = v.id AND c.agreementcategory_type = 'ROUTING' AND c.deleted_at IS NULL;
+
+INSERT INTO ms_agreement_category (agreementcategory_id, agreementcategory_descr, agreementcategory_type, agreementcategory_order, agreementcategory_system, status, created_by, created_at)
+SELECT 'ROUTE_DIREKTUR_3', 'Direktur 3', 'ROUTING', 6, false, 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM ms_agreement_category WHERE agreementcategory_id = 'ROUTE_DIREKTUR_3' AND deleted_at IS NULL);
