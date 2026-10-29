@@ -320,13 +320,11 @@
         <tr>
             <td class="label">Dibayarkan kpd/Please Pay to</td>
             <td class="colon">:</td>
-            <td colspan="4">{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
-        </tr>
+            <td>{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
 
-        <tr>
             <td class="label">Jumlah/Amount</td>
             <td class="colon">:</td>
-            <td colspan="4" class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
+            <td class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
         </tr>
 
         <tr>
