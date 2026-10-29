@@ -20,7 +20,7 @@
         </div>
 
         <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">GRN Solomon (P)</span>
+            <span class="dsh-kpi-l">GRN Ifca (P)</span>
             <span id="whGrnSolomonCount" class="dsh-kpi-n">0</span>
             <span id="whGrnSolomonBar" class="hidden" style="width:0%"></span>
         </div>

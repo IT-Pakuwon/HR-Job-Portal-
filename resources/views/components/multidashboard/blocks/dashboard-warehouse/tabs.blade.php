@@ -8,7 +8,7 @@
                 <button id="wh-tab-approval-history">📋 Approval History</button>
                 <button id="wh-tab-sppb">📦 SPPB On Progress</button>
                 <button id="wh-tab-po-solomon">🛒 PO Solomon</button>
-                <button id="wh-tab-grn-solomon">📥 GRN Solomon</button>
+                <button id="wh-tab-grn-solomon">📥 GRN Ifca</button>
                 <button id="wh-tab-issue-solomon">📤 Issue Solomon</button>
             </div>
             </div>

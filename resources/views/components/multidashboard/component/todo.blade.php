@@ -103,7 +103,10 @@
                                     <span x-show="m.location || m.online" x-text="' · ' + [m.location, m.online].filter(Boolean).join(' · ')"></span>
                                 </span>
                             </div>
-                            <span class="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-300">Meeting</span>
+                            <a x-show="m.join_url" :href="m.join_url" target="_blank" rel="noopener noreferrer"
+                                class="shrink-0 rounded-full bg-sky-500 px-2.5 py-0.5 text-[10px] font-semibold text-white transition hover:bg-sky-600"
+                                x-text="'Join ' + (m.online || 'meeting')" style="display: none;"></a>
+                            <span x-show="!m.join_url" class="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-300" style="display: none;">Meeting</span>
                         </li>
                     </template>
                 </ul>

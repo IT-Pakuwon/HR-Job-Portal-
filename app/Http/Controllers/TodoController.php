@@ -46,12 +46,13 @@ class TodoController extends Controller
             ->leftJoin('ms_meeting_room as r', DB::raw('r.room_id::text'), '=', 'm.room_id')
             ->where('m.status', 'P')
             ->whereBetween('m.meeting_date', [now()->subDays(30)->toDateString(), now()->addDays(180)->toDateString()])
-            ->whereIn('m.docid', $docIds)
+            ->where(fn ($q) => $q->whereIn('m.docid', $docIds)->orWhere('m.user_peminta', $user->username))
             ->orderBy('m.start_meeting_time')
             ->get(['m.docid', 'm.meeting_date', 'm.meeting_title', 'm.start_meeting_time', 'm.end_meeting_time',
                 'm.zoom_id', 'm.msteams_join_url', 'r.room_name']);
 
         return $rows->map(fn ($m) => [
+            'join_url' => preg_match('~^https?://~i', (string) $m->msteams_join_url) ? trim($m->msteams_join_url) : null,
             'docid'    => $m->docid,
             'title'    => $m->meeting_title,
             'date'     => substr((string) $m->meeting_date, 0, 10),
