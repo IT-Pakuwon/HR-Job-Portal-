@@ -114,6 +114,16 @@
             <div
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Rfca</h1>
+
+                <div id="rfcaTypeFilterWrap" class="flex items-center gap-2">
+                    <label for="rfcaTypeFilter" class="text-sm font-medium text-gray-600 dark:text-gray-300">Rfca Type</label>
+                    <select id="rfcaTypeFilter"
+                        class="rounded-md border border-gray-300 bg-white py-1 pl-2 pr-8 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="">All</option>
+                        <option value="RFCA">RFCA</option>
+                        <option value="RFP">RFP</option>
+                    </select>
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -267,6 +277,11 @@
 
             function updateTitle(sc) {
                 $title.text(titleMap[sc] ?? 'Rfca');
+
+                // Jobs rows have no rfca_type yet, so the filter is meaningless there
+                const isJobs = sc === 'rfcajobs';
+                $('#rfcaTypeFilterWrap').toggleClass('hidden', isJobs);
+                if (isJobs) $('#rfcaTypeFilter').val('');
             }
 
             function resetThead(sc) {
@@ -352,6 +367,7 @@
                         type: "GET",
                         data: function(d) {
                             d.scope = sc;
+                            d.rfca_type = $('#rfcaTypeFilter').val();
                         }
                     },
                     columns: columnsFor(sc),
@@ -450,6 +466,10 @@
                         }
                     });
                 });
+            });
+
+            $('#rfcaTypeFilter').on('change', function() {
+                table.ajax.reload();
             });
 
             // init

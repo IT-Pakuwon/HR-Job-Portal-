@@ -235,6 +235,11 @@ class RfcaListController extends Controller
                 break;
         }
 
+        $rfcaType = strtoupper(trim((string) $req->query('rfca_type', '')));
+        if (in_array($rfcaType, ['RFCA', 'RFP'], true)) {
+            $base->where('tr_rfca.rfca_type', $rfcaType);
+        }
+
         $baseForCount = clone $base;
 
         $orderColumns = [
