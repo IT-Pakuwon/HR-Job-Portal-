@@ -169,6 +169,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Type</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
                 `;
             }
 
@@ -245,6 +246,13 @@
                             return `<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${colorClass}">${label}</span>`;
                         }
                     },
+                    {
+                        data: null,
+                        className: 'text-left no-export',
+                        orderable: false,
+                        searchable: false,
+                        render: (_v, _t, row) => renderActionButton(row)
+                    },
                 ];
             }
 
@@ -306,7 +314,7 @@
                             title: 'List_RFCA',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
-                                columns: ':visible',
+                                columns: ':visible:not(.no-export)',
                                 modifier: {
                                     page: 'current'
                                 }
@@ -318,7 +326,7 @@
                             title: 'List_RFCA',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
-                                columns: ':visible',
+                                columns: ':visible:not(.no-export)',
                                 modifier: {
                                     page: 'current'
                                 }
@@ -394,6 +402,55 @@
                 const url = row.showrfca_url || `/showrfca/${encodeURIComponent(hash)}`;
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
+
+            function renderActionButton(row) {
+                const hash = row.rfcaid_eid;
+                if (!row.can_process_step || !hash) return '';
+
+                return `<button type="button" data-hash="${hash}" data-rfcaid="${row.rfcaid}"
+                    class="btnProcessStep inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700">
+                    Process Step</button>`;
+            }
+
+            $(document).on('click', '.btnProcessStep', function(e) {
+                e.preventDefault();
+                const $btn = $(this);
+                const hash = $btn.data('hash');
+
+                Swal.fire({
+                    title: 'Approve Active Step?',
+                    text: `This will mark the current active step of ${$btn.data('rfcaid')} as Approved.`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $btn.prop('disabled', true);
+                    $.ajax({
+                        url: `/rfca/${encodeURIComponent(hash)}/approve-step`,
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                toastr.success(res.message || 'Active RFCA Step approved.');
+                                table.ajax.reload(null, false);
+                            } else {
+                                toastr.error(res.message || 'Failed to approve RFCA Step.');
+                                $btn.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || 'Failed to approve RFCA Step.');
+                            $btn.prop('disabled', false);
+                        }
+                    });
+                });
+            });
 
             // init
             updateTitle(scope);
