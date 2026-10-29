@@ -5,6 +5,7 @@
 
 @source "../views/**/*.blade.php";
 @source "../../public/assets/js/Dashboard-Panel/summary-panel.js";
+@source "../../public/assets/js/Dashboard-Panel/dash-panel.js";
 
 @plugin "@tailwindcss/forms" {
     strategy: base;

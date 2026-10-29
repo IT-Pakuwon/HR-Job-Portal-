@@ -108,6 +108,11 @@
                                     class="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">Save</button>
                                 <span x-show="it.saved === null" x-cloak class="shrink-0 text-[11px] text-amber-600">Not saved yet — use Save all</span>
                             </div>
+                            <label x-show="info(it).kind === 'panel' || it.key === 'MAILBOX'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                                <input type="checkbox" x-model="it.progress" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="font-semibold">Count in Your Progress</span>
+                                <span class="text-gray-400">— untick to keep its count bubble but leave it out of the "things left" checklist.</span>
+                            </label>
                             <label x-show="info(it).kind === 'panel'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                 <input type="checkbox" x-model="it.default" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                 <span class="font-semibold">Open by default</span>
@@ -442,7 +447,7 @@
             const mapUrl = (d) => '{{ url('/dashboard-menu/map') }}/' + d;
             // what is stored per row, so a subtitle edit can show its own Save button
             dashboards.forEach(d => {
-                d.items.forEach(it => { it.saved = it.desc || ''; it.default = !!it.default; it.savedDef = it.default; });
+                d.items.forEach(it => { it.saved = it.desc || ''; it.default = !!it.default; it.savedDef = it.default; it.progress = it.progress !== false; it.savedProg = it.progress; });
                 d.savedOrder = d.items.map(it => it.t + '|' + it.key).join(',');
             });
 
@@ -504,7 +509,7 @@
                     return groups;
                 },
                 pick(m) {
-                    this.current.items.push({ t: m.t, key: m.key, desc: '', saved: null, default: false, savedDef: false });
+                    this.current.items.push({ t: m.t, key: m.key, desc: '', saved: null, default: false, savedDef: false, progress: true, savedProg: true });
                     this.pickOpen = false; this.pickQ = '';
                 },
                 move(i, dir) { const k = this.current.items; [k[i], k[i + dir]] = [k[i + dir], k[i]]; },
@@ -543,7 +548,7 @@
                 async saveMap() {
                     const r = await this.send(mapUrl(this.dash), 'PUT', { items: this.current.items });
                     if (r.error) return this.flash(r.error, false);
-                    this.current.items.forEach(it => { it.saved = it.desc || ''; it.savedDef = !!it.default; });
+                    this.current.items.forEach(it => { it.saved = it.desc || ''; it.savedDef = !!it.default; it.savedProg = !!it.progress; });
                     this.current.savedOrder = this.current.items.map(it => it.t + '|' + it.key).join(',');
                     this.flash(this.dash + ' menu saved.');
                 },
@@ -555,14 +560,15 @@
                 },
 
                 // A stored row whose subtitle / default flag was edited (new rows go through Save all).
-                dirty(it) { return it.saved !== null && ((it.desc || '') !== it.saved || !!it.default !== it.savedDef); },
+                dirty(it) { return it.saved !== null && ((it.desc || '') !== it.saved || !!it.default !== it.savedDef || !!it.progress !== it.savedProg); },
 
                 // Save just one row's subtitle and "open by default".
                 async saveRow(it) {
-                    const r = await this.send(mapUrl(this.dash) + '/row', 'PATCH', { t: it.t, key: it.key, desc: it.desc || '', default: !!it.default });
+                    const r = await this.send(mapUrl(this.dash) + '/row', 'PATCH', { t: it.t, key: it.key, desc: it.desc || '', default: !!it.default, progress: !!it.progress });
                     if (r.error) return this.flash(r.error, false);
                     it.saved = it.desc || '';
                     it.savedDef = !!it.default;
+                    it.savedProg = !!it.progress;
                     if (it.default) this.current.items.forEach(o => { if (o !== it) { o.default = false; o.savedDef = false; } });
                     this.flash('Saved.');
                 },

@@ -349,8 +349,64 @@
         searchFields: (r) => [r.docid, r.cpny_id, r.vendorname, r.keperluan],
     };
 
+    // ── Zoom panel: meetings by email invitation; recordings are read from Zoom only when a row asks for them ──
+    const zoomRec = {}; // docid -> { open, loading, files, passcode, message }; kept here so the 20s refresh doesn't close it
+    types['zoom'] = {
+        icon: '🎥', badgeBg: 'bg-sky-100 dark:bg-sky-900/30',
+        title: (r) => r.title, link: null,
+        statusValue: (r) => (r.ended ? 'ENDED' : 'UPCOMING'),
+        status: (r) => (r.ended ? pill('Ended', GREY) : pill('Upcoming', 'bg-sky-100 text-sky-700 border-sky-200')),
+        // one compact line per meeting: details under the title, buttons beside the status badge
+        subtitle: (r) => joinDot([r.date, `${r.start} – ${r.end}`, r.location, r.organizer, r.docid]),
+        date: () => null,
+        searchFields: (r) => [r.title, r.docid, r.organizer, r.location],
+        buttons: (r) => {
+            const rec = zoomRec[r.docid];
+            let h = '';
+            if (r.join_url && !r.ended) {
+                h += `<a href="${esc(r.join_url)}" target="_blank" rel="noopener noreferrer" class="rounded-full bg-sky-500 px-3 py-0.5 text-[11px] font-semibold text-white transition hover:bg-sky-600">Join Zoom</a>`;
+            }
+            if (r.can_record) {
+                const label = rec && rec.loading ? 'Loading…' : (rec && rec.open ? 'Hide recording' : 'Recording');
+                h += `<button type="button" data-zoom-rec="${esc(r.docid)}" class="rounded-full bg-white px-3 py-0.5 text-[11px] font-semibold text-sky-700 ring-1 ring-sky-300 transition hover:bg-sky-100 dark:bg-transparent dark:text-sky-300 dark:ring-sky-500/40">${label}</button>`;
+            }
+            return h;
+        },
+        actions: (r) => {
+            const rec = zoomRec[r.docid];
+            let h = '';
+            if (rec && rec.open && !rec.loading) {
+                h += '<div class="mt-2 space-y-1">';
+                if (rec.message) h += `<p class="text-[11px] text-slate-500 dark:text-slate-400">${esc(rec.message)}</p>`;
+                (rec.files || []).forEach((f) => {
+                    h += `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer" class="mr-1 inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-semibold text-sky-700 ring-1 ring-sky-200 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-300 dark:ring-sky-500/30">${esc(f.label)}<span class="font-normal text-slate-400">${esc(f.type)}</span></a>`;
+                });
+                if (rec.passcode && (rec.files || []).length) h += `<p class="text-[11px] text-slate-500 dark:text-slate-400">Passcode: <span class="font-mono font-semibold">${esc(rec.passcode)}</span></p>`;
+                h += '</div>';
+            }
+            return h;
+        },
+        bind: (root, list, redraw) => {
+            list.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-zoom-rec]');
+                if (!btn) return;
+                const id = btn.dataset.zoomRec;
+                const rec = zoomRec[id];
+                if (rec && rec.files !== undefined) { rec.open = !rec.open; redraw(); return; } // already fetched: just toggle
+                zoomRec[id] = { open: true, loading: true };
+                redraw();
+                fetch(`/todo/meetings/${encodeURIComponent(id)}/recording`, { headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' } })
+                    .then((r) => r.json().catch(() => ({})).then((j) => ({ ok: r.ok, j })))
+                    .then(({ ok, j }) => { zoomRec[id] = { open: true, files: j.files || [], passcode: j.passcode || null, message: ok ? (j.message || null) : (j.message || 'Could not load the recording.') }; })
+                    .catch(() => { zoomRec[id] = { open: true, files: [], message: 'Could not load the recording.' }; })
+                    .then(redraw);
+            });
+        },
+    };
+
     function renderCard(cfg, row) {
-        const status = cfg.status ? cfg.status(row) : '';
+        let status = cfg.status ? cfg.status(row) : '';
+        if (cfg.buttons) status = `<span class="flex shrink-0 items-center gap-2">${cfg.buttons(row)}${status}</span>`;
         const href = cfg.link ? cfg.link(row) : null;
         let body;
         if (cfg.fields) {
@@ -375,6 +431,7 @@
                         ${status}
                     </div>
                     ${body}
+                    ${cfg.actions ? cfg.actions(row) : ''}
                 </div>`;
         return href
             ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" class="-mx-4 flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30">${inner}</a>`
@@ -391,7 +448,7 @@
         const el = { list: $('list'), empty: $('empty'), info: $('info'), prev: $('prev'), next: $('next'), search: $('search'),
             status: $('status'), pagesize: $('pagesize'), refresh: $('refresh'), openall: $('openall'), countdown: $('countdown') };
 
-        let rows = [], page = 0, pageSize = 10, hovering = false, pending = null, ctrl = null, remaining = REFRESH_SECONDS;
+        let rows = [], page = 0, pageSize = parseInt(el.pagesize.value, 10) || 10, hovering = false, pending = null, ctrl = null, remaining = REFRESH_SECONDS;
 
         const filtered = () => {
             const term = (el.search.value || '').trim().toLowerCase();
@@ -437,6 +494,7 @@
             hovering = false;
             if (pending) { rows = pending; pending = null; draw(); remaining = REFRESH_SECONDS; }
         });
+        if (cfg.bind) cfg.bind(root, el.list, draw);
         el.search.addEventListener('input', () => { page = 0; draw(); });
         if (el.status) el.status.addEventListener('change', () => { page = 0; draw(); });
         el.pagesize.addEventListener('change', () => { pageSize = parseInt(el.pagesize.value, 10) || 10; page = 0; draw(); });

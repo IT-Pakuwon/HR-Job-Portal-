@@ -31,8 +31,8 @@ class DashboardMenuController extends Controller
         $maps = $db->table('ms_dashboard_menu_map')->orderBy('sort_no')->get()
             ->groupBy('dash_cd')
             ->map(fn ($rows) => $rows->map(fn ($r) => $r->sys_menu_id
-                ? ['t' => 's', 'key' => $r->sys_menu_id, 'desc' => $r->menu_desc ?? '', 'default' => false]
-                : ['t' => 'c', 'key' => $r->menu_key, 'desc' => $r->menu_desc ?? '', 'default' => (bool) $r->is_default]
+                ? ['t' => 's', 'key' => $r->sys_menu_id, 'desc' => $r->menu_desc ?? '', 'default' => false, 'progress' => (bool) ($r->in_progress ?? true)]
+                : ['t' => 'c', 'key' => $r->menu_key, 'desc' => $r->menu_desc ?? '', 'default' => (bool) $r->is_default, 'progress' => (bool) ($r->in_progress ?? true)]
             )->values());
 
         $screenNames = $db->table('sys_screen')->where('application_id', 'DASHBOARD')->pluck('screen_name', 'screen_id');
@@ -134,6 +134,7 @@ class DashboardMenuController extends Controller
             'items.*.key'  => ['required', 'string', 'max:100'],
             'items.*.desc' => ['nullable', 'string', 'max:255'],
             'items.*.default' => ['nullable', 'boolean'],
+            'items.*.progress' => ['nullable', 'boolean'],
         ]);
 
         $items = collect($data['items'])->unique(fn ($i) => $i['t'] . '|' . $i['key'])->values();
@@ -160,7 +161,8 @@ class DashboardMenuController extends Controller
         $defaultKey = $items->first(fn ($i) => !empty($i['default']) && $i['t'] === 'c' && $panelKeys->contains($i['key']))['key'] ?? null;
 
         // Upsert rather than delete + re-insert, so a row keeps its id (and created_by/created_at) across saves.
-        $db->transaction(function ($db) use ($dash, $items, $defaultKey) {
+        $hasProgress = $this->hasProgressColumn($db);
+        $db->transaction(function ($db) use ($dash, $items, $defaultKey, $hasProgress) {
             $existing = $db->table('ms_dashboard_menu_map')->where('dash_cd', $dash)->get();
             $rowFor = fn ($it) => $existing->first(fn ($r) => $it['t'] === 'c' ? $r->menu_key === $it['key'] : $r->sys_menu_id === $it['key']);
 
@@ -172,6 +174,9 @@ class DashboardMenuController extends Controller
                     'is_default' => $it['t'] === 'c' && $it['key'] === $defaultKey,
                     'status'     => 'A',
                 ];
+                if ($hasProgress) {
+                    $values['in_progress'] = !array_key_exists('progress', $it) || (bool) $it['progress'];
+                }
                 if ($row = $rowFor($it)) {
                     $db->table('ms_dashboard_menu_map')->where('id', $row->id)->update($values);
                     $keep[] = $row->id;
@@ -298,7 +303,13 @@ class DashboardMenuController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /** Update only the subtitle / "open by default" of one tile already stored on a dashboard (t: 'c' catalog | 's' sidebar). */
+    /** The "Your Progress" flag needs database/sql/dashboard_menu.sql run first; without it everything stays counted. */
+    protected function hasProgressColumn($db): bool
+    {
+        return $db->getSchemaBuilder()->hasColumn('ms_dashboard_menu_map', 'in_progress');
+    }
+
+    /** Update only the subtitle / "open by default" / "Your Progress" flag of one tile already stored on a dashboard (t: 'c' catalog | 's' sidebar). */
     public function saveRow(Request $request, string $dash)
     {
         $dash = strtoupper($dash);
@@ -309,6 +320,7 @@ class DashboardMenuController extends Controller
             'key'  => ['required', 'string', 'max:100'],
             'desc' => ['nullable', 'string', 'max:255'],
             'default' => ['nullable', 'boolean'],
+            'progress' => ['nullable', 'boolean'],
         ]);
 
         $db = DB::connection(self::CONN);
@@ -319,10 +331,14 @@ class DashboardMenuController extends Controller
             ->where('menu_key', $data['key'])->whereNotNull('panel_key')->exists();
         $makeDefault = !empty($data['default']) && $isPanel;
 
-        $updated = $row()->update([
+        $values = [
             'menu_desc'  => ($data['desc'] ?? '') !== '' ? $data['desc'] : null,
             'is_default' => $makeDefault,
-        ]);
+        ];
+        if ($this->hasProgressColumn($db)) {
+            $values['in_progress'] = !array_key_exists('progress', $data) || (bool) $data['progress'];
+        }
+        $updated = $row()->update($values);
         if ($updated && $makeDefault) {
             // one default per dashboard
             $db->table('ms_dashboard_menu_map')->where('dash_cd', $dash)

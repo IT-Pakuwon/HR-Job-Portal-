@@ -1,4 +1,4 @@
-@props(['type', 'url', 'title' => '', 'statuses' => []])
+@props(['type', 'url', 'title' => '', 'statuses' => [], 'pageSizes' => [10, 25, 50, 100], 'pageSize' => 10])
 {{-- Shared frame of a panel template: filter bar, list, pagination. Behaviour lives in
      public/assets/js/Dashboard-Panel/dash-panel.js (DashPanel.types[type] says how a row is drawn).
      Everything is found through data-dp inside this element, so several panels can sit on one page. --}}
@@ -41,7 +41,9 @@
             <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                 <span class="hidden shrink-0 sm:inline">Show</span>
                 <select data-dp="pagesize" class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                    <option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+                    @foreach ($pageSizes as $n)
+                        <option value="{{ $n }}" @selected($n == $pageSize)>{{ $n }}</option>
+                    @endforeach
                 </select>
                 <span class="hidden shrink-0 sm:inline">Entries</span>
             </div>

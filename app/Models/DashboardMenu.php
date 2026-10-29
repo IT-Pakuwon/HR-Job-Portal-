@@ -67,6 +67,7 @@ class DashboardMenu extends Model
             'om-summary'             => 'OM · Summary',
             'gm-summary'             => 'GM · Summary',
             'my-activity'            => 'My Activity',
+            'zoom'                   => 'Zoom',
         ];
     }
 
@@ -167,6 +168,7 @@ class DashboardMenu extends Model
                     'kind'  => 'menu',
                     'external' => false,
                     'badge' => static::BADGES['sys:' . $m->menu_id] ?? null,
+                    'progress' => (bool) ($row->in_progress ?? true),
                     'icon'  => $m->menu_icon,
                 ];
             }
@@ -183,6 +185,7 @@ class DashboardMenu extends Model
                 'external' => (bool) $t->external_url,
                 'badge' => $t->panel_key ? (static::BADGES['panel:' . $t->panel_key] ?? (static::panelUrl($t->panel_key) ? 'p:' . $t->panel_key : null)) : null, // a panel without a list (the Summary panels) has nothing to count, so no bubble and no "All clear" row
                 'panel' => $t->panel_key,
+                'progress' => (bool) ($row->in_progress ?? true), // admin choice per dashboard: does its count appear in "Your Progress"
                 'kind'  => $t->panel_key ? 'panel' : ($t->external_url ? 'link' : 'menu'),
                 // the user's own pin wins over the admin default
                 'default' => $t->panel_key ? (bool) ($prefs[$t->panel_key] ?? ($row->is_default ?? false)) : false,

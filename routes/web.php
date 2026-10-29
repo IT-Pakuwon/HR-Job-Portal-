@@ -2841,6 +2841,8 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('todo')->controller(TodoController::class)->name('todo.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
+            Route::get('/zoom-json', 'zoomJson')->name('zoom-json');
+            Route::get('/meetings/{docid}/recording', 'recording')->name('recording');
             Route::put('/{id}', 'update')->name('update');
             Route::delete('/{id}', 'destroy')->name('destroy');
         });

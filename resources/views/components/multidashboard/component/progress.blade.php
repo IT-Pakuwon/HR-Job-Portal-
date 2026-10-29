@@ -1,7 +1,8 @@
 @props(['compact' => false])
 {{-- Your Progress: what is still outstanding on this dashboard's panels. Fed by the Main Menu tile counts
      (component/menu emits `dash-progress`); renders nothing when the dashboard has no count-bearing tile.
-     Progress = how much of today's peak backlog has been cleared (peak is remembered per day in this browser). --}}
+     Progress = done / (done + left). Approval reports what the user approved or rejected today (server count);
+     sources without one fall back to how far today's peak backlog has fallen (peak is remembered per day in this browser). --}}
 <style>
     @keyframes dp-confetti-kf {
         0%   { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
@@ -73,8 +74,9 @@
         </div>
 
         {{-- What is left: a checklist, one row per panel --}}
-        <ul class="min-w-0 divide-y divide-gray-100 self-center overflow-hidden rounded-xl border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
-            <template x-for="p in items" :key="p.badge">
+        <div class="min-w-0 self-center">
+        <ul class="min-w-0 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
+            <template x-for="p in pagedItems" :key="p.badge">
                 <li>
                     <button type="button" @click="open(p)"
                         class="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-indigo-50/60 dark:hover:bg-gray-700/50">
@@ -107,6 +109,12 @@
                 </li>
             </template>
         </ul>
+        <div x-show="pageCount > 1" class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400" style="display: none;">
+            <button type="button" @click="page--" :disabled="page <= 1" class="rounded-lg px-2 py-1 font-semibold hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-700">&lsaquo; Prev</button>
+            <span x-text="page + ' / ' + pageCount"></span>
+            <button type="button" @click="page++" :disabled="page >= pageCount" class="rounded-lg px-2 py-1 font-semibold hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-700">Next &rsaquo;</button>
+        </div>
+        </div>
     </div>
 </div>
 
@@ -115,9 +123,10 @@ function progressCard() {
     const first = @js(\Illuminate\Support\Str::of(auth()->user()->name ?? '')->before(' ')->lower()->title()->toString());
     const now = new Date(); // local date: toISOString() is UTC, which rolls the "day" over at 07:00 in Jakarta
     const day = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-    const key = 'dashProgressPeak:' + location.pathname + ':' + day;
-    const readPeak = () => { try { return parseInt(localStorage.getItem(key), 10) || 0; } catch (e) { return 0; } };
-    const writePeak = n => { try { localStorage.setItem(key, String(n)); } catch (e) {} };
+    // Peak backlog per item (badge) for today: an item taken out of Progress by an admin stops counting, with its peak.
+    const key = 'dashProgressPeak3:' + location.pathname + ':' + day;
+    const readPeaks = () => { try { const p = JSON.parse(localStorage.getItem(key) || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; } };
+    const writePeaks = o => { try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {} };
     const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#ec4899'];
 
     const icons = {
@@ -134,12 +143,21 @@ function progressCard() {
 
     return {
         items: window.__dashProgress || [],
-        peak: readPeak(),
+        peaks: readPeaks(),
         sawOutstanding: false,
         burst: false,
         confetti: [],
 
+        page: 1,
+        perPage: 3,
+
         init() { this.update(this.items); },
+
+        get pageCount() { return Math.max(1, Math.ceil(this.items.length / this.perPage)); },
+        get pagedItems() {
+            const p = Math.min(Math.max(this.page, 1), this.pageCount);
+            return this.items.slice((p - 1) * this.perPage, p * this.perPage);
+        },
 
         tone(p) { return p.count === 0 ? { bar: 'bg-emerald-400', icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' } : tones[kind(p)]; },
         iconPath(p) { return icons[kind(p)]; },
@@ -147,8 +165,18 @@ function progressCard() {
         // counts are null until each source has answered, so "all done" is never claimed too early
         get ready() { return this.items.length > 0 && this.items.every(i => i.count !== null); },
         get left() { return this.items.reduce((n, p) => n + (p.count || 0), 0); },
-        get total() { return Math.max(this.peak, this.left); },
-        get done() { return this.total - this.left; },
+        // Sources the server can count (approval: lines approved/rejected today) report `done` themselves.
+        // The rest (mailbox, panels) only know what is left, so their "done" is how far each one's backlog fell from its own peak today.
+        get serverDone() { return this.items.reduce((n, p) => n + (typeof p.done === 'number' ? p.done : 0), 0); },
+        get localDone() {
+            return this.items.reduce((n, p) => {
+                if (typeof p.done === 'number') return n;
+                const c = p.count || 0;
+                return n + Math.max(this.peaks[p.badge] || 0, c) - c;
+            }, 0);
+        },
+        get done() { return this.serverDone + this.localDone; },
+        get total() { return this.done + this.left; },
         get pct() { return this.total > 0 ? Math.round(this.done * 100 / this.total) : 100; },
 
         get greeting() {
@@ -184,7 +212,11 @@ function progressCard() {
             this.items = items || [];
             if (!this.ready) return;
             const left = this.left;
-            if (left > this.peak) { this.peak = left; writePeak(left); }
+            let changed = false;
+            this.items.forEach(p => {
+                if (typeof p.done !== 'number' && (p.count || 0) > (this.peaks[p.badge] || 0)) { this.peaks[p.badge] = p.count; changed = true; }
+            });
+            if (changed) writePeaks(this.peaks);
             if (left > 0) this.sawOutstanding = true;
             if (left === 0 && this.sawOutstanding) { this.sawOutstanding = false; this.celebrate(); }
         },

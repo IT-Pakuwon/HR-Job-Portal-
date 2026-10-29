@@ -110,3 +110,6 @@ CREATE TABLE IF NOT EXISTS ms_dashboard_menu_user_pref (
     updated_at   TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
     PRIMARY KEY (username, dash_cd, panel_key)
 );
+
+-- Per dashboard: should this tile's count appear in "Your Progress" (the To Do card)? Admin toggles it in /dashboard-menu.
+ALTER TABLE ms_dashboard_menu_map ADD COLUMN IF NOT EXISTS in_progress BOOLEAN NOT NULL DEFAULT TRUE;

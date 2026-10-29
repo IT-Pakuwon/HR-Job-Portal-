@@ -18,7 +18,7 @@
     // template panels whose tile carries a count bubble (counted server-side by DashboardMenuController::badges)
     $panelBadgeKeys = $templateItems->filter(fn ($i) => str_starts_with((string) ($i['badge'] ?? ''), 'p:'))->pluck('panel')->values()->all();
     // "Your Progress" (To Do card): one line per tile that carries a count, in tile order
-    $progressItems = $menuItems->filter(fn ($i) => !empty($i['badge']))->map(fn ($i) => [
+    $progressItems = $menuItems->filter(fn ($i) => !empty($i['badge']) && ($i['progress'] ?? true))->map(fn ($i) => [
         'badge' => $i['badge'],
         'label' => match ($i['badge']) {
             'approval' => 'Waiting Approval',
@@ -85,6 +85,8 @@
                 } catch (e) { this.pins = before; }
             },
             badges: { mailbox: 0, approval: window.__approvalWaiting || 0 },
+            // what the user actually did today, where the server can tell (approval); other sources have no entry
+            handled: { approval: window.__approvalHandled || 0 },
             // which count sources have answered yet (Your Progress waits for them)
             ready: { panel: false, mailbox: false, approval: window.__approvalWaiting !== undefined },
             async loadPanelBadges() {
@@ -102,7 +104,7 @@
             },
             // Tells the To Do card (Your Progress) what is left, whenever a count changes.
             emitProgress() {
-                const items = @js($progressItems).map(i => ({ ...i, count: this.ready[i.badge.startsWith('p:') ? 'panel' : i.badge] ? (this.badges[i.badge] || 0) : null }));
+                const items = @js($progressItems).map(i => ({ ...i, count: this.ready[i.badge.startsWith('p:') ? 'panel' : i.badge] ? (this.badges[i.badge] || 0) : null, done: this.handled[i.badge] }));
                 window.__dashProgress = items;
                 window.dispatchEvent(new CustomEvent('dash-progress', { detail: items }));
             },
@@ -119,7 +121,7 @@
                 @endif
             }
         }"
-        @approval-summary.window="badges.approval = $event.detail.waiting; ready.approval = true; emitProgress()"
+        @approval-summary.window="badges.approval = $event.detail.waiting; handled.approval = $event.detail.handled || 0; ready.approval = true; emitProgress()"
         @dash-open-panel.window="panel = $event.detail.panel; $nextTick(() => (($event.detail.host ? document.getElementById('dashForeignPanelHost') : $refs.omPanel))?.scrollIntoView({ behavior: 'smooth', block: 'start' }))">
 
         <div class="flex items-center justify-between" :class="expanded ? 'mb-3' : ''">

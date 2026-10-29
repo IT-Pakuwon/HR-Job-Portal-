@@ -102,7 +102,20 @@
                                     <span x-show="!selected" x-text="shortDate(m.date) + ' · '"></span><span x-text="m.start + ' – ' + m.end"></span>
                                     <span x-show="m.location || m.online" x-text="' · ' + [m.location, m.online].filter(Boolean).join(' · ')"></span>
                                 </span>
+                                <div x-show="m.rec" class="mt-1.5 space-y-1" style="display: none;">
+                                    <p x-show="m.rec && m.rec.message" class="text-[11px] text-gray-500 dark:text-gray-400" x-text="m.rec && m.rec.message"></p>
+                                    <template x-for="f in (m.rec ? m.rec.files : [])" :key="f.url">
+                                        <a :href="f.url" target="_blank" rel="noopener noreferrer"
+                                            class="mr-1 inline-flex items-center gap-1 rounded-md bg-white px-2 py-0.5 text-[11px] font-semibold text-sky-700 ring-1 ring-sky-200 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-300 dark:ring-sky-500/30">
+                                            <span x-text="f.label"></span><span class="font-normal text-gray-400" x-text="f.type"></span>
+                                        </a>
+                                    </template>
+                                    <p x-show="m.rec && m.rec.passcode && m.rec.files.length" class="text-[11px] text-gray-500 dark:text-gray-400">Passcode: <span class="font-mono font-semibold" x-text="m.rec && m.rec.passcode"></span></p>
+                                </div>
                             </div>
+                            <button type="button" x-show="m.can_record" @click="openRecording(m)" :disabled="m.recLoading"
+                                class="shrink-0 rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold text-sky-700 ring-1 ring-sky-300 transition hover:bg-sky-100 disabled:opacity-50 dark:bg-transparent dark:text-sky-300 dark:ring-sky-500/40"
+                                x-text="m.recLoading ? 'Loading…' : 'Recording'" style="display: none;"></button>
                             <a x-show="m.join_url" :href="m.join_url" target="_blank" rel="noopener noreferrer"
                                 class="shrink-0 rounded-full bg-sky-500 px-2.5 py-0.5 text-[10px] font-semibold text-white transition hover:bg-sky-600"
                                 x-text="'Join ' + (m.online || 'meeting')" style="display: none;"></a>
@@ -115,7 +128,7 @@
                 <div class="min-w-0">
                 <p x-show="visibleMeetings.length" class="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500" style="display: none;">Tasks</p>
                 <ul class="max-h-72 space-y-1.5 overflow-y-auto pr-1">
-                    <template x-for="t in visible" :key="t.id">
+                    <template x-for="t in pagedVisible" :key="t.id">
                         <li class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 transition hover:border-indigo-200 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-indigo-500/40">
                             <input type="checkbox" :checked="t.is_done" @change="toggle(t)"
                                 class="h-4 w-4 shrink-0 cursor-pointer rounded-full border-gray-300 text-emerald-500 focus:ring-emerald-400">
@@ -146,6 +159,11 @@
                         <span class="text-xs text-gray-400 dark:text-gray-500">Type above and press Enter to add one.</span>
                     </li>
                 </ul>
+                <div x-show="pageCount > 1" class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400" style="display: none;">
+                    <button type="button" @click="page--" :disabled="page <= 1" class="rounded-lg px-2 py-1 font-semibold hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-700">&lsaquo; Prev</button>
+                    <span x-text="page + ' / ' + pageCount"></span>
+                    <button type="button" @click="page++" :disabled="page >= pageCount" class="rounded-lg px-2 py-1 font-semibold hover:bg-gray-100 disabled:opacity-30 dark:hover:bg-gray-700">Next &rsaquo;</button>
+                </div>
                 </div>
                 </div>
             </div>
@@ -175,8 +193,11 @@ function todoList() {
         newDate: iso(new Date()),
         editing: null,
         editTitle: '',
+        page: 1,
+        perPage: 5,
 
         init() {
+            this.$watch('selected', () => { this.page = 1; });
             try { this.expanded = localStorage.getItem('todo_expanded') !== '0'; } catch (e) {}
             this.load();
         },
@@ -189,7 +210,7 @@ function todoList() {
         async load() {
             try {
                 const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                if (res.ok) { const j = await res.json(); this.items = j.data || []; this.holidays = j.holidays || {}; this.meetings = j.meetings || []; }
+                if (res.ok) { const j = await res.json(); this.items = j.data || []; this.holidays = j.holidays || {}; this.meetings = (j.meetings || []).map(m => ({ ...m, rec: null, recLoading: false })); }
             } catch (e) { console.error('todo load failed', e); }
             this.loading = false;
         },
@@ -232,6 +253,19 @@ function todoList() {
             return { done, total: list.length, pct: list.length ? Math.round(done * 100 / list.length) : 0 };
         },
 
+        async openRecording(m) {
+            if (m.rec) { m.rec = null; return; }
+            m.recLoading = true;
+            try {
+                const res = await fetch(`${url}/meetings/${encodeURIComponent(m.docid)}/recording`, { headers: { 'Accept': 'application/json' } });
+                const j = await res.json().catch(() => ({}));
+                m.rec = { files: j.files || [], passcode: j.passcode || null, message: res.ok ? (j.message || null) : (j.message || 'Could not load the recording.') };
+            } catch (e) {
+                m.rec = { files: [], passcode: null, message: 'Could not load the recording.' };
+            }
+            m.recLoading = false;
+        },
+
         get visibleMeetings() {
             return this.selected ? this.meetings.filter(m => m.date === this.selected) : this.meetings.filter(m => m.date >= this.today);
         },
@@ -240,6 +274,12 @@ function todoList() {
 
         get visible() {
             return this.selected ? this.items.filter(t => t.due_date === this.selected) : this.items;
+        },
+
+        get pageCount() { return Math.max(1, Math.ceil(this.visible.length / this.perPage)); },
+        get pagedVisible() {
+            const p = Math.min(Math.max(this.page, 1), this.pageCount);
+            return this.visible.slice((p - 1) * this.perPage, p * this.perPage);
         },
 
         countFor(day) {

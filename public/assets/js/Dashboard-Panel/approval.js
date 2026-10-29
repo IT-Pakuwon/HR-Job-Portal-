@@ -171,7 +171,8 @@
 
         // Let other widgets (e.g. the dashboard Menu tile badge) show the same waiting count.
         window.__approvalWaiting = data.waiting || 0;
-        window.dispatchEvent(new CustomEvent('approval-summary', { detail: { waiting: window.__approvalWaiting } }));
+        window.__approvalHandled = data.handled_today || 0;
+        window.dispatchEvent(new CustomEvent('approval-summary', { detail: { waiting: window.__approvalWaiting, handled: window.__approvalHandled } }));
 
         const stats = {
             waiting: { count: data.waiting || 0 },
