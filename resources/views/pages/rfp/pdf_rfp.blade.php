@@ -310,13 +310,11 @@
         <tr>
             <td class="label">Department</td>
             <td class="colon">:</td>
-            <td colspan="4">{{ $rfp->department_id ?: '-' }}</td>
-        </tr>
+            <td>{{ $rfp->department_id ?: '-' }}</td>
 
-        <tr>
             <td class="label">Jumlah/Amount</td>
             <td class="colon">:</td>
-            <td colspan="4" class="nowrap">Rp {{ number_format((float) $rfp->rfp_amount, 0, ',', '.') }}</td>
+            <td class="nowrap">Rp {{ number_format((float) $rfp->rfp_amount, 0, ',', '.') }}</td>
         </tr>
 
         <tr>

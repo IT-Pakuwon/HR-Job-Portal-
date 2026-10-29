@@ -525,6 +525,12 @@
         </thead>
 
         <tbody>
+            <tr>
+                <td>-</td>
+                <td>{{ $created_by_name ?: $created_by_username ?: '-' }}</td>
+                <td>{{ $req_date_fmt ?? '-' }}</td>
+                <td><span class="approval-badge approval-approved">Created</span></td>
+            </tr>
             @forelse ($approval as $dt2)
                 @php
                     $label = match ($dt2->status) {
