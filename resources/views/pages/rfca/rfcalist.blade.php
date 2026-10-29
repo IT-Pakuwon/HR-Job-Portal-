@@ -115,14 +115,14 @@
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Rfca</h1>
 
-                <div id="rfcaTypeFilterWrap" class="flex items-center gap-2">
-                    <label for="rfcaTypeFilter" class="text-sm font-medium text-gray-600 dark:text-gray-300">Rfca Type</label>
-                    <select id="rfcaTypeFilter"
-                        class="rounded-md border border-gray-300 bg-white py-1 pl-2 pr-8 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                        <option value="">All</option>
-                        <option value="RFCA">RFCA</option>
-                        <option value="RFP">RFP</option>
-                    </select>
+                <div id="rfcaTypeFilterWrap" class="flex items-center gap-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Rfca Type</span>
+                    <input type="hidden" id="rfcaTypeFilter" value="">
+                    <div class="inline-flex items-center gap-0.5 rounded-full bg-gray-100 p-0.5 dark:bg-white/10" role="group" aria-label="Filter by Rfca Type">
+                        <button type="button" data-type="" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">All</button>
+                        <button type="button" data-type="RFCA" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFCA</button>
+                        <button type="button" data-type="RFP" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFP</button>
+                    </div>
                 </div>
             </div>
 
@@ -281,7 +281,7 @@
                 // Jobs rows have no rfca_type yet, so the filter is meaningless there
                 const isJobs = sc === 'rfcajobs';
                 $('#rfcaTypeFilterWrap').toggleClass('hidden', isJobs);
-                if (isJobs) $('#rfcaTypeFilter').val('');
+                if (isJobs) setTypeFilter('');
             }
 
             function resetThead(sc) {
@@ -468,9 +468,32 @@
                 });
             });
 
-            $('#rfcaTypeFilter').on('change', function() {
+            const typeBtnActive = {
+                '': 'bg-white text-gray-800 shadow-sm dark:bg-gray-600 dark:text-white',
+                RFCA: 'bg-blue-100 text-blue-700 shadow-sm dark:bg-blue-800/40 dark:text-blue-300',
+                RFP: 'bg-purple-100 text-purple-700 shadow-sm dark:bg-purple-800/40 dark:text-purple-300',
+            };
+            const typeBtnIdle = 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200';
+
+            // Single place that updates both the hidden value and the pill highlight
+            function setTypeFilter(val) {
+                $('#rfcaTypeFilter').val(val);
+                $('.rfca-type-btn').each(function() {
+                    const t = $(this).data('type');
+                    $(this)
+                        .removeClass(Object.values(typeBtnActive).join(' ') + ' ' + typeBtnIdle)
+                        .addClass(t === val ? typeBtnActive[t] : typeBtnIdle);
+                });
+            }
+
+            $('.rfca-type-btn').on('click', function() {
+                const val = $(this).data('type');
+                if (val === $('#rfcaTypeFilter').val()) return;
+                setTypeFilter(val);
                 table.ajax.reload();
             });
+
+            setTypeFilter('');
 
             // init
             updateTitle(scope);
