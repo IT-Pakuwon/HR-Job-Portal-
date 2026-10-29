@@ -404,6 +404,119 @@
         },
     };
 
+    // ── Plaud panel: recordings of the Plaud account(s) mapped to this dashboard for the user's company.
+    // Clicking a row opens its summary in a modal that only the X or the Close button can dismiss. ──
+    const plaudRows = {};  // meeting id -> row, so a click can show its header without asking the server again
+    const plaudSum = {};   // meeting id -> { summaries, message } once fetched (an empty/pending answer is asked again)
+    // Summaries are markdown; headings, bold/italic, bullets, quotes and rules are enough here. Everything is escaped first.
+    const mdLite = (text) => esc(text).split('\n').map((line) => {
+        const t = line.trim();
+        if (!t) return '<div class="h-1.5"></div>';
+        if (/^-{3,}$/.test(t)) return '<hr class="my-2 border-slate-200 dark:border-slate-700">';
+        const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
+        const q = t.match(/^&gt;\s?(.*)$/); // a "> quote" line (escaped by esc())
+        if (q) return `<div class="border-l-2 border-slate-300 pl-3 text-slate-500 dark:border-slate-600 dark:text-slate-400">${inline(q[1])}</div>`;
+        const h = t.match(/^#{1,6}\s+(.*)$/);
+        if (h) return `<div class="mt-3 text-sm font-bold text-slate-800 dark:text-slate-100">${inline(h[1])}</div>`;
+        const li = t.match(/^[-*•]\s+(.*)$/);
+        if (li) return `<div class="flex gap-1.5 pl-1"><span class="text-slate-400">•</span><span>${inline(li[1])}</span></div>`;
+        return `<div>${inline(t)}</div>`;
+    }).join('');
+
+    // One modal for the whole page, created on first use. Deliberately NOT closable by Esc or a click outside:
+    // only the X in the header and the Close button in the footer.
+    let plaudModal = null;
+    function plaudModalEl() {
+        if (plaudModal) return plaudModal;
+        const el = document.createElement('div');
+        el.className = 'fixed inset-0 z-[100] hidden items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm';
+        el.setAttribute('role', 'dialog');
+        el.setAttribute('aria-modal', 'true');
+        el.innerHTML = `
+            <div class="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-800">
+                <div class="flex items-start gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+                    <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-lg dark:bg-violet-900/30">🎙️</span>
+                    <div class="min-w-0 flex-1">
+                        <h3 data-pm="title" class="text-base font-bold leading-snug text-slate-800 dark:text-slate-100"></h3>
+                        <p data-pm="meta" class="mt-0.5 text-xs text-slate-500 dark:text-slate-400"></p>
+                    </div>
+                    <button type="button" data-pm="x" title="Close" aria-label="Close"
+                        class="shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div data-pm="body" class="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300"></div>
+                <div class="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-3 dark:border-slate-700 dark:bg-slate-900/40">
+                    <button type="button" data-pm="close"
+                        class="rounded-lg bg-black px-5 py-1.5 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">Close</button>
+                </div>
+            </div>`;
+        document.body.appendChild(el);
+        const hide = () => { el.classList.add('hidden'); el.classList.remove('flex'); document.body.style.overflow = ''; };
+        el.querySelector('[data-pm="x"]').addEventListener('click', hide);
+        el.querySelector('[data-pm="close"]').addEventListener('click', hide);
+        el.__hide = hide;
+        plaudModal = el;
+        return el;
+    }
+
+    function plaudModalBody(id) {
+        const s = plaudSum[id];
+        if (!s) return '<p class="py-10 text-center text-slate-400">Loading the summary…</p>';
+        let h = '';
+        if (s.message) h += `<p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">${esc(s.message)}</p>`;
+        (s.summaries || []).forEach((m) => {
+            if (m.title) h += `<div class="text-sm font-bold text-slate-800 dark:text-slate-100">${esc(m.title)}</div>`;
+            if (m.content) h += `<div>${mdLite(m.content)}</div>`;
+            if ((m.action_items || []).length) {
+                h += '<div class="mt-3 text-sm font-bold text-slate-800 dark:text-slate-100">Action items</div>';
+                m.action_items.forEach((a) => { h += `<div class="flex gap-1.5 pl-1"><span class="text-slate-400">☐</span><span>${esc(typeof a === 'string' ? a : (a.text || a.title || a.task || JSON.stringify(a)))}</span></div>`; });
+            }
+        });
+        return h;
+    }
+
+    function plaudOpen(id, dash) {
+        const row = plaudRows[id] || {};
+        const el = plaudModalEl();
+        el.querySelector('[data-pm="title"]').textContent = row.title || 'Recording';
+        el.querySelector('[data-pm="meta"]').textContent = joinDot([row.date, row.duration, row.account]);
+        const body = el.querySelector('[data-pm="body"]');
+        const show = () => { body.innerHTML = plaudModalBody(id); };
+        el.classList.remove('hidden'); el.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        body.scrollTop = 0;
+
+        const cached = plaudSum[id];
+        if (cached && cached.summaries && cached.summaries.length) { show(); return; }
+        delete plaudSum[id];
+        show();
+        fetch(`/plaud/summary/${encodeURIComponent(id)}?dash=${encodeURIComponent(dash)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' } })
+            .then((r) => r.json().catch(() => ({})).then((j) => ({ ok: r.ok, j })))
+            .then(({ ok, j }) => { plaudSum[id] = { summaries: j.summaries || [], message: ok ? (j.message || null) : (j.message || 'Could not load the summary.') }; })
+            .catch(() => { plaudSum[id] = { summaries: [], message: 'Could not load the summary.' }; })
+            .then(show);
+    }
+
+    types['plaud'] = {
+        icon: '🎙️', badgeBg: 'bg-violet-100 dark:bg-violet-900/30',
+        title: (r) => r.title, link: null,
+        statusValue: (r) => (r.has_summary ? 'READY' : 'PENDING'),
+        status: (r) => (r.has_summary ? pill('Summary', 'bg-emerald-100 text-emerald-700 border-emerald-200') : pill('Pending', 'bg-amber-100 text-amber-700 border-amber-200')),
+        subtitle: (r) => joinDot([r.date, r.duration, r.account]),
+        date: () => null,
+        searchFields: (r) => [r.title, r.account, r.date],
+        // the whole row is the button
+        rowAttr: (r) => { plaudRows[r.id] = r; return `data-plaud-row="${esc(r.id)}" role="button" tabindex="0" title="Open the summary" class="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30"`; },
+        bind: (root, list) => {
+            // the dashboard code travels in the panel's own URL (?dash=), so the summary call uses the same scope
+            const dash = new URL(root.dataset.dpUrl, location.origin).searchParams.get('dash') || '';
+            const open = (e) => { const row = e.target.closest('[data-plaud-row]'); if (row) plaudOpen(row.dataset.plaudRow, dash); };
+            list.addEventListener('click', open);
+            list.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(e); } });
+        },
+    };
+
     function renderCard(cfg, row) {
         let status = cfg.status ? cfg.status(row) : '';
         if (cfg.buttons) status = `<span class="flex shrink-0 items-center gap-2">${cfg.buttons(row)}${status}</span>`;
@@ -435,7 +548,9 @@
                 </div>`;
         return href
             ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" class="-mx-4 flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30">${inner}</a>`
-            : `<div class="-mx-4 flex items-start gap-3 px-4 py-3">${inner}</div>`;
+            : (cfg.rowAttr
+                ? `<div ${cfg.rowAttr(row).replace('class="', 'class="-mx-4 flex items-start gap-3 px-4 py-3 ')}>${inner}</div>`
+                : `<div class="-mx-4 flex items-start gap-3 px-4 py-3">${inner}</div>`);
     }
 
     function mount(root) {

@@ -2847,6 +2847,12 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', 'destroy')->name('destroy');
         });
 
+        // Plaud panel: recordings/summaries of the Plaud accounts mapped to the user's companies on a dashboard (see PlaudScope)
+        Route::prefix('plaud')->controller(App\Http\Controllers\PlaudController::class)->name('plaud.')->group(function () {
+            Route::get('/panel-json', 'panelJson')->name('panel-json');
+            Route::get('/summary/{id}', 'summary')->whereNumber('id')->name('summary');
+        });
+
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/toggle', 'toggle')->name('toggle');
@@ -3248,6 +3254,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/dashboard-menu/tile', [DashboardMenuController::class, 'saveTile'])->name('dashboard-menu.tile');
         Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');
         Route::patch('/dashboard-menu/map/{dash}/row', [DashboardMenuController::class, 'saveRow'])->name('dashboard-menu.map.row');
+        Route::get('/dashboard-menu/plaud/{dash}', [App\Http\Controllers\PlaudController::class, 'adminShow'])->name('dashboard-menu.plaud');
+        Route::put('/dashboard-menu/plaud/{dash}', [App\Http\Controllers\PlaudController::class, 'adminSave'])->name('dashboard-menu.plaud.save');
 
         // Dashboard Setup > Summary Setup (OM | GM switcher; layout of the Summary panels; table on pgsql2)
         Route::prefix('summary-setup')->controller(App\Http\Controllers\SummarySetupController::class)->group(function () {

@@ -2,7 +2,8 @@
     {{-- Hosted by Dashboard Setup (?embed=1): the title, section heading and dashboard picker are the host's, so they are left out here. --}}
     @php $embedded = request()->boolean('embed'); @endphp
     <div class="max-w-9xl mx-auto w-full p-2"
-        x-data="dashMenuAdmin(@js($tiles), @js($dashboards), @js($sysMenus), @js($templatePanelKeys))">
+        x-data="dashMenuAdmin(@js($tiles), @js($dashboards), @js($sysMenus), @js($templatePanelKeys))"
+        @dm-flash.window="flash($event.detail.text)">
 
         @unless ($embedded)
         <div class="mb-4 flex items-center gap-3">
@@ -57,7 +58,7 @@
                         </div>
                         <div class="max-h-72 overflow-y-auto p-1.5">
                             <template x-for="d in dashList" :key="d.code">
-                                <button type="button" @click="dash = d.code; dashOpen = false; dashQ = ''"
+                                <button type="button" @click="dash = d.code; dashOpen = false; dashQ = ''; plaudOpen = false"
                                     class="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
                                     :class="d.code === dash ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''">
                                     <span class="min-w-0 flex-1">
@@ -108,7 +109,7 @@
                                     class="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">Save</button>
                                 <span x-show="it.saved === null" x-cloak class="shrink-0 text-[11px] text-amber-600">Not saved yet — use Save all</span>
                             </div>
-                            <label x-show="info(it).kind === 'panel' || it.key === 'MAILBOX'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                            <label x-show="(info(it).kind === 'panel' && it.key !== 'PNL_PLAUD') || it.key === 'MAILBOX'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                 <input type="checkbox" x-model="it.progress" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                 <span class="font-semibold">Count in Your Progress</span>
                                 <span class="text-gray-400">— untick to keep its count bubble but leave it out of the "things left" checklist.</span>
@@ -118,6 +119,13 @@
                                 <span class="font-semibold">Open by default</span>
                                 <span class="text-gray-400">— for everyone. A user can pin or unpin it for themself on the dashboard.</span>
                             </label>
+                            {{-- the Plaud tile carries its own setup: which Plaud account(s) feed it, per company --}}
+                            <div x-show="it.t === 'c' && it.key === 'PNL_PLAUD'" x-cloak class="mt-2">
+                                <button type="button" @click="plaudOpen = true"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-600 shadow-sm transition hover:bg-violet-50 dark:border-violet-500/40 dark:bg-transparent dark:text-violet-300">
+                                    <i class="fa-solid fa-microphone-lines text-[10px]"></i> Update Plaud accounts
+                                </button>
+                            </div>
                         </li>
                     </template>
                     <li x-show="!current.items.length" class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-400 dark:border-white/10">
@@ -200,6 +208,7 @@
                     </span>
                 </div>
                 <p class="mt-3 text-[11px] leading-relaxed text-gray-400">Sidebar items appear only for users whose roles grant that menu — same as the sidebar. A dashboard only shows the Main Menu card if its view includes it, and panel tiles need that dashboard to contain the panel.</p>
+
             </section>
 
             {{-- ============ Custom tiles drawer (handle sticks to the right edge) ============ --}}
@@ -273,6 +282,87 @@
                 </ul>
                 </div>
             </aside>
+        </div>
+
+        {{-- ============ Plaud accounts (pop-up): which Plaud account(s) feed the Plaud panel of THIS dashboard, per company ============ --}}
+        <div id="plaudAccounts" x-data="plaudMap()"
+            x-effect="load(dash, has('c', 'PNL_PLAUD') && plaudOpen); if (!plaudOpen) { confirming = false; }; if (saved) { saved = false; plaudOpen = false; $dispatch('dm-flash', { text: 'Plaud accounts saved for ' + dash + '.' }); }"
+            x-show="has('c', 'PNL_PLAUD') && plaudOpen" x-cloak x-transition.opacity
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
+            @keydown.escape.window="confirming ? (confirming = false) : (plaudOpen = false)">
+            <div class="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800"
+                @click.outside="if (!confirming && !$event.target.closest('.select2-container, .select2-dropdown')) plaudOpen = false">
+
+                <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/10">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300"><i class="fa-solid fa-microphone-lines"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Plaud accounts</h3>
+                        <p class="truncate text-[11px] text-gray-400">Dashboard: <span class="font-semibold" x-text="currentDash.name"></span> <span class="font-mono" x-text="'(' + dash + ')'"></span></p>
+                    </div>
+                    <button type="button" @click="plaudOpen = false" class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10" title="Close"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Choose which Plaud account feeds the Plaud panel on this dashboard, for each company. A company can have more than one account (add a second row for the same company): its users then see the recordings of all of them. A user sees only the accounts set for their own companies.</p>
+
+                    <div x-show="msg" x-cloak class="mt-3 rounded-lg border px-3 py-1.5 text-xs" :class="ok ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'" x-text="msg"></div>
+
+                    <ul class="mt-3 space-y-2">
+                        <template x-for="(r, i) in rows" :key="i">
+                            <li class="flex flex-wrap items-center gap-2">
+                                {{-- searchable (select2): type a company code or name --}}
+                                <div class="min-w-0 flex-1">
+                                    <select x-select2="r.cpny_id" class="w-full">
+                                        <option value="">Company…</option>
+                                        <option value="*">★ All companies (every user of this dashboard)</option>
+                                        <template x-for="c in companies" :key="c.id">
+                                            <option :value="c.id" x-text="c.id + ' — ' + c.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <i class="fa-solid fa-arrow-right-long text-xs text-gray-400"></i>
+                                <div class="min-w-0 flex-1">
+                                    <select x-select2="r.plaud_account_id" data-s2-nosearch class="w-full">
+                                        <option value="">Plaud account…</option>
+                                        <option value="0">★ All Plaud accounts (including new ones)</option>
+                                        <template x-for="a in accounts" :key="a.id">
+                                            <option :value="a.id" :disabled="rows.some((o, j) => j !== i && o.cpny_id === r.cpny_id && String(o.plaud_account_id) === String(a.id))" x-text="a.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <button type="button" @click="rows.splice(i, 1)" class="rounded-md p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" title="Remove"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                            </li>
+                        </template>
+                        <li x-show="loaded && !rows.length" x-cloak class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-xs text-gray-400 dark:border-white/10">No company is set up: nobody sees any Plaud recording on this dashboard yet.</li>
+                    </ul>
+
+                    <button type="button" @click="rows.push({ cpny_id: '', plaud_account_id: '' })" class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-violet-300 bg-white px-3 py-1.5 text-xs font-semibold text-violet-600 transition hover:bg-violet-50 dark:border-violet-500/40 dark:bg-transparent dark:text-violet-300"><i class="fa-solid fa-plus text-[10px]"></i> Add company</button>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-3 dark:border-white/10 dark:bg-white/5">
+                    <button type="button" @click="plaudOpen = false" class="rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Cancel</button>
+                    <button type="button" @click="askSave()" :disabled="busy" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-50"><i class="fa-solid fa-floppy-disk text-[10px]"></i> Save Plaud accounts</button>
+                </div>
+
+                {{-- Verification before anything is written --}}
+                <div x-show="confirming" x-cloak x-transition.opacity class="absolute inset-0 z-[80] flex items-center justify-center bg-white p-6 dark:bg-gray-800">
+                    <div class="w-full max-w-md text-center">
+                        <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600"><i class="fa-solid fa-triangle-exclamation text-lg"></i></span>
+                        <h4 class="mt-3 text-sm font-bold text-gray-800 dark:text-gray-100">Save these Plaud accounts?</h4>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">This replaces the setup of <span class="font-semibold" x-text="dash"></span> and changes who can read which Plaud recordings right away.</p>
+                        <ul class="mx-auto mt-3 max-h-48 space-y-1 overflow-y-auto rounded-lg border border-gray-100 bg-gray-50 p-2 text-left text-xs dark:border-white/10 dark:bg-white/5">
+                            <template x-for="(line, i) in summary" :key="i">
+                                <li class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200"><i class="fa-solid fa-arrow-right text-[9px] text-gray-400"></i><span class="font-semibold" x-text="line.company"></span><span class="text-gray-400">→</span><span x-text="line.account"></span></li>
+                            </template>
+                            <li x-show="!summary.length" class="text-gray-400">No rows: nobody will see any Plaud recording on this dashboard.</li>
+                        </ul>
+                        <div class="mt-4 flex justify-center gap-2">
+                            <button type="button" @click="confirming = false" class="rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Back</button>
+                            <button type="button" @click="doSave(dash)" :disabled="busy" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-50"><i class="fa-solid fa-check text-[10px]"></i> Yes, save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- ============ Tile editor ============ --}}
@@ -434,13 +524,63 @@
                     minimumResultsForSearch: el.hasAttribute('data-s2-nosearch') ? Infinity : 0,
                 });
                 $el.on('change', () => Alpine.evaluate(el, expression + ' = __v', { scope: { __v: $el.val() } }));
-                effect(() => {
+                const sync = () => {
                     const v = String(Alpine.evaluate(el, expression) ?? '');
                     if ($el.val() !== v) $el.val(v).trigger('change.select2');
-                });
+                };
+                effect(sync);
+                Alpine.nextTick(sync); // options rendered by an x-for inside the select only exist after this directive ran
                 cleanup(() => { try { $el.off('change').select2('destroy'); } catch (e) { /* already gone */ } });
             });
         });
+        // Plaud accounts of the selected dashboard (company -> account). `dash` and the "tile is on this dashboard" flag come in from
+        // the template, because a nested component's methods cannot see the parent's data.
+        function plaudMap() {
+            const csrf = '{{ csrf_token() }}';
+            const url = (d) => '{{ url('/dashboard-menu/plaud') }}/' + d;
+            let loadedFor = null; // plain variable: not reactive, so editing rows never retriggers the load
+            return {
+                rows: [], companies: [], accounts: [], loaded: false, busy: false, msg: '', ok: true, confirming: false, saved: false,
+                coName(id) { return id === '*' ? 'All companies' : ((this.companies.find(c => c.id === id) || {}).name ? id + ' — ' + this.companies.find(c => c.id === id).name : id); },
+                acName(id) { return String(id) === '0' ? 'All Plaud accounts' : ((this.accounts.find(a => String(a.id) === String(id)) || {}).name || 'Account #' + id); },
+                // what the confirmation shows: every filled row, in words
+                get summary() { return this.rows.filter(r => r.cpny_id && r.plaud_account_id !== '' && r.plaud_account_id != null).map(r => ({ company: this.coName(r.cpny_id), account: this.acName(r.plaud_account_id) })); },
+                async load(dash, shown) {
+                    if (!dash || !shown || loadedFor === dash) return;
+                    loadedFor = dash; this.loaded = false; this.rows = [];
+                    try {
+                        const res = await fetch(url(dash), { headers: { 'Accept': 'application/json' } });
+                        if (!res.ok) throw new Error();
+                        const j = await res.json();
+                        this.companies = j.companies; this.accounts = j.accounts; this.rows = j.rows;
+                    } catch (e) { loadedFor = null; this.flash('Could not load the Plaud accounts.', false); }
+                    this.loaded = true;
+                },
+                // select2 hands back strings: the account id goes to the server as a number. '' = not chosen, 0 = every Plaud account.
+                cleanRows() {
+                    const unset = (v) => v === '' || v === null || v === undefined;
+                    return this.rows.map(r => ({ cpny_id: r.cpny_id, plaud_account_id: unset(r.plaud_account_id) ? null : Number(r.plaud_account_id) })).filter(r => r.cpny_id && r.plaud_account_id !== null);
+                },
+                // Step 1: validate, then ask "are you sure?" showing exactly what will be written.
+                askSave() {
+                    if (this.cleanRows().length !== this.rows.length) return this.flash('Pick a company and a Plaud account on every row, or remove the row.', false);
+                    this.msg = '';
+                    this.confirming = true;
+                },
+                // Step 2: the admin confirmed.
+                async doSave(dash) {
+                    this.busy = true;
+                    try {
+                        const res = await fetch(url(dash), { method: 'PUT', headers: { 'X-CSRF-TOKEN': csrf, 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ rows: this.cleanRows() }) });
+                        const j = await res.json().catch(() => ({}));
+                        if (res.ok) this.saved = true; // the modal closes and the page shows the success message
+                        else { this.confirming = false; this.flash(j.message || Object.values(j.errors || {}).flat()[0] || 'Save failed.', false); }
+                    } catch (e) { this.confirming = false; this.flash('Network error.', false); }
+                    this.busy = false;
+                },
+                flash(text, ok = true) { this.msg = text; this.ok = ok; setTimeout(() => this.msg = '', 4000); },
+            };
+        }
         function dashMenuAdmin(tiles, dashboards, sysMenus, templatePanelKeys) {
             const csrf = '{{ csrf_token() }}';
             const tileUrl = '{{ route('dashboard-menu.tile') }}';
@@ -460,7 +600,7 @@
                     }
                 },
                 dash: (dashboards.find(d => d.code === @js(request('dash'))) || dashboards[0])?.code, pickOpen: false, pickQ: '', pickType: 'menu', dashOpen: false, dashQ: '', drawer: false, tileType: 'all', iconQ: '', icons: @js($iconLibrary),
-                form: null, isNew: false, formError: '', busy: false, msg: '', ok: true,
+                form: null, isNew: false, formError: '', busy: false, msg: '', ok: true, plaudOpen: false,
 
                 get currentDash() { return this.dashboards.find(d => d.code === this.dash) || { code: '', name: '', items: [] }; },
                 get dashList() {

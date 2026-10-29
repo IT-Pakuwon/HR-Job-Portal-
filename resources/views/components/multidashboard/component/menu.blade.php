@@ -50,7 +50,7 @@
         <div x-show="panel === '{{ $ti['panel'] }}'" x-cloak class="min-w-0 overflow-x-auto" style="display: none;" @if (!empty($ti['default'])) x-init="panel = panel || '{{ $ti['panel'] }}'" @endif>
             <template x-if="panel === '{{ $ti['panel'] }}'">
                 <div>
-                    <x-dynamic-component :component="'panel.' . $ti['panel']" :title="$ti['name']" />
+                    <x-dynamic-component :component="'panel.' . $ti['panel']" :title="$ti['name']" :dash-cd="$dashCd" />
                 </div>
             </template>
         </div>

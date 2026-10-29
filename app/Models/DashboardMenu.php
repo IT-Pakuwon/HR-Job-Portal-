@@ -68,6 +68,7 @@ class DashboardMenu extends Model
             'gm-summary'             => 'GM · Summary',
             'my-activity'            => 'My Activity',
             'zoom'                   => 'Zoom',
+            'plaud'                  => 'Plaud',
         ];
     }
 
@@ -105,6 +106,9 @@ class DashboardMenu extends Model
      * Tiles that show a live count bubble. Key = 'sys:<sys_menu.menu_id>' or 'panel:<panel_key>',
      * value = the source the dashboard-menu component polls/listens to.
      */
+    /** Panels that list records rather than a backlog: no count bubble, so they never feed "Your Progress". */
+    public const NO_BADGE_PANELS = ['plaud'];
+
     public const BADGES = [
         'sys:MAILBOX'    => 'mailbox',   // unread emails (mailbox.unread-count)
         'panel:approval' => 'approval',  // waiting approvals (same number as the Approval Dashboard KPI)
@@ -183,7 +187,7 @@ class DashboardMenu extends Model
                 'desc'  => $row->menu_desc ?: $t->menu_desc,
                 'href'  => static::resolveHref($t->route_name, $t->external_url),
                 'external' => (bool) $t->external_url,
-                'badge' => $t->panel_key ? (static::BADGES['panel:' . $t->panel_key] ?? (static::panelUrl($t->panel_key) ? 'p:' . $t->panel_key : null)) : null, // a panel without a list (the Summary panels) has nothing to count, so no bubble and no "All clear" row
+                'badge' => $t->panel_key && !in_array($t->panel_key, static::NO_BADGE_PANELS, true) ? (static::BADGES['panel:' . $t->panel_key] ?? (static::panelUrl($t->panel_key) ? 'p:' . $t->panel_key : null)) : null, // a panel without a list (the Summary panels) has nothing to count, so no bubble and no "All clear" row
                 'panel' => $t->panel_key,
                 'progress' => (bool) ($row->in_progress ?? true), // admin choice per dashboard: does its count appear in "Your Progress"
                 'kind'  => $t->panel_key ? 'panel' : ($t->external_url ? 'link' : 'menu'),
