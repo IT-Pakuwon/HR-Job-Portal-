@@ -114,6 +114,16 @@
             <div
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Rfca</h1>
+
+                <div id="rfcaTypeFilterWrap" class="flex items-center gap-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Rfca Type</span>
+                    <input type="hidden" id="rfcaTypeFilter" value="">
+                    <div class="inline-flex items-center gap-0.5 rounded-full bg-gray-100 p-0.5 dark:bg-white/10" role="group" aria-label="Filter by Rfca Type">
+                        <button type="button" data-type="" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">All</button>
+                        <button type="button" data-type="RFCA" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFCA</button>
+                        <button type="button" data-type="RFP" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFP</button>
+                    </div>
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -169,6 +179,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Type</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
                 `;
             }
 
@@ -245,6 +256,13 @@
                             return `<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${colorClass}">${label}</span>`;
                         }
                     },
+                    {
+                        data: null,
+                        className: 'text-left no-export',
+                        orderable: false,
+                        searchable: false,
+                        render: (_v, _t, row) => renderActionButton(row)
+                    },
                 ];
             }
 
@@ -259,6 +277,11 @@
 
             function updateTitle(sc) {
                 $title.text(titleMap[sc] ?? 'Rfca');
+
+                // Jobs rows have no rfca_type yet, so the filter is meaningless there
+                const isJobs = sc === 'rfcajobs';
+                $('#rfcaTypeFilterWrap').toggleClass('hidden', isJobs);
+                if (isJobs) setTypeFilter('');
             }
 
             function resetThead(sc) {
@@ -306,7 +329,7 @@
                             title: 'List_RFCA',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
-                                columns: ':visible',
+                                columns: ':visible:not(.no-export)',
                                 modifier: {
                                     page: 'current'
                                 }
@@ -318,7 +341,7 @@
                             title: 'List_RFCA',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
-                                columns: ':visible',
+                                columns: ':visible:not(.no-export)',
                                 modifier: {
                                     page: 'current'
                                 }
@@ -344,6 +367,7 @@
                         type: "GET",
                         data: function(d) {
                             d.scope = sc;
+                            d.rfca_type = $('#rfcaTypeFilter').val();
                         }
                     },
                     columns: columnsFor(sc),
@@ -394,6 +418,82 @@
                 const url = row.showrfca_url || `/showrfca/${encodeURIComponent(hash)}`;
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
+
+            function renderActionButton(row) {
+                const hash = row.rfcaid_eid;
+                if (!row.can_process_step || !hash) return '';
+
+                return `<button type="button" data-hash="${hash}" data-rfcaid="${row.rfcaid}"
+                    class="btnProcessStep inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700">
+                    Process Step</button>`;
+            }
+
+            $(document).on('click', '.btnProcessStep', function(e) {
+                e.preventDefault();
+                const $btn = $(this);
+                const hash = $btn.data('hash');
+
+                Swal.fire({
+                    title: 'Approve Active Step?',
+                    text: `This will mark the current active step of ${$btn.data('rfcaid')} as Approved.`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $btn.prop('disabled', true);
+                    $.ajax({
+                        url: `/rfca/${encodeURIComponent(hash)}/approve-step`,
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                toastr.success(res.message || 'Active RFCA Step approved.');
+                                table.ajax.reload(null, false);
+                            } else {
+                                toastr.error(res.message || 'Failed to approve RFCA Step.');
+                                $btn.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || 'Failed to approve RFCA Step.');
+                            $btn.prop('disabled', false);
+                        }
+                    });
+                });
+            });
+
+            const typeBtnActive = {
+                '': 'bg-white text-gray-800 shadow-sm dark:bg-gray-600 dark:text-white',
+                RFCA: 'bg-blue-100 text-blue-700 shadow-sm dark:bg-blue-800/40 dark:text-blue-300',
+                RFP: 'bg-purple-100 text-purple-700 shadow-sm dark:bg-purple-800/40 dark:text-purple-300',
+            };
+            const typeBtnIdle = 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200';
+
+            // Single place that updates both the hidden value and the pill highlight
+            function setTypeFilter(val) {
+                $('#rfcaTypeFilter').val(val);
+                $('.rfca-type-btn').each(function() {
+                    const t = $(this).data('type');
+                    $(this)
+                        .removeClass(Object.values(typeBtnActive).join(' ') + ' ' + typeBtnIdle)
+                        .addClass(t === val ? typeBtnActive[t] : typeBtnIdle);
+                });
+            }
+
+            $('.rfca-type-btn').on('click', function() {
+                const val = $(this).data('type');
+                if (val === $('#rfcaTypeFilter').val()) return;
+                setTypeFilter(val);
+                table.ajax.reload();
+            });
+
+            setTypeFilter('');
 
             // init
             updateTitle(scope);

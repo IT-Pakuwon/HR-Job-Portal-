@@ -235,6 +235,11 @@ class RfcaListController extends Controller
                 break;
         }
 
+        $rfcaType = strtoupper(trim((string) $req->query('rfca_type', '')));
+        if (in_array($rfcaType, ['RFCA', 'RFP'], true)) {
+            $base->where('tr_rfca.rfca_type', $rfcaType);
+        }
+
         $baseForCount = clone $base;
 
         $orderColumns = [
@@ -290,6 +295,8 @@ class RfcaListController extends Controller
             'ms_step.rfca_step_department_id as current_step_department_id',
             'ms_step.calr_gen as current_step_calr_gen',
             'step.progress_approval',
+            'step.status_rfca as active_step_status',
+            'step.rfca_step_department_id as active_step_department_id',
         ])
         ->orderBy($orderCol, $orderDir)
         ->orderBy('tr_rfca.rfcaid', 'desc')
@@ -308,10 +315,23 @@ class RfcaListController extends Controller
             $poIdMap = TrPO::whereIn('ponbr', $ponbrsForMap)->pluck('id', 'ponbr')->toArray();
         }
 
-        $rows->transform(function ($r) use ($poIdMap) {
+        // Same rule as the Process Step button on showRfca: active step pending,
+        // Treasury Payment not yet done, and user's department owns the active step.
+        $loginDepartments = array_map('trim', explode(',', (string) ($user->department_id ?? '')));
+        $treasuryDone = TrRfcaStep::whereIn('rfcaid', $rows->pluck('rfcaid')->all())
+            ->where('rfca_step_id', 'TP')
+            ->where('status_rfca', 'C')
+            ->pluck('rfcaid')
+            ->flip();
+
+        $rows->transform(function ($r) use ($poIdMap, $loginDepartments, $treasuryDone) {
             $r->rfcadate_fmt = $r->rfcadate ? Carbon::parse($r->rfcadate)->format('Y-m-d') : null;
             $r->rfcaid_eid   = Hashids::encode((string) $r->id);
             $r->showrfca_url = url('/showrfca/' . $r->rfcaid_eid);
+            $r->can_process_step = $r->progress_approval
+                && $r->active_step_status === 'P'
+                && !$treasuryDone->has($r->rfcaid)
+                && in_array(trim((string) $r->active_step_department_id), $loginDepartments, true);
 
             $poId = $poIdMap[$r->ponbr] ?? null;
             $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;

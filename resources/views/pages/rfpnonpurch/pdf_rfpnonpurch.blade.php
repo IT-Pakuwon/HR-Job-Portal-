@@ -320,13 +320,11 @@
         <tr>
             <td class="label">Dibayarkan kpd/Please Pay to</td>
             <td class="colon">:</td>
-            <td colspan="4">{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
-        </tr>
+            <td>{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
 
-        <tr>
             <td class="label">Jumlah/Amount</td>
             <td class="colon">:</td>
-            <td colspan="4" class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
+            <td class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
         </tr>
 
         <tr>
@@ -525,6 +523,12 @@
         </thead>
 
         <tbody>
+            <tr>
+                <td>-</td>
+                <td>{{ $created_by_name ?: $created_by_username ?: '-' }}</td>
+                <td>{{ $req_date_fmt ?? '-' }}</td>
+                <td><span class="approval-badge approval-approved">Created</span></td>
+            </tr>
             @forelse ($approval as $dt2)
                 @php
                     $label = match ($dt2->status) {
