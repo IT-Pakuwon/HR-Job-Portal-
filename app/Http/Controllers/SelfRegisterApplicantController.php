@@ -129,6 +129,7 @@ class SelfRegisterApplicantController extends Controller
             'fullname'        => 'vc.fullname',
             'division_name'   => DB::raw('COALESCE(div_tag.division_name, div_reg.division_name)'),
             'department_name' => DB::raw('COALESCE(dept_tag.department_name, dept_reg.department_name)'),
+            'job_title'       => 'sp.job_title',
             'education_name'  => 'vc.education_name',
             'religion'        => 'vc.religion',
             'height'          => 'vc.height',
@@ -216,6 +217,7 @@ class SelfRegisterApplicantController extends Controller
             $query->where(function ($q) use ($like) {
                 $q->where('vc.docid', 'like', $like)
                 ->orWhere('vc.fullname', 'like', $like)
+                ->orWhere('sp.job_title', 'like', $like)
                 ->orWhere('vc.education_name', 'like', $like)
                 ->orWhere('vc.religion', 'like', $like)
                 ->orWhere('vc.company_name', 'like', $like)
@@ -270,6 +272,7 @@ class SelfRegisterApplicantController extends Controller
             'vc.company_name',
             'vc.status',
             'sp.is_read',
+            'sp.job_title as registered_job_title',
             'tag.id as tag_id',
             DB::raw('COALESCE(tag.division_id_tagging, sp.division_id) as division_id'),
             DB::raw('COALESCE(tag.departementid_tagging, sp.departementid) as department_id'),
@@ -297,6 +300,7 @@ class SelfRegisterApplicantController extends Controller
                 'department_id'   => $r->department_id,
                 'division_name'   => $r->division_name,
                 'department_name' => $r->department_name,
+                'job_title'       => $r->registered_job_title,
                 'is_tagged'       => !empty($r->tag_id),
                 'status'          => $r->status,
                 'is_read'         => $r->is_read,
@@ -330,6 +334,37 @@ class SelfRegisterApplicantController extends Controller
         $career = SelfPosting::whereKey($id)
             ->where('group_cpny_id', $groupCompanyId)
             ->firstOrFail();
+
+        $applicationInfo = DB::connection('mysql3')->table('hr_trx_selfposting as sp')
+            ->leftJoin('hr_ms_applicant_tagging as tag', function ($join) {
+                $join->on('sp.docid', '=', 'tag.docid')
+                    ->on('sp.applicant_id', '=', 'tag.applicant_id')
+                    ->on('sp.group_cpny_id', '=', 'tag.group_cpny_id')
+                    ->where('tag.status', '!=', 'X');
+            })
+            ->leftJoin('hr_ms_division as div_tag', function ($join) {
+                $join->on('tag.division_id_tagging', '=', 'div_tag.division_id')
+                    ->on('tag.group_cpny_id', '=', 'div_tag.group_cpny_id');
+            })
+            ->leftJoin('hr_ms_division as div_reg', function ($join) {
+                $join->on('sp.division_id', '=', 'div_reg.division_id')
+                    ->on('sp.group_cpny_id', '=', 'div_reg.group_cpny_id');
+            })
+            ->leftJoin('hr_ms_department as dept_tag', function ($join) {
+                $join->on('tag.departementid_tagging', '=', 'dept_tag.department_id')
+                    ->on('tag.group_cpny_id', '=', 'dept_tag.group_cpny_id');
+            })
+            ->leftJoin('hr_ms_department as dept_reg', function ($join) {
+                $join->on('sp.departementid', '=', 'dept_reg.department_id')
+                    ->on('sp.group_cpny_id', '=', 'dept_reg.group_cpny_id');
+            })
+            ->where('sp.id', $career->id)
+            ->where('sp.group_cpny_id', $groupCompanyId)
+            ->select([
+                DB::raw('COALESCE(div_tag.division_name, div_reg.division_name) as division_name'),
+                DB::raw('COALESCE(dept_tag.department_name, dept_reg.department_name) as department_name'),
+                'sp.job_title',
+            ])->first();
 
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
             ->where('group_cpny_id', $groupCompanyId)
@@ -398,7 +433,7 @@ class SelfRegisterApplicantController extends Controller
 
         return view('pages.selfregister.showapplicant', compact(
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working', 'applicant_language', 'applicant_course', 'applicant_sw',
-            'applicant_skill', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah'
+            'applicant_skill', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'applicationInfo'
         ));
     }
 
