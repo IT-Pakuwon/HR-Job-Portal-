@@ -29,6 +29,7 @@
         <div class="space-y-2 p-4">
 
             @php
+                $rootMenus = app(\App\Services\SidebarMenuVisibility::class)->tree(collect($rootMenus ?? []), collect($allowedMenuIds ?? []));
                 $menuSearchIndex = collect();
                 $allowedIdsForSearch = collect($allowedMenuIds ?? [])->all();
 
@@ -40,7 +41,7 @@
                             'menu_name'   => $rootMenu->menu_name,
                             'menu_icon'   => $rootMenu->menu_icon,
                             'parent_name' => $rootMenu->menu_name,
-                            'url'         => Route::has($rootMenu->menu_route) ? route($rootMenu->menu_route) : '#',
+                            'url'         => $rootMenu->_sidebar_url,
                         ]);
                     }
 
@@ -52,7 +53,7 @@
                                 'menu_name'   => $lvl1->menu_name,
                                 'menu_icon'   => $lvl1->menu_icon,
                                 'parent_name' => $rootMenu->menu_name,
-                                'url'         => Route::has($lvl1->menu_route) ? route($lvl1->menu_route) : '#',
+                                'url'         => $lvl1->_sidebar_url,
                             ]);
                         } elseif ($lvl2->isNotEmpty()) {
                             foreach ($lvl2 as $leaf) {
@@ -61,7 +62,7 @@
                                         'menu_name'   => $leaf->menu_name,
                                         'menu_icon'   => $leaf->menu_icon,
                                         'parent_name' => $lvl1->menu_name,
-                                        'url'         => Route::has($leaf->menu_route) ? route($leaf->menu_route) : '#',
+                                        'url'         => $leaf->_sidebar_url,
                                     ]);
                                 }
                             }
@@ -123,6 +124,12 @@
                         $addSearchItem('dashboard-setup', 'Dashboard Setup', 'Dashboard Setup');
                         $addSearchItem('dashboard-menu', 'Dashboard Menu', 'Dashboard Setup');
                         $addSearchItem('summary-setup.home', 'Summary Setup', 'Dashboard Setup');
+
+                        $addSearchItem('vms-setup.document', 'Document', 'VMS Setup');
+                        $addSearchItem('vms-setup.vendor-category', 'Vendor Category', 'VMS Setup');
+                        $addSearchItem('vms-setup.company-department', 'Company & Department', 'VMS Setup');
+                        $addSearchItem('vms-setup.bank', 'Bank', 'VMS Setup');
+                        $addSearchItem('vms-setup.users', 'Users', 'VMS Setup');
 
                         $addSearchItem('tenancy.user.index', 'User', 'Tenancy Setup');
                         $addSearchItem('tenancy.organization.index', 'Organization', 'Tenancy Setup');
@@ -190,6 +197,7 @@
             <ul class="space-y-1">
 
                 <!-- ================= FAVORITES ================= -->
+                @if (Route::has('menu-favourites.index') && Route::has('menu-favourites.toggle'))
                 <li class="mt-0" x-data="sidebarFavourites('{{ route('menu-favourites.index') }}', '{{ route('menu-favourites.toggle') }}')" x-init="init()" x-show="items.length > 0" x-cloak>
 
                     <button @click="open = !open"
@@ -228,6 +236,8 @@
                         </template>
                     </ul>
                 </li>
+
+                @endif
 
                 <!-- ================= DYNAMIC MENU MODULES (order = menu_sort_order, from Sys Menu Tree) ================= -->
                 @foreach ($rootMenus as $rootMenu)
@@ -282,7 +292,7 @@
                                         ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
-                                    <a href="{{ route($menu->menu_route) }}"
+                                    <a href="{{ $menu->_sidebar_url }}"
                                         class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
 
                                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,7 +362,7 @@
 
                                             <li class="flex items-center justify-between rounded-md">
 
-                                                <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
+                                                <a href="{{ $child->_sidebar_url }}"
                                                     class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                         ? 'text-indigo-600'
                                                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
@@ -388,7 +398,7 @@
                             ? 'bg-indigo-500/10 text-indigo-600'
                             : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
-                            <a href="{{ route($rootMenu->menu_route) }}"
+                            <a href="{{ $rootMenu->_sidebar_url }}"
                                 class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
 
                                 <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -448,6 +458,7 @@
                                 'dashboard-setup',
                                 'dashboard-menu',
                                 'summary-setup',
+                                'vms-setup',
                                 'task-archive',
                                 'tenancy',
                             ];
@@ -831,6 +842,25 @@
                                         <li><a href="{{ route('summary-setup.home') }}"
                                                 class="{{ Request::segment(1) === 'summary-setup' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Summary Setup</a>
                                         </li>
+                                    </ul>
+                                </li>
+
+                                <!-- VMS SETUP -->
+                                <li x-data="{ open: {{ request()->routeIs('vms-setup.*') ? 'true' : 'false' }} }">
+                                    <button type="button" @click="open = !open" :aria-expanded="open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v14H3zM8 7V3h8v4M3 12h18M10 12v3h4v-3" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">VMS Setup</span>
+                                        </span>
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+                                    </button>
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('vms-setup.document') }}" class="{{ request()->routeIs('vms-setup.document') ? 'text-indigo-600' : '' }} sidebar-link text-sm" @if(request()->routeIs('vms-setup.document')) aria-current="page" @endif>Document</a></li>
+                                        <li><a href="{{ route('vms-setup.vendor-category') }}" class="{{ request()->routeIs('vms-setup.vendor-category*') ? 'text-indigo-600' : '' }} sidebar-link text-sm" @if(request()->routeIs('vms-setup.vendor-category*')) aria-current="page" @endif>Vendor Category</a></li>
+                                        <li><a href="{{ route('vms-setup.company-department') }}" class="{{ request()->routeIs('vms-setup.company-department') ? 'text-indigo-600' : '' }} sidebar-link text-sm" @if(request()->routeIs('vms-setup.company-department')) aria-current="page" @endif>Company &amp; Department</a></li>
+                                        <li><a href="{{ route('vms-setup.bank') }}" class="{{ request()->routeIs('vms-setup.bank') ? 'text-indigo-600' : '' }} sidebar-link text-sm" @if(request()->routeIs('vms-setup.bank')) aria-current="page" @endif>Bank</a></li>
+                                        <li><a href="{{ route('vms-setup.users') }}" class="{{ request()->routeIs('vms-setup.users') ? 'text-indigo-600' : '' }} sidebar-link text-sm" @if(request()->routeIs('vms-setup.users')) aria-current="page" @endif>Users</a></li>
                                     </ul>
                                 </li>
                             </ul>

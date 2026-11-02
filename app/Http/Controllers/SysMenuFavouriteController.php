@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\SysMenu;
 use App\Models\SysMenuFavourite;
+use App\Services\SidebarMenuVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 
 class SysMenuFavouriteController extends Controller
 {
@@ -37,15 +37,17 @@ class SysMenuFavouriteController extends Controller
                 'p.menu_name as parent_name',
             ])
             ->get()
-            ->filter(fn ($row) => $allowedKeys->contains($row->screen_id . '|' . $row->application_id))
+            ->filter(fn ($row) => $allowedKeys->contains($row->screen_id.'|'.$row->application_id))
             ->values()
             ->map(function ($row) {
-                $row->url = ($row->menu_route && Route::has($row->menu_route))
-                    ? route($row->menu_route)
-                    : ($row->menu_url ?: '#');
+                $row->url = $row->menu_route
+                    ? app(SidebarMenuVisibility::class)->routeUrl($row->menu_route)
+                    : ($row->menu_url ?: null);
 
                 return $row;
-            });
+            })
+            ->filter(fn ($row) => $row->url !== null)
+            ->values();
 
         return response()->json(['data' => $favourites]);
     }
@@ -53,7 +55,7 @@ class SysMenuFavouriteController extends Controller
     public function toggle(Request $request)
     {
         $request->validate([
-            'screen_id'      => 'required|string',
+            'screen_id' => 'required|string',
             'application_id' => 'required|string',
         ]);
 
@@ -72,7 +74,7 @@ class SysMenuFavouriteController extends Controller
 
         $allowedKeys = SysMenu::allowedScreenKeysForUsername($username);
 
-        if (!$allowedKeys->contains($request->screen_id . '|' . $request->application_id)) {
+        if (! $allowedKeys->contains($request->screen_id.'|'.$request->application_id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have access to this menu.',
@@ -82,13 +84,13 @@ class SysMenuFavouriteController extends Controller
         $nextOrder = (int) SysMenuFavourite::where('username', $username)->max('menu_order') + 1;
 
         SysMenuFavourite::create([
-            'username'       => $username,
-            'screen_id'      => $request->screen_id,
+            'username' => $username,
+            'screen_id' => $request->screen_id,
             'application_id' => $request->application_id,
-            'menu_order'     => $nextOrder,
-            'status'         => 'A',
-            'created_by'     => $username,
-            'created_at'     => now(),
+            'menu_order' => $nextOrder,
+            'status' => 'A',
+            'created_by' => $username,
+            'created_at' => now(),
         ]);
 
         return response()->json(['success' => true, 'favourited' => true]);
@@ -97,7 +99,7 @@ class SysMenuFavouriteController extends Controller
     public function reorder(Request $request)
     {
         $request->validate([
-            'ids'   => 'required|array',
+            'ids' => 'required|array',
             'ids.*' => 'integer',
         ]);
 

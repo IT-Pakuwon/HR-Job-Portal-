@@ -3246,6 +3246,41 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
         Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
 
+        // VMS Setup: existing mysql7 master data, protected by auth + admin.
+        Route::get('/vms-setup/document', [\App\Http\Controllers\Vms\DocumentController::class, 'index'])->name('vms-setup.document');
+        Route::get('/vms-setup/document/{kind}/json', [\App\Http\Controllers\Vms\DocumentController::class, 'json'])->whereIn('kind', ['vendor', 'invoice'])->name('vms-setup.document.json');
+        Route::post('/vms-setup/document/{kind}', [\App\Http\Controllers\Vms\DocumentController::class, 'store'])->whereIn('kind', ['vendor', 'invoice'])->name('vms-setup.document.store');
+        Route::get('/vms-setup/document/{kind}/{id}/edit', [\App\Http\Controllers\Vms\DocumentController::class, 'edit'])->whereIn('kind', ['vendor', 'invoice'])->whereNumber('id')->name('vms-setup.document.edit');
+        Route::put('/vms-setup/document/{kind}/{id}', [\App\Http\Controllers\Vms\DocumentController::class, 'update'])->whereIn('kind', ['vendor', 'invoice'])->whereNumber('id')->name('vms-setup.document.update');
+        Route::put('/vms-setup/document/{kind}/{id}/toggle', [\App\Http\Controllers\Vms\DocumentController::class, 'toggle'])->whereIn('kind', ['vendor', 'invoice'])->whereNumber('id')->name('vms-setup.document.toggle');
+        Route::get('/vms-setup/vendor-category/{parent}/businesses', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'businesses'])->whereNumber('parent')->name('vms-setup.vendor-category.businesses');
+        Route::get('/vms-setup/vendor-category/{parent}/businesses/{business}/documents', [\App\Http\Controllers\Vms\SetupDocumentController::class, 'index'])->whereNumber(['parent', 'business'])->name('vms-setup.vendor-category.documents.index');
+        Route::get('/vms-setup/vendor-category/{parent}/businesses/{business}/documents/json', [\App\Http\Controllers\Vms\SetupDocumentController::class, 'json'])->whereNumber(['parent', 'business'])->name('vms-setup.vendor-category.documents.json');
+        Route::post('/vms-setup/vendor-category/{parent}/businesses/{business}/documents', [\App\Http\Controllers\Vms\SetupDocumentController::class, 'store'])->whereNumber(['parent', 'business'])->name('vms-setup.vendor-category.documents.store');
+        Route::put('/vms-setup/vendor-category/{parent}/businesses/{business}/documents/{id}', [\App\Http\Controllers\Vms\SetupDocumentController::class, 'update'])->whereNumber(['parent', 'business', 'id'])->name('vms-setup.vendor-category.documents.update');
+        Route::get('/vms-setup/vendor-category', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'index'])->name('vms-setup.vendor-category');
+        Route::get('/vms-setup/vendor-category/{kind}/json', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'json'])->whereIn('kind', ['category', 'business'])->name('vms-setup.vendor-category.json');
+        Route::post('/vms-setup/vendor-category/{kind}', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'store'])->whereIn('kind', ['category', 'business'])->name('vms-setup.vendor-category.store');
+        Route::get('/vms-setup/vendor-category/{kind}/{id}/edit', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'edit'])->whereIn('kind', ['category', 'business'])->whereNumber('id')->name('vms-setup.vendor-category.edit');
+        Route::put('/vms-setup/vendor-category/{kind}/{id}', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'update'])->whereIn('kind', ['category', 'business'])->whereNumber('id')->name('vms-setup.vendor-category.update');
+        Route::put('/vms-setup/vendor-category/{kind}/{id}/toggle', [\App\Http\Controllers\Vms\VendorCategoryController::class, 'toggle'])->whereIn('kind', ['category', 'business'])->whereNumber('id')->name('vms-setup.vendor-category.toggle');
+        Route::get('/vms-setup/company-department/{kind}/json', [\App\Http\Controllers\Vms\CompanyDepartmentController::class, 'json'])->whereIn('kind', ['company', 'department'])->name('vms-setup.company-department.json');
+        Route::post('/vms-setup/company-department/{kind}', [\App\Http\Controllers\Vms\CompanyDepartmentController::class, 'store'])->whereIn('kind', ['company', 'department'])->name('vms-setup.company-department.store');
+        Route::get('/vms-setup/company-department/{kind}/{id}/edit', [\App\Http\Controllers\Vms\CompanyDepartmentController::class, 'edit'])->whereIn('kind', ['company', 'department'])->name('vms-setup.company-department.edit');
+        Route::put('/vms-setup/company-department/{kind}/{id}', [\App\Http\Controllers\Vms\CompanyDepartmentController::class, 'update'])->whereIn('kind', ['company', 'department'])->name('vms-setup.company-department.update');
+        Route::get('/vms-setup/company-department', [\App\Http\Controllers\Vms\CompanyDepartmentController::class, 'index'])->name('vms-setup.company-department');
+        Route::get('/vms-setup/bank/json', [\App\Http\Controllers\Vms\BankController::class, 'json'])->name('vms-setup.bank.json');
+        Route::post('/vms-setup/bank', [\App\Http\Controllers\Vms\BankController::class, 'store'])->name('vms-setup.bank.store');
+        Route::get('/vms-setup/bank/{id}/edit', [\App\Http\Controllers\Vms\BankController::class, 'edit'])->name('vms-setup.bank.edit');
+        Route::put('/vms-setup/bank/{id}', [\App\Http\Controllers\Vms\BankController::class, 'update'])->name('vms-setup.bank.update');
+        Route::get('/vms-setup/bank', [\App\Http\Controllers\Vms\BankController::class, 'index'])->name('vms-setup.bank');
+        Route::get('/vms-setup/users/json', [\App\Http\Controllers\Vms\UserController::class, 'json'])->name('vms-setup.users.json');
+        Route::post('/vms-setup/users', [\App\Http\Controllers\Vms\UserController::class, 'store'])->name('vms-setup.users.store');
+        Route::get('/vms-setup/users/{id}/edit', [\App\Http\Controllers\Vms\UserController::class, 'edit'])->whereNumber('id')->name('vms-setup.users.edit');
+        Route::put('/vms-setup/users/{id}', [\App\Http\Controllers\Vms\UserController::class, 'update'])->whereNumber('id')->name('vms-setup.users.update');
+        Route::put('/vms-setup/users/{id}/toggle', [\App\Http\Controllers\Vms\UserController::class, 'toggle'])->whereNumber('id')->name('vms-setup.users.toggle');
+        Route::get('/vms-setup/users', [\App\Http\Controllers\Vms\UserController::class, 'index'])->name('vms-setup.users');
+
         // Dashboard Setup: arrange the blocks of each dashboard (table ms_dashboard_layout on pgsql2)
         Route::get('/dashboard-setup', [App\Http\Controllers\DashboardLayoutController::class, 'index'])->name('dashboard-setup');
         Route::put('/dashboard-setup/{dash}', [App\Http\Controllers\DashboardLayoutController::class, 'save'])->name('dashboard-setup.save');
@@ -3447,6 +3482,17 @@ Route::middleware(['auth'])->group(function () {
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──
+    Route::get('/vms/vendors', [\App\Http\Controllers\Vms\VendorController::class, 'index'])->name('vms.vendors.index');
+    Route::get('/vms/vendors/tab/{tab}/json', [\App\Http\Controllers\Vms\VendorController::class, 'json'])->name('vms.vendors.json');
+    Route::get('/vms/vendors/{id}/registration', [\App\Http\Controllers\Vms\VendorController::class, 'registration'])->whereNumber('id')->name('vms.vendors.registration');
+    Route::post('/vms/vendors/{id}/registration', [\App\Http\Controllers\Vms\VendorController::class, 'decideRegistration'])->whereNumber('id')->name('vms.vendors.registration.decide');
+    Route::get('/vms/vendors/{id}/incomplete', [\App\Http\Controllers\Vms\VendorController::class, 'incomplete'])->whereNumber('id')->name('vms.vendors.incomplete');
+    Route::get('/vms/vendors/{id}/profile/{mode}', [\App\Http\Controllers\Vms\VendorController::class, 'profile'])->whereNumber('id')->whereIn('mode', ['review', 'master'])->name('vms.vendors.profile');
+    Route::post('/vms/vendors/{id}/profile/review', [\App\Http\Controllers\Vms\VendorController::class, 'profileDecision'])->whereNumber('id')->name('vms.vendors.profile.decide');
+    Route::post('/vms/vendors/{id}/profile/{mode}/chat', [\App\Http\Controllers\Vms\VendorController::class, 'profileChat'])->whereNumber('id')->whereIn('mode', ['review', 'master'])->name('vms.vendors.profile.chat');
+    Route::put('/vms/vendors/{id}/profile/{mode}/password', [\App\Http\Controllers\Vms\VendorController::class, 'profilePassword'])->whereNumber('id')->whereIn('mode', ['review', 'master'])->name('vms.vendors.profile.password');
+    Route::get('/vms/vendors/{id}', [\App\Http\Controllers\Vms\VendorController::class, 'show'])->whereNumber('id')->name('vms.vendors.show');
+
     Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
     Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
     Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');

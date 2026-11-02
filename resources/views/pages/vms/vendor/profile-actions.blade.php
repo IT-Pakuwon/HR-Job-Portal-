@@ -1,0 +1,2 @@
+<div class="vms-profile-actions" data-profile-action data-kind="{{ $actionKind }}" data-record="{{ $actionId }}" data-department="{{ $actionDepartment }}" data-token="{{ $actionToken }}">
+@if($allowApprove??true)<button type="button" data-profile-decision="approve">Approve</button>@endif<button type="button" data-profile-decision="reject" class="danger">Reject</button>@if($allowRevise)<button type="button" data-profile-decision="revise" class="warning">Revise</button>@endif</div>

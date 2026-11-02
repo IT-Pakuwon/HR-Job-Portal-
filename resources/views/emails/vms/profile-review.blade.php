@@ -1,0 +1,3 @@
+<!doctype html><html lang="id"><body style="font-family:Arial,sans-serif;color:#334155"><h2>{{ $title }}</h2><p>Yth. {{ $details['vendor'] }},</p>
+@if(($details['status']??'')==='approved')<p>Profil vendor Anda telah disetujui. Silakan masuk ke Vendor Portal untuk melihat informasi terbaru.</p>@else<p>Terdapat hasil review terbaru untuk profil perusahaan Anda. Mohon memeriksa catatan dan melengkapi perbaikan melalui Vendor Portal.</p>@endif
+@if(!empty($details['notes']))<p style="white-space:pre-line">Catatan: {{ $details['notes'] }}</p>@endif<p><a href="{{ $portalUrl }}">Buka Vendor Portal</a></p><p>Terima kasih,<br>Pakuwon Group</p></body></html>
