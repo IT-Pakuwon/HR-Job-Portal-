@@ -2,7 +2,7 @@
 
     <div class="max-w-9xl mx-auto space-y-4 p-2">
         {{-- Report Selector --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
             {{-- SPB --}}
             <a href="#" data-report="spb"
@@ -96,6 +96,15 @@
 
             </a>
 
+            <a href="#" data-report="inquiry"
+                class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/40 dark:hover:bg-gray-800/70">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                    </div>
+                    <p class="font-semibold text-gray-800 dark:text-gray-200">Inventory Inquiry</p>
+                </div>
+            </a>
         </div>
 
 
@@ -116,6 +125,10 @@
 
             <div id="report-movement" class="hidden">
                 @include('pages.report-warehouse.inventory-movement')
+            </div>
+
+            <div id="report-inquiry" class="hidden">
+                @include('pages.report-warehouse.inventory-inquiry')
             </div>
 
             {{-- <div id="report-sppb" class="hidden">
