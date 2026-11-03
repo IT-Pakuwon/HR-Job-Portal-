@@ -1,0 +1,59 @@
+/* List Vendor only: keep master setup pages and review dialogs unchanged. */
+#vms-vendors-page{--directory-blue:#4367b0;--directory-line:#e4eaf4;padding:8px; color:#334764}
+#vms-vendors-page .vms-vendor-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;border:0;margin-bottom:20px}
+#vms-vendors-page .vms-vendor-tabs button{position:relative;display:flex;align-items:center;gap:12px;padding:18px 16px;border:1px solid var(--directory-line);border-radius:12px;background:#fff;color:#687991;text-align:left;min-height:76px;transition:background .15s,border-color .15s,box-shadow .15s}
+#vms-vendors-page .vms-vendor-tabs button:hover{border-color:#aebfe2;background:#f8faff}
+#vms-vendors-page .vms-vendor-tabs button[aria-selected=true]{border-color:#7594d0;background:#edf3ff;color:#34599f;box-shadow:0 3px 10px #365a9a0a}
+#vms-vendors-page .vms-directory-tab-icon{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:10px;background:#f1f5fb;color:#8396b4;font-size:14px}
+#vms-vendors-page [aria-selected=true] .vms-directory-tab-icon{background:#dce7fd;color:#4367b0}
+#vms-vendors-page .vms-directory-tab-label{flex:1;font-size:12px;font-weight:600;line-height:1.5}
+#vms-vendors-page .vms-vendor-count{background:#eff3f9;color:#6c7f9e;min-width:27px;padding:4px 8px;text-align:center;font-weight:600}
+#vms-vendors-page [aria-selected=true] .vms-vendor-count{background:#4367b0;color:white}
+#vms-vendors-page button:focus-visible,#vms-vendors-page select:focus-visible,#vms-vendors-page input:focus-visible,#vms-vendors-page a:focus-visible{outline:3px solid #a9c4fa;outline-offset:3px}
+#vms-vendors-page button:focus:not(:focus-visible){outline:none}
+#vms-vendors-page .vms-document-panel{border:1px solid var(--directory-line);border-radius:14px;box-shadow:0 4px 20px #243c6404}
+#vms-vendors-page .vms-document-panel>header{padding:22px 24px;gap:16px;border-bottom:1px solid #eef2f8}
+#vms-vendors-page .vms-document-panel h2{font-size:16px;font-weight:600;color:#30476b}
+#vms-vendors-page .vms-vendor-description{font-size:12px;line-height:1.6;margin:6px 0 0;color:#8492a8}
+#vms-vendors-page [data-vendor-refresh]{background:#f3f6fd;color:#4367b0;border:1px solid #dce5f5;white-space:nowrap;padding:10px 14px;border-radius:8px}
+#vms-vendors-page [data-vendor-refresh]:hover{background:#e8effc}
+#vms-vendors-page .vms-vendor-filters{margin:18px 24px 0;padding:16px;background:#f8faff;border:1px solid #e9eef7;border-radius:10px;gap:14px;align-items:end}
+#vms-vendors-page .vms-vendor-filters label{flex:0 1 300px;min-width:170px;font-size:11px;font-weight:600;color:#7586a0;gap:8px}
+#vms-vendors-page .vms-vendor-filters select{width:100%;height:40px;background:#fff;border:1px solid #dce5f2;border-radius:7px;color:#415574;font-size:12px;font-weight:400;padding:8px 12px}
+#vms-vendors-page [data-vendor-reset]{height:40px;background:transparent;border:0;color:#7c8ca5;font-size:11px;padding:8px 12px}
+#vms-vendors-page [data-vendor-reset]:hover{color:#4367b0;background:#edf2fc}
+#vms-vendors-page .vms-directory-legend{margin:14px 24px 0;font-size:11px}
+#vms-vendors-page .dt-toolbar{padding:20px 24px;gap:18px;min-height:84px}
+#vms-vendors-page .dataTables_length label{font-size:11px;color:#7a8ba3;display:flex;align-items:center;gap:8px}
+#vms-vendors-page .dataTables_length select{height:34px;border:1px solid #dce4ef;border-radius:7px;background:#fff;color:#415574;padding:4px 8px}
+#vms-vendors-page .dt-buttons{display:flex;gap:7px}
+#vms-vendors-page .dt-buttons .dt-button{border-radius:6px!important;padding:7px 12px!important;font-size:11px!important;box-shadow:none!important}
+#vms-vendors-page .dataTables_filter label{display:block;margin:0}
+#vms-vendors-page .dataTables_filter input{height:38px;width:250px;max-width:100%;margin:0;border:1px solid #dce4ef;border-radius:8px;background:#f9fbfe;padding:8px 12px;font-size:12px;color:#415574}
+#vms-vendors-page .dataTables_filter input::placeholder{color:#94a1b5}
+#vms-vendors-page table.dataTable thead th{background:#f5f7fb;color:#7b8ba4;border-bottom:1px solid #e4eaf4!important;font-size:10px!important;font-weight:600;white-space:nowrap}
+#vms-vendors-page table.dataTable tbody td{padding:16px!important;border-bottom:1px solid #eef2f8;color:#536782;vertical-align:middle;font-size:12px;line-height:1.6}
+#vms-vendors-page table.dataTable tbody tr:hover{background:#f8faff}
+#vms-vendors-page table.dataTable tbody td:first-child{color:#334c72;font-weight:600}
+#vms-vendors-page table.dataTable.no-footer{border-bottom:0}
+#vms-vendors-page .vms-vendor-company{gap:10px}
+#vms-vendors-page .vms-vendor-link{border-radius:7px;padding:7px 11px;border-color:#dfe7f5;background:#f5f8ff;font-size:11px;color:#4367b0}
+#vms-vendors-page button.vms-vendor-link{display:inline-flex;align-items:center;gap:8px}
+#vms-vendors-page .vms-vendor-link:hover{background:#e9f0ff;border-color:#b7c9ea}
+#vms-vendors-page .vms-vendor-progress{width:172px;max-width:100%;font-size:11px}
+#vms-vendors-page .vms-directory-step-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#8c6a21;font-weight:500;white-space:nowrap}
+#vms-vendors-page .vms-directory-step-heading small{font-size:10px;color:#a07c28;background:#fff5d7;border-radius:5px;padding:2px 5px}
+#vms-vendors-page .vms-directory-step-track{display:flex;gap:4px;margin-top:9px;height:5px}
+#vms-vendors-page .vms-directory-step-track span{flex:1;background:#f4eedf;border-radius:3px}
+#vms-vendors-page .vms-directory-step-track .is-complete{background:#e5b63f}
+#vms-vendors-page .vms-vendor-approval small{font-size:10px;color:#8c9ab0;margin-top:6px}
+#vms-vendors-page .vms-vendor-approval .vms-document-badge{border-radius:20px;font-size:10px;padding:4px 9px}
+#vms-vendors-page .dataTables_info{font-size:11px;color:#8c9ab0;padding:18px 24px}
+#vms-vendors-page .dataTables_paginate{font-size:11px;padding:12px 20px}
+#vms-vendors-page .dataTables_paginate .paginate_button{border-radius:6px!important}
+#vms-vendors-page .dataTables_paginate .paginate_button.current{background:#edf3ff!important;border-color:#dce6f8!important;color:#4367b0!important}
+@media(min-width:1500px){#vms-vendors-page [data-vendor-filters=master] label{flex:1}}
+@media(max-width:1000px){#vms-vendors-page .vms-vendor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}#vms-vendors-page .vms-vendor-filters label{flex:1 1 200px}}
+@media(max-width:600px){#vms-vendors-page{padding:0}#vms-vendors-page .vms-vendor-tabs{gap:8px;margin-bottom:14px}#vms-vendors-page .vms-vendor-tabs button{padding:12px 10px;gap:7px;min-height:86px;flex-wrap:wrap}#vms-vendors-page .vms-directory-tab-icon{display:none}#vms-vendors-page .vms-directory-tab-label{font-size:11px;flex-basis:100%}#vms-vendors-page .vms-vendor-count{font-size:9px;padding:2px 7px}#vms-vendors-page .vms-document-panel>header{padding:18px 14px;align-items:flex-start}#vms-vendors-page .vms-document-panel h2{font-size:14px}#vms-vendors-page .vms-vendor-description{font-size:11px}#vms-vendors-page [data-vendor-refresh]{font-size:10px;padding:8px}#vms-vendors-page .vms-vendor-filters{margin:14px 12px 0;padding:12px;gap:12px}#vms-vendors-page .vms-vendor-filters label{flex-basis:100%;min-width:0}#vms-vendors-page .dt-toolbar{padding:16px 14px;gap:12px}#vms-vendors-page .dataTables_filter{flex-basis:100%;margin:0}#vms-vendors-page .dataTables_filter input{width:100%}#vms-vendors-page .vms-directory-legend{margin:12px 14px 0}#vms-vendors-page .dataTables_info,#vms-vendors-page .dataTables_paginate{float:none;text-align:left;padding:12px 14px}}
+
+#vms-vendors-page .vms-vendor-filters select:disabled{background:#f0f3f8;color:#98a4b6;border-color:#e3e8f0;cursor:not-allowed;opacity:1}

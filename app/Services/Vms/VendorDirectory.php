@@ -66,7 +66,7 @@ class VendorDirectory
         if ($tab === 'master') {
             $query->selectSub(fn ($q) => $q->from('vendor_basic_information')->select('phone1')->whereColumn('vendor_id', 'v.vendor_id')->orderByDesc('id')->limit(1), 'phone1');
         }
-        $rows = $query->orderBy('v.vendor_nama')->get();
+        $rows = $query->orderByDesc($tab === 'master' ? 'v.second_vendor_id' : 'v.vendor_id')->orderByDesc('v.vendor_id')->get();
         if ($tab === 'review') {
             $this->attachReviewCounts($rows);
         }

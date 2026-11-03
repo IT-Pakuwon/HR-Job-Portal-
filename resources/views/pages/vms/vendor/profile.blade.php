@@ -24,16 +24,24 @@ $can=function($department)use($mode,$permissions,$approval){return $mode==='revi
 </div>
 <div class="vms-profile-section" id="profile-panel-activity" data-profile-panel="activity" role="tabpanel" hidden>
 @if($history->isNotEmpty())
-<ol class="vms-activity-timeline" aria-label="Riwayat aktivitas vendor">
-@foreach($history as $item)
+<div class="vms-activity-groups">
+@foreach($history->sortByDesc('created_at')->groupBy(fn($entry)=>substr((string)$entry->created_at,0,10)) as $day=>$entries)
+<section class="vms-activity-day" aria-label="{{ $day ?: 'Tanpa tanggal' }}">
+<h3 class="vms-activity-day-label">{{ $day ? \Carbon\Carbon::parse($day)->format('d M Y') : 'Tanpa tanggal' }}</h3>
+<ol class="vms-activity-timeline" aria-label="Aktivitas {{ $day }}">
+@foreach($entries as $item)
 <li class="vms-activity-item">
-    <div class="vms-activity-title">{{ $item->activity }}</div>
-    <time class="vms-activity-date">{{ $item->created_at }}</time>
+<div class="vms-activity-event">
+    <div class="vms-activity-event-header"><div class="vms-activity-title">{{ $item->activity }}</div><time class="vms-activity-date" datetime="{{ $item->created_at }}">{{ substr((string)$item->created_at,11,8) }}</time></div>
     @if($item->name || $item->username)<div class="vms-activity-actor">{{ $item->name ?: $item->username }}@if($item->name && $item->username) <span>({{ $item->username }})</span>@endif</div>@endif
     @if(filled($item->notes))<p class="vms-activity-notes">{{ strip_tags(str_ireplace(['<br>','<br/>','<br />'],"\n",$item->notes)) }}</p>@endif
+</div>
 </li>
 @endforeach
 </ol>
+</section>
+@endforeach
+</div>
 @else<p class="vms-vendor-empty">Belum ada riwayat aktivitas.</p>@endif
 </div>
 <div class="vms-profile-section" id="profile-panel-chat" data-profile-panel="chat" role="tabpanel" hidden><div class="vms-profile-messages">@forelse($messages as $message)<article><strong>{{ $message->name?:($message->username?:'System / Legacy') }}</strong><small>{{ $message->created_at }}</small><p>{{ strip_tags((string)($message->messages??'')) }}</p></article>@empty<p class="vms-vendor-empty">Belum ada percakapan.</p>@endforelse</div>@if($permissions['id'])<form data-profile-chat class="vms-profile-chat-form">@csrf<label>Pesan<textarea name="message" required maxlength="5000" rows="3"></textarea></label><button type="submit">Kirim</button></form>@else<p class="vms-profile-note">Akun internal Anda belum terhubung dengan user VMS untuk mengirim pesan.</p>@endif</div>

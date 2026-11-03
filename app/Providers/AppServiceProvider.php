@@ -41,6 +41,10 @@ class AppServiceProvider extends ServiceProvider
         setlocale(LC_TIME, 'id_ID.UTF-8');
 
         View::composer('*', function ($view) {
+            // Invoice AJAX fragments render no sidebar; avoid its role/menu queries.
+            if (in_array($view->name(), ['pages.vms.invoice-register.content', 'pages.vms.invoice-register.detail'], true)) {
+                return;
+            }
             // This composer fires for every view AND every nested Blade component
             // (e.g. one <x-app.favourite-star> per sidebar menu item). Without this
             // memoization, its queries below (role lookup, recursive parent-menu

@@ -45,9 +45,10 @@ class RegistrationEmail
             $details = json_decode($row->payload, true, 512, JSON_THROW_ON_ERROR);
             $approved = $row->activity_key === 'vendor_account_approved';
             $profile = $row->activity_key === 'vendor_profile_review';
-            $title = $profile ? 'Hasil Review Profil Vendor' : ($approved ? 'Registrasi Berhasil' : 'Registrasi Ditolak');
+            $invoice = in_array($row->activity_key, ['invoice_document_reviewed','invoice_returned'], true);
+            $title = $invoice ? 'Hasil Pemeriksaan Invoice Register' : ($profile ? 'Hasil Review Profil Vendor' : ($approved ? 'Registrasi Berhasil' : 'Registrasi Ditolak'));
             $portalUrl = rtrim((string) config('vms.portal_url'), '/').'/login';
-            Mail::send($profile ? 'emails.vms.profile-review' : 'emails.vms.registration', compact('details', 'approved', 'title', 'portalUrl'), function ($message) use ($row, $title) {
+            Mail::send($invoice ? 'emails.vms.invoice-review' : ($profile ? 'emails.vms.profile-review' : 'emails.vms.registration'), compact('details', 'approved', 'title', 'portalUrl'), function ($message) use ($row, $title) {
                 $recipients = json_decode($row->recipients, true, 512, JSON_THROW_ON_ERROR);
                 $message->to($recipients['to'])->subject($title.' - Pakuwon Group');
             });

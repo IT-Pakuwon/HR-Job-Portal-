@@ -21,7 +21,9 @@
         if(tab === 'incomplete') result = [cell('vendor_nama'),{data:'step',render:(value,type) => {
             const labels={1:'Company Information',2:'NPWP & Bank Section',3:'Upload Document',4:'Integrity Clause',5:'Finish'};
             const step = Number(value),label=labels[step] || 'Belum diisi';
-            return type === 'display' ? `<div class="vms-vendor-progress"><span class="vms-vendor-step-label">${esc(label)}</span><progress max="5" value="${Math.min(5,Math.max(0,step))}" aria-label="${esc(label)}"></progress></div>` : label;
+            const current=Math.min(5,Math.max(0,Number.isFinite(step)?step:0));
+            if(type==='sort'||type==='type')return current;
+            return type === 'display' ? `<div class="vms-vendor-progress"><div class="vms-directory-step-heading"><span>${esc(label)}</span><small>${current}/5</small></div><div class="vms-directory-step-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${current}" aria-label="${esc(label)}">${Array.from({length:5},(_,i)=>`<span class="${i<current?'is-complete':''}"></span>`).join('')}</div></div>` : label;
         }},cell('username'),cell('email'),profile(),cell('created_at'),cell('parent_category_name'),cell('category_name')];
         if(tab === 'review') result = [cell('vendor_nama'),cell('username'),cell('email'),cell('created_at'),cell('parent_category_name'),cell('category_name'),approval('procurement',[['proc_pending','W']]),approval('legal',[['legal_pending','W']]),approval('tax',[['tax_rejected','X'],['tax_waitingreview','W'],['tax_request','R']]),approval('finance',[['treasury_rejected','X'],['treasury_waitingreview','W'],['treasury_request','R']])];
         if(tab === 'master') result = [cell('second_vendor_id'),cell('vendor_nama'),cell('parent_category_name'),cell('category_name'),cell('type'),cell('email'),cell('phone1'),profile()];
@@ -51,31 +53,33 @@
                     }
                 });
             },
-            processing:true,serverSide:false,scrollX:true,autoWidth:false,pageLength:10,lengthMenu:[10,25,50,100],order:[[tab==='master'?1:0,'asc']],columns:cols,
+            processing:true,serverSide:false,scrollX:true,autoWidth:false,pageLength:10,lengthMenu:[10,25,50,100],order:[],columns:cols,
+            language:{search:'',searchPlaceholder:'Cari vendor...',lengthMenu:'Tampilkan _MENU_',info:'Menampilkan _START_–_END_ dari _TOTAL_ vendor',infoEmpty:'Belum ada vendor',zeroRecords:'Vendor tidak ditemukan',emptyTable:'Belum ada data vendor',paginate:{previous:'Sebelumnya',next:'Berikutnya'}},
             dom:'<"dt-toolbar"lBf>rtip',buttons:[{extend:'excelHtml5',text:'Excel',title:'List Vendor - '+tab,exportOptions},{extend:'csvHtml5',text:'CSV',title:'List Vendor - '+tab,exportOptions}]
         });
     }
-    function tab(value,historyMode='replace') {
+    function tab(value) {
         root.querySelectorAll('[data-vendor-tab]').forEach(button => {const active=button.dataset.vendorTab===value;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;});
         root.querySelectorAll('[data-vendor-panel]').forEach(panel => {panel.hidden = panel.dataset.vendorPanel !== value;});
-        init(value);const url = new URL(location.href);url.searchParams.set('tab',value);history[historyMode+'State'](history.state,'',url);
+        init(value);const url = new URL(location.href);url.searchParams.delete('tab');history.replaceState({...history.state,vmsVendorTab:value},'',url);
     }
     root.querySelectorAll('[data-vendor-tab]').forEach(button => {
-        button.onclick = () => tab(button.dataset.vendorTab,'push');
-        button.onkeydown = event => {if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...root.querySelectorAll('[data-vendor-tab]')],i=buttons.indexOf(button);const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(i+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;buttons[next].focus();tab(buttons[next].dataset.vendorTab,'push');};
+        button.onclick = () => tab(button.dataset.vendorTab);
+        button.onkeydown = event => {if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const buttons=[...root.querySelectorAll('[data-vendor-tab]')],i=buttons.indexOf(button);const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(i+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;buttons[next].focus();tab(buttons[next].dataset.vendorTab);};
     });
     root.querySelectorAll('[data-vendor-filters]').forEach(filters => {
         filters.addEventListener('change',event => {
             if(event.target.name === 'category') {
-                const select=filters.querySelector('[name=business]');select.replaceChildren(new Option('Semua bidang usaha',''));
-                businesses.filter(item => !event.target.value || String(item.parent_category) === event.target.value).forEach(item => select.add(new Option(item.category_name,item.category_id)));
+                const select=filters.querySelector('[name=business]'),category=event.target.value;
+                select.disabled=!category;
+                select.replaceChildren(new Option(category?'Semua bidang usaha':'Pilih kategori vendor terlebih dahulu',''));
+                if(category)businesses.filter(item => String(item.parent_category) === category).forEach(item => select.add(new Option(item.category_name,item.category_id)));
             }
             tables[filters.dataset.vendorFilters]?.ajax.reload();
         });
     });
     root.querySelectorAll('[data-vendor-reset]').forEach(button=>button.onclick=()=>{const filters=button.closest('[data-vendor-filters]');filters.querySelectorAll('select').forEach(input=>{input.value='';});filters.querySelector('[name=category]').dispatchEvent(new Event('change',{bubbles:true}));});
     root.querySelectorAll('[data-vendor-refresh]').forEach(button=>button.onclick=()=>tables[button.dataset.vendorRefresh]?.ajax.reload(null,false));
-    window.addEventListener('popstate',()=>{const value=new URL(location.href).searchParams.get('tab');tab(['new','incomplete','review','master'].includes(value)?value:'new');});
     const dialog=document.getElementById('vms-document-modal'),form=document.getElementById('vms-registration-form');
     const feedback=form.querySelector('[data-registration-error]'),approve=form.querySelector('[data-registration-approve]'),reject=form.querySelector('[data-registration-reject]');
     let registration=null,reviewLoading=false,reviewSaving=false,reviewBusinesses=[];
@@ -224,5 +228,6 @@
     profileDialog.addEventListener('keydown',event=>{if(event.key==='Escape'&&!noteTooltip.hidden){event.preventDefault();event.stopPropagation();hideNote();}});
     profileDialog.addEventListener('scroll',event=>{if(!noteTooltip.contains(event.target))hideNote();},true);
     profileDialog.addEventListener('close',hideNote);window.addEventListener('resize',hideNote);
-    tab(root.dataset.active);
+    const savedTab=history.state?.vmsVendorTab;
+    tab(!new URL(location.href).searchParams.has('tab')&&['new','incomplete','review','master'].includes(savedTab)?savedTab:root.dataset.active);
 })();

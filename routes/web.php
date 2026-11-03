@@ -3482,6 +3482,11 @@ Route::middleware(['auth'])->group(function () {
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──
+    Route::get('/vms/invoice-register', [\App\Http\Controllers\Vms\InvoiceRegisterController::class, 'index'])->name('vms.invoice-register.index');
+    Route::get('/vms/invoice-register/{kind}/{id}', [\App\Http\Controllers\Vms\InvoiceRegisterController::class, 'show'])->whereIn('kind', ['po', 'kontrak'])->whereNumber('id')->name('vms.invoice-register.show');
+    Route::post('/vms/invoice-register/{kind}/{id}/decision', [\App\Http\Controllers\Vms\InvoiceRegisterController::class, 'decide'])->whereIn('kind', ['po', 'kontrak'])->whereNumber('id')->name('vms.invoice-register.decide');
+    Route::get('/vms/purchase-orders', [\App\Http\Controllers\Vms\PurchaseOrderController::class, 'index'])->name('vms.purchase-orders.index');
+    Route::get('/vms/purchase-orders/{type}/{id}', [\App\Http\Controllers\Vms\PurchaseOrderController::class, 'show'])->whereIn('type', ['po', 'spk', 'kontrak'])->whereNumber('id')->name('vms.purchase-orders.show');
     Route::get('/vms/vendors', [\App\Http\Controllers\Vms\VendorController::class, 'index'])->name('vms.vendors.index');
     Route::get('/vms/vendors/tab/{tab}/json', [\App\Http\Controllers\Vms\VendorController::class, 'json'])->name('vms.vendors.json');
     Route::get('/vms/vendors/{id}/registration', [\App\Http\Controllers\Vms\VendorController::class, 'registration'])->whereNumber('id')->name('vms.vendors.registration');
