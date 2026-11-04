@@ -86,6 +86,20 @@
             <input type="hidden" name="cpnyid" value="{{ $jobposting->cpnyid }}" />
             <input type="hidden" name="departementid" value="{{ $jobposting->departementid }}" />
 
+            <fieldset id="agendaScheduleType">
+                <legend class="mb-2 block text-sm font-semibold text-gray-600 dark:text-gray-300">Schedule Type</legend>
+                <div class="flex gap-2">
+                    <label class="agenda-type-option relative flex-1 cursor-pointer">
+                        <input type="radio" name="scheduletype" value="Offline" checked required class="sr-only">
+                        <span class="block rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-600 dark:border-gray-600 dark:text-gray-300">Offline</span>
+                    </label>
+                    <label class="agenda-type-option relative flex-1 cursor-pointer">
+                        <input type="radio" name="scheduletype" value="Online" required class="sr-only">
+                        <span class="block rounded-lg border border-gray-200 px-4 py-2.5 text-center text-sm font-semibold text-gray-600 dark:border-gray-600 dark:text-gray-300">Online</span>
+                    </label>
+                </div>
+            </fieldset>
+
             {{-- Details --}}
             <div class="space-y-4">
                 <p class="text-sm font-bold uppercase tracking-widest text-gray-400">Details</p>
@@ -99,6 +113,12 @@
                     <textarea name="description" required rows="2" placeholder="Additional notes for this schedule"
                         class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40"></textarea>
                 </div>
+            </div>
+
+            <div id="onlineMeetingFields" hidden>
+                <label for="onlineMeetingLink" class="mb-1 block text-sm font-semibold text-gray-600 dark:text-gray-300">Link Online Meeting</label>
+                <textarea id="onlineMeetingLink" name="link_onlinemeeting" rows="4" maxlength="2048" disabled placeholder="Paste meeting link, Meeting ID, and Passcode here"
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white" style="min-height: 110px; resize: vertical;"></textarea>
             </div>
 
             {{-- When --}}
@@ -116,7 +136,8 @@
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 transition focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-900/40">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+            </div>
+
                     <div>
                         <label class="mb-1 block text-sm font-semibold text-gray-600 dark:text-gray-300">Type</label>
                         <select name="reftype" required
@@ -129,6 +150,9 @@
                             <option value="IHU">Interview HC & User</option>
                         </select>
                     </div>
+            <div id="offlineScheduleFields" class="space-y-5">
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="mb-1 block text-sm font-semibold text-gray-600 dark:text-gray-300">Site</label>
                         <select name="site" id="siteDropdown" required
@@ -160,6 +184,8 @@
                     <textarea name="location_address" id="addressField" readonly rows="2"
                         class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700/60 dark:text-gray-400"></textarea>
                 </div>
+            </div>
+
             </div>
 
             {{-- Who --}}
@@ -219,6 +245,19 @@
 </div>
 
 <style>
+    #agendaScheduleType input:checked + span {
+        background: #eef2ff;
+        border-color: #6366f1;
+        color: #4338ca;
+    }
+    #agendaScheduleType input:focus-visible + span {
+        outline: 2px solid #6366f1;
+        outline-offset: 2px;
+    }
+    .dark #agendaScheduleType input:checked + span {
+        background: #312e81;
+        color: #e0e7ff;
+    }
     /* ===== Select2 Dark Mode (Participant multi-select) ===== */
     .dark .select2-container--default .select2-selection--multiple {
         background-color: #374151; /* gray-700 */
@@ -280,8 +319,24 @@
 
 <script>
     function openAgendaModal() {
+        syncAgendaScheduleType();
         document.getElementById('agendaModal').style.display = 'flex';
     }
+    function syncAgendaScheduleType() {
+        const online = $('#agendaScheduleType input:checked').val() === 'Online';
+        const $offline = $('#offlineScheduleFields');
+        $offline.prop('hidden', online);
+        $offline.find('input, select, textarea').each(function() {
+            if (this.dataset.offlineRequired === undefined) {
+                this.dataset.offlineRequired = this.required ? '1' : '0';
+            }
+            this.disabled = online;
+            this.required = !online && this.dataset.offlineRequired === '1';
+        });
+        $('#onlineMeetingFields').prop('hidden', !online);
+        $('#onlineMeetingLink').prop('disabled', !online).prop('required', online);
+    }
+    $('#agendaScheduleType').on('change', syncAgendaScheduleType);
     function closeAgendaModal() {
         document.getElementById('agendaModal').style.display = 'none';
     }
@@ -309,7 +364,9 @@
                 location.reload();
             },
             error: function(xhr) {
-                toastr.error('Failed to create schedule');
+                const response = xhr.responseJSON || {};
+                const errors = response.errors ? Object.values(response.errors).flat().join('\n') : null;
+                toastr.error(errors || response.message || response.error || 'Failed to create schedule', '', { escapeHtml: true });
                 console.error(xhr.responseText);
             },
             complete: function() {

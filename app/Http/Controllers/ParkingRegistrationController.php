@@ -1093,6 +1093,10 @@ class ParkingRegistrationController extends Controller
 
     public function storeParkingRegistration(Request $request)
     {
+        if ($uploadCountError = $this->parkingUploadCountError($request)) {
+            return $uploadCountError;
+        }
+
         $isDraft = $request->boolean('is_draft');
 
         $parkingType = strtoupper(trim((string) $request->parking_type));
@@ -1737,6 +1741,10 @@ class ParkingRegistrationController extends Controller
                 'success' => false,
                 'message' => 'Unauthorized',
             ], 401);
+        }
+
+        if ($uploadCountError = $this->parkingUploadCountError($request)) {
+            return $uploadCountError;
         }
 
         $parking = TrParkingRegistration::where('docid', $docid)->first();
@@ -3266,6 +3274,39 @@ class ParkingRegistrationController extends Controller
             'success' => true,
             'message' => 'Parking Registration cancelled successfully.',
         ]);
+    }
+
+    private function parkingUploadCountError(Request $request)
+    {
+        if (!$request->filled('selected_file_count')) {
+            return null;
+        }
+
+        $selectedCount = max((int) $request->input('selected_file_count'), 0);
+        $receivedCount = collect($request->allFiles())
+            ->flatten()
+            ->filter(fn ($file) => $file instanceof UploadedFile && $file->isValid())
+            ->count();
+
+        if ($selectedCount === $receivedCount) {
+            return null;
+        }
+
+        Log::warning('Parking attachment count mismatch', [
+            'selected_count'   => $selectedCount,
+            'received_count'   => $receivedCount,
+            'max_file_uploads' => ini_get('max_file_uploads'),
+            'user'             => optional($request->user())->username,
+        ]);
+
+        return response()->json([
+            'message' => "Upload tidak lengkap. Browser mengirim {$selectedCount} file, tetapi server hanya menerima {$receivedCount} file. Silakan hubungi administrator untuk memeriksa max_file_uploads.",
+            'errors' => [
+                'attachments' => [
+                    "Upload dibatalkan agar attachment tidak tersimpan sebagian (batas server saat ini: " . ini_get('max_file_uploads') . ' file).',
+                ],
+            ],
+        ], 422);
     }
 
     private function normalizeParkingDetailUsername($value): ?string

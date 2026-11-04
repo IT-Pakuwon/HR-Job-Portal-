@@ -1333,6 +1333,11 @@
             syncDetailUsernameBeforeSubmit();
 
             const formData = new FormData(document.getElementById('parkingRegistrationForm'));
+            const selectedFileCount = Array.from(
+                document.querySelectorAll('#parkingRegistrationForm input[type="file"]')
+            ).reduce((total, input) => total + input.files.length, 0);
+
+            formData.set('selected_file_count', String(selectedFileCount));
 
             $.ajax({
                 url: "{{ route('parkingregistration.store') }}",

@@ -830,7 +830,8 @@ class CareerController extends Controller
                             ->whereIn('username', fn ($s) => $s->from('ms_user')->select('username')->where('group_cpny_id', $group));
                     });
             })
-            ->orderBy('message_date', 'desc')
+            ->orderBy('message_date', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         return response()->json([
