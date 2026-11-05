@@ -400,7 +400,7 @@
                         data: 'next_approval',
                         className: 'text-left',
                         orderable: true,
-                        searchable: false,
+                        searchable: true,
                         defaultContent: '-',
                         render: function(value, type) {
                             const text = value || '-';
@@ -411,7 +411,7 @@
                         data: 'days_waiting',
                         className: 'text-center',
                         orderable: true,
-                        searchable: false,
+                        searchable: true,
                         render: (value) => value == null ? '-' : value
                     },
                     {

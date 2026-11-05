@@ -867,6 +867,7 @@ class VplReportController extends Controller
     private function productOutMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
+        $outDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
 
         $usages = TrxVplUsageDetail::query()
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
@@ -874,7 +875,7 @@ class VplReportController extends Controller
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
             ->where('ms_vpl_product.product_type', 'P')
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($outDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
@@ -882,7 +883,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage_detail.purpose_remark',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date as doc_date',
+                DB::raw($outDate.' as doc_date'),
                 'tr_vpl_usage.usage_id as doc_no',
                 'tr_vpl_usage.created_user as requester_name',
                 'tr_vpl_usage.department',
@@ -897,7 +898,7 @@ class VplReportController extends Controller
                 'direction'  => $isReturn ? 'in' : 'out',
                 'doc_label'  => $isReturn ? 'Return' : 'Usage',
                 'doc_no'     => $u->doc_no,
-                'date'       => Carbon::parse($u->doc_date),
+                'date'       => $u->doc_date ? Carbon::parse($u->doc_date) : null,
                 'qty'        => $isReturn ? abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
                 'name'       => $u->requester_name,
                 'department' => $u->department,
