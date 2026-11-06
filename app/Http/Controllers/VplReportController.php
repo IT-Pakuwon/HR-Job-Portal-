@@ -1487,6 +1487,9 @@ class VplReportController extends Controller
      */
     private function batchPurposeOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd, bool $splitWriteOff = false): array
     {
+        $usageDate = $splitWriteOff
+            ? "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END"
+            : 'tr_vpl_usage.usage_date';
         // $splitWriteOff: a COLLECTION-department Usage (from any warehouse) gets its own
         // 'Write Off' bucket instead of Loyalty/Promotion/Internal Use. Off for the
         // Loyalty Usage Rate report, where a write-off isn't a redemption.
@@ -1501,7 +1504,7 @@ class VplReportController extends Controller
                     $q->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION);
                 }
             })
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($usageDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
@@ -2299,14 +2302,20 @@ class VplReportController extends Controller
         $query->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
             ->leftJoin('tr_vpl_settlement as s', 's.settlement_id', '=', 'l.refnbr');
 
+        // Only Stock & Aging Summary reassigns VPU movements to their effective date.
+        $reportPeriod = $loyaltyOutIsUsage
+            ? "CASE WHEN l.transaction_source IN ('Usage', 'Return') THEN TO_CHAR(CASE WHEN u.department = 'CUSTOMERSERVICE' THEN u.usage_date ELSE u.completed_at END, 'YYYYMM') ELSE l.perpost END"
+            : 'l.perpost';
+
         $rows = $query
             ->where('l.cpnyid', $cpnyid)
-            ->where('l.perpost', 'like', $year.'%')
+            ->whereRaw($reportPeriod.' LIKE ?', [$year.'%'])
             ->where('l.status', 'A')
             ->whereIn('l.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
             ->whereIn('l.transaction_source', $transactionSources)
             ->select(array_filter([
                 'l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty',
+                DB::raw($reportPeriod.' as report_perpost'),
                 $loyaltyOutIsUsage ? null : 'td.from_whs_id',
                 DB::raw('COALESCE(u.department, s.department) as doc_department'),
             ]))
@@ -2317,7 +2326,7 @@ class VplReportController extends Controller
 
         foreach ($rows as $row) {
             $key   = $row->product_id.'|'.$this->expiredKey($row->expired_date);
-            $month = (int) substr((string) $row->perpost, 4, 2);
+            $month = (int) substr((string) $row->report_perpost, 4, 2);
             $qty   = (float) $row->qty;
 
             if ($row->transaction_source === 'Receive') {

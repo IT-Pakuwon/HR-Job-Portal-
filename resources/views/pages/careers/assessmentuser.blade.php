@@ -21,7 +21,7 @@
                 class="items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700/40">
                 Cancel
             </button>
-            <button type="button" id="actionBtnUSER" onclick="handleActionUSER()"
+            <button type="button" id="actionBtnUSER" onclick="handleActionUSER()" style="display:none"
                 class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                 Start Assessment
             </button>
@@ -258,6 +258,20 @@
     }
 
     function setEditModeUSER(editing) {
+        const assessmentForm = document.getElementById('assessmentFormUSER');
+        const hasCriteria = assessmentForm.querySelector('input[type="radio"]') !== null;
+        editing = editing && hasCriteria;
+        if (editing) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit',
+                day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+            }).formatToParts(new Date());
+            const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+            const dateInput = assessmentForm.querySelector('input[name="interview_date"]');
+            const timeInput = assessmentForm.querySelector('input[name="interview_time"]');
+            if (!dateInput.value) dateInput.value = `${values.year}-${values.month}-${values.day}`;
+            if (!timeInput.value) timeInput.value = `${values.hour}:${values.minute}`;
+        }
         if (editing && isSectionCollapsedUSER) {
             toggleSectionUSER();
         }
@@ -281,6 +295,7 @@
         }
 
         const btn = document.getElementById('actionBtnUSER');
+        btn.style.display = hasCriteria ? 'inline-flex' : 'none';
         const hint = document.getElementById('editHintUSER');
         document.getElementById('cancelBtnUSER').style.display = editing ? 'inline-flex' : 'none';
         if (editing) {
@@ -288,7 +303,7 @@
             hint.textContent = 'Fill in the scores above, then click Save.';
         } else {
             btn.textContent = hasFilledUSER ? 'Update' : 'Fill';
-            hint.textContent = hasFilledUSER ? '' : 'Click Fill to start scoring this interview.';
+            hint.textContent = !hasCriteria ? 'Interview criteria are not available yet.' : (hasFilledUSER ? '' : 'Click Fill to start scoring this interview.');
         }
     }
 
