@@ -2477,6 +2477,7 @@ class VplReportController extends Controller
     private function outMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
+        $usageOutDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
 
         $transfers = TrxVplTransferDetail::query()
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
@@ -2520,7 +2521,7 @@ class VplReportController extends Controller
             ->where(fn ($q) => $q
                 ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_COLLECTION])
                 ->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION))
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($usageOutDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
@@ -2528,7 +2529,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_usage',
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date as doc_date',
+                DB::raw($usageOutDate.' as doc_date'),
                 'tr_vpl_usage.usage_id as doc_no',
                 'tr_vpl_usage.created_user as diambil_oleh',
                 'tr_vpl_usage.department as keperluan',
