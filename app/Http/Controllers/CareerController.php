@@ -1734,7 +1734,7 @@ class CareerController extends Controller
     {
         $careerPortalBase = config('app.name') === 'Pakuwon System Demo'
             ? 'https://careerdemo.pakuwon.com'
-            : 'https://careerjakarta.pakuwon.com';
+            : 'https://career.pakuwon.com';
 
         $fromEmail = $career->group_cpny_id === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
 
@@ -3221,7 +3221,7 @@ class CareerController extends Controller
 
         $careerPortalBase = config('app.name') === 'Pakuwon System Demo'
             ? 'https://careerdemo.pakuwon.com'
-            : 'https://careerjakarta.pakuwon.com';
+            : 'https://career.pakuwon.com';
         $careerPortalUrl = url($careerPortalBase);
 
         $data = [
