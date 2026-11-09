@@ -52,11 +52,11 @@
             </div>
             <div class="mt-1 flex items-center gap-1.5">
                 <input type="date" name="interview_date"
-                    value="{{ $tr_assessment_user && $tr_assessment_user->assessment_date ? \Carbon\Carbon::parse($tr_assessment_user->assessment_date)->format('Y-m-d') : '' }}"
+                    value="{{ $tr_assessment_user && $tr_assessment_user->assessment_date ? \Carbon\Carbon::parse($tr_assessment_user->assessment_date)->format('Y-m-d') : now('Asia/Jakarta')->format('Y-m-d') }}"
                     required disabled
                     class="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
                 <input type="time" name="interview_time"
-                    value="{{ $tr_assessment_user && $tr_assessment_user->assessment_date ? \Carbon\Carbon::parse($tr_assessment_user->assessment_date)->format('H:i') : '' }}"
+                    value="{{ $tr_assessment_user && $tr_assessment_user->assessment_date ? \Carbon\Carbon::parse($tr_assessment_user->assessment_date)->format('H:i') : now('Asia/Jakarta')->format('H:i') }}"
                     required disabled
                     class="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
             </div>
@@ -262,15 +262,13 @@
         const hasCriteria = assessmentForm.querySelector('input[type="radio"]') !== null;
         editing = editing && hasCriteria;
         if (editing) {
-            const parts = new Intl.DateTimeFormat('en-GB', {
-                timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit',
-                day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
-            }).formatToParts(new Date());
-            const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+            const jakartaNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+            const dateValue = jakartaNow.toISOString().slice(0, 10);
+            const timeValue = jakartaNow.toISOString().slice(11, 16);
             const dateInput = assessmentForm.querySelector('input[name="interview_date"]');
             const timeInput = assessmentForm.querySelector('input[name="interview_time"]');
-            if (!dateInput.value) dateInput.value = `${values.year}-${values.month}-${values.day}`;
-            if (!timeInput.value) timeInput.value = `${values.hour}:${values.minute}`;
+            if (!hasFilledUSER || !dateInput.value) dateInput.value = dateValue;
+            if (!hasFilledUSER || !timeInput.value) timeInput.value = timeValue;
         }
         if (editing && isSectionCollapsedUSER) {
             toggleSectionUSER();

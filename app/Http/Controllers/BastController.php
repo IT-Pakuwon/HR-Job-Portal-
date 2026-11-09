@@ -16,6 +16,7 @@ use App\Models\TrBast;
 use App\Models\TrBASTRating;
 use App\Models\TrCS;
 use App\Models\TrPO;
+use App\Models\TrPOdetail;
 use App\Models\TrPOterm;
 use App\Models\TrSPPB;
 use App\Models\TrSPPJ;
@@ -535,6 +536,34 @@ class BastController extends Controller
                     $bast->completed_by = auth()->user()->username;
                     $bast->completed_at = $now;
                     $bast->save();
+
+                    $hasCompletedBast = DB::connection('pgsql')
+                        ->table('tr_bast as b')
+                        ->join('tr_po_term as t', function ($join) {
+                            $join->on('t.ponbr', '=', 'b.ponbr')
+                                ->on('t.cpny_id', '=', 'b.cpny_id');
+                        })
+                        ->where('b.ponbr', $bast->ponbr)
+                        ->where('b.cpny_id', $bast->cpny_id)
+                        ->where('b.status', 'C')
+                        ->whereNotIn('t.terms_type', ['Retensi', 'RETENSI'])
+                        ->exists();
+
+                    if ($hasCompletedBast) {
+                        $poUpdates = [
+                            'status' => 'C',
+                            'updated_by' => auth()->user()->username,
+                            'updated_at' => $now,
+                        ];
+
+                        TrPO::where('ponbr', $bast->ponbr)
+                            ->where('cpny_id', $bast->cpny_id)
+                            ->update($poUpdates);
+
+                        TrPOdetail::where('ponbr', $bast->ponbr)
+                            ->where('budget_cpny_id', $bast->cpny_id)
+                            ->update($poUpdates);
+                    }
 
                     app(ApprovalController::class)->notifyRequesterOnStatus(
                         $bast->bastid,

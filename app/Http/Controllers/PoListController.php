@@ -22,6 +22,14 @@ class PoListController extends Controller
 
         $cpnyList = $user->scopedCompanyIds();
 
+        $poTypes = TrPO::query()
+            ->when(!empty($cpnyList), fn ($query) => $query->whereIn('cpny_id', $cpnyList))
+            ->whereNotNull('potype')
+            ->where('potype', '<>', '')
+            ->distinct()
+            ->orderBy('potype')
+            ->pluck('potype');
+
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
@@ -29,6 +37,7 @@ class PoListController extends Controller
         // kirim list company untuk dropdown + login user (untuk hidden creator kalau non-fin)
         return view('pages.purchase.polist', [
             'companies' => $cpnyList,
+            'poTypes' => $poTypes,
             'isFinanceAccess' => $isFinanceAccess,
             'loginUser' => $u,
         ]);
@@ -45,6 +54,7 @@ class PoListController extends Controller
         $status = strtoupper(trim((string) $req->query('status', '')));
         $company = strtoupper(trim((string) $req->query('company', '')));
         $creator = trim((string) $req->query('creator', ''));
+        $poType = trim((string) $req->query('potype', ''));
 
         // ===== company list user =====
         $cpnyList = $user->scopedCompanyIds();
@@ -63,6 +73,10 @@ class PoListController extends Controller
         // ===== filter company dropdown =====
         if ($company !== '' && in_array($company, $cpnyList, true)) {
             $base->where('cpny_id', $company);
+        }
+
+        if ($poType !== '') {
+            $base->where('potype', $poType);
         }
 
         // ===== TAB filter =====

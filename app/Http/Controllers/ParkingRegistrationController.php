@@ -1354,6 +1354,20 @@ class ParkingRegistrationController extends Controller
                 $detailUsername = $this->normalizeParkingDetailUsername(
                     $request->input("detail_username.$i")
                 );
+                $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
+                $detailJenis = $request->input("detail_jenis_kendaraan.$i");
+                $detailNopolLama = strtoupper(trim((string) $request->input("detail_nopol_lama.$i")));
+                $detailJenisLama = $request->input("detail_jenis_lama.$i");
+
+                $renewalMaster = $parkingTypeUpper === 'RENEWAL'
+                    ? $this->findRenewalParkingMaster(
+                        $siteParking,
+                        $workerType,
+                        $detailNopol,
+                        $detailUsername,
+                        $detailName
+                    )
+                    : null;
 
                 $stnkPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_stnk.$i"),
@@ -1361,7 +1375,7 @@ class ParkingRegistrationController extends Controller
                     'STNK',
                     $rowNo,
                     $username
-                );
+                ) ?: optional($renewalMaster)->attach_stnk;
 
                 $idCardPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_idcard.$i"),
@@ -1369,7 +1383,7 @@ class ParkingRegistrationController extends Controller
                     'IDCARD',
                     $rowNo,
                     $username
-                );
+                ) ?: optional($renewalMaster)->attach_idcard;
 
                 $buktiBayarPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
@@ -1377,14 +1391,14 @@ class ParkingRegistrationController extends Controller
                     'BUKTIBAYAR',
                     $rowNo,
                     $username
-                );
+                ) ?: optional($renewalMaster)->attach_bukti_bayar;
 
                 TrParkingRegistrationDetail::create([
                     'docid'              => $docid,
                     'parking_type'       => $parkingType,
                     'worker_type'        => $workerType,
-                    'nopol'              => strtoupper((string) $request->input("detail_no_polisi.$i")),
-                    'jenis_kendaraan'    => $request->input("detail_jenis_kendaraan.$i"),
+                    'nopol'              => $detailNopol,
+                    'jenis_kendaraan'    => $detailJenis,
                     'username'           => $detailUsername,
                     'nama'               => $detailName,
                     'cpny_id'            => $cpnyId,
@@ -1393,8 +1407,8 @@ class ParkingRegistrationController extends Controller
                     'perpost'            => $perpost,
                     'startdate'          => $startDate,
                     'enddate'            => $endDate,
-                    'nopol_lama'         => $request->input("detail_nopol_lama.$i"),
-                    'jenis_lama'         => $request->input("detail_jenis_lama.$i"),
+                    'nopol_lama'         => $detailNopolLama ?: null,
+                    'jenis_lama'         => $detailJenisLama ?: null,
                     'ref_nbr'            => null,
                     'attach_stnk'        => $stnkPath,
                     'attach_idcard'      => $idCardPath,
@@ -1403,14 +1417,6 @@ class ParkingRegistrationController extends Controller
                     'created_by'         => $username,
                     'created_at'         => $dt,
                 ]);
-
-                $parkingTypeUpper = strtoupper(trim((string) $parkingType));
-
-                $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
-                $detailJenis = $request->input("detail_jenis_kendaraan.$i");
-
-                $detailNopolLama = strtoupper(trim((string) $request->input("detail_nopol_lama.$i")));
-                $detailJenisLama = $request->input("detail_jenis_lama.$i");
 
                 /*
                 |--------------------------------------------------------------------------
@@ -1993,13 +1999,23 @@ class ParkingRegistrationController extends Controller
                 $oldIdcard = $request->input("old_attach_idcard.$i");
                 $oldBuktiBayar = $request->input("old_attach_bukti_bayar.$i");
 
+                $renewalMaster = $parkingType === 'RENEWAL'
+                    ? $this->findRenewalParkingMaster(
+                        $siteParking,
+                        $workerType,
+                        $detailNopol,
+                        $detailUsername,
+                        $detailName
+                    )
+                    : null;
+
                 $stnkPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_stnk.$i"),
                     $parking->docid,
                     'STNK',
                     $username,
                     $rowNo
-                ) ?: $oldStnk;
+                ) ?: $oldStnk ?: optional($renewalMaster)->attach_stnk;
 
                 $idCardPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_idcard.$i"),
@@ -2007,7 +2023,7 @@ class ParkingRegistrationController extends Controller
                     'IDCARD',
                     $username,
                     $rowNo
-                ) ?: $oldIdcard;
+                ) ?: $oldIdcard ?: optional($renewalMaster)->attach_idcard;
 
                 $buktiBayarPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
@@ -2015,7 +2031,7 @@ class ParkingRegistrationController extends Controller
                     'BUKTIBAYAR',
                     $username,
                     $rowNo
-                ) ?: $oldBuktiBayar;
+                ) ?: $oldBuktiBayar ?: optional($renewalMaster)->attach_bukti_bayar;
 
                 TrParkingRegistrationDetail::create([
                     'docid'              => $parking->docid,
@@ -3274,6 +3290,41 @@ class ParkingRegistrationController extends Controller
             'success' => true,
             'message' => 'Parking Registration cancelled successfully.',
         ]);
+    }
+
+    private function findRenewalParkingMaster(
+        string $siteParking,
+        string $workerType,
+        string $nopol,
+        ?string $username,
+        string $name
+    ): ?MsParkingKendaraan {
+        $nopolClean = strtoupper(preg_replace('/\s+/', '', trim($nopol)));
+
+        if ($nopolClean === '') {
+            return null;
+        }
+
+        $query = MsParkingKendaraan::query()
+            ->whereIn('status', ['A', 'P'])
+            ->whereNull('deleted_at')
+            ->where('site_id_parking', $siteParking)
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [strtoupper(trim($workerType))])
+            ->whereRaw(
+                "UPPER(REGEXP_REPLACE(TRIM(nopol), '\\s+', '', 'g')) = ?",
+                [$nopolClean]
+            );
+
+        if (!empty($username)) {
+            $query->where('username', $username);
+        } else {
+            $query->whereRaw('UPPER(TRIM(nama)) = ?', [strtoupper(trim($name))]);
+        }
+
+        return $query
+            ->orderByRaw("CASE WHEN UPPER(TRIM(parking_type)) = 'NEWREQUEST' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->first();
     }
 
     private function parkingUploadCountError(Request $request)
