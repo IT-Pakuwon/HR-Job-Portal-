@@ -97,6 +97,28 @@ class VplStockSummaryDateTest extends TestCase
         $this->assertContains('2026%', $this->connection->queries[0]['bindings']);
     }
 
+    public function test_summary_group_filters_year_and_groups_usage_and_return_by_effective_date(): void
+    {
+        $base = ['product_id' => 'V20039', 'expired_date' => '2026-12-31', 'whs_id' => 'WHPROMOTION', 'purpose_id' => 'Other', 'qty_usage' => 25, 'qty_return_usage' => 0, 'usagetype' => 'Usage', 'usage_date' => '2026-10-27'];
+        $this->connection->results = [[], [], [
+            (object) array_replace($base, ['report_date' => '2026-11-02 10:00:00']),
+            (object) array_replace($base, ['report_date' => '2026-10-27']),
+            (object) array_replace($base, ['usagetype' => 'Return', 'qty_usage' => 0, 'qty_return_usage' => 5, 'report_date' => '2026-11-03 12:00:00']),
+        ], []];
+
+        [$meta, $in, $transfer, $out] = $this->invoke('summaryGroupMovementRows', ['EP', 2026]);
+        $key = 'V20039|2026-12-31|WHCOLLECTION';
+        $this->assertSame(25.0, $out[$key][11]['Other']);
+        $this->assertSame(25.0, $out[$key][10]['Other']);
+        $this->assertSame(5.0, $in[$key][11]);
+        $usageSql = $this->connection->queries[2]['sql'];
+        $this->assertStringContainsString("CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END as report_date", $usageSql);
+        $this->assertStringContainsString("extract(year from CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END)", $usageSql);
+        $this->assertStringNotContainsString('completed_at', $this->connection->queries[0]['sql']);
+        $this->assertStringNotContainsString('completed_at', $this->connection->queries[1]['sql']);
+        $this->assertStringNotContainsString('completed_at', $this->connection->queries[3]['sql']);
+    }
+
     public function test_stock_voucher_ledger_keeps_original_posting_period(): void
     {
         $this->invoke('ledgerMonthlyInOut', ['EP', 2026, false]);

@@ -2966,7 +2966,7 @@ class SppbController extends Controller
         // ambil doc
         $sppb = TrSPPB::query()->where('id', $id)->firstOrFail();
 
-        DB::beginTransaction();
+        DB::connection('pgsql')->beginTransaction();
         try {
             // update status header jadi X (Canceled)
             $sppb->status = 'X';
@@ -2974,14 +2974,18 @@ class SppbController extends Controller
             $sppb->updated_at = now(); // kalau kolom ada
             $sppb->save();
 
-            DB::commit();
+            if (!empty($sppb->spbid)) {
+                $this->updateSPBQtySPPB($sppb->spbid, $sppb->sppbid, $sppb->updated_by);
+            }
+
+            DB::connection('pgsql')->commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Document canceled (status X).',
             ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection('pgsql')->rollBack();
 
             return response()->json([
                 'success' => false,

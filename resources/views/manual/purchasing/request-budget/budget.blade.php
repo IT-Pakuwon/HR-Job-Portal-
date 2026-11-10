@@ -65,12 +65,12 @@
 
              <p class="mt-2 text-gray-600 dark:text-gray-400">
                  <span x-show="lang==='en'">
-                     The approved 2026 Budget will be imported by the Cost Control team at each site.
+                     The approved Budget will be imported by the Cost Control team at each site.
                      Please contact the respective Cost Control representative if any budget item is missing
                      or requires clarification.
                  </span>
                  <span x-show="lang==='id'">
-                     Budget 2026 yang telah disetujui akan diimpor oleh tim Cost Control
+                     Budget yang telah disetujui akan diimpor oleh tim Cost Control
                      di masing-masing site. Harap menghubungi Cost Control terkait apabila terdapat
                      anggaran yang belum tersedia atau memerlukan klarifikasi.
                  </span>

@@ -1111,6 +1111,7 @@ class ParkingRegistrationController extends Controller
         $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
         $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
         $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
+        $inheritsOriginalAttachments = in_array($parkingType, ['RENEWAL', 'CHANGECARD'], true);
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -1146,17 +1147,17 @@ class ParkingRegistrationController extends Controller
             $rules['detail_no_polisi'][] = 'min:1';
             $rules['detail_jenis_kendaraan'][] = 'min:1';
 
-            if ($requiresStnk) {
+            if ($requiresStnk && !$inheritsOriginalAttachments) {
                 $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
                 $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
             }
 
-            if ($requiresIdCard) {
+            if ($requiresIdCard && !$inheritsOriginalAttachments) {
                 $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
                 $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
             }
 
-            if ($requiresBuktiBayar) {
+            if ($requiresBuktiBayar && !$inheritsOriginalAttachments) {
                 $rules['detail_attach_bukti_bayar'] = ['required', 'array', 'min:1'];
                 $rules['detail_attach_bukti_bayar.*'] = ['required', 'file', 'max:10240'];
             }
@@ -1169,16 +1170,25 @@ class ParkingRegistrationController extends Controller
         if (!$isDraft) {
             foreach ($detailNames as $i => $detailName) {
                 $missing = [];
+                $originalMaster = $inheritsOriginalAttachments
+                    ? $this->findOriginalParkingMaster(
+                        (string) $request->site_id_parking,
+                        $workerType,
+                        (string) $request->input("detail_no_polisi.$i"),
+                        $this->normalizeParkingDetailUsername($request->input("detail_username.$i")),
+                        (string) $detailName
+                    )
+                    : null;
 
-                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i")) {
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && empty(data_get($originalMaster, 'attach_stnk'))) {
                     $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
                 }
 
-                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i")) {
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && empty(data_get($originalMaster, 'attach_idcard'))) {
                     $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
                 }
 
-                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i")) {
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && empty(data_get($originalMaster, 'attach_bukti_bayar'))) {
                     $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
                 }
 
@@ -1359,8 +1369,8 @@ class ParkingRegistrationController extends Controller
                 $detailNopolLama = strtoupper(trim((string) $request->input("detail_nopol_lama.$i")));
                 $detailJenisLama = $request->input("detail_jenis_lama.$i");
 
-                $renewalMaster = $parkingTypeUpper === 'RENEWAL'
-                    ? $this->findRenewalParkingMaster(
+                $originalMaster = in_array($parkingTypeUpper, ['RENEWAL', 'CHANGECARD'], true)
+                    ? $this->findOriginalParkingMaster(
                         $siteParking,
                         $workerType,
                         $detailNopol,
@@ -1375,7 +1385,7 @@ class ParkingRegistrationController extends Controller
                     'STNK',
                     $rowNo,
                     $username
-                ) ?: optional($renewalMaster)->attach_stnk;
+                ) ?: optional($originalMaster)->attach_stnk;
 
                 $idCardPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_idcard.$i"),
@@ -1383,7 +1393,7 @@ class ParkingRegistrationController extends Controller
                     'IDCARD',
                     $rowNo,
                     $username
-                ) ?: optional($renewalMaster)->attach_idcard;
+                ) ?: optional($originalMaster)->attach_idcard;
 
                 $buktiBayarPath = $this->uploadParkingDetailFileGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
@@ -1391,7 +1401,7 @@ class ParkingRegistrationController extends Controller
                     'BUKTIBAYAR',
                     $rowNo,
                     $username
-                ) ?: optional($renewalMaster)->attach_bukti_bayar;
+                ) ?: optional($originalMaster)->attach_bukti_bayar;
 
                 TrParkingRegistrationDetail::create([
                     'docid'              => $docid,
@@ -1783,6 +1793,7 @@ class ParkingRegistrationController extends Controller
         $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
         $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
         $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
+        $inheritsOriginalAttachments = in_array($parkingType, ['RENEWAL', 'CHANGECARD'], true);
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -1835,16 +1846,28 @@ class ParkingRegistrationController extends Controller
         if (!$isDraft) {
             foreach ($detailNames as $i => $detailName) {
                 $missing = [];
+                $originalMaster = $inheritsOriginalAttachments
+                    ? $this->findOriginalParkingMaster(
+                        (string) $request->site_id_parking,
+                        $workerType,
+                        (string) $request->input("detail_no_polisi.$i"),
+                        $this->normalizeParkingDetailUsername($request->input("detail_username.$i")),
+                        (string) $detailName
+                    )
+                    : null;
+                $oldStnk = trim((string) $request->input("old_attach_stnk.$i"));
+                $oldIdCard = trim((string) $request->input("old_attach_idcard.$i"));
+                $oldBuktiBayar = trim((string) $request->input("old_attach_bukti_bayar.$i"));
 
-                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && trim((string) $request->input("old_attach_stnk.$i")) === '') {
+                if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && $oldStnk === '' && empty(data_get($originalMaster, 'attach_stnk'))) {
                     $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
                 }
 
-                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && trim((string) $request->input("old_attach_idcard.$i")) === '') {
+                if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && $oldIdCard === '' && empty(data_get($originalMaster, 'attach_idcard'))) {
                     $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
                 }
 
-                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && trim((string) $request->input("old_attach_bukti_bayar.$i")) === '') {
+                if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && $oldBuktiBayar === '' && empty(data_get($originalMaster, 'attach_bukti_bayar'))) {
                     $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
                 }
 
@@ -1999,8 +2022,8 @@ class ParkingRegistrationController extends Controller
                 $oldIdcard = $request->input("old_attach_idcard.$i");
                 $oldBuktiBayar = $request->input("old_attach_bukti_bayar.$i");
 
-                $renewalMaster = $parkingType === 'RENEWAL'
-                    ? $this->findRenewalParkingMaster(
+                $originalMaster = in_array($parkingType, ['RENEWAL', 'CHANGECARD'], true)
+                    ? $this->findOriginalParkingMaster(
                         $siteParking,
                         $workerType,
                         $detailNopol,
@@ -2015,7 +2038,7 @@ class ParkingRegistrationController extends Controller
                     'STNK',
                     $username,
                     $rowNo
-                ) ?: $oldStnk ?: optional($renewalMaster)->attach_stnk;
+                ) ?: $oldStnk ?: optional($originalMaster)->attach_stnk;
 
                 $idCardPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_idcard.$i"),
@@ -2023,7 +2046,7 @@ class ParkingRegistrationController extends Controller
                     'IDCARD',
                     $username,
                     $rowNo
-                ) ?: $oldIdcard ?: optional($renewalMaster)->attach_idcard;
+                ) ?: $oldIdcard ?: optional($originalMaster)->attach_idcard;
 
                 $buktiBayarPath = $this->uploadParkingFileToGcs(
                     $request->file("detail_attach_bukti_bayar.$i"),
@@ -2031,7 +2054,7 @@ class ParkingRegistrationController extends Controller
                     'BUKTIBAYAR',
                     $username,
                     $rowNo
-                ) ?: $oldBuktiBayar ?: optional($renewalMaster)->attach_bukti_bayar;
+                ) ?: $oldBuktiBayar ?: optional($originalMaster)->attach_bukti_bayar;
 
                 TrParkingRegistrationDetail::create([
                     'docid'              => $parking->docid,
@@ -3292,7 +3315,7 @@ class ParkingRegistrationController extends Controller
         ]);
     }
 
-    private function findRenewalParkingMaster(
+    private function findOriginalParkingMaster(
         string $siteParking,
         string $workerType,
         string $nopol,
@@ -3309,6 +3332,7 @@ class ParkingRegistrationController extends Controller
             ->whereIn('status', ['A', 'P'])
             ->whereNull('deleted_at')
             ->where('site_id_parking', $siteParking)
+            ->whereRaw("UPPER(TRIM(parking_type)) = 'NEWREQUEST'")
             ->whereRaw('UPPER(TRIM(worker_type)) = ?', [strtoupper(trim($workerType))])
             ->whereRaw(
                 "UPPER(REGEXP_REPLACE(TRIM(nopol), '\\s+', '', 'g')) = ?",
@@ -3321,10 +3345,7 @@ class ParkingRegistrationController extends Controller
             $query->whereRaw('UPPER(TRIM(nama)) = ?', [strtoupper(trim($name))]);
         }
 
-        return $query
-            ->orderByRaw("CASE WHEN UPPER(TRIM(parking_type)) = 'NEWREQUEST' THEN 0 ELSE 1 END")
-            ->orderByDesc('id')
-            ->first();
+        return $query->orderByDesc('id')->first();
     }
 
     private function parkingUploadCountError(Request $request)

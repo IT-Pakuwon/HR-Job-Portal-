@@ -95,13 +95,13 @@
                      <div class="manual-note manual-info">
                          <span x-show="lang==='en'">
                              Use Meeting Room to book a physical room for an internal or external discussion.
-                             If you only need a Microsoft Teams link without booking a physical room,
-                             use the Meeting Teams feature instead.
+                             If you only need a Zoom link without booking a physical room,
+                             use the Meeting Zoom feature instead.
                          </span>
                          <span x-show="lang==='id'">
                              Gunakan Meeting Room untuk memesan ruangan fisik untuk diskusi internal maupun eksternal.
-                             Jika Anda hanya butuh link Microsoft Teams tanpa memesan ruangan fisik,
-                             gunakan fitur Meeting Teams.
+                             Jika Anda hanya butuh link Zoom tanpa memesan ruangan fisik,
+                             gunakan fitur Meeting Zoom.
                          </span>
                      </div>
 
@@ -368,8 +368,8 @@
                      class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
 
                      <span>
-                         <span x-show="lang==='en'">4. Meeting Teams (Teams-Only Bookings)</span>
-                         <span x-show="lang==='id'">4. Meeting Teams (Pemesanan Khusus Teams)</span>
+                         <span x-show="lang==='en'">4. Meeting Zoom (Zoom-Only Bookings)</span>
+                         <span x-show="lang==='id'">4. Meeting Zoom (Pemesanan Khusus Zoom)</span>
                      </span>
 
                      <span x-text="openSection==='s4' ? '−' : '+'"></span>
@@ -379,15 +379,15 @@
 
                      <p class="text-gray-600 dark:text-gray-400">
                          <span x-show="lang==='en'">
-                             Meeting Teams is a separate calendar view focused on rooms or resources set up
+                             Meeting Zoom is a separate calendar view focused on rooms or resources set up
                              specifically for online meetings. It is used when the goal is simply to generate
-                             a Microsoft Teams meeting (with a room/resource reserved for it), rather than
+                             a Zoom meeting (with a room/resource reserved for it), rather than
                              organizing a full room booking with a long participant list.
                          </span>
                          <span x-show="lang==='id'">
-                             Meeting Teams adalah tampilan kalender terpisah yang berfokus pada ruangan atau
+                             Meeting Zoom adalah tampilan kalender terpisah yang berfokus pada ruangan atau
                              resource yang dikonfigurasi khusus untuk meeting online. Fitur ini digunakan ketika
-                             tujuannya hanya untuk membuat Microsoft Teams meeting (dengan ruangan/resource yang
+                             tujuannya hanya untuk membuat Zoom meeting (dengan ruangan/resource yang
                              dipesan untuknya), bukan mengatur pemesanan ruangan lengkap dengan daftar peserta
                              yang panjang.
                          </span>
@@ -397,12 +397,12 @@
                          <span x-show="lang==='en'">
                              The booking form here is simpler than the main Meeting Room form — it only asks
                              for the date/time, resource, title, description, and accessories. Once saved,
-                             a Microsoft Teams meeting link and invitation email are generated automatically.
+                             a Zoom meeting link and invitation email are generated automatically.
                          </span>
                          <span x-show="lang==='id'">
                              Form pemesanan di sini lebih sederhana dibandingkan form Meeting Room utama —
                              hanya meminta tanggal/jam, resource, judul, deskripsi, dan accessories. Setelah
-                             disimpan, link meeting Microsoft Teams dan email undangan akan dibuat secara
+                             disimpan, link meeting Zoom dan email undangan akan dibuat secara
                              otomatis.
                          </span>
                      </div>

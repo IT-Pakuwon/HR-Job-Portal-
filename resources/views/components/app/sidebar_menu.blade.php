@@ -103,6 +103,7 @@
                         $addSearchItem('approvals', 'Approvals', 'Workflow');
                         $addSearchItem('manage-approvals', 'Manage Approval', 'Workflow');
                         $addSearchItem('attachments-master', 'Attachments Master', 'Workflow');
+                        $addSearchItem('send-email', 'Send Email', 'Workflow');
 
                         $addSearchItem('grading', 'Grading', 'HRGA Setup');
                         $addSearchItem('kendaraan', 'Kendaraan', 'HRGA Setup');
@@ -434,6 +435,7 @@
                                 'tops',
                                 'sys-calendar',
                                 'attachments-master',
+                                'send-email',
                                 'kendaraan',
                                 'groupbiayanonpurch',
                                 'approvals',
@@ -560,7 +562,7 @@
                                 <!-- ================================================= -->
                                 <!-- WORKFLOW -->
                                 <!-- ================================================= -->
-                                @php $workflowSegments = ['approvals','manage-approvals','attachments-master']; @endphp
+                                @php $workflowSegments = ['approvals','manage-approvals','attachments-master','send-email']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -589,6 +591,9 @@
                                         <li><a href="{{ route('attachments-master') }}"
                                                 class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments
                                                 Master</a>
+                                        </li>
+                                        <li><a href="{{ route('send-email') }}"
+                                                class="{{ Request::segment(1) === 'send-email' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Send Email</a>
                                         </li>
                                         {{-- <li>
                                             <a href="{{ route('user_sync.index') }}"

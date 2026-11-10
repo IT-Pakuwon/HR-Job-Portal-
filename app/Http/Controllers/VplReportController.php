@@ -1137,6 +1137,7 @@ class VplReportController extends Controller
      */
     private function summaryGroupMovementRows(string $cpnyid, int $year): array
     {
+        $usageDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
         $batchMeta       = [];
         $inByMonth       = [];
         $transferByMonth = [];
@@ -1218,7 +1219,7 @@ class VplReportController extends Controller
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
             ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
-            ->whereYear('tr_vpl_usage.usage_date', $year)
+            ->whereYear(DB::raw($usageDate), $year)
             ->select([
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
@@ -1227,7 +1228,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_usage',
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date',
+                DB::raw($usageDate.' as report_date'),
             ])
             ->get();
 
@@ -1235,7 +1236,7 @@ class VplReportController extends Controller
             $whsId = $this->normalizeSummaryGroupWhsId($u->whs_id);
             $key   = $u->product_id.'|'.$this->expiredKey($u->expired_date).'|'.$whsId;
             $touch($key, $u->product_id, $u->expired_date, $whsId);
-            $m = Carbon::parse($u->usage_date)->month;
+            $m = Carbon::parse($u->report_date)->month;
 
             if ($u->usagetype === 'Return') {
                 $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + abs((float) $u->qty_return_usage);
