@@ -14,6 +14,7 @@ use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\Personnel;
 use App\Http\Controllers\LegalAgreementController;
+use App\Http\Controllers\ApprovalDashboardController;
 use App\Models\StoSubGradingJobLevel;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
@@ -48,10 +49,51 @@ use App\Models\ViewUsersTalenta;
 
 class DocumentNotificationService
 {
+    public static function recruitmentWaitingForUser(User $user): \Illuminate\Support\Collection
+    {
+        $rows = app(ApprovalDashboardController::class)->waitingForUser($user)
+            ->filter(fn ($row) => rtrim((string) ($row['url'] ?? ''), '/') === '/showcareers');
+
+        // Match the recruitment dashboard's company-group restriction.
+        $group = strtoupper(trim((string) $user->group_cpny_id));
+        if (!$user->isPrimaryAdmin() && $group !== '' && $rows->isNotEmpty()) {
+            $companyGroups = \App\Models\MsCompany::whereIn('cpny_id', $rows->pluck('cpnyid')->unique())
+                ->pluck('group_cpny_id', 'cpny_id');
+            $rows = $rows->filter(function ($row) use ($companyGroups, $group) {
+                $rowGroup = strtoupper(trim((string) $companyGroups->get($row['cpnyid'])));
+                return $rowGroup === '' || $rowGroup === $group;
+            });
+        }
+
+        return $rows->map(fn ($row) => [
+            'key' => 'CAREER_APPROVAL_' . $row['hid'] . '_' . md5((string) ($row['docdate'] ?? '')),
+            'hid' => $row['hid'],
+            'docid' => $row['docid'],
+            'status' => 'CAREER_APPROVAL',
+            'label' => 'Waiting Approval',
+            'message' => 'This candidate is waiting for your approval. Please review.',
+            'cpnyid' => $row['cpnyid'],
+            'url' => '/showcareers',
+            'by' => null,
+            'updated_at' => $row['docdate'] ?? null,
+        ])->values();
+    }
+
     public static function buildForUser(string $username): array
     {
         $username = strtolower(trim($username));
         $data     = collect();
+
+        $notificationUser = null;
+        // Reuse dashboard recipient/document resolution, including during scheduler refreshes.
+        try {
+            $notificationUser = User::whereRaw('lower(trim(username)) = ?', [$username])->first();
+            if ($notificationUser) {
+                $data = $data->concat(self::recruitmentWaitingForUser($notificationUser));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: recruitment approvals fetch failed', ['err' => $e->getMessage()]);
+        }
 
         // ── 1. TrApproval: D (Revised) & R (Rejected) ──
         $aprM    = new TrApproval();
@@ -516,6 +558,7 @@ class DocumentNotificationService
             // as fully approved/completed — once it's there, new comments on it no longer notify
             // anyone (see the terminal-status check in the row loop below).
             $commentDocTypes = [
+                'JAP' => ['model' => \App\Models\Career::class, 'idCol' => 'docid', 'url' => '/showcareers', 'terminalStatuses' => ['C', 'X', 'R', 'T']],
                 'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket',           'statusCol' => 'status_pekerjaan', 'terminalStatuses' => ['COMPLETED', 'CANCEL', 'ENVISION CHECKED / SOLVED']],
                 'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest',    'terminalStatuses' => ['F', 'X', 'R']],
                 'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation', 'terminalStatuses' => ['C', 'R']],
@@ -550,7 +593,12 @@ class DocumentNotificationService
             $commentHolidays = self::commentExpiryHolidays();
 
             foreach ($commentDocTypes as $commentDoctype => $cfg) {
-                $rows = TrMessage::where('doctype', $commentDoctype)
+                $rows = TrMessage::where(function ($q) use ($commentDoctype) {
+                        $q->where('doctype', $commentDoctype);
+                        if ($commentDoctype === 'JAP') {
+                            $q->orWhere(fn ($legacy) => $legacy->where('doctype', 'PRF')->where('refnbr', 'like', 'JAP%'));
+                        }
+                    })
                     ->where('message_date', '>=', now()->subDays(21))
                     ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
                     ->get()
@@ -577,6 +625,9 @@ class DocumentNotificationService
                         $cfg['idCol'],
                         $rows->pluck('refnbr')->filter()->unique()->values()->all()
                     )
+                    ->when($commentDoctype === 'JAP', fn ($q) => $q
+                        ->where('group_cpny_id', $notificationUser?->group_cpny_id ?? '')
+                        ->whereNotIn('status', ['T', 'X'])->orderBy('id'))
                     ->get()
                     ->keyBy($cfg['idCol']);
 
@@ -586,6 +637,13 @@ class DocumentNotificationService
                     $doc = $docsByKey->get($row->refnbr);
                     if (!$doc) {
                         continue;
+                    }
+                    if ($commentDoctype === 'JAP') {
+                        // Match the career comment endpoint's legacy company/author-group scope.
+                        $matchesCompany = $row->cpny_id !== null && $row->cpny_id === $doc->cpnyid;
+                        $matchesLegacyGroup = $row->cpny_id === null && User::where('username', $row->username)
+                            ->where('group_cpny_id', $doc->group_cpny_id)->exists();
+                        if (!$matchesCompany && !$matchesLegacyGroup) continue;
                     }
 
                     // Document has reached its terminal/completed status — stop surfacing
@@ -650,6 +708,7 @@ class DocumentNotificationService
                     $mentionedUsernames = collect();
                     if ($tokens->isNotEmpty()) {
                         $mentionedUsernames = User::query()
+                            ->when($commentDoctype === 'JAP', fn ($q) => $q->where('group_cpny_id', $doc->group_cpny_id))
                             ->whereIn(DB::raw('lower(username)'), $tokens->all())
                             ->pluck('username')
                             ->map(fn($u) => strtolower(trim($u)));
@@ -1194,6 +1253,29 @@ class DocumentNotificationService
 
     private static function resolveCommentRecipients(string $doctype, $doc): \Illuminate\Support\Collection
     {
+        if ($doctype === 'JAP') {
+            $companyIds = \App\Models\MsCompany::where('group_cpny_id', $doc->group_cpny_id)->pluck('cpny_id');
+            $jobposting = \App\Models\Jobposting::where('docid', $doc->jobid)
+                ->where('group_cpny_id', $doc->group_cpny_id)->first();
+            $approvers = TrApproval::where(function ($q) use ($doc, $jobposting) {
+                    $q->where(fn ($q) => $q->where('refnbr', $doc->docid)->where('aprv_doctype', 'JAP'));
+                    if ($jobposting?->refid) {
+                        $q->orWhere(fn ($q) => $q->where('refnbr', $jobposting->refid)->where('aprv_doctype', 'PRF'));
+                    }
+                })
+                ->whereIn('aprv_cpnyid', $companyIds->push($doc->cpnyid)->unique())
+                ->pluck('aprv_username');
+            $recipients = self::splitApproverUsernames($approvers)
+                ->merge(collect([$doc->created_user]))
+                ->merge(\App\Models\JobApplyStep::where('docid', $doc->docid)
+                    ->where('jobid', $doc->jobid)->where('group_cpny_id', $doc->group_cpny_id)
+                    ->where('status', '!=', 'X')->pluck('aprvusername'))
+                ->filter()->map(fn ($u) => strtolower(trim($u)))->unique();
+
+            return User::where('group_cpny_id', $doc->group_cpny_id)
+                ->whereIn(DB::raw('lower(trim(username))'), $recipients->all())
+                ->pluck('username')->map(fn ($u) => strtolower(trim($u)))->unique();
+        }
         if ($doctype === 'TIC') {
             return collect([$doc->user_peminta])
                 ->merge(

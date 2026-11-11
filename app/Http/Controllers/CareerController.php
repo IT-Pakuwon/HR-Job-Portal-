@@ -855,7 +855,7 @@ class CareerController extends Controller
 
         $comment = TrMessage::create([
             'refnbr' => $refnbr,
-            'doctype' => 'PRF',
+            'doctype' => 'JAP',
             'message_date' => now(),
             'cpny_id' => $career->cpnyid,
             'department_id' => $user->departmentid ?? null,
