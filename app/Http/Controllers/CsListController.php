@@ -240,24 +240,8 @@ class CsListController extends Controller
         $csTable = (new TrCS())->getTable();
         $prefixExpr = "SUBSTRING({$csTable}.sppbjktid FROM 1 FOR 2)";
 
-        // === Search, Order, Select (unchanged) ===
-        if ($search !== '') {
-            $base->where(function ($q) use ($search, $csTable) {
-                $q->where($csTable.'.csid', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.sppbjktid', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.cpny_id', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.department_id', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.user_peminta', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.created_by', 'ilike', "%{$search}%")
-                  ->orWhere($csTable.'.csnote', 'ilike', "%{$search}%")
-                  ->orWhereRaw("TO_CHAR({$csTable}.csdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("TO_CHAR({$csTable}.assigndate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("TO_CHAR({$csTable}.submitdate,'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
-            });
-        }
-
         $recordsTotal = (clone $base)->count();
-        $recordsFiltered = (clone $base)->count();
+        $recordsFiltered = $recordsTotal;
 
         $rows = $base->select(
             $csTable.'.id',
@@ -283,8 +267,8 @@ class CsListController extends Controller
                     END) AS sppbjkt_src_id")
         )
                 ->orderBy('csid', 'desc')
-                // Approval values come from another connection; sort those before pagination.
-                ->when(!$approvalSort && $length !== -1, function ($query) use ($start, $length) {
+                // Search includes computed values and approvals from another connection.
+                ->when($search === '' && !$approvalSort && $length !== -1, function ($query) use ($start, $length) {
                     $query->skip($start)->take($length);
                 })
                 ->get();
@@ -466,6 +450,11 @@ class CsListController extends Controller
             return $r;
         });
 
+        if ($search !== '') {
+            $rows = $rows->filter(fn ($row) => $this->matchesVisibleSearch($row, $search));
+            $recordsFiltered = $rows->count();
+        }
+
         if ($approvalSort) {
             $rows = $rows->sort(function ($a, $b) use ($approvalSort, $sortDirection) {
                 $left = $a->{$approvalSort};
@@ -484,6 +473,9 @@ class CsListController extends Controller
 
                 return ($comparison * $sortDirection) ?: strcmp($b->csid, $a->csid);
             });
+        }
+
+        if ($search !== '' || $approvalSort) {
             $rows = ($length === -1 ? $rows : $rows->slice($start, $length))->values();
         }
 
@@ -493,5 +485,36 @@ class CsListController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
         ]);
+    }
+
+    private function matchesVisibleSearch($row, string $search): bool
+    {
+        $values = [];
+        foreach (['csid', 'sppbjktid', 'cpny_id', 'department_id', 'created_by', 'keperluan', 'next_approval', 'status_label'] as $field) {
+            $values[] = (string) ($row->{$field} ?? '');
+        }
+        foreach (['assigndate', 'submitdate'] as $field) {
+            if (!empty($row->{$field})) {
+                $date = Carbon::parse($row->{$field});
+                $values[] = $date->format('j/n/Y');
+                $values[] = $date->format('d/m/Y');
+                $values[] = $date->format('Y-m-d');
+            }
+        }
+        $values[] = $row->days === null ? '' : (string) $row->days
+            .(!empty($row->doctype_limit) ? ' / '.$row->doctype_limit : '');
+        $values[] = $row->days_waiting === null ? '-' : (string) $row->days_waiting;
+
+        // Match whitespace-separated terms across visible columns, treating slashes literally.
+        $normalize = static fn ($text) => mb_strtolower(preg_replace('/\s*\/\s*/u', '/', (string) $text), 'UTF-8');
+        $haystack = $normalize(implode(' ', $values));
+        $terms = preg_split('/\s+/u', trim($normalize($search)), -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($terms as $term) {
+            if (!str_contains($haystack, $term)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -44,6 +44,16 @@
                         </select>
                     </div>
 
+                    <div class="relative">
+                        <select id="filterPoType" aria-label="PO Type"
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All PO Types</option>
+                            @foreach ($poTypes as $poType)
+                                <option value="{{ $poType }}">{{ $poType }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="relative" id="wrapStatus" style="display:none;">
                         <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
                             <i class="fas fa-check-circle text-xs"></i>
@@ -239,6 +249,7 @@
                     data: function(d) {
                         d.tab = activeTab; // my / all
                         d.company = ($('#filterCompany').val() || ''); // optional
+                        d.potype = ($('#filterPoType').val() || '');
                         d.creator = ($('#filterCreator').val() || ''); // optional / hidden for non-fin
                         d.status = ($('#filterStatus').val() || ''); // only My PO (All PO will send '')
                     }
@@ -357,7 +368,7 @@
             });
 
             // ===== filter change =====
-            $('#filterCompany, #filterStatus').on('change', function() {
+            $('#filterCompany, #filterStatus, #filterPoType').on('change', function() {
                 reloadAndResetState();
             });
 
@@ -368,6 +379,7 @@
             // Reset
             $('#btnReset').on('click', function() {
                 $('#filterCompany').val('');
+                $('#filterPoType').val('');
                 $('#filterStatus').val('');
                 @if ($isFinanceAccess)
                     $('#filterCreator').val('');

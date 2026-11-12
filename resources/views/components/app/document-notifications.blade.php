@@ -734,7 +734,7 @@ function docNotifications(mailboxConnected = false) {
                     const isReAlert   = this._isReAlert(first.key, reAlertDays);
                     // Statuses where the recipient must act → "Please proceed your document."
                     // Everything else (creator waiting on others) → "Please wait..."
-                    const _proceedStatuses = new Set(['D', 'H', 'ITR_D', 'ITR_PIC_W', 'ITR_PIC_I', 'ACC_C', 'TKT_CREATED']);
+                    const _proceedStatuses = new Set(['D', 'H', 'ITR_D', 'ITR_PIC_W', 'ITR_PIC_I', 'ACC_C', 'TKT_CREATED', 'CAREER_APPROVAL']);
                     const reAlertMsg = first.status === 'TKT_CREATED' && first.sla_days
                         ? `This ticket has exceeded its ${first.sla_days}-day SLA. Please review and respond immediately.`
                         : first.status === 'MENTION'

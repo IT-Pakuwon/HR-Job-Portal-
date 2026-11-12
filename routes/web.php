@@ -1408,6 +1408,13 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:KONTRAK,VIEW')->group(function () {
         Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak');
         Route::get('/kontrak/json', [KontrakController::class, 'json'])->name('kontrak.json');
+        Route::get('/kontrak/master-bq', [\App\Http\Controllers\MasterKontrakBqController::class, 'index'])->name('kontrak.master-bq');
+        Route::get('/kontrak/master-bq/json', [\App\Http\Controllers\MasterKontrakBqController::class, 'json'])->name('kontrak.master-bq.json');
+        Route::get('/kontrak/master-bq/categories', [\App\Http\Controllers\MasterKontrakBqController::class, 'categoriesJson'])->name('kontrak.master-bq.categories');
+        Route::post('/kontrak/master-bq/categories', [\App\Http\Controllers\MasterKontrakBqController::class, 'storeCategory'])->name('kontrak.master-bq.categories.store');
+        Route::put('/kontrak/master-bq/categories/{id}', [\App\Http\Controllers\MasterKontrakBqController::class, 'updateCategory'])->whereNumber('id')->name('kontrak.master-bq.categories.update');
+        Route::post('/kontrak/master-bq', [\App\Http\Controllers\MasterKontrakBqController::class, 'store'])->name('kontrak.master-bq.store');
+        Route::put('/kontrak/master-bq/{id}', [\App\Http\Controllers\MasterKontrakBqController::class, 'update'])->whereNumber('id')->name('kontrak.master-bq.update');
         Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
         Route::get('/showkontrak/{hash}/budget-options', [KontrakController::class, 'kontrakBudgetOptions'])->name('kontrak.budget.options');
         Route::post('/showkontrak/{hash}/budget', [KontrakController::class, 'storeKontrakBudget'])->name('kontrak.budget.store');
@@ -3463,6 +3470,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/budget-entities/{id}', [MsEntityController::class, 'destroy'])->name('budget-entities.destroy');
 
         Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
+        Route::get('/send-email', [\App\Http\Controllers\SendApprovalEmailController::class, 'index'])->name('send-email');
+        Route::get('/send-email/users', [\App\Http\Controllers\SendApprovalEmailController::class, 'users'])->name('send-email.users');
+        Route::get('/send-email/pending', [\App\Http\Controllers\SendApprovalEmailController::class, 'pending'])->name('send-email.pending');
+        Route::post('/send-email', [\App\Http\Controllers\SendApprovalEmailController::class, 'send'])->middleware('throttle:6,1')->name('send-email.send');
         Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
         Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
         Route::get('/attachments-master/legacy/{id}/view', [AttachmentMasterController::class, 'viewLegacy'])->where('id', '[0-9]+')->name('attachments-master.legacy.view');

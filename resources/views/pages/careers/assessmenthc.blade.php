@@ -21,7 +21,7 @@
                 class="items-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700/40">
                 Cancel
             </button>
-            <button type="button" id="actionBtnHC" onclick="handleActionHC()"
+            <button type="button" id="actionBtnHC" onclick="handleActionHC()" style="display:none"
                 class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                 Start Assessment
             </button>
@@ -52,11 +52,11 @@
             </div>
             <div class="mt-1 flex items-center gap-1.5">
                 <input type="date" name="interview_date"
-                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('Y-m-d') : '' }}"
+                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('Y-m-d') : now('Asia/Jakarta')->format('Y-m-d') }}"
                     required disabled
                     class="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
                 <input type="time" name="interview_time"
-                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('H:i') : '' }}"
+                    value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('H:i') : now('Asia/Jakarta')->format('H:i') }}"
                     required disabled
                     class="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
             </div>
@@ -258,6 +258,18 @@
     }
 
     function setEditModeHC(editing) {
+        const assessmentForm = document.getElementById('assessmentFormHC');
+        const hasCriteria = assessmentForm.querySelector('input[type="radio"]') !== null;
+        editing = editing && hasCriteria;
+        if (editing) {
+            const jakartaNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+            const dateValue = jakartaNow.toISOString().slice(0, 10);
+            const timeValue = jakartaNow.toISOString().slice(11, 16);
+            const dateInput = assessmentForm.querySelector('input[name="interview_date"]');
+            const timeInput = assessmentForm.querySelector('input[name="interview_time"]');
+            if (!hasFilledHC || !dateInput.value) dateInput.value = dateValue;
+            if (!hasFilledHC || !timeInput.value) timeInput.value = timeValue;
+        }
         if (editing && isSectionCollapsedHC) {
             toggleSectionHC();
         }
@@ -281,6 +293,7 @@
         }
 
         const btn = document.getElementById('actionBtnHC');
+        btn.style.display = hasCriteria ? 'inline-flex' : 'none';
         const hint = document.getElementById('editHintHC');
         document.getElementById('cancelBtnHC').style.display = editing ? 'inline-flex' : 'none';
         if (editing) {
@@ -288,7 +301,7 @@
             hint.textContent = 'Fill in the scores above, then click Save.';
         } else {
             btn.textContent = hasFilledHC ? 'Update' : 'Fill';
-            hint.textContent = hasFilledHC ? '' : 'Click Fill to start scoring this interview.';
+            hint.textContent = !hasCriteria ? 'Interview criteria are not available yet.' : (hasFilledHC ? '' : 'Click Fill to start scoring this interview.');
         }
     }
 

@@ -867,6 +867,7 @@ class VplReportController extends Controller
     private function productOutMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
+        $outDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
 
         $usages = TrxVplUsageDetail::query()
             ->join('tr_vpl_usage', 'tr_vpl_usage.usage_id', '=', 'tr_vpl_usage_detail.usage_id')
@@ -874,7 +875,7 @@ class VplReportController extends Controller
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
             ->where('ms_vpl_product.product_type', 'P')
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($outDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
@@ -882,7 +883,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage_detail.purpose_remark',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date as doc_date',
+                DB::raw($outDate.' as doc_date'),
                 'tr_vpl_usage.usage_id as doc_no',
                 'tr_vpl_usage.created_user as requester_name',
                 'tr_vpl_usage.department',
@@ -897,7 +898,7 @@ class VplReportController extends Controller
                 'direction'  => $isReturn ? 'in' : 'out',
                 'doc_label'  => $isReturn ? 'Return' : 'Usage',
                 'doc_no'     => $u->doc_no,
-                'date'       => Carbon::parse($u->doc_date),
+                'date'       => $u->doc_date ? Carbon::parse($u->doc_date) : null,
                 'qty'        => $isReturn ? abs((float) $u->qty_return_usage) : abs((float) $u->qty_usage),
                 'name'       => $u->requester_name,
                 'department' => $u->department,
@@ -1136,6 +1137,7 @@ class VplReportController extends Controller
      */
     private function summaryGroupMovementRows(string $cpnyid, int $year): array
     {
+        $usageDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
         $batchMeta       = [];
         $inByMonth       = [];
         $transferByMonth = [];
@@ -1217,7 +1219,7 @@ class VplReportController extends Controller
             ->where('tr_vpl_usage.cpnyid', $cpnyid)
             ->where('tr_vpl_usage.status', 'C')
             ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_LOYALTY])
-            ->whereYear('tr_vpl_usage.usage_date', $year)
+            ->whereYear(DB::raw($usageDate), $year)
             ->select([
                 'tr_vpl_usage_detail.product_id',
                 'tr_vpl_usage_detail.expired_date',
@@ -1226,7 +1228,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_usage',
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date',
+                DB::raw($usageDate.' as report_date'),
             ])
             ->get();
 
@@ -1234,7 +1236,7 @@ class VplReportController extends Controller
             $whsId = $this->normalizeSummaryGroupWhsId($u->whs_id);
             $key   = $u->product_id.'|'.$this->expiredKey($u->expired_date).'|'.$whsId;
             $touch($key, $u->product_id, $u->expired_date, $whsId);
-            $m = Carbon::parse($u->usage_date)->month;
+            $m = Carbon::parse($u->report_date)->month;
 
             if ($u->usagetype === 'Return') {
                 $inByMonth[$key][$m] = ($inByMonth[$key][$m] ?? 0) + abs((float) $u->qty_return_usage);
@@ -1459,10 +1461,29 @@ class VplReportController extends Controller
             ->get();
 
         $sources = [];
+        $productType = [];
 
         foreach ($receives as $r) {
             $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
             $sources[$key] = $r->receive_type;
+
+            if (isset(self::SOURCE_MAP[$r->receive_type])) {
+                $productType[$r->product_id] = $r->receive_type;
+            }
+        }
+
+        // Opening-balance receives (e.g. type "Import") have no real business source, so
+        // they'd fall outside every Voucher Sources column and the In qty would vanish
+        // from that block (seen on batches that only got In via Return/Settlement).
+        // Inherit the product's latest mapped source instead.
+        foreach ($sources as $key => $type) {
+            if (!isset(self::SOURCE_MAP[$type])) {
+                $productId = explode('|', $key, 2)[0];
+
+                if (isset($productType[$productId])) {
+                    $sources[$key] = $productType[$productId];
+                }
+            }
         }
 
         return $sources;
@@ -1486,6 +1507,9 @@ class VplReportController extends Controller
      */
     private function batchPurposeOut(string $cpnyid, Carbon $monthStart, Carbon $monthEnd, bool $splitWriteOff = false): array
     {
+        $usageDate = $splitWriteOff
+            ? "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END"
+            : 'tr_vpl_usage.usage_date';
         // $splitWriteOff: a COLLECTION-department Usage (from any warehouse) gets its own
         // 'Write Off' bucket instead of Loyalty/Promotion/Internal Use. Off for the
         // Loyalty Usage Rate report, where a write-off isn't a redemption.
@@ -1500,7 +1524,7 @@ class VplReportController extends Controller
                     $q->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION);
                 }
             })
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($usageDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
@@ -2298,14 +2322,20 @@ class VplReportController extends Controller
         $query->leftJoin('tr_vpl_usage as u', 'u.usage_id', '=', 'l.refnbr')
             ->leftJoin('tr_vpl_settlement as s', 's.settlement_id', '=', 'l.refnbr');
 
+        // Only Stock & Aging Summary reassigns VPU movements to their effective date.
+        $reportPeriod = $loyaltyOutIsUsage
+            ? "CASE WHEN l.transaction_source IN ('Usage', 'Return') THEN TO_CHAR(CASE WHEN u.department = 'CUSTOMERSERVICE' THEN u.usage_date ELSE u.completed_at END, 'YYYYMM') ELSE l.perpost END"
+            : 'l.perpost';
+
         $rows = $query
             ->where('l.cpnyid', $cpnyid)
-            ->where('l.perpost', 'like', $year.'%')
+            ->whereRaw($reportPeriod.' LIKE ?', [$year.'%'])
             ->where('l.status', 'A')
             ->whereIn('l.whs_id', [self::WHS_COLLECTION, self::WHS_LOYALTY, self::WHS_PROMOTION])
             ->whereIn('l.transaction_source', $transactionSources)
             ->select(array_filter([
                 'l.product_id', 'l.expired_date', 'l.whs_id', 'l.transaction_source', 'l.perpost', 'l.qty',
+                DB::raw($reportPeriod.' as report_perpost'),
                 $loyaltyOutIsUsage ? null : 'td.from_whs_id',
                 DB::raw('COALESCE(u.department, s.department) as doc_department'),
             ]))
@@ -2316,7 +2346,7 @@ class VplReportController extends Controller
 
         foreach ($rows as $row) {
             $key   = $row->product_id.'|'.$this->expiredKey($row->expired_date);
-            $month = (int) substr((string) $row->perpost, 4, 2);
+            $month = (int) substr((string) $row->report_perpost, 4, 2);
             $qty   = (float) $row->qty;
 
             if ($row->transaction_source === 'Receive') {
@@ -2476,6 +2506,7 @@ class VplReportController extends Controller
     private function outMovementRows(string $cpnyid, Carbon $monthStart, Carbon $monthEnd): array
     {
         $rows = [];
+        $usageOutDate = "CASE WHEN tr_vpl_usage.department = 'CUSTOMERSERVICE' THEN tr_vpl_usage.usage_date ELSE tr_vpl_usage.completed_at END";
 
         $transfers = TrxVplTransferDetail::query()
             ->join('tr_vpl_transfer', 'tr_vpl_transfer.transfer_id', '=', 'tr_vpl_transfer_detail.transfer_id')
@@ -2519,7 +2550,7 @@ class VplReportController extends Controller
             ->where(fn ($q) => $q
                 ->whereIn('tr_vpl_usage_detail.whs_id', [self::WHS_PROMOTION, self::WHS_COLLECTION])
                 ->orWhere('tr_vpl_usage.department', self::DEPT_COLLECTION))
-            ->whereBetween('tr_vpl_usage.usage_date', [$monthStart, $monthEnd])
+            ->whereBetween(DB::raw($usageOutDate), [$monthStart, $monthEnd])
             ->select([
                 'tr_vpl_usage.department',
                 'tr_vpl_usage_detail.product_id',
@@ -2527,7 +2558,7 @@ class VplReportController extends Controller
                 'tr_vpl_usage_detail.qty_usage',
                 'tr_vpl_usage_detail.qty_return_usage',
                 'tr_vpl_usage.usagetype',
-                'tr_vpl_usage.usage_date as doc_date',
+                DB::raw($usageOutDate.' as doc_date'),
                 'tr_vpl_usage.usage_id as doc_no',
                 'tr_vpl_usage.created_user as diambil_oleh',
                 'tr_vpl_usage.department as keperluan',

@@ -19,7 +19,8 @@
                     <div class="relative h-28 bg-gradient-to-br from-slate-800 via-indigo-700 to-violet-600">
                         <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.3) 0,transparent 50%)"></div>
                         {{-- PDF buttons inside banner --}}
-                        <div class="absolute right-4 top-4 flex-shrink-0 flex gap-2">
+                        <div class="absolute right-4 top-4 z-20 flex flex-col items-end gap-3">
+                            <div class="flex flex-shrink-0 gap-2">
             {{-- ── Action Dropdown ──────────────────── --}}
             @if (!in_array($career->status ?? '', ['R', 'X']) && auth()->user()->hasRole('RECACCALLDEPT'))
             <div class="relative" x-data="{ actOpen: false }" @click.outside="actOpen = false">
@@ -75,6 +76,14 @@
                                 </button>
                             </form>
                             <iframe name="pdf-download-frame" style="display:none"></iframe>
+                            </div>
+                            <input type="text" readonly aria-label="DocID" title="Klik untuk memilih DocID, lalu Ctrl+C untuk menyalin"
+                                value="{{ $career->docid ?? '—' }}"
+                                onclick="window.getSelection()?.removeAllRanges(); this.select(); event.stopPropagation();"
+                                ondblclick="window.getSelection()?.removeAllRanges(); this.select(); event.preventDefault(); event.stopPropagation();"
+                                oncopy="event.clipboardData.setData('text/plain', this.value); event.preventDefault(); event.stopPropagation();"
+                                class="relative z-10 w-40 cursor-text select-text border-0 bg-transparent p-0 text-right text-sm font-semibold tracking-wide text-white focus:ring-0"
+                                style="background: transparent !important; color: white !important; border: 0 !important; box-shadow: none !important; user-select: text; -webkit-user-select: text;">
                         </div>
                     </div>
 
@@ -105,6 +114,27 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+                    <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                        <span class="h-4 w-1 rounded-lg bg-indigo-500"></span>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Application Information</h3>
+                    </div>
+                    <dl class="grid grid-cols-1 gap-6 px-6 py-5 sm:grid-cols-3">
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Divisi</dt>
+                            <dd class="mt-1 break-words text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicationInfo->division_name ?? '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Department</dt>
+                            <dd class="mt-1 break-words text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicationInfo->department_name ?? '—' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Job Title</dt>
+                            <dd class="mt-1 break-words text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicationInfo->job_title ?: '—' }}</dd>
+                        </div>
+                    </dl>
                 </div>
 
                 {{-- ── PERSONAL DETAILS ─────────────────────────────────────── --}}

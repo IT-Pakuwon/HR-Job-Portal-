@@ -683,6 +683,12 @@ class TrainingSessionController extends Controller
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
+            \Illuminate\Support\Facades\Log::error('Training schedule store failed', [
+                'training_id' => $training->training_id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menyimpan schedule',
@@ -786,6 +792,12 @@ class TrainingSessionController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
+
+            \Illuminate\Support\Facades\Log::error('Training schedule update failed', [
+                'schedule_id' => $id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
                 'success' => false,

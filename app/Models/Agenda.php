@@ -22,6 +22,8 @@ class Agenda extends Model
         'agendapriority',
         'title',
         'description',
+        'scheduletype',
+        'link_onlinemeeting',
         'participant',
         'startdate',
         'enddate',

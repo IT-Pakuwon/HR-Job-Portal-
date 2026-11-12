@@ -236,6 +236,9 @@
                                 Department
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                                Job Title
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
@@ -445,17 +448,23 @@
                 {
                     index: 6,
                     type: 'text',
+                    placeholder: 'Job Title',
+                    span: 'w-40 shrink-0'
+                },
+                {
+                    index: 7,
+                    type: 'text',
                     placeholder: 'Education',
                     span: 'flex-1 min-w-[140px]'
                 },
                 {
-                    index: 7,
+                    index: 8,
                     type: 'text',
                     placeholder: 'Religion',
                     span: 'w-36 shrink-0'
                 },
                 {
-                    index: 8,
+                    index: 9,
                     type: 'text',
                     placeholder: 'Height',
                     title: 'Type a value, a range like 160-180, or >=170',
@@ -463,7 +472,7 @@
                     span: 'w-24 shrink-0'
                 },
                 {
-                    index: 9,
+                    index: 10,
                     type: 'text',
                     placeholder: 'Weight',
                     title: 'Type a value, a range like 60-80, or >=70',
@@ -471,7 +480,7 @@
                     span: 'w-24 shrink-0'
                 },
                 {
-                    index: 10,
+                    index: 11,
                     type: 'text',
                     placeholder: 'Company',
                     span: 'flex-1 min-w-[140px]'
@@ -530,7 +539,7 @@
                         responsivePriority: 2
                     },
                     {
-                        targets: [3, 4, 5, 6, 7, 8],
+                        targets: [3, 4, 5, 6, 7, 8, 9],
                         responsivePriority: 100
                     }
                 ],
@@ -619,6 +628,12 @@
                         data: 'department_name',
                         name: 'department_name'
                     },// 3
+                    {
+                        data: 'job_title',
+                        name: 'job_title',
+                        defaultContent: '',
+                        render: $.fn.dataTable.render.text()
+                    },
                     {
                         data: 'education_name',
                         name: 'education_name'

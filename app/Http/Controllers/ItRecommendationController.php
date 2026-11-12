@@ -1322,14 +1322,14 @@ class ItRecommendationController extends Controller
         $data = MsInventory::query()
             ->where('status', 'A')
             ->where(function ($query) use ($keywords) {
-                $query->where(function ($ns) {
-                    $ns->where('item_type', 'NS')
+                $query->where(function ($computer) {
+                    $computer->whereIn('item_type', ['NS', 'SE'])
                         ->where('item_category', 'Komputer');
                 });
 
                 $query->orWhere(function ($se) use ($keywords) {
                     $se->where('item_type', 'SE')
-                        ->whereIn('item_category', ['Komputer', 'Jasa'])
+                        ->where('item_category', 'Jasa')
                         ->where(function ($desc) use ($keywords) {
                             foreach ($keywords as $keyword) {
                                 $desc->orWhere('inventory_descr', 'ilike', "%{$keyword}%");

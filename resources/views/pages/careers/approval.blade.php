@@ -237,6 +237,12 @@
                                     @if($step->aprvusername || $step->aprvuserdate)
                                         <p class="mt-0.5 text-sm text-gray-400">
                                             {{ $step->aprvusername }}@if($step->aprvusername && $step->aprvuserdate) &nbsp;·&nbsp; @endif{{ $step->aprvuserdate }}
+                                            @if(isset($stepDurations[$step->id]))
+                                                <span class="ml-2 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
+                                                    title="{{ $stepDurations[$step->id]['start'] }} → {{ $stepDurations[$step->id]['end'] }}">
+                                                    {{ $stepDurations[$step->id]['days'] }} hari
+                                                </span>
+                                            @endif
                                         </p>
                                     @endif
                                 </div>

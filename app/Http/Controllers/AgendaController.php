@@ -120,6 +120,14 @@ class AgendaController extends Controller
 
     public function storeAgenda(Request $request)
     {
+        $request->merge(['scheduletype' => $request->input('scheduletype', 'Offline')]);
+        $isOnline = $request->input('scheduletype') === 'Online';
+        if ($isOnline) {
+            $request->merge([
+                'site' => null, 'location' => null, 'location_address' => null,
+                'room_id' => null, 'acc_id' => null,
+            ]);
+        }
         // dd($request->all());
 
         $roomId = $request->input('room_id');
@@ -128,12 +136,16 @@ class AgendaController extends Controller
 
         // Validasi input
         $request->validate([
+            'scheduletype' => 'required|in:Offline,Online',
+            'description' => 'required_if:scheduletype,Online|nullable|string',
+            'link_onlinemeeting' => 'required_if:scheduletype,Online|nullable|string|max:2048',
+            'participant' => 'required_if:scheduletype,Online',
             'cpnyid' => 'required|string',
             'departementid' => 'required|string',
             'title' => 'required|string',
             'reftype' => 'required|in:IH,IU,IHU',
-            'startdate' => 'nullable|date',
-            'enddate' => 'nullable|date|after_or_equal:startdate',
+            'startdate' => 'required_if:scheduletype,Online|nullable|date',
+            'enddate' => 'required_if:scheduletype,Online|nullable|date|after_or_equal:startdate',
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
@@ -285,6 +297,8 @@ class AgendaController extends Controller
                 'agendadate' => $datenow,
                 'title' => $request->title,
                 'description' => $request->description,
+                'scheduletype' => $request->scheduletype,
+                'link_onlinemeeting' => $isOnline ? $request->link_onlinemeeting : null,
                 'status' => $request->status ?? 'P',
                 'startdate' => $request->startdate,
                 'enddate' => $request->enddate,
@@ -450,6 +464,8 @@ class AgendaController extends Controller
                             'hod' => $approval->aprv_name,
                             'full_name' => $applicant->full_name ?? 'Pelamar',
                             'title' => $agenda->title,
+                            'description' => $agenda->description,
+                            'link_onlinemeeting' => $agenda->link_onlinemeeting,
                             'interview_date' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'),
                             'starttime' => Carbon::parse($agenda->startdate)->format('H:i'), // e.g., 09:00
                             'endtime'   => Carbon::parse($agenda->enddate)->format('H:i'),   // e.g., 10:00
@@ -470,7 +486,7 @@ class AgendaController extends Controller
 
                         foreach ($email_it as $emailsit) {
                             // Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                            Mail::send('emails.mailinterviewinternal', $data, function ($message) use ($data, $emailsit) {
+                            Mail::send($isOnline ? 'emails.mailinterviewonline' : 'emails.mailinterviewinternal', $data, function ($message) use ($data, $emailsit) {
                             $message->to($emailsit->notification_email)
                                 ->subject(
                                     'Interview Schedule - ' . $data['full_name'] . ' (' . $data['job_title'] . ')'
@@ -1145,6 +1161,9 @@ class AgendaController extends Controller
 
         $data = [
             'name' => $applicant->full_name ?? 'Pelamar',
+            'title' => $agenda->title,
+            'description' => $agenda->description,
+            'link_onlinemeeting' => $agenda->link_onlinemeeting,
             'location' => $agenda->location ?? '',
             'address' => $agenda->location_address ?? '',
             'interview_date' => Carbon::parse($agenda->startdate)->translatedFormat('l, d F Y'),
@@ -1157,9 +1176,9 @@ class AgendaController extends Controller
             'group_cpny_id' => $agenda->group_cpny_id,
         ];
 
-        Mail::send('emails.mailinterview', $data, function ($message) use ($applicant,$data) {
+        Mail::send($agenda->scheduletype === 'Online' ? 'emails.mailinterviewonline' : 'emails.mailinterview', $data, function ($message) use ($applicant,$data,$agenda) {
             $message->to($applicant->email_address)
-                    ->subject('📩 User interview & Psychotest');
+                    ->subject($agenda->scheduletype === 'Online' ? $agenda->title : '📩 User interview & Psychotest');
             $message->from('recruitment@pakuwon.com', 'Pakuwon Career');
         });
 

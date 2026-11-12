@@ -1359,6 +1359,10 @@
                             } else if (xhr.responseJSON.message) {
                                 msg = xhr.responseJSON.message;
                             }
+                        } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                            msg = (xhr.responseJSON.message || msg) + '\n' + xhr.responseJSON.error;
+                        } else if (xhr.status === 419) {
+                            msg = 'Sesi habis, silakan refresh halaman lalu coba lagi';
                         }
 
                         Swal.fire({ icon: 'error', title: 'Error', text: msg });

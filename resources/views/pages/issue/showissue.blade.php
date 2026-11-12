@@ -368,7 +368,7 @@
                                     <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->issue_qty) }}</td>
-                                    <td class="px-4 py-2 text-right">{{ $nf2($item->return_qty) }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $nf2($item->qty_return) }}</td>
                                     <td class="px-4 py-2">{{ $item->siteid }}</td>
                                 </tr>
                             @endforeach

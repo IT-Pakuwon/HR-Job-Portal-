@@ -486,9 +486,12 @@ class CareerController extends Controller
         // this (remapped) apply row existed belongs to the previous position, and its step
         // approvals stayed on the old steps — so the schedule must be created again.
         $remapCutoff = $remapped_from && $job_apply ? $job_apply->created_at : null;
+        $stepDurations = \App\Services\RecruitmentStepDuration::calculate(
+            $jobapplystep, $agenda, $job_apply?->created_at, $remapCutoff
+        );
 
         return view('pages.careers.showcareers', compact(
-            'remapCutoff',
+            'remapCutoff', 'stepDurations',
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
             'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
@@ -830,7 +833,8 @@ class CareerController extends Controller
                             ->whereIn('username', fn ($s) => $s->from('ms_user')->select('username')->where('group_cpny_id', $group));
                     });
             })
-            ->orderBy('message_date', 'desc')
+            ->orderBy('message_date', 'asc')
+            ->orderBy('id', 'asc')
             ->get();
 
         return response()->json([
@@ -854,7 +858,7 @@ class CareerController extends Controller
 
         $comment = TrMessage::create([
             'refnbr' => $refnbr,
-            'doctype' => 'PRF',
+            'doctype' => 'JAP',
             'message_date' => now(),
             'cpny_id' => $career->cpnyid,
             'department_id' => $user->departmentid ?? null,
@@ -1733,7 +1737,7 @@ class CareerController extends Controller
     {
         $careerPortalBase = config('app.name') === 'Pakuwon System Demo'
             ? 'https://careerdemo.pakuwon.com'
-            : 'https://careerjakarta.pakuwon.com';
+            : 'https://career.pakuwon.com';
 
         $fromEmail = $career->group_cpny_id === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
 
@@ -3220,7 +3224,7 @@ class CareerController extends Controller
 
         $careerPortalBase = config('app.name') === 'Pakuwon System Demo'
             ? 'https://careerdemo.pakuwon.com'
-            : 'https://careerjakarta.pakuwon.com';
+            : 'https://career.pakuwon.com';
         $careerPortalUrl = url($careerPortalBase);
 
         $data = [

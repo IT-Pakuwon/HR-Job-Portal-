@@ -16,8 +16,10 @@ use App\Models\MsDepartment;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\BusinessUnit;
+use App\Models\ViewInventoryInquiry;
 
 use App\Exports\InventoryMovementExport;
+use App\Exports\InventoryInquiryExport;
 
 class ReportWarehouseController extends Controller
 {
@@ -32,7 +34,48 @@ class ReportWarehouseController extends Controller
         }
         return view('pages.report-warehouse.index',[
             'user' => $user,
+            'inquiryCompanies' => $user->scopedCompanyIds(),
+            'inquiryBusinessUnits' => ViewInventoryInquiry::query()
+                ->whereIn('cpny_id', $user->scopedCompanyIds())
+                ->whereNotNull('business_unit')
+                ->where('business_unit', '<>', '')
+                ->select('cpny_id', 'business_unit')->distinct()
+                ->orderBy('business_unit')->get(),
         ]);
+    }
+
+    private function validateInquiryFilters(Request $request): void
+    {
+        $request->validate([
+            'date_from' => 'nullable|date_format:Y-m-d',
+            'date_to' => $request->filled('date_from')
+                ? 'nullable|date_format:Y-m-d|after_or_equal:date_from'
+                : 'nullable|date_format:Y-m-d',
+            'inventoryid' => 'nullable|string|max:255',
+            'cpny_id' => 'nullable|string|max:255',
+            'business_unit' => 'nullable|string|max:255',
+        ]);
+    }
+
+    private function inventoryInquiryQuery(Request $request, array $companyIds)
+    {
+        $query = ViewInventoryInquiry::query()
+            ->select(['docid', 'docdate', 'refnbr', 'cpny_id', 'business_unit', 'doctype', 'qty', 'uom', 'unitcost', 'note'])
+            ->whereIn('cpny_id', $companyIds);
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('docdate', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('docdate', '<=', $request->input('date_to'));
+        }
+        foreach (['inventoryid', 'cpny_id', 'business_unit'] as $field) {
+            if ($request->filled($field)) {
+                $query->where($field, $request->input($field));
+            }
+        }
+
+        return $query;
     }
 
     /*
@@ -353,6 +396,15 @@ class ReportWarehouseController extends Controller
     {
         $report = $request->report ?? 'spb';
 
+        if ($report === 'inquiry') {
+            $this->validateInquiryFilters($request);
+
+            return DataTables::eloquent($this->inventoryInquiryQuery($request, Auth::user()->scopedCompanyIds()))
+                ->editColumn('docdate', fn ($row) => $row->docdate ? Carbon::parse($row->docdate)->format('d-M-Y') : '')
+                ->editColumn('doctype', fn ($row) => ViewInventoryInquiry::typeLabel($row->doctype))
+                ->toJson();
+        }
+
 
 
        if ($report === 'movement') {
@@ -672,6 +724,13 @@ class ReportWarehouseController extends Controller
         $report = $request->get('report', 'spb');
 
         switch ($report) {
+
+            case 'inquiry':
+                $this->validateInquiryFilters($request);
+                $query = $this->inventoryInquiryQuery($request, Auth::user()->scopedCompanyIds())
+                    ->orderByDesc('docdate')->orderByDesc('docid')->orderBy('linenbr');
+
+                return Excel::download(new InventoryInquiryExport($query), 'inventory_inquiry_'.now()->format('Ymd_His').'.xlsx');
 
             case 'issue':
                 return $this->exportIssue($request);

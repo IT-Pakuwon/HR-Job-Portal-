@@ -433,7 +433,9 @@
                         + '<h3 class="feedbackModal-title">' + (readOnly ? 'Feedback' : 'Fill Feedback') + '</h3>'
                         + '<p class="feedbackModal-subtitle">' + esc(row.training_name || '') + '</p>'
                         + '</div></div>'
-                        + '<div class="feedbackModal-body">' + notice + '<div>' + questionsHtml + '</div></div>',
+                        + '<div class="feedbackModal-body"><div>' + questions.map(function (q) {
+                            return renderQuestion(q, false);
+                        }).join('') + '</div></div>',
                     showCancelButton: !readOnly,
                     buttonsStyling: false,
                     confirmButtonText: readOnly ? 'Close' : 'Submit',

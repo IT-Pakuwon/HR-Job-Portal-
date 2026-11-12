@@ -6,7 +6,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ===== Tabs ===== --}}
-        <div class="mb-4 flex items-center gap-2">
+        <div class="mb-4 flex flex-wrap items-center gap-2">
             @if (!$isFinanceAccess)
                 <button type="button" id="tabMy" class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
                     data-tab="my">
@@ -24,6 +24,9 @@
                     data-tab="finance">
                     Kontrak Finance
                 </button>
+            @endif
+            @if (auth()->user()->hasRole('PURCHACCESS'))
+                <a href="{{ route('kontrak.master-bq') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">Master Kontrak</a>
             @endif
         </div>
 

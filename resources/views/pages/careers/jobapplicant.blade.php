@@ -969,9 +969,13 @@
                         data: 'apply_step',
                         name: 'apply_step',
                         className: 'step-col',
-                        render: function(data) {
+                        render: function(data, type, row) {
                             const label = stepLabelMap[data] || data;
-                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
+                            const days = row.step_total_days;
+                            const hasDays = days !== null && days !== undefined;
+                            if (type !== 'display') return label + (hasDays ? ` (${days} hari)` : '');
+                            const duration = hasDays ? `<div class="mt-1.5"><span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-300" title="${row.step_duration_start} → ${row.step_duration_end}"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg><span class="font-semibold tabular-nums">${days}</span> hari</span></div>` : '';
+                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>${duration}`;
                         }
                     },
                     {
