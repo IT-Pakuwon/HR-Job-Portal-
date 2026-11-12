@@ -639,6 +639,7 @@
                         </div>
 
                         <div class="flex items-center gap-2">
+                            ${title === 'CS' && header.cs_hash ? `<a href="/showcs/${encodeURIComponent(header.cs_hash)}" target="_blank" rel="noopener" class="inline-flex items-center rounded-lg border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700/40 dark:text-indigo-300 dark:hover:bg-indigo-900/20">Open This CS ↗</a>` : ''}
                             ${statusBadge(header.status)}
                         </div>
                     </div>

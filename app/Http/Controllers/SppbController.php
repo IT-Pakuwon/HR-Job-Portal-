@@ -2436,6 +2436,7 @@ class SppbController extends Controller
             'cs' => [
                 'header' => $csHeader ? [
                     'doc' => $csHeader->csid,
+                    'cs_hash' => Hashids::encode($csHeader->id),
                     'date' => $fmt($csHeader->csdate),
                     'cpny_id' => $csHeader->cpny_id,
                     'department_id' => $csHeader->department_id,
@@ -2580,6 +2581,7 @@ class SppbController extends Controller
             return response()->json([
                 'header' => $h ? [
                     'doc' => $h->csid,
+                    'cs_hash' => Hashids::encode($h->id),
                     'date' => $fmt($h->csdate),
                     'cpny_id' => $h->cpny_id,
                     'department_id' => $h->department_id,
