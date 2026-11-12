@@ -115,20 +115,20 @@ class TrAgreement extends Model
     // Types made by New Agreement (PSM / OLA / Addendum). Agreement FU never handles these.
     public const NEW_AGREEMENT_TYPES = ['PSM', 'OLA', 'PEMBUATAN', 'ADDENDUM', 'OTHERS'];
 
-    // Agreement FU's Job tab lists PSM / OLA and Addendum agreements; creating the follow-up
+    // Agreement FU's Job tab lists PSM / OLA, Addendum and Others agreements; creating the follow-up
     // converts that row in place to the matching FU type (Mall PSM -> FU_PSM, Office OLA -> FU_OLA,
-    // Addendum -> FU_ADDENDUM). Each can have one follow-up: the converted row leaves the Job tab.
-    public const FU_SOURCE_TYPES = ['PSM', 'OLA', 'ADDENDUM'];
+    // Addendum -> FU_ADDENDUM, Others -> FU_OTHERS). Each can have one follow-up: the converted row leaves the Job tab.
+    public const FU_SOURCE_TYPES = ['PSM', 'OLA', 'ADDENDUM', 'OTHERS'];
 
-    // Others is also listed in the Job tab, but it has no follow-up: it is only completed there, with notes.
+    // An Others agreement may also skip the follow-up: the Job tab can complete it directly, with notes.
     public const TYPE_OTHERS = 'OTHERS';
 
-    public const FU_TYPES = ['FU_PSM', 'FU_OLA', 'FU_ADDENDUM'];
+    public const FU_TYPES = ['FU_PSM', 'FU_OLA', 'FU_ADDENDUM', 'FU_OTHERS'];
 
     // Follow-ups of a PSM / OLA: the only ones that can still be the parent of an Addendum / Others.
     public const FU_PARENT_TYPES = ['FU_PSM', 'FU_OLA'];
 
-    public const FU_SOURCE_BY_TYPE = ['FU_PSM' => 'PSM', 'FU_OLA' => 'OLA', 'FU_ADDENDUM' => 'ADDENDUM'];
+    public const FU_SOURCE_BY_TYPE = ['FU_PSM' => 'PSM', 'FU_OLA' => 'OLA', 'FU_ADDENDUM' => 'ADDENDUM', 'FU_OTHERS' => 'OTHERS'];
 
     public static function fuTypeFor(?string $type): ?string
     {

@@ -24,18 +24,24 @@ class AgreementSurat1Mail extends Mailable
     {
         $sentAt = now();
 
+        // PSM (Mall) / OLA (Office) / Addendum get the "Permohonan Pengembalian" wording; everything else keeps the reminder text.
+        $data = $this->psmOlaEmailData($this->agreement, withAddendum: true) + [
+            'systemLabel' => 'Legal Agreement',
+            // Same 14-day window the Surat 1 PDF prints as "Batas Pengembalian".
+            'deadline' => $sentAt->copy()->addDays(14),
+        ];
+        $docLabel = $data['docLabel'];
+
         $mail = $this
             ->subject(
                 '[LEGAL AGREEMENT][SURAT 1] '
                 . $this->agreement->agreement_id
-                . ' - Pengingat Pengembalian Dokumen PSM/Addendum'
+                . ($docLabel
+                    ? ' - Permohonan Pengembalian '.($docLabel === 'Addendum' ? $docLabel : 'Perjanjian Sewa Menyewa (“'.$docLabel.'”)')
+                    : ' - Pengingat Pengembalian Dokumen PSM/Addendum')
             )
             ->view('emails.agreement-surat1')
-            ->with([
-                'systemLabel' => 'Legal Agreement',
-                // Same 14-day window the Surat 1 PDF prints as "Batas Pengembalian".
-                'deadline' => $sentAt->copy()->addDays(14),
-            ]);
+            ->with($data);
 
         $mail->attachData(
             $this->renderSurat1Pdf($this->agreement, $sentAt),

@@ -7,10 +7,22 @@
 @section('header', 'Surat Pengingat Kedua (Terakhir)')
 
 @section('subtitle')
+@if (!empty($docLabel))
+@if ($docLabel === 'Addendum')
+Permohonan pengembalian Addendum.
+@else
+Permohonan pengembalian Perjanjian Sewa Menyewa ({{ $docLabel }}).
+@endif
+@else
 Pengembalian dokumen PSM/Addendum yang telah ditandatangani.
+@endif
 @endsection
 
 @section('content')
+
+@if (!empty($docLabel))
+@include('emails.partials.agreement-surat-psm-ola', ['kind' => 2])
+@else
 
 <p style="margin:0 0 16px;font-size:13.5px;line-height:1.7;color:#334155;">
     Yth. Bapak/Ibu <strong>{{ $agreement->pic_penyewa ?: $agreement->business_name }}</strong>,
@@ -34,5 +46,7 @@ Pengembalian dokumen PSM/Addendum yang telah ditandatangani.
     Email ini juga diteruskan kepada PIC Legal, PIC Leasing, dan pihak yang mengajukan dokumen ini sebagai
     tembusan. Apabila ada pertanyaan, silakan hubungi Divisi Legal kami.
 </p>
+
+@endif
 
 @endsection

@@ -101,16 +101,6 @@ function initJobsTable() {
                 render: (row) => {
                     if (row.eid) Jobs.rows[row.eid] = row;
 
-                    // Others has no follow-up to start: its action completes it (with notes).
-                    if (row.agreement_type === 'OTHERS') {
-                        return `
-                    <button type="button" class="btn-complete-other inline-flex h-8 w-8 items-center justify-center rounded-lg bg-green-600 text-white hover:bg-green-700"
-                        data-eid="${row.eid ?? ''}" title="Complete">
-                        <i class="fa-solid fa-check text-xs"></i>
-                    </button>
-                `;
-                    }
-
                     return `
                     <button type="button" class="${window.jobsActionClass || 'btn-create-from-job'} inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         data-eid="${row.eid ?? ''}"
@@ -138,6 +128,16 @@ function initJobsTable() {
             { data: 'trade_name', render: (d) => d || '-' },
             { data: 'property_cd', render: (d) => renderPropertyCdBadge(d) },
             { data: 'status', render: (d) => renderJobStatusBadge(d) },
+            // Cancel (every type) / Complete (Others) with notes, from a dropdown (last column, FU only).
+            ...(hasType ? [{
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: (row) => `<button type="button" class="btn-job-actions inline-flex h-8 items-center gap-1 rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white hover:bg-blue-700"
+                        data-eid="${row.eid ?? ''}" data-type="${row.agreement_type ?? ''}">
+                        Action <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    </button>`,
+            }] : []),
         ],
     });
 }
@@ -244,51 +244,127 @@ function initCreateFromJob() {
     });
 }
 
-// Others needs no follow-up: complete it from the Job tab, with notes.
-function initCompleteOther() {
-    $(document).on('click', '.btn-complete-other', function () {
-        const eid = $(this).data('eid');
+// Ask for notes, then post them to a Job-tab action (cancel / complete) and refresh the list.
+function jobActionWithNotes({ eid, url, title, text, placeholder, confirmText, confirmColor, done }) {
+    Swal.fire({
+        title,
+        text,
+        input: 'textarea',
+        inputLabel: 'Notes',
+        inputPlaceholder: placeholder,
+        inputAttributes: { maxlength: 2000 },
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        confirmButtonColor: confirmColor,
+        reverseButtons: true,
+        inputValidator: (value) => (value && value.trim() ? undefined : 'Notes are required.'),
+    }).then((result) => {
+        if (!result.isConfirmed) return;
 
-        Swal.fire({
-            title: 'Complete Agreement',
-            text: 'This Others agreement needs no follow-up. Add a note to complete it.',
-            input: 'textarea',
-            inputLabel: 'Notes',
-            inputPlaceholder: 'Why is this completed?',
-            inputAttributes: { maxlength: 2000 },
-            showCancelButton: true,
-            confirmButtonText: 'Complete',
-            confirmButtonColor: '#16a34a',
-            reverseButtons: true,
-            inputValidator: (value) => (value && value.trim() ? undefined : 'Notes are required.'),
-        }).then((result) => {
-            if (!result.isConfirmed) return;
-
-            $.ajax({
-                url: Agreement.routes.jobComplete.replace(':eid', eid),
-                type: 'POST',
-                data: { response_descr: result.value.trim() },
-                beforeSend: () => showLoading(),
-                success(res) {
-                    hideLoading();
-                    showSuccess(res.message || 'Agreement completed.');
-                    window.jobsTable.ajax.reload(null, false);
-                    refreshCounts();
-                },
-                error(xhr) {
-                    hideLoading();
-                    handleAjaxError(xhr);
-                },
-            });
+        $.ajax({
+            url: url.replace(':eid', eid),
+            type: 'POST',
+            data: { response_descr: result.value.trim() },
+            beforeSend: () => showLoading(),
+            success(res) {
+                hideLoading();
+                showSuccess(res.message || done);
+                window.jobsTable.ajax.reload(null, false);
+                refreshCounts();
+            },
+            error(xhr) {
+                hideLoading();
+                handleAjaxError(xhr);
+            },
         });
     });
+}
+
+const JOB_ACTIONS = {
+    cancel: (eid) => jobActionWithNotes({
+        eid,
+        url: Agreement.routes.jobCancel,
+        title: 'Cancel Agreement',
+        text: 'Cancel this agreement because it needs to be changed. It leaves this list; add a note to continue.',
+        placeholder: 'Why is it cancelled?',
+        confirmText: 'Cancel Agreement',
+        confirmColor: '#dc2626',
+        done: 'Agreement cancelled.',
+    }),
+    complete: (eid) => jobActionWithNotes({
+        eid,
+        url: Agreement.routes.jobComplete,
+        title: 'Complete Agreement',
+        text: 'Complete this Others agreement without a follow-up. Add a note to complete it.',
+        placeholder: 'Why is this completed?',
+        confirmText: 'Complete',
+        confirmColor: '#16a34a',
+        done: 'Agreement completed.',
+    }),
+};
+
+// Action dropdown of a Job row. The menu hangs off <body> (fixed), so the table's horizontal scroll box can't clip it.
+function closeJobActionMenu() {
+    $('#jobActionMenu').remove();
+}
+
+function initJobActions() {
+    $(document).on('click', '.btn-job-actions', function (e) {
+        e.stopPropagation();
+
+        const $btn = $(this);
+        const reopen = $btn.data('open') !== true;
+
+        closeJobActionMenu();
+        $('.btn-job-actions').data('open', false);
+
+        if (!reopen) return;
+
+        const isOthers = $btn.data('type') === 'OTHERS';
+        const item = (action, icon, label, color) => `<button type="button" class="job-action-item" data-action="${action}" data-eid="${$btn.data('eid')}"
+            style="display:flex;width:100%;align-items:center;gap:8px;padding:8px 14px;font-size:13px;text-align:left;background:none;border:0;cursor:pointer;color:${color};">
+            <i class="fa-solid ${icon}" style="width:14px;"></i> ${label}</button>`;
+
+        const rect = this.getBoundingClientRect();
+        const $menu = $(`<div id="jobActionMenu" class="rounded-lg border border-slate-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-slate-900"
+            style="position:fixed;z-index:9999;min-width:190px;padding:4px 0;">
+            ${isOthers ? item('complete', 'fa-check', 'Complete with notes', '#16a34a') : ''}
+            ${item('cancel', 'fa-ban', 'Cancel with notes', '#dc2626')}
+        </div>`).appendTo('body');
+
+        // Open downwards, or upwards when there is no room below (the last rows of the table).
+        const menuH = $menu.outerHeight();
+        const top = rect.bottom + menuH + 8 > window.innerHeight ? rect.top - menuH - 4 : rect.bottom + 4;
+        $menu.css({ top: Math.max(8, top), left: Math.max(8, Math.min(rect.right - $menu.outerWidth(), window.innerWidth - $menu.outerWidth() - 8)) });
+
+        $btn.data('open', true);
+    });
+
+    $(document).on('click', '.job-action-item', function () {
+        const { action, eid } = $(this).data();
+
+        closeJobActionMenu();
+        $('.btn-job-actions').data('open', false);
+        JOB_ACTIONS[action]?.(eid);
+    });
+
+    // Anything else closes the menu (it is fixed, so it would not follow a scroll).
+    $(document).on('click', () => {
+        closeJobActionMenu();
+        $('.btn-job-actions').data('open', false);
+    });
+    $(window).on('scroll resize', () => {
+        closeJobActionMenu();
+        $('.btn-job-actions').data('open', false);
+    });
+    document.addEventListener('scroll', closeJobActionMenu, true);
 }
 
 $(function () {
     initJobsTable();
     initJobsFilters();
     initCreateFromJob();
-    initCompleteOther();
+    initJobActions();
 
     if ($.fn.select2) {
         $('#jobs_cpny_filter, #jobs_property_type').select2({ width: '100%' });

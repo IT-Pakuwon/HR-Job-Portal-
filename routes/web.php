@@ -2211,6 +2211,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
                 Route::post('/jobs/complete/{hash}', 'completeOthersJob')->name('legal-agreement.jobs.complete');
+                Route::post('/jobs/cancel/{hash}', 'cancelJob')->name('legal-agreement.jobs.cancel');
                 Route::post('/revert/{hash}', 'revertAgreement')->name('legal-agreement.revert');
                 Route::post('/cancel/{hash}', 'cancelAgreement')->name('legal-agreement.cancel');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');

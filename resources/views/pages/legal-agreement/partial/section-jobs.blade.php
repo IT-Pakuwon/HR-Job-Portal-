@@ -64,6 +64,9 @@
                     <th class="px-4 py-3 text-left">Trade Name</th>
                     <th class="px-4 py-3 text-left">Property Type</th>
                     <th class="px-4 py-3 text-left">Status</th>
+                    @unless (isset($kind))
+                        <th class="px-4 py-3 text-left">Action</th>
+                    @endunless
                 </tr>
             </thead>
             <tbody></tbody>
