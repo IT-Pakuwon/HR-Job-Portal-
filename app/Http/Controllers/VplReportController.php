@@ -1461,10 +1461,29 @@ class VplReportController extends Controller
             ->get();
 
         $sources = [];
+        $productType = [];
 
         foreach ($receives as $r) {
             $key = $r->product_id.'|'.$this->expiredKey($r->expired_date);
             $sources[$key] = $r->receive_type;
+
+            if (isset(self::SOURCE_MAP[$r->receive_type])) {
+                $productType[$r->product_id] = $r->receive_type;
+            }
+        }
+
+        // Opening-balance receives (e.g. type "Import") have no real business source, so
+        // they'd fall outside every Voucher Sources column and the In qty would vanish
+        // from that block (seen on batches that only got In via Return/Settlement).
+        // Inherit the product's latest mapped source instead.
+        foreach ($sources as $key => $type) {
+            if (!isset(self::SOURCE_MAP[$type])) {
+                $productId = explode('|', $key, 2)[0];
+
+                if (isset($productType[$productId])) {
+                    $sources[$key] = $productType[$productId];
+                }
+            }
         }
 
         return $sources;

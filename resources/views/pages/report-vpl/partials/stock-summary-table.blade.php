@@ -6,7 +6,7 @@
     $agingCols = $meta['aging'] ?? [];
     $sourceCols = $meta['sources'] ?? []; // column label => group label (Promotion/Leasing)
     $usedCols  = $meta['used'] ?? [];
-    $totalCols = 14 + count($agingCols) + count($sourceCols) + count($usedCols);
+    $totalCols = 17 + count($agingCols) + count($sourceCols) + count($usedCols);
 
     $tenantSubtotals = collect($rows)->where('type', 'tenant_subtotal');
     $forExport = $forExport ?? false;
@@ -68,8 +68,11 @@
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Out W/O (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Ending (Lbr)</th>
                     <th class="px-3 py-3 text-right font-semibold" rowspan="2">Value (Rp)</th>
+                    <th class="w-3 min-w-3 bg-white p-0 dark:bg-gray-800" rowspan="2"></th>
                     <th class="px-3 py-2 text-center font-semibold border-l border-gray-200 dark:border-gray-700" colspan="{{ count($agingCols) }}">Aging Report Per {{ $agingAsOf->format('d-M-y') }} (Rp)</th>
+                    <th class="w-3 min-w-3 bg-white p-0 dark:bg-gray-800" rowspan="2"></th>
                     <th class="px-3 py-2 text-center font-semibold border-l border-gray-200 dark:border-gray-700" colspan="{{ count($sourceCols) }}">Voucher Sources (Rp)</th>
+                    <th class="w-3 min-w-3 bg-white p-0 dark:bg-gray-800" rowspan="2"></th>
                     <th class="px-3 py-2 text-center font-semibold border-l border-gray-200 dark:border-gray-700" colspan="{{ count($usedCols) }}">Voucher Used in Current Period (Rp)</th>
                 </tr>
                 <tr>
@@ -114,12 +117,15 @@
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['out_writeoff']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['ending']) }}</td>
                             <td class="px-3 py-2.5 text-right tabular-nums">{{ $n($row['value']) }}</td>
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($agingCols as $label)
                                 <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['aging'][$label] ?? 0) }}</td>
                             @endforeach
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($sourceCols as $column => $group)
                                 <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['sources'][$column] ?? 0) }}</td>
                             @endforeach
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($usedCols as $label)
                                 <td class="px-3 py-2.5 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($row['used'][$label] ?? 0) }}</td>
                             @endforeach
@@ -141,16 +147,19 @@
                             <td class="px-3 py-2 text-right tabular-nums">{{ $n($row['out_writeoff']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['ending']) }}</td>
                             <td class="px-3 py-2 text-right tabular-nums font-semibold text-gray-900 dark:text-gray-100">{{ $n($row['value']) }}</td>
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($agingCols as $label)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
                                     {{ $row['aging_bucket'] === $label ? $n($row['value']) : '' }}
                                 </td>
                             @endforeach
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($sourceCols as $column => $group)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
                                     {{ $row['source_column'] === $column ? $n($row['source_value']) : '' }}
                                 </td>
                             @endforeach
+                            <td class="w-3 min-w-3 p-0"></td>
                             @foreach($usedCols as $label)
                                 <td class="px-3 py-2 text-right tabular-nums {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">
                                     {{ ($row['used_value'][$label] ?? 0) != 0 ? $n($row['used_value'][$label]) : '' }}
@@ -183,12 +192,15 @@
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('out_writeoff')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('ending')) }}</td>
                         <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300">{{ $n($tenantSubtotals->sum('value')) }}</td>
+                        <td class="w-3 min-w-3 p-0"></td>
                         @foreach($agingCols as $label)
                             <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['aging'][$label] ?? 0)) }}</td>
                         @endforeach
+                        <td class="w-3 min-w-3 p-0"></td>
                         @foreach($sourceCols as $column => $group)
                             <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['sources'][$column] ?? 0)) }}</td>
                         @endforeach
+                        <td class="w-3 min-w-3 p-0"></td>
                         @foreach($usedCols as $label)
                             <td class="px-3 py-3 text-right tabular-nums text-indigo-700 dark:text-indigo-300 {{ $loop->first ? 'border-l border-gray-200 dark:border-gray-700' : '' }}">{{ $n($tenantSubtotals->sum(fn($r) => $r['used'][$label] ?? 0)) }}</td>
                         @endforeach
