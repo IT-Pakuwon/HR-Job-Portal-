@@ -486,9 +486,12 @@ class CareerController extends Controller
         // this (remapped) apply row existed belongs to the previous position, and its step
         // approvals stayed on the old steps — so the schedule must be created again.
         $remapCutoff = $remapped_from && $job_apply ? $job_apply->created_at : null;
+        $stepDurations = \App\Services\RecruitmentStepDuration::calculate(
+            $jobapplystep, $agenda, $job_apply?->created_at, $remapCutoff
+        );
 
         return view('pages.careers.showcareers', compact(
-            'remapCutoff',
+            'remapCutoff', 'stepDurations',
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
             'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',

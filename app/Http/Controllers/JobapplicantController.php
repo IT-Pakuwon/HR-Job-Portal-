@@ -566,6 +566,7 @@ class JobapplicantController extends Controller
 
             $rows = $query->select([
                 DB::raw('vc.id as _id'),
+                'vc.created_at',
                 'vc.docid',
                 'vc.docidposting',
                 'vc.apply_date',
@@ -593,7 +594,18 @@ class JobapplicantController extends Controller
                 ->orderBy($orderBy, $orderDir)
                 ->get();
 
-            $data = $rows->map(function ($r) {
+            $workflowSteps = DB::connection('mysql3')->table('hr_trx_job_apply_step')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->whereIn('docid', $rows->pluck('docid')->unique())
+                ->whereIn('jobid', $rows->pluck('docidposting')->unique())
+                ->orderBy('step_order')->get()
+                ->groupBy(fn ($step) => json_encode([$step->docid, $step->jobid]));
+            $durationNow = now();
+            $data = $rows->map(function ($r) use ($workflowSteps, $durationNow) {
+                $duration = \App\Services\RecruitmentStepDuration::cumulative(
+                    $workflowSteps->get(json_encode([$r->docid, $r->docidposting]), collect()),
+                    $r->apply_step, $r->created_at, $r->status, $durationNow
+                );
                 return [
                     'eid' => Hashids::encode($r->_id),
                     'docid' => $r->docid,
@@ -606,6 +618,9 @@ class JobapplicantController extends Controller
                     'weight' => $r->weight,
                     'company_name' => $r->company_name,
                     'apply_step' => $r->apply_step,
+                    'step_total_days' => $duration['days'] ?? null,
+                    'step_duration_start' => $duration['start'] ?? null,
+                    'step_duration_end' => $duration['end'] ?? null,
                     'job_title' => $r->job_title,
                     'job_level' => $r->job_level,
                     'status_app' => $r->status_app,
