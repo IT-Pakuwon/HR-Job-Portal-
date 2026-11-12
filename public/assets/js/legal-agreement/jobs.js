@@ -60,8 +60,25 @@ function renderPropertyCdBadge(code) {
     return `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${propertyCdBadgeClass(code)}">${label}</span>`;
 }
 
+const JOB_TYPE_LABELS = { PSM: 'PSM', OLA: 'OLA', ADDENDUM: 'Addendum', OTHERS: 'Others' };
+
+function renderJobTypeBadge(type) {
+    if (!type) return '-';
+
+    const cls = type === 'ADDENDUM'
+        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+        : type === 'OTHERS'
+            ? 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
+
+    return `<span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}">${JOB_TYPE_LABELS[type] || type}</span>`;
+}
+
 function initJobsTable() {
     if (!$.fn.DataTable || !$('#jobsTable').length) return;
+
+    // Only Agreement FU's table has the Type column (New Agreement reuses this table without it).
+    const hasType = !!$('#jobsTable').data('fu');
 
     window.jobsTable = $('#jobsTable').DataTable({
         processing: true,
@@ -84,6 +101,16 @@ function initJobsTable() {
                 render: (row) => {
                     if (row.eid) Jobs.rows[row.eid] = row;
 
+                    // Others has no follow-up to start: its action completes it (with notes).
+                    if (row.agreement_type === 'OTHERS') {
+                        return `
+                    <button type="button" class="btn-complete-other inline-flex h-8 w-8 items-center justify-center rounded-lg bg-green-600 text-white hover:bg-green-700"
+                        data-eid="${row.eid ?? ''}" title="Complete">
+                        <i class="fa-solid fa-check text-xs"></i>
+                    </button>
+                `;
+                    }
+
                     return `
                     <button type="button" class="${window.jobsActionClass || 'btn-create-from-job'} inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         data-eid="${row.eid ?? ''}"
@@ -103,11 +130,9 @@ function initJobsTable() {
                 `;
                 },
             },
-            // Agreement FU lists PSM / OLA and Addendum agreements together; New Agreement's rows have no agreement_type.
-            {
-                data: 'contract_no',
-                render: (d, type, row) => (d || '-') + (row.agreement_type === 'ADDENDUM' ? ' <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Addendum</span>' : ''),
-            },
+            { data: 'contract_no', render: (d) => d || '-' },
+            // Agreement FU lists PSM / OLA / Addendum / Others together; New Agreement's rows have no agreement_type.
+            ...(hasType ? [{ data: 'agreement_type', render: (d) => renderJobTypeBadge(d) }] : []),
             { data: 'cpny_id', render: (d) => d || '-' },
             { data: 'tenant_no', render: (d) => d || '-' },
             { data: 'trade_name', render: (d) => d || '-' },
@@ -219,10 +244,51 @@ function initCreateFromJob() {
     });
 }
 
+// Others needs no follow-up: complete it from the Job tab, with notes.
+function initCompleteOther() {
+    $(document).on('click', '.btn-complete-other', function () {
+        const eid = $(this).data('eid');
+
+        Swal.fire({
+            title: 'Complete Agreement',
+            text: 'This Others agreement needs no follow-up. Add a note to complete it.',
+            input: 'textarea',
+            inputLabel: 'Notes',
+            inputPlaceholder: 'Why is this completed?',
+            inputAttributes: { maxlength: 2000 },
+            showCancelButton: true,
+            confirmButtonText: 'Complete',
+            confirmButtonColor: '#16a34a',
+            reverseButtons: true,
+            inputValidator: (value) => (value && value.trim() ? undefined : 'Notes are required.'),
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            $.ajax({
+                url: Agreement.routes.jobComplete.replace(':eid', eid),
+                type: 'POST',
+                data: { response_descr: result.value.trim() },
+                beforeSend: () => showLoading(),
+                success(res) {
+                    hideLoading();
+                    showSuccess(res.message || 'Agreement completed.');
+                    window.jobsTable.ajax.reload(null, false);
+                    refreshCounts();
+                },
+                error(xhr) {
+                    hideLoading();
+                    handleAjaxError(xhr);
+                },
+            });
+        });
+    });
+}
+
 $(function () {
     initJobsTable();
     initJobsFilters();
     initCreateFromJob();
+    initCompleteOther();
 
     if ($.fn.select2) {
         $('#jobs_cpny_filter, #jobs_property_type').select2({ width: '100%' });

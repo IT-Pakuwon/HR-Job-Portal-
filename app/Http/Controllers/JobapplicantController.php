@@ -1061,6 +1061,57 @@ class JobapplicantController extends Controller
         return response()->json(['data' => $applicants]);
     }
 
+    // True if any applicant matching this one (KTP + DOB, DOB + Phone or DOB + Email, each
+    // pair needing both fields non-empty) already has a live apply (not cancelled) for $jobId.
+    private function hasMatchedApplicantApplyForJob($applicantId, string $jobId, string $groupCompanyId): bool
+    {
+        $me = DB::connection('mysql3')
+            ->table('hr_ms_applicant')
+            ->where('applicant_id', $applicantId)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->first();
+
+        if (!$me || empty($me->date_of_birth)) {
+            return false;
+        }
+
+        $matches = DB::connection('mysql3')
+            ->table('hr_ms_applicant as a')
+            ->where('a.group_cpny_id', $groupCompanyId)
+            ->where('a.date_of_birth', $me->date_of_birth)
+            ->where(function ($q) use ($me) {
+                $any = false;
+                if (!empty($me->ktp_id)) {
+                    $q->orWhere('a.ktp_id', $me->ktp_id);
+                    $any = true;
+                }
+                if (!empty($me->mobile_phone)) {
+                    $q->orWhere('a.mobile_phone', $me->mobile_phone);
+                    $any = true;
+                }
+                if (!empty($me->email_address)) {
+                    $q->orWhereRaw('LOWER(a.email_address) = ?', [strtolower($me->email_address)]);
+                    $any = true;
+                }
+                if (!$any) {
+                    $q->whereRaw('1=0');
+                }
+            })
+            ->pluck('a.applicant_id');
+
+        if ($matches->isEmpty()) {
+            return false;
+        }
+
+        return DB::connection('mysql3')
+            ->table('hr_trx_job_apply')
+            ->where('group_cpny_id', $groupCompanyId)
+            ->where('jobid', $jobId)
+            ->where('status', '!=', 'X')
+            ->whereIn('applicant_id', $matches)
+            ->exists();
+    }
+
     public function storeRemap(Request $request)
     {
         $request->validate([
@@ -1141,6 +1192,13 @@ class JobapplicantController extends Controller
 
         if ($alreadyHadJob) {
             return response()->json(['error' => 'The applicant already has (or had) an apply for that position.'], 422);
+        }
+
+        // The same person can hold several applicant_id/docid (re-registered). Use the same
+        // identity signals as the Duplicate Users tab so they can't be remapped onto a job
+        // they already applied to under another record.
+        if ($this->hasMatchedApplicantApplyForJob($apply->applicant_id, $newJobposting->docid, $groupCompanyId)) {
+            return response()->json(['error' => 'This applicant (matched by KTP / DOB + Phone / DOB + Email) has already applied for that position.'], 422);
         }
 
         $user = $authUser->username ?? 'system';

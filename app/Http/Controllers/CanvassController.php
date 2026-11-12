@@ -6323,7 +6323,7 @@ class CanvassController extends Controller
         $mkPonbr = function () use ($cs) {
             $company = strtoupper((string) $cs->cpny_id);
             $digits = 10;
-            $base = ($company === 'GPS') ? 0 : 8000000000;
+            $base = ($company === 'GPS') ? 0 : 1000000000;
 
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $company)

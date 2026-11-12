@@ -2522,7 +2522,13 @@
         const selfUsername = @json(Auth::user()->username);
         const selfName = @json(Auth::user()->name ?: Auth::user()->username);
 
+        let registrationInFlight = false;
+
         function submitRegistration(scheduleId, participants, closeDetail) {
+            // A double-click would otherwise POST twice and create two documents.
+            if (registrationInFlight) return;
+            registrationInFlight = true;
+
             $.ajax({
                 url: `/training-list/${scheduleId}/register`,
                 method: 'POST',
@@ -2537,6 +2543,9 @@
                 },
                 error: function (xhr) {
                     toast('error', xhr.responseJSON?.message || 'Gagal melakukan registrasi');
+                },
+                complete: function () {
+                    registrationInFlight = false;
                 },
             });
         }

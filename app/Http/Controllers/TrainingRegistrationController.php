@@ -907,6 +907,28 @@ class TrainingRegistrationController extends Controller
                 ->get()
                 ->groupBy('cpny_id');
 
+            // Re-run the duplicate guard now that the quota rows are locked: the
+            // check before the transaction isn't atomic, so a double-click sends
+            // two requests that both pass it. The second one waits on the lock
+            // above, then sees the first one's committed row here.
+            $racedDuplicates = TrLndTrainingRegistration::where('schedule_id', $scheduleId)
+                ->whereIn('user_registration', $participants->pluck('username'))
+                ->where(function ($q) {
+                    $q->whereNull('status_registration')
+                        ->orWhere('status_registration', '!=', TrLndTrainingRegistration::REG_STATUS_CANCELLED);
+                })
+                ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+                ->pluck('user_registration');
+
+            if ($racedDuplicates->isNotEmpty()) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Already registered for this schedule: '.$racedDuplicates->implode(', '),
+                ], 422);
+            }
+
             $missingCpnyIds = $participantCpnyIds->filter(fn ($id) => !isset($quotasByCpny[$id]));
 
             if ($missingCpnyIds->isNotEmpty()) {

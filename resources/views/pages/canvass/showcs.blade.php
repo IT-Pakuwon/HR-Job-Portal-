@@ -152,7 +152,7 @@
                                 ],
                             ];
 
-                            if (!empty($cs->imbudgetid)) {
+                            if (in_array(strtolower(trim((string) $cs->flag_imbudget)), ['1', 't', 'true'], true) && !empty($cs->imbudgetid)) {
                                 $imbUrl = !empty($eid_imbudget) ? url("/showimbudgets/{$eid_imbudget}") : null;
 
                                 $imbLink = $imbUrl

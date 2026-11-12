@@ -51,11 +51,14 @@
 
     {{-- Table --}}
     <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
-        <table id="jobsTable" class="w-full text-sm">
+        <table id="jobsTable" class="w-full text-sm" @unless (isset($kind)) data-fu="1" @endunless>
             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                 <tr>
                     <th class="px-4 py-3 text-left" style="width:60px;">Action</th>
                     <th class="px-4 py-3 text-left">{{ isset($kind) ? 'Contract No' : 'No. PSM / OLA / Addendum' }}</th>
+                    @unless (isset($kind))
+                        <th class="px-4 py-3 text-left">Type</th>
+                    @endunless
                     <th class="px-4 py-3 text-left">Company</th>
                     <th class="px-4 py-3 text-left">Tenant No</th>
                     <th class="px-4 py-3 text-left">Trade Name</th>
