@@ -120,6 +120,9 @@ class TrAgreement extends Model
     // Addendum -> FU_ADDENDUM). Each can have one follow-up: the converted row leaves the Job tab.
     public const FU_SOURCE_TYPES = ['PSM', 'OLA', 'ADDENDUM'];
 
+    // Others is also listed in the Job tab, but it has no follow-up: it is only completed there, with notes.
+    public const TYPE_OTHERS = 'OTHERS';
+
     public const FU_TYPES = ['FU_PSM', 'FU_OLA', 'FU_ADDENDUM'];
 
     // Follow-ups of a PSM / OLA: the only ones that can still be the parent of an Addendum / Others.

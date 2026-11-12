@@ -364,6 +364,13 @@ class LegalAgreementController extends Controller
 
         $source = $this->fuJobsQuery()->findOrFail($id);
 
+        if ($source->agreement_type === TrAgreement::TYPE_OTHERS) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An Others agreement has no follow-up. Complete it instead.',
+            ], 422);
+        }
+
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -1593,13 +1600,16 @@ class LegalAgreementController extends Controller
 
         $query = TrAgreement::query()
             ->whereNull('deleted_at')
-            ->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)
-            ->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED'])
+            // PSM / OLA / Addendum (Active or Completed) get a follow-up. An Others agreement needs none:
+            // it is listed only while Active so the user can complete it (with notes) from here.
+            ->where(fn ($q) => $q
+                ->where(fn ($q2) => $q2->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED']))
+                ->orWhere(fn ($q2) => $q2->where('agreement_type', TrAgreement::TYPE_OTHERS)->where('agreement_step_id', 'ACTIVE')))
             // No second follow-up: skip a PSM / OLA whose tenant + unit already has a live one
             // (a follow-up that is Active, on Hold or Escalated). An Addendum is its own document with its
             // own single follow-up, so it neither blocks nor is blocked by its PSM / OLA's (FU_ADDENDUM is left
-            // out here, and an Addendum row is not held back by this rule at all).
-            ->where(fn ($q) => $q->where('agreement_type', 'ADDENDUM')->orWhereNotExists(function ($sub) {
+            // out here, and an Addendum row is not held back by this rule at all). Others has no follow-up.
+            ->where(fn ($q) => $q->whereIn('agreement_type', ['ADDENDUM', TrAgreement::TYPE_OTHERS])->orWhereNotExists(function ($sub) {
                 $sub->selectRaw('1')
                     ->from('tr_agreement as fu')
                     ->whereNull('fu.deleted_at')
@@ -1618,6 +1628,49 @@ class LegalAgreementController extends Controller
         }
 
         return $query;
+    }
+
+    // Others needs no follow-up: the Job tab's action completes it with notes (Active -> Completed).
+    public function completeOthersJob(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        // Same list (and visibility) as the Job tab, so an eid can't reach a row the user can't see.
+        $agreement = $this->fuJobsQuery()->where('agreement_type', TrAgreement::TYPE_OTHERS)->findOrFail($id);
+        $username = auth()->user()->username;
+
+        abort_unless(
+            $this->isManagerRole()
+                || $agreement->canBeUpdatedBy($username)
+                || $agreement->hasPic($username),
+            403
+        );
+
+        $request->validate([
+            'response_descr' => 'required|string|max:2000',
+        ]);
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $this->transitionStep($agreement, 'COMPLETED', 'Agreement Completed', $request->response_descr, 'C');
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to complete the agreement.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Agreement {$agreement->agreement_id} completed.",
+        ]);
     }
 
     // Company / Property Type / search filters for the FU Job tab and its export.
