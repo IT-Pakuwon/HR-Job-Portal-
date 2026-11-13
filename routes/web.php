@@ -451,6 +451,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/sessions/schedules/{id}', [TrainingSessionController::class, 'updateSchedule'])->name('mastertraining.sessions.schedules.update');
             Route::put('/sessions/schedules/{id}/status', [TrainingSessionController::class, 'scheduleStatus'])->name('mastertraining.sessions.schedules.status');
             Route::put('/sessions/schedules/{id}/reschedule', [TrainingSessionController::class, 'reschedule'])->name('mastertraining.sessions.schedules.reschedule');
+            Route::put('/sessions/schedules/{id}/quota', [TrainingSessionController::class, 'updateQuota'])->name('mastertraining.sessions.schedules.quota');
         });
     });
 
