@@ -191,12 +191,10 @@
 
         <div class="border-b border-slate-200 bg-slate-50/70 px-6 py-2 dark:border-white/[0.06] dark:bg-slate-900/60">
             <div class="flex w-full items-center gap-1 rounded-lg border border-slate-200 bg-white p-1.5 shadow-sm dark:border-white/[0.08] dark:bg-slate-800">
-                {{-- A Draft shows only Documents and Attachments; everything else (process sheet, related, log) starts once it is Processed. --}}
-                @unless ($isDraft)
+                {{-- A Draft shows Timeline (only Pengumpulan Dokumen, read-only), Documents and Attachments; Related starts once it is Processed. --}}
                 <button type="button" class="agr-detail-tab view-agr-tab {{ $firstTab === 'timeline' ? 'active' : '' }} inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="timeline">
                     <i class="fa-solid fa-clock-rotate-left text-[12px]"></i> Timeline
                 </button>
-                @endunless
                 @if ($kind['checklist'])
                 <button type="button" class="agr-detail-tab view-agr-tab {{ $firstTab === 'completeness' ? 'active' : '' }} inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200" data-tab="completeness">
                     <i class="fa-solid fa-list-check text-[12px]"></i> Documents
@@ -225,11 +223,24 @@
             <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">Use Update on a row to change it, then Save. Pengumpulan Dokumen starts on the earliest date a document was received. Notes are optional.</p>
 
             <form id="viewAgrProcessForm" data-url="{{ route($kind['r']['process'], $eid, false) }}" autocomplete="off" class="mb-8 space-y-4">
-                @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->rows, 'available' => $processes->available['PROCESS'] ?? [], 'label' => 'Process'])
+                {{-- Draft: the sheet is read-only (no Update / Add) until the agreement is Processed. --}}
+                @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->rows, 'available' => $processes->available['PROCESS'] ?? [], 'label' => 'Process', 'canUpdateDocs' => $canUpdateDocs && ! $isDraft])
 
                 {{-- Routing only starts once Cetak (the printed agreement) is on the list. --}}
-                @if ($processes->routingVisible)
+                @if ($isDraft)
+                @elseif ($processes->routingVisible)
                     @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->routing, 'available' => $processes->available['ROUTING'] ?? [], 'label' => 'Routing'])
+                @elseif (! empty($kind['routing_optional']) && $canUpdateDocs)
+                    {{-- Others: routing isn't always needed, so it opens on demand with the Route button. --}}
+                    <div id="agrRoutingOptional">
+                        <button type="button" id="btnShowRouting" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300"
+                            onclick="document.getElementById('agrRoutingPanel').classList.remove('hidden'); this.classList.add('hidden');">
+                            <i class="fa-solid fa-route"></i> Route
+                        </button>
+                        <div id="agrRoutingPanel" class="hidden">
+                            @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->routing, 'available' => $processes->available['ROUTING'] ?? [], 'label' => 'Routing'])
+                        </div>
+                    </div>
                 @endif
             </form>
         </div>
