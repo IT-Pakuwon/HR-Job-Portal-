@@ -110,8 +110,8 @@ class LegalNewAgreementController extends Controller
                 // (no Cetak needed first); PSM / OLA and Addendum start Routing once Cetak is added.
                 'routing' => true,
                 'routing_optional' => $others,
-                // An Addendum's follow-ups are FU_ADDENDUM; Others has none.
-                'follow_up_types' => $others ? null : ['FU_ADDENDUM'],
+                // An Addendum's follow-ups are FU_ADDENDUM, an Others' are FU_OTHERS.
+                'follow_up_types' => $others ? ['FU_OTHERS'] : ['FU_ADDENDUM'],
                 'page' => $p,
                 'r' => [
                     'jobs_json' => $p.'.jobs.json',
@@ -499,7 +499,7 @@ class LegalNewAgreementController extends Controller
             $type = 'PSM / OLA';
             $path = '/legal-new-agreement/';
         } else {
-            $rows = $this->activeQuery([...$steps, 'HOLD', 'ESCALATED'], [self::TYPE_ADDENDUM, self::TYPE_OTHERS, 'FU_ADDENDUM'])
+            $rows = $this->activeQuery([...$steps, 'HOLD', 'ESCALATED'], [self::TYPE_ADDENDUM, self::TYPE_OTHERS, 'FU_ADDENDUM', 'FU_OTHERS'])
                 ->where(fn ($q) => $q->where('prev_agreement_id', $agreement->agreement_id)->orWhere('parent_agreement_id', $agreement->agreement_id))
                 ->orderBy('agreement_date')->orderBy('id')
                 ->get();

@@ -123,6 +123,9 @@ class TrainingSessionController extends Controller
         $posterUrls = $headers->pluck('training_poster')->filter()->unique()
             ->mapWithKeys(fn ($path) => [$path => $this->gcsSignedUrl($path)]);
 
+        $usedBySchedule = $this->seatsUsedBySchedule($allDetails->pluck('schedule_id')->all());
+        $appliedBySchedule = $this->appliedBySchedule($allDetails->pluck('schedule_id')->all());
+
         $rows = collect();
 
         foreach ($headers as $header) {
@@ -156,6 +159,8 @@ class TrainingSessionController extends Controller
                         'cpny_id' => $q->cpny_id,
                         'cpny_name' => $cpnyNames[$q->cpny_id] ?? $q->cpny_id,
                         'quota_pax' => $q->quota_pax,
+                        'used' => $usedBySchedule[$detail->schedule_id][$q->cpny_id] ?? 0,
+                        'applied' => $appliedBySchedule[$detail->schedule_id][$q->cpny_id] ?? 0,
                     ]),
                     'quota_total' => $detail->quota->sum('quota_pax'),
                 ]);
@@ -940,6 +945,173 @@ class TrainingSessionController extends Controller
             'message' => $message,
             'failed_notifications' => $failed,
         ]);
+    }
+
+    /**
+     * Seats currently held per schedule and quota pool (registration_cpny_id):
+     * pending/approved (null) or offered ('O'), never rejected — the same
+     * definition TrainingRegistrationController::activeSeatCount() enforces
+     * as the hard cap, so a quota can't be lowered under what that cap counts.
+     *
+     * @return array<string, array<string, int>> [schedule_id => [cpny_id => seats]]
+     */
+    private function seatsUsedBySchedule(array $scheduleIds): array
+    {
+        if (!$scheduleIds) {
+            return [];
+        }
+
+        $used = [];
+
+        TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->where(function ($q) {
+                $q->whereNull('status_registration')
+                    ->orWhere('status_registration', TrLndTrainingRegistration::REG_STATUS_OFFERED);
+            })
+            ->where('status', '!=', TrLndTrainingRegistration::STATUS_REJECTED)
+            ->selectRaw('schedule_id, registration_cpny_id, count(*) as seats')
+            ->groupBy('schedule_id', 'registration_cpny_id')
+            ->get()
+            ->each(function ($r) use (&$used) {
+                $used[$r->schedule_id][$r->registration_cpny_id] = (int) $r->seats;
+            });
+
+        return $used;
+    }
+
+    /**
+     * Registrations of ANY status per schedule and quota pool. A company with
+     * even one (e.g. rejected) can't have its quota row removed.
+     *
+     * @return array<string, array<string, int>> [schedule_id => [cpny_id => count]]
+     */
+    private function appliedBySchedule(array $scheduleIds): array
+    {
+        if (!$scheduleIds) {
+            return [];
+        }
+
+        $applied = [];
+
+        TrLndTrainingRegistration::whereIn('schedule_id', $scheduleIds)
+            ->selectRaw('schedule_id, registration_cpny_id, count(*) as total')
+            ->groupBy('schedule_id', 'registration_cpny_id')
+            ->get()
+            ->each(function ($r) use (&$applied) {
+                $applied[$r->schedule_id][$r->registration_cpny_id] = (int) $r->total;
+            });
+
+        return $applied;
+    }
+
+    /**
+     * Change the quota pax of a PUBLISHED/CLOSED schedule. Only existing
+     * company rows can be adjusted, and no row may drop below the seats it
+     * already holds. The registration flow takes a row lock on these quota
+     * rows, so locking them here too serializes against an in-flight register.
+     */
+    public function updateQuota(Request $request, $id)
+    {
+        $detail = MsLndTrainingSchedule::findOrFail($id);
+        $currentLabel = self::STATUS_LABEL_MAP[$detail->status] ?? $detail->status;
+
+        if (!in_array($currentLabel, ['PUBLISHED', 'CLOSED'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Quota schedule berstatus {$currentLabel} diubah lewat Edit (hanya PUBLISHED/CLOSED yang memakai Edit Quota)",
+            ], 422);
+        }
+
+        $request->validate([
+            'quota' => 'required|array|min:1',
+            'quota.*.cpny_id' => ['required', 'string', 'max:10', $this->quotaCompanyRule()],
+            'quota.*.quota_pax' => 'required|integer|min:1',
+        ]);
+
+        $submitted = collect($request->input('quota'))->map(fn ($r) => trim($r['cpny_id']));
+
+        if ($submitted->count() !== $submitted->unique()->count()) {
+            return response()->json(['success' => false, 'message' => 'Company tidak boleh duplikat'], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $updatedBy = Auth::user()->username ?? 'system';
+
+            $quotas = MsLndTrainingQuota::where('schedule_id', $detail->schedule_id)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('cpny_id');
+
+            $used = $this->seatsUsedBySchedule([$detail->schedule_id])[$detail->schedule_id] ?? [];
+            $errors = [];
+
+            foreach ($request->input('quota') as $row) {
+                $cpnyId = trim($row['cpny_id']);
+
+                if ((int) $row['quota_pax'] < ($used[$cpnyId] ?? 0)) {
+                    $errors[] = "Quota {$cpnyId} tidak boleh kurang dari {$used[$cpnyId]} (seat yang sudah terpakai)";
+                }
+            }
+
+            // Companies dropped from the list are removed — but only when they
+            // hold no seats, otherwise those registrations would be orphaned.
+            $removed = $quotas->keys()->diff($submitted);
+
+            $applied = $this->appliedBySchedule([$detail->schedule_id])[$detail->schedule_id] ?? [];
+
+            foreach ($removed as $cpnyId) {
+                if (($applied[$cpnyId] ?? 0) > 0) {
+                    $errors[] = "Company {$cpnyId} tidak bisa dihapus, sudah ada {$applied[$cpnyId]} pendaftar";
+                }
+            }
+
+            if ($errors) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => implode("\n", $errors)], 422);
+            }
+
+            $header = MsLndTrainingDetail::where('training_detail_id', $detail->training_detail_id)->firstOrFail();
+
+            foreach ($request->input('quota') as $row) {
+                $cpnyId = trim($row['cpny_id']);
+
+                if (isset($quotas[$cpnyId])) {
+                    $quotas[$cpnyId]->update([
+                        'quota_pax' => (int) $row['quota_pax'],
+                        'updated_by' => $updatedBy,
+                    ]);
+                } else {
+                    $this->syncQuota($detail, [$row], $header->training_id, $header->training_detail_id, $updatedBy);
+                }
+            }
+
+            if ($removed->isNotEmpty()) {
+                MsLndTrainingQuota::where('schedule_id', $detail->schedule_id)
+                    ->whereIn('cpny_id', $removed->all())
+                    ->delete();
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json(['success' => true, 'message' => 'Quota berhasil diupdate']);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            \Illuminate\Support\Facades\Log::error('Training quota update failed', [
+                'schedule_id' => $id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update quota',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function syncQuota(

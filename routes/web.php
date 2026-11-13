@@ -453,6 +453,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/sessions/schedules/{id}', [TrainingSessionController::class, 'updateSchedule'])->name('mastertraining.sessions.schedules.update');
             Route::put('/sessions/schedules/{id}/status', [TrainingSessionController::class, 'scheduleStatus'])->name('mastertraining.sessions.schedules.status');
             Route::put('/sessions/schedules/{id}/reschedule', [TrainingSessionController::class, 'reschedule'])->name('mastertraining.sessions.schedules.reschedule');
+            Route::put('/sessions/schedules/{id}/quota', [TrainingSessionController::class, 'updateQuota'])->name('mastertraining.sessions.schedules.quota');
         });
     });
 
@@ -2213,6 +2214,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/activate/{hash}', 'activateAgreement')->name('legal-agreement.activate');
                 Route::post('/complete/{hash}', 'completeAgreement')->name('legal-agreement.complete');
                 Route::post('/jobs/complete/{hash}', 'completeOthersJob')->name('legal-agreement.jobs.complete');
+                Route::post('/jobs/cancel/{hash}', 'cancelJob')->name('legal-agreement.jobs.cancel');
                 Route::post('/revert/{hash}', 'revertAgreement')->name('legal-agreement.revert');
                 Route::post('/cancel/{hash}', 'cancelAgreement')->name('legal-agreement.cancel');
                 Route::post('/comment/{hash}', 'comment')->name('legal-agreement.comment');

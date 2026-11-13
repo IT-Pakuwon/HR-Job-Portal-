@@ -364,13 +364,6 @@ class LegalAgreementController extends Controller
 
         $source = $this->fuJobsQuery()->findOrFail($id);
 
-        if ($source->agreement_type === TrAgreement::TYPE_OTHERS) {
-            return response()->json([
-                'success' => false,
-                'message' => 'An Others agreement has no follow-up. Complete it instead.',
-            ], 422);
-        }
-
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -1600,21 +1593,21 @@ class LegalAgreementController extends Controller
 
         $query = TrAgreement::query()
             ->whereNull('deleted_at')
-            // PSM / OLA / Addendum (Active or Completed) get a follow-up. An Others agreement needs none:
-            // it is listed only while Active so the user can complete it (with notes) from here.
+            // PSM / OLA / Addendum (Active or Completed) get a follow-up. An Others agreement is listed only while
+            // Active: it can get a follow-up too, or be completed (with notes) straight from the list.
             ->where(fn ($q) => $q
                 ->where(fn ($q2) => $q2->whereIn('agreement_type', TrAgreement::FU_SOURCE_TYPES)->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED']))
                 ->orWhere(fn ($q2) => $q2->where('agreement_type', TrAgreement::TYPE_OTHERS)->where('agreement_step_id', 'ACTIVE')))
             // No second follow-up: skip a PSM / OLA whose tenant + unit already has a live one
             // (a follow-up that is Active, on Hold or Escalated). An Addendum is its own document with its
             // own single follow-up, so it neither blocks nor is blocked by its PSM / OLA's (FU_ADDENDUM is left
-            // out here, and an Addendum row is not held back by this rule at all). Others has no follow-up.
+            // out here, and an Addendum row is not held back by this rule at all). Others is its own document too.
             ->where(fn ($q) => $q->whereIn('agreement_type', ['ADDENDUM', TrAgreement::TYPE_OTHERS])->orWhereNotExists(function ($sub) {
                 $sub->selectRaw('1')
                     ->from('tr_agreement as fu')
                     ->whereNull('fu.deleted_at')
                     ->whereIn('fu.agreement_step_id', ['ACTIVE', 'HOLD', 'ESCALATED'])
-                    ->where(fn ($q) => $q->whereNull('fu.agreement_type')->orWhereNotIn('fu.agreement_type', [...TrAgreement::NEW_AGREEMENT_TYPES, 'FU_ADDENDUM']))
+                    ->where(fn ($q) => $q->whereNull('fu.agreement_type')->orWhereNotIn('fu.agreement_type', [...TrAgreement::NEW_AGREEMENT_TYPES, 'FU_ADDENDUM', 'FU_OTHERS']))
                     ->whereColumn('fu.cpny_id', 'tr_agreement.cpny_id')
                     ->whereColumn('fu.tenant_no', 'tr_agreement.tenant_no')
                     ->whereColumn('fu.unit_id', 'tr_agreement.unit_id');
@@ -1630,7 +1623,66 @@ class LegalAgreementController extends Controller
         return $query;
     }
 
-    // Others needs no follow-up: the Job tab's action completes it with notes (Active -> Completed).
+    /**
+     * The Job tab's Cancel action: the PSM / OLA / Addendum / Others needs changing before it can be followed up,
+     * so it is cancelled with notes (same as cancelling it in New Agreement) and leaves the list. A PSM / OLA
+     * gives its IFCA job back, so the job can be picked up again; the other types never held one.
+     */
+    public function cancelJob(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(! $id, 404);
+
+        // Same list (and visibility) as the Job tab, so an eid can't reach a row the user can't see.
+        $agreement = $this->fuJobsQuery()->findOrFail($id);
+        $username = auth()->user()->username;
+
+        abort_unless(
+            $this->isManagerRole()
+                || $agreement->canBeUpdatedBy($username)
+                || $agreement->hasPic($username),
+            403
+        );
+
+        $request->validate([
+            'response_descr' => 'required|string|max:2000',
+        ]);
+
+        // Addendums made from this agreement must be cancelled (or finished) first.
+        if ($addendums = TrAgreement::activeAddendumIds($agreement->agreement_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cancel its Active addendum(s) first: '.implode(', ', $addendums).'.',
+            ], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $this->transitionStep($agreement, 'CANCELLED', 'Agreement Cancelled', $request->response_descr, 'X', $username);
+
+            if (in_array($agreement->agreement_type, ['PSM', 'OLA'], true)) {
+                StagingContractAgreement::moveFor($agreement, ['P', 'C'], 'A', $username);
+            }
+
+            DB::connection('pgsql5')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to cancel the agreement.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Agreement {$agreement->agreement_id} cancelled.",
+        ]);
+    }
+
+    // An Others agreement may skip the follow-up: the Job tab's Complete action finishes it with notes (Active -> Completed).
     public function completeOthersJob(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;

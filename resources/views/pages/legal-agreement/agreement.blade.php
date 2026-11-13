@@ -134,6 +134,7 @@
                 activate: "{{ url('/legal-agreement/activate') }}/:eid",
                 complete: "{{ url('/legal-agreement/complete') }}/:eid",
                 jobComplete: "{{ url('/legal-agreement/jobs/complete') }}/:eid",
+                jobCancel: "{{ url('/legal-agreement/jobs/cancel') }}/:eid",
                 revert: "{{ url('/legal-agreement/revert') }}/:eid",
                 cancel: "{{ url('/legal-agreement/cancel') }}/:eid",
                 detail: "{{ url('/legal-agreement/detail') }}/:eid",

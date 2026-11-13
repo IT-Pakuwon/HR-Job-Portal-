@@ -44,6 +44,8 @@ class AgreementLetterService
     public static function kind(TrAgreement $agreement): ?string
     {
         return match (true) {
+            // Others has no letter of its own yet; it keeps the generic ones whatever its property.
+            in_array($agreement->agreement_type, ['OTHERS', 'FU_OTHERS'], true) => null,
             self::isOffice($agreement) => 'office',
             self::isMall($agreement) => 'mall',
             default => null,

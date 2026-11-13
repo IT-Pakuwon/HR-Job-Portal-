@@ -7,10 +7,22 @@
 @section('header', 'Escalated to Marketing/Leasing')
 
 @section('subtitle')
+@if (!empty($docLabel))
+@if ($docLabel === 'Addendum')
+Tindak lanjut permohonan pengembalian Addendum.
+@else
+Tindak lanjut permohonan pengembalian Perjanjian Sewa Menyewa ({{ $docLabel }}).
+@endif
+@else
 Automatically escalated after two reminder letters went unanswered.
+@endif
 @endsection
 
 @section('content')
+
+@if (!empty($docLabel))
+@include('emails.partials.agreement-escalation-psm-ola')
+@else
 
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
     <tr>
@@ -24,5 +36,6 @@ Automatically escalated after two reminder letters went unanswered.
 </table>
 
 @include('emails.partials.agreement-detail')
+@endif
 
 @endsection

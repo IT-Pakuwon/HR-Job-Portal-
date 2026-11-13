@@ -250,6 +250,48 @@
         </div>
     </div>
 
+    {{-- Edit Quota Modal (PUBLISHED/CLOSED schedules) --}}
+    <div id="quotaModal"
+        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div class="relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+            <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 dark:text-white">Edit Quota</h2>
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        A quota can't be set lower than the seats it already holds (pending, approved or offered). Companies nobody has registered under can be removed.
+                    </p>
+                </div>
+                <button type="button" id="closeQuotaModalX"
+                    class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="quotaForm" class="flex flex-col gap-4 px-6 py-5">
+                <input type="hidden" id="quota_schedule_id">
+                <div id="quotaEditRows" class="flex max-h-[50vh] flex-col gap-3 overflow-y-auto"></div>
+                <div>
+                    <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                        Add company
+                    </label>
+                    <select id="quotaAddCompany" class="w-full"></select>
+                </div>
+                <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
+                    <button type="button" id="closeQuotaModal"
+                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none active:scale-95">
+                        Save Quota
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
         <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-gray-900 dark:text-white" viewBox="0 0 24 24">
@@ -268,6 +310,36 @@
          different option silently failed to register. --}}
 
     <style>
+        /* Edit Quota — "Add company" picker: dashed, card-like to match the rows above */
+        #quotaModal .select2-container--default .select2-selection--single {
+            height: 46px; display: flex; align-items: center; border: 1.5px dashed #cbd5e1;
+            border-radius: 0.75rem; background: #f8fafc; transition: border-color .15s, background .15s;
+        }
+        #quotaModal .select2-container--default .select2-selection--single:hover { border-color: #2563eb; background: #eff6ff; }
+        #quotaModal .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 46px; padding-left: 14px; color: #111827; font-size: 0.875rem;
+        }
+        #quotaModal .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #64748b; font-weight: 500; }
+        #quotaModal .select2-container--default .select2-selection--single .select2-selection__arrow { height: 44px; right: 8px; }
+        #quotaModal .select2-container--default.select2-container--focus .select2-selection--single,
+        #quotaModal .select2-container--default.select2-container--open .select2-selection--single {
+            border: 1.5px solid #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+        }
+        #quotaModal .select2-dropdown { border: 1px solid #e2e8f0; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0, 0, 0, .12); overflow: hidden; }
+        #quotaModal .select2-search--dropdown { padding: 8px; }
+        #quotaModal .select2-search--dropdown .select2-search__field { border-radius: 0.5rem; border: 1px solid #cbd5e1; padding: 6px 10px; }
+        #quotaModal .select2-results__option { padding: 8px 14px; font-size: 0.875rem; }
+        #quotaModal .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #2563eb; color: #fff; }
+
+        .dark #quotaModal .select2-container--default .select2-selection--single { background: #111827; border-color: #4b5563; }
+        .dark #quotaModal .select2-container--default .select2-selection--single:hover { border-color: #60a5fa; background: #1e293b; }
+        .dark #quotaModal .select2-container--default .select2-selection--single .select2-selection__rendered { color: #fff; }
+        .dark #quotaModal .select2-container--default .select2-selection--single .select2-selection__placeholder { color: #94a3b8; }
+        .dark #quotaModal .select2-container--default.select2-container--open .select2-selection--single { background: #111827; border-color: #60a5fa; }
+        .dark #quotaModal .select2-dropdown { background: #1f2937; border-color: #374151; color: #fff; }
+        .dark #quotaModal .select2-search--dropdown .select2-search__field { background: #111827; border-color: #4b5563; color: #fff; }
+        .dark #quotaModal .select2-results__option { color: #fff; }
+
         #scheduleModal .select2-container--default .select2-selection--single {
             height: 42px; border-color: #d1d5db; border-radius: 0.5rem; display: flex; align-items: center;
         }
@@ -818,12 +890,14 @@
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
                     } else if (s.status === 'PUBLISHED') {
                         menuItems += actionItem('viewScheduleBtn', s.id, null, iconView, 'View');
+                        menuItems += actionItem('quotaScheduleBtn', s.id, null, iconEdit, 'Edit Quota');
                         menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CLOSED', iconClose, 'Close', 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20');
                         menuItems += '<div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>';
                         menuItems += actionItem('statusScheduleBtn', s.id, 'CANCELLED', iconCancel, 'Cancel', 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20');
                     } else if (s.status === 'CLOSED') {
                         menuItems += actionItem('viewScheduleBtn', s.id, null, iconView, 'View');
+                        menuItems += actionItem('quotaScheduleBtn', s.id, null, iconEdit, 'Edit Quota');
                         menuItems += actionItem('rescheduleScheduleBtn', s.id, null, iconReschedule, 'Reschedule', 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20');
                         // Reopen only before the event starts (server enforces it too).
                         let startAt = new Date(`${s.schedule_date}T${(s.start_time || '00:00').slice(0, 8)}`);
@@ -1145,6 +1219,186 @@
                 $('#reschedule_deadline').val(s.registration_deadline || '');
                 $('#reschedule_reason').val('');
                 $('#rescheduleModal').removeClass('hidden');
+            });
+
+            function quotaEditRowHtml(q) {
+                    let min = Math.max(1, q.used);
+                    let name = $('<div>').text(q.cpny_name).html();
+                    let btn = 'quota-step flex h-9 w-9 items-center justify-center text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white';
+                    return `
+                        <div class="quota-edit-row rounded-xl border border-gray-200 bg-gray-50/60 p-3 dark:border-gray-700 dark:bg-gray-900/40" data-cpny-id="${$('<div>').text(q.cpny_id).html()}" data-min="${min}">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                    ${(q.cpny_name || '?').replace(/^PT\.?\s*/i, '').trim().charAt(0).toUpperCase()}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="truncate text-sm font-semibold text-gray-900 dark:text-white" title="${name}">${name}</div>
+                                    <div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <span class="rounded-full bg-white px-2 py-0.5 font-medium ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-600">${q.used} in use</span>
+                                        <span>min ${min}</span>
+                                    </div>
+                                </div>
+                                <div class="flex shrink-0 items-center overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+                                    <button type="button" tabindex="-1" data-step="-1" class="${btn}" aria-label="Decrease">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M5 12h14"/></svg>
+                                    </button>
+                                    <input type="number" inputmode="numeric" step="1" min="${min}" value="${q.quota_pax}" required
+                                        class="quota-edit-qty h-9 w-12 border-0 border-x border-gray-200 bg-transparent p-0 text-center text-sm font-semibold text-gray-900 focus:ring-0 dark:border-gray-600 dark:text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                                    <button type="button" tabindex="-1" data-step="1" class="${btn}" aria-label="Increase">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                                    </button>
+                                </div>
+                                <button type="button" class="quota-remove flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition ${(q.applied || q.used) > 0 ? 'cursor-not-allowed opacity-40' : 'hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'}"
+                                    ${(q.applied || q.used) > 0 ? 'disabled' : ''} title="${(q.applied || q.used) > 0 ? 'Already has registrations — can\'t be removed' : 'Remove company'}" aria-label="Remove company">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <p class="quota-edit-error mt-2 hidden text-right text-xs font-medium text-red-600">
+                                Can't be lower than ${min} (seats already in use).
+                            </p>
+                        </div>`;
+            }
+
+            let quotaAddInit = false;
+
+            $(document).on('click', '.quotaScheduleBtn', function() {
+                let id = $(this).data('id');
+                let s = allSchedules.find(row => row.id == id);
+                if (!s) return;
+
+                $('#quota_schedule_id').val(s.id);
+                $('#quotaEditRows').html(s.quota.map(quotaEditRowHtml).join(''));
+
+                if (!quotaAddInit) {
+                    quotaAddInit = true;
+                    $('#quotaAddCompany').select2({
+                        width: '100%',
+                        dropdownParent: $('#quotaModal'),
+                        placeholder: 'Search and add a company…',
+                        ajax: {
+                            url: "{{ route('mastertraining.sessions.company-search') }}",
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({ q: params.term }),
+                            processResults: data => {
+                                let taken = $('#quotaEditRows [data-cpny-id]').map(function() {
+                                    return String($(this).data('cpny-id'));
+                                }).get();
+                                return { results: (data.results || []).filter(r => !taken.includes(String(r.id))) };
+                            }
+                        }
+                    }).on('select2:select', function(e) {
+                        $('#quotaEditRows').append(quotaEditRowHtml({
+                            cpny_id: e.params.data.id,
+                            cpny_name: e.params.data.text,
+                            quota_pax: 1,
+                            used: 0
+                        }));
+                        $(this).val(null).trigger('change');
+                        validateQuotaRows();
+                    });
+                }
+
+                $('#quotaAddCompany').val(null).trigger('change');
+                $('#quotaModal').removeClass('hidden');
+                validateQuotaRows();
+            });
+
+            $(document).on('click', '.quota-remove', function() {
+                $(this).closest('.quota-edit-row').remove();
+                validateQuotaRows();
+            });
+
+            // Flags any row under its minimum (red border + message) and keeps
+            // Save disabled until every row is valid. Returns overall validity.
+            function validateQuotaRows() {
+                // At least one company must remain.
+                let allValid = $('#quotaEditRows .quota-edit-row').length > 0;
+
+                $('#quotaEditRows .quota-edit-row').each(function() {
+                    let $row = $(this);
+                    let $input = $row.find('.quota-edit-qty');
+                    let val = parseInt($input.val(), 10);
+                    let invalid = isNaN(val) || val < parseInt($row.data('min'), 10);
+
+                    $row.toggleClass('border-red-400 bg-red-50/60 dark:border-red-500 dark:bg-red-900/10', invalid)
+                        .toggleClass('border-gray-200 bg-gray-50/60 dark:border-gray-700 dark:bg-gray-900/40', !invalid);
+                    $row.find('.quota-edit-error').toggleClass('hidden', !invalid || isNaN(val));
+
+                    if (invalid) allValid = false;
+                });
+
+                $('#quotaForm button[type="submit"]')
+                    .prop('disabled', !allValid)
+                    .toggleClass('cursor-not-allowed opacity-50', !allValid);
+
+                return allValid;
+            }
+
+            $(document).on('input', '.quota-edit-qty', validateQuotaRows);
+
+            $(document).on('click', '.quota-step', function() {
+                let $input = $(this).closest('.quota-edit-row').find('.quota-edit-qty');
+                let min = parseInt($(this).closest('.quota-edit-row').data('min'), 10);
+                let val = parseInt($input.val(), 10);
+                $input.val(Math.max(min, (isNaN(val) ? min : val) + parseInt($(this).data('step'), 10)));
+                validateQuotaRows();
+            });
+
+            // Leaving the field snaps a too-low (or empty) value back to the minimum.
+            $(document).on('blur', '.quota-edit-qty', function() {
+                let min = parseInt($(this).closest('.quota-edit-row').data('min'), 10);
+                let val = parseInt($(this).val(), 10);
+
+                if (isNaN(val) || val < min) {
+                    $(this).val(min);
+                    validateQuotaRows();
+                }
+            });
+
+            $('#closeQuotaModal, #closeQuotaModalX').click(function() {
+                $('#quotaModal').addClass('hidden');
+            });
+
+            $('#quotaForm').submit(function(e) {
+                e.preventDefault();
+
+                if (!validateQuotaRows()) return;
+
+                let id = $('#quota_schedule_id').val();
+                let $submitBtn = $(this).find('button[type="submit"]');
+                let quota = $('#quotaEditRows [data-cpny-id]').map(function() {
+                    return { cpny_id: $(this).data('cpny-id'), quota_pax: $(this).find('.quota-edit-qty').val() };
+                }).get();
+
+                showLoading();
+                $submitBtn.prop('disabled', true);
+
+                $.ajax({
+                    url: `/mastertraining/sessions/schedules/${id}/quota`,
+                    type: 'PUT',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { quota: quota },
+                    success: function(res) {
+                        hideLoading();
+                        $('#quotaModal').addClass('hidden');
+                        loadSchedules();
+                        showToast('success', (res && res.message) || 'Quota updated');
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        validateQuotaRows();
+
+                        let msg = 'Gagal update quota';
+                        if (xhr.status === 422 && xhr.responseJSON) {
+                            msg = xhr.responseJSON.errors
+                                ? Object.values(xhr.responseJSON.errors).map(a => a.join(', ')).join('\n')
+                                : (xhr.responseJSON.message || msg);
+                        }
+
+                        Swal.fire({ icon: 'error', title: 'Error', text: msg });
+                    }
+                });
             });
 
             $('#closeRescheduleModal, #closeRescheduleModalX').click(function() {
