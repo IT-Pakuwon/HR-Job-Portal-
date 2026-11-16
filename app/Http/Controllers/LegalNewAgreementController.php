@@ -308,7 +308,7 @@ class LegalNewAgreementController extends Controller
             ->whereIn('agreement_type', (array) ($type ?? $this->kind()['type']))
             ->whereIn('agreement_step_id', (array) $step);
 
-        if (! app(LegalAgreementController::class)->isManagerRole() && ! $user->hasFullDataScope()) {
+        if (!app(LegalAgreementController::class)->isManagerRole() && !$user->hasFullDataScope()) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_user', $user->username)
                     ->orWhere(fn ($q2) => $q2->wherePicLegalOrLeasing($user->username));
@@ -489,7 +489,7 @@ class LegalNewAgreementController extends Controller
         $steps = [self::STEP_ACTIVE, self::STEP_COMPLETED];
 
         if ($this->kind()['from_psm']) {
-            if (! $agreement->prev_agreement_id) {
+            if (!$agreement->prev_agreement_id) {
                 return [];
             }
 
@@ -511,7 +511,7 @@ class LegalNewAgreementController extends Controller
             $followUp = in_array($r->agreement_type, TrAgreement::FU_TYPES, true);
 
             // A PSM / OLA's related rows are its addendums and Others (each on its own page).
-            if (! $type) {
+            if (!$type) {
                 $isOthers = $r->agreement_type === self::TYPE_OTHERS;
                 $type = $isOthers ? 'Others' : 'Addendum';
                 $path = '/legal-new-agreement/'.($isOthers ? 'others/' : 'addendum/');
@@ -542,7 +542,7 @@ class LegalNewAgreementController extends Controller
 
     protected function psmOlaParentFor(TrAgreement $agreement): ?TrAgreement
     {
-        if (! $this->kind()['from_psm'] || ! $agreement->prev_agreement_id) {
+        if (!$this->kind()['from_psm'] || !$agreement->prev_agreement_id) {
             return null;
         }
 
@@ -611,7 +611,7 @@ class LegalNewAgreementController extends Controller
 
     protected function checklistDocuments()
     {
-        if (! $this->kind()['checklist']) {
+        if (!$this->kind()['checklist']) {
             return collect();
         }
 
@@ -631,7 +631,7 @@ class LegalNewAgreementController extends Controller
         if ($this->kind()['from_psm'] && $request->query('src') === 'psm') {
             $id = Hashids::decode($eid)[0] ?? null;
 
-            abort_if(! $id, 404);
+            abort_if(!$id, 404);
 
             $a = $this->psmOlaSourceQuery()->findOrFail($id);
 
@@ -874,7 +874,7 @@ class LegalNewAgreementController extends Controller
                         // which documents the tenant already has.
                         'agreementdocument_required' => (bool) $doc->agreementdocument_required,
                         'agreementdocument_received' => (bool) ($input['received'] ?? false),
-                        'agreementdocument_received_at' => ! empty($input['received']) ? now() : null,
+                        'agreementdocument_received_at' => !empty($input['received']) ? now() : null,
                         'agreementdocument_note' => $input['note'] ?? null,
                         'status' => 'A',
                         'created_by' => $username,
@@ -886,7 +886,7 @@ class LegalNewAgreementController extends Controller
             }
 
             // Created straight to Process (not a Draft): Pengumpulan Dokumen + Process start now.
-            if (! $isDraft) {
+            if (!$isDraft) {
                 $this->startProcessSheet($agreement, $username);
             }
 
@@ -903,7 +903,7 @@ class LegalNewAgreementController extends Controller
                     ]);
 
                 // Someone else took this job after the form was opened.
-                if (! $taken) {
+                if (!$taken) {
                     DB::connection('pgsql5')->rollBack();
 
                     return response()->json(['success' => false, 'message' => 'This job is no longer pending.'], 422);
@@ -920,7 +920,7 @@ class LegalNewAgreementController extends Controller
             ], 500);
         }
 
-        if (! $isDraft) {
+        if (!$isDraft) {
             $this->notifyPsmOla($agreement, 'created', $username);
         }
 
@@ -939,7 +939,7 @@ class LegalNewAgreementController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         return $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED, self::STEP_CANCELLED, self::STEP_DRAFT])->findOrFail($id);
     }
@@ -951,7 +951,7 @@ class LegalNewAgreementController extends Controller
         if ($allowDraft) {
             $id = Hashids::decode($eid)[0] ?? null;
 
-            abort_if(! $id, 404);
+            abort_if(!$id, 404);
 
             $agreement = $this->activeQuery([self::STEP_ACTIVE, self::STEP_DRAFT])->findOrFail($id);
         } else {
@@ -967,7 +967,7 @@ class LegalNewAgreementController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         return $this->activeQuery()->findOrFail($id);
     }
@@ -1004,7 +1004,7 @@ class LegalNewAgreementController extends Controller
             // a completed one is read-only.
             'completed' => $completed,
             'cancelled' => $cancelled,
-            'canUpdateDocs' => ! $completed && ! $cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
+            'canUpdateDocs' => !$completed && !$cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
             'canManage' => $agreement->canBeUpdatedBy((string) auth()->user()->username),
             'processes' => $this->processesFor($agreement, (bool) $draft),
             'picLegalNames' => array_values($this->picLabels($agreement->picLegalList())),
@@ -1109,14 +1109,14 @@ class LegalNewAgreementController extends Controller
             $type = $categories[$id]->agreementcategory_type ?? 'PROCESS';
             $isDoc = $id === self::PROCESS_DOC;
             $isStart = $id === self::PROCESS_START;
-            $legacy = ! $isDoc && ! $isStart && $row && ! $row->working_start_date && ! $row->working_end_date;
+            $legacy = !$isDoc && !$isStart && $row && !$row->working_start_date && !$row->working_end_date;
 
             return (object) [
                 'type' => $type,
                 'process_id' => $key,
                 'descr' => $isStart ? $this->processStartLabel() : (($categories[$id]->agreementcategory_descr ?? $row?->response_summary ?? $id).($nth > 1 ? " #{$nth}" : '')),
                 'editable' => true,
-                'removable' => ! $isDoc && ! $isStart,
+                'removable' => !$isDoc && !$isStart,
                 'start_locked' => $isDoc || $isStart,
                 'date_start' => match (true) {
                     $isDoc => $this->earliestDocumentReceived($agreement->agreement_id),
@@ -1135,12 +1135,12 @@ class LegalNewAgreementController extends Controller
         }
 
         // A Draft is only collecting documents: the Process step (and everything after it) starts once Processed.
-        if (! $draft) {
+        if (!$draft) {
             $rows->push($toRow(self::PROCESS_START, $saved->get(self::PROCESS_START)));
         }
 
         foreach ($saved as $id => $row) {
-            if (! $draft && ! in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
+            if (!$draft && !in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
                 $rows->push($toRow($id, $row));
             }
         }
@@ -1153,7 +1153,7 @@ class LegalNewAgreementController extends Controller
             'routing' => $routing,
             // Routing starts once Cetak is on the list (or already has rows, e.g. saved before this rule).
             // Others: only once it has routing rows; the Route button reveals the section otherwise.
-            'routingVisible' => $this->kind()['routing'] && ($routing->isNotEmpty() || (! ($this->kind()['routing_optional'] ?? false) && in_array('PRINT', $used, true))),
+            'routingVisible' => $this->kind()['routing'] && ($routing->isNotEmpty() || (!($this->kind()['routing_optional'] ?? false) && in_array('PRINT', $used, true))),
             // For the Add Process dropdown: [type => [id => name]], PROCESS before ROUTING.
             // A process can be added more than once (Cetak, Konfirmasi, Review ...), so used ones stay.
             'available' => $categories
@@ -1190,7 +1190,7 @@ class LegalNewAgreementController extends Controller
                 ->whereNull('deleted_at')
                 ->exists();
 
-            if (! $exists) {
+            if (!$exists) {
                 TrAgreementActivity::create([
                     'agreement_id' => $agreement->agreement_id,
                     'cpny_id' => $agreement->cpny_id,
@@ -1212,7 +1212,7 @@ class LegalNewAgreementController extends Controller
     protected function processCategories()
     {
         return MsAgreementCategory::query()->activeProcesses()->get()
-            ->reject(fn ($c) => ! $this->kind()['routing'] && $c->agreementcategory_type === 'ROUTING')
+            ->reject(fn ($c) => !$this->kind()['routing'] && $c->agreementcategory_type === 'ROUTING')
             ->keyBy('agreementcategory_id');
     }
 
@@ -1228,7 +1228,7 @@ class LegalNewAgreementController extends Controller
         $needed = $docs->where('agreementdocument_required', true);
         $needed = $needed->isEmpty() ? $docs : $needed;
 
-        if ($needed->isEmpty() || $needed->contains(fn ($d) => ! $d->agreementdocument_received)) {
+        if ($needed->isEmpty() || $needed->contains(fn ($d) => !$d->agreementdocument_received)) {
             return null;
         }
 
@@ -1271,9 +1271,9 @@ class LegalNewAgreementController extends Controller
                 ->orWhere('agreement_activity_type', 'like', $this->processType($id).'#%'))
             ->get(['agreement_activity_type', 'deleted_at']);
 
-        $baseActive = $types->contains(fn ($t) => $t->agreement_activity_type === $this->processType($id) && ! $t->deleted_at);
+        $baseActive = $types->contains(fn ($t) => $t->agreement_activity_type === $this->processType($id) && !$t->deleted_at);
 
-        if (! $baseActive) {
+        if (!$baseActive) {
             return $id;
         }
 
@@ -1292,7 +1292,7 @@ class LegalNewAgreementController extends Controller
         $agreement = $this->activeAgreementOrFail($eid);
         $username = $request->user()->username ?? 'system';
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can update the process.'], 403);
         }
 
@@ -1333,7 +1333,7 @@ class LegalNewAgreementController extends Controller
                 $id = $this->processBaseId($key);
 
                 // "Add Process" on one already on the sheet adds another copy of it (Cetak #2 ...).
-                if (! empty($input['add']) && ! in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
+                if (!empty($input['add']) && !in_array($id, [self::PROCESS_DOC, self::PROCESS_START], true)) {
                     $key = $this->nextProcessKey($agreement, $id);
                 }
 
@@ -1343,8 +1343,8 @@ class LegalNewAgreementController extends Controller
                 $nth = str_contains($key, '#') ? (int) substr($key, strpos($key, '#') + 1) : 1;
                 $descr = $isStart ? $this->processStartLabel() : (($categories[$id]->agreementcategory_descr ?? $id).($nth > 1 ? " #{$nth}" : ''));
                 $note = filled($input['note'] ?? null) ? $input['note'] : null;
-                $start = ! $system && ! empty($input['date_start']) ? Carbon::parse($input['date_start'])->startOfDay() : null;
-                $end = ! empty($input['date_end']) ? Carbon::parse($input['date_end'])->startOfDay() : null;
+                $start = !$system && !empty($input['date_start']) ? Carbon::parse($input['date_start'])->startOfDay() : null;
+                $end = !empty($input['date_end']) ? Carbon::parse($input['date_end'])->startOfDay() : null;
 
                 $row = TrAgreementActivity::query()
                     ->where('agreement_id', $agreement->agreement_id)
@@ -1363,7 +1363,7 @@ class LegalNewAgreementController extends Controller
                     $start = Carbon::parse($row?->working_start_date ?? $retired?->working_start_date ?? $agreement->agreement_step_created_at ?? now())->startOfDay();
                 }
 
-                if (! empty($input['remove'])) {
+                if (!empty($input['remove'])) {
                     if ($system) {
                         DB::connection('pgsql5')->rollBack();
 
@@ -1379,13 +1379,13 @@ class LegalNewAgreementController extends Controller
                 }
 
                 // Routing only starts once Cetak is on the list.
-                if (! $row && ! ($this->kind()['routing_optional'] ?? false) && ($categories[$id]->agreementcategory_type ?? null) === 'ROUTING' && ! in_array('PRINT', array_map(fn ($k) => $this->processBaseId($k), $existing), true)) {
+                if (!$row && !($this->kind()['routing_optional'] ?? false) && ($categories[$id]->agreementcategory_type ?? null) === 'ROUTING' && !in_array('PRINT', array_map(fn ($k) => $this->processBaseId($k), $existing), true)) {
                     DB::connection('pgsql5')->rollBack();
 
                     return response()->json(['success' => false, 'message' => "{$descr}: add Cetak before routing."], 422);
                 }
 
-                if (! $isDoc && ! $start) {
+                if (!$isDoc && !$start) {
                     DB::connection('pgsql5')->rollBack();
 
                     return response()->json(['success' => false, 'message' => "{$descr}: pick a Start date."], 422);
@@ -1400,12 +1400,12 @@ class LegalNewAgreementController extends Controller
                 }
 
                 // Pengumpulan Dokumen's End left at the derived date stays derived (not frozen into the row).
-                if ($isDoc && $end && ! $row?->working_end_date && $end->equalTo(optional($this->documentsCompletedAt($agreement->agreement_id))->startOfDay())) {
+                if ($isDoc && $end && !$row?->working_end_date && $end->equalTo(optional($this->documentsCompletedAt($agreement->agreement_id))->startOfDay())) {
                     $end = null;
                 }
 
                 // A system row with nothing entered and nothing saved: don't create an empty row.
-                if ($system && ! $row && ! $end && ! $note) {
+                if ($system && !$row && !$end && !$note) {
                     continue;
                 }
 
@@ -1472,12 +1472,12 @@ class LegalNewAgreementController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         $agreement = $this->activeQuery(self::STEP_DRAFT)->findOrFail($id);
         $username = $request->user()->username ?? 'system';
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can process this draft.'], 403);
         }
 
@@ -1525,7 +1525,7 @@ class LegalNewAgreementController extends Controller
         $agreement = $this->activeAgreementOrFail($eid);
         $username = $request->user()->username ?? 'system';
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can complete the agreement.'], 403);
         }
 
@@ -1589,7 +1589,7 @@ class LegalNewAgreementController extends Controller
         $agreement = $this->activeAgreementOrFail($eid);
         $username = $request->user()->username ?? 'system';
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can cancel the agreement.'], 403);
         }
 
@@ -1659,13 +1659,13 @@ class LegalNewAgreementController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         $agreement = $this->activeQuery([self::STEP_COMPLETED, self::STEP_CANCELLED])->findOrFail($id);
         $username = $request->user()->username ?? 'system';
         $wasCancelled = $agreement->agreement_step_id === self::STEP_CANCELLED;
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can reopen the agreement.'], 403);
         }
 
@@ -1834,11 +1834,12 @@ class LegalNewAgreementController extends Controller
 
         return null;
     }
+
     // When a document was received: stamped on the untick->tick change, kept
     // while it stays ticked (so a note edit doesn't move it), cleared on untick.
     protected function receivedAt(TrAgreementDocument $doc, bool $received)
     {
-        if (! $received) {
+        if (!$received) {
             return null;
         }
 
@@ -1854,12 +1855,12 @@ class LegalNewAgreementController extends Controller
         // Active, or a Draft (its documents can be filled in before it is Processed).
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         $agreement = $this->activeQuery([self::STEP_ACTIVE, self::STEP_DRAFT])->findOrFail($id);
         $username = $request->user()->username ?? 'system';
 
-        if (! $agreement->canBeUpdatedBy($username)) {
+        if (!$agreement->canBeUpdatedBy($username)) {
             return response()->json(['success' => false, 'message' => 'Only the creator or PIC Legal can update the documents.'], 403);
         }
 
@@ -1886,7 +1887,7 @@ class LegalNewAgreementController extends Controller
                 ->whereNull('deleted_at')
                 ->get()
                 ->each(function (TrAgreementDocument $doc) use ($submitted, $username, &$newlyReceived) {
-                    if (! array_key_exists($doc->agreementdocument_id, $submitted)) {
+                    if (!array_key_exists($doc->agreementdocument_id, $submitted)) {
                         return;
                     }
 
@@ -1894,7 +1895,7 @@ class LegalNewAgreementController extends Controller
                     $received = (bool) ($input['received'] ?? false);
                     $note = $input['note'] ?? null;
 
-                    if ($received && ! $doc->agreementdocument_received) {
+                    if ($received && !$doc->agreementdocument_received) {
                         $newlyReceived[] = $doc->agreementdocument_descr;
                     }
 
@@ -2103,7 +2104,7 @@ class LegalNewAgreementController extends Controller
                         'agreementdocument_descr' => $master->agreementdocument_descr,
                         'agreementdocument_required' => (bool) $master->agreementdocument_required,
                         'agreementdocument_received' => (bool) ($input['received'] ?? false),
-                        'agreementdocument_received_at' => ! empty($input['received']) ? now() : null,
+                        'agreementdocument_received_at' => !empty($input['received']) ? now() : null,
                         'agreementdocument_note' => $input['note'] ?? null,
                         'status' => 'A',
                         'created_by' => $username,
@@ -2154,7 +2155,7 @@ class LegalNewAgreementController extends Controller
         // A draft isn't announced to anyone until it is Processed (then it reads as a new agreement).
         if ($processing) {
             $this->notifyPsmOla($agreement, 'created', $username);
-        } elseif (! $wasDraft) {
+        } elseif (!$wasDraft) {
             $this->notifyPsmOla($agreement, 'updated', $username);
         }
 
@@ -2189,7 +2190,7 @@ class LegalNewAgreementController extends Controller
             $user = $users->get(strtolower($username));
             $email = $user?->notification_email ?: $user?->email;
 
-            if (! $email || isset($sent[strtolower($email)])) {
+            if (!$email || isset($sent[strtolower($email)])) {
                 continue;
             }
 
@@ -2210,7 +2211,7 @@ class LegalNewAgreementController extends Controller
     // username => "Name - Email" for the already-chosen PICs (select2 options).
     protected function picLabels(array $usernames): array
     {
-        if (! $usernames) {
+        if (!$usernames) {
             return [];
         }
 
@@ -2228,11 +2229,12 @@ class LegalNewAgreementController extends Controller
     {
         return app(LegalAgreementController::class)->picSearch($request);
     }
+
     protected function pendingJobOrFail(string $eid): StagingContractAgreement
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        abort_if(! $id, 404);
+        abort_if(!$id, 404);
 
         // Same pending rule as the Job List, so a job that has since been
         // picked up (or got a contract_no, or already has an active agreement) can't be created twice.
@@ -2259,7 +2261,7 @@ class LegalNewAgreementController extends Controller
                 ->where('month', $month)
                 ->first();
 
-            if (! $row) {
+            if (!$row) {
                 $row = Autonbr::create([
                     'doctype' => $doctype,
                     'doctype_descr' => $descr,
@@ -2309,6 +2311,7 @@ class LegalNewAgreementController extends Controller
     {
         return $this->listJson($request, $this->psmOlaSourceQuery());
     }
+
     // Others is the same page as Addendum (see kind()), minus the Routing section.
     public function others()
     {
