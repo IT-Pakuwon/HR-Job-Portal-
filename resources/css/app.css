@@ -400,3 +400,98 @@
 .dark .swal2-timer-progress-bar {
     background: rgba(255, 255, 255, 0.35) !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Global native <select> polish.
+   Uses Chrome/Edge's customizable select (appearance: base-select) so the open
+   dropdown list itself is styled (rounded panel, shadow, padded options, soft
+   highlight, check on the selected item). Browsers without support keep the
+   native select untouched. Lives in @layer base, so any Tailwind utility class
+   on a select (rounded-*, border-*, px-*, bg-*) still wins.
+   --------------------------------------------------------------------------- */
+@supports (appearance: base-select) {
+    @layer base {
+        select:not([multiple]):not([size]),
+        select:not([multiple]):not([size])::picker(select) {
+            appearance: base-select;
+        }
+
+        select:not([multiple]):not([size]) {
+            cursor: pointer;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        select:not([multiple]):not([size])::picker-icon {
+            color: #9ca3af;
+            transition: rotate .2s;
+        }
+        select:not([multiple]):not([size]):open::picker-icon {
+            rotate: 180deg;
+        }
+
+        select:not([multiple]):not([size])::picker(select) {
+            margin-top: 4px;
+            padding: 4px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 10px 30px -8px rgb(15 23 42 / .22), 0 4px 10px -4px rgb(15 23 42 / .10);
+            max-height: min(320px, 60vh);
+            overflow-y: auto;
+        }
+
+        select:not([multiple]):not([size]) option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: .875rem;
+            line-height: 1.35;
+            color: #374151;
+            cursor: pointer;
+            transition: background-color .1s;
+        }
+        select:not([multiple]):not([size]) option::checkmark {
+            order: 2;
+            margin-left: auto;
+            color: #6366f1;
+        }
+        select:not([multiple]):not([size]) option:hover,
+        select:not([multiple]):not([size]) option:focus-visible {
+            background: #eef2ff;
+            color: #3730a3;
+        }
+        select:not([multiple]):not([size]) option:checked {
+            background: #f5f3ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+        /* the empty "Select ..." placeholder option reads as muted */
+        select:not([multiple]):not([size]) option[value=""] {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        select:not([multiple]):not([size]) option:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .dark select:not([multiple]):not([size])::picker(select) {
+            background: #1f2937;
+            border-color: #374151;
+            box-shadow: 0 10px 30px -8px rgb(0 0 0 / .6);
+        }
+        .dark select:not([multiple]):not([size]) option { color: #e5e7eb; }
+        .dark select:not([multiple]):not([size]) option:hover,
+        .dark select:not([multiple]):not([size]) option:focus-visible {
+            background: #374151;
+            color: #fff;
+        }
+        .dark select:not([multiple]):not([size]) option:checked {
+            background: #312e81;
+            color: #c7d2fe;
+        }
+        .dark select:not([multiple]):not([size]) option[value=""] { color: #6b7280; }
+    }
+}
