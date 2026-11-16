@@ -3192,6 +3192,11 @@ Route::middleware(['auth'])->group(function () {
         // ================== ACCESS CONTROL STUDIO (guided one-page console) ==================
         Route::get('/access-control-studio', [AccessControlStudioController::class, 'index'])->name('access_control_studio');
         Route::get('/access-control-studio/coverage', [AccessControlStudioController::class, 'coverage'])->name('access_control_studio.coverage');
+        Route::get('/access-control-studio/role/{roleId}/overview', [AccessControlStudioController::class, 'roleOverview'])->name('access_control_studio.role_overview');
+        Route::get('/access-control-studio/menu/{menuId}/roles', [AccessControlStudioController::class, 'menuRoles'])->name('access_control_studio.menu_roles');
+        Route::get('/access-control-studio/impact/{type}/{id}', [AccessControlStudioController::class, 'impact'])->whereIn('type', ['role', 'menu'])->name('access_control_studio.impact');
+        Route::post('/access-control-studio/role/clone', [AccessControlStudioController::class, 'cloneRole'])->name('access_control_studio.clone_role');
+        Route::get('/access-control-studio/audit', [AccessControlStudioController::class, 'audit'])->name('access_control_studio.audit');
 
         Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
         Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');

@@ -76,6 +76,9 @@ class SysAccessRightController extends Controller
         try {
             $user = Auth::user();
 
+            $flat = fn ($rows) => $rows->map(fn ($r) => "{$r->screen_id}:{$r->access_name}")->unique()->values()->all();
+            $oldRights = $flat(SysAccessRight::where('role_id', $request->role_id)->where('status', 'A')->get(['screen_id', 'access_name']));
+
             SysAccessRight::where('role_id', $request->role_id)->delete();
 
             foreach ($request->input('rights', []) as $entry) {
@@ -103,6 +106,22 @@ class SysAccessRightController extends Controller
             }
 
             DB::connection('pgsql2')->commit();
+
+            $newRights = [];
+            foreach ($request->input('rights', []) as $entry) {
+                if (empty($entry['screen_id']) || empty($entry['application_id'])) continue;
+                foreach (array_unique($entry['access_names'] ?? []) as $n) {
+                    $newRights[] = $entry['screen_id'] . ':' . strtoupper(trim($n));
+                }
+            }
+            $newRights = array_values(array_unique($newRights));
+            $added = array_values(array_diff($newRights, $oldRights));
+            $removed = array_values(array_diff($oldRights, $newRights));
+            if ($added || $removed) {
+                \App\Services\AccessAuditLogger::log('access_right', $request->role_id, $removed && !$added ? 'revoke' : ($added && !$removed ? 'grant' : 'update'),
+                    "Role {$request->role_id} access rights: +" . count($added) . ' / -' . count($removed),
+                    ['added' => $added, 'removed' => $removed]);
+            }
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
