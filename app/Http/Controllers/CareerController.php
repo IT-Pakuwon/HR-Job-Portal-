@@ -462,8 +462,13 @@ class CareerController extends Controller
             // Viewing the OLD apply — show where it was remapped TO
             $remapped_to = DB::connection('mysql3')
                 ->table('hr_trx_job_apply as a')
-                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'a.jobid')
+                ->leftJoin('hr_trx_jobposting as jp', function ($j) {
+                    // jobposting docid is only unique per company — match this apply's own company posting
+                    $j->on('jp.docid', '=', 'a.jobid')->on('jp.cpnyid', '=', 'a.cpnyid');
+                })
                 ->where('a.docid', $career->docid)
+                ->where('a.applicant_id', $career->applicant_id)
+                ->where('a.group_cpny_id', $career->group_cpny_id)
                 ->whereNotIn('a.status', ['T', 'X'])
                 ->where('a.jobid', '!=', $career->docidposting)
                 ->orderByDesc('a.id')
@@ -473,8 +478,12 @@ class CareerController extends Controller
             // Viewing the NEW apply — show where it came FROM (most recent T record)
             $remapped_from = DB::connection('mysql3')
                 ->table('hr_trx_job_apply as a')
-                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'a.jobid')
+                ->leftJoin('hr_trx_jobposting as jp', function ($j) {
+                    $j->on('jp.docid', '=', 'a.jobid')->on('jp.cpnyid', '=', 'a.cpnyid');
+                })
                 ->where('a.docid', $career->docid)
+                ->where('a.applicant_id', $career->applicant_id)
+                ->where('a.group_cpny_id', $career->group_cpny_id)
                 ->where('a.status', 'T')
                 ->where('a.jobid', '!=', $career->docidposting)
                 ->orderByDesc('a.id')
