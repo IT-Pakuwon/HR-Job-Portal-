@@ -310,10 +310,10 @@ class ApprovalDashboardController extends Controller
         try {
             $bcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'BCR'))->values();
             if ($bcrDocids->isNotEmpty()) {
-                $bcrM   = new TrBookingCar();
-                $bcrConn  = $bcrM->getConnectionName() ?: config('database.default');
+                $bcrM = new TrBookingCar();
+                $bcrConn = $bcrM->getConnectionName() ?: config('database.default');
                 $bcrTable = $bcrM->getTable();
-                $bcrRows  = collect();
+                $bcrRows = collect();
                 foreach ($bcrDocids->chunk(1200) as $chunk) {
                     $bcrRows = $bcrRows->concat(
                         DB::connection($bcrConn)
@@ -343,10 +343,10 @@ class ApprovalDashboardController extends Controller
         try {
             $vcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VCR'))->values();
             if ($vcrDocids->isNotEmpty()) {
-                $vcrM   = new TrVoucherTaxi();
-                $vcrConn  = $vcrM->getConnectionName() ?: config('database.default');
+                $vcrM = new TrVoucherTaxi();
+                $vcrConn = $vcrM->getConnectionName() ?: config('database.default');
                 $vcrTable = $vcrM->getTable();
-                $vcrRows  = collect();
+                $vcrRows = collect();
                 foreach ($vcrDocids->chunk(1200) as $chunk) {
                     $vcrRows = $vcrRows->concat(
                         DB::connection($vcrConn)
@@ -376,10 +376,10 @@ class ApprovalDashboardController extends Controller
         try {
             $csDocidsToFetch = $docids->filter(fn ($id) => str_starts_with($id, 'CS'))->values();
             if ($csDocidsToFetch->isNotEmpty()) {
-                $csFetchM     = new TrCS();
-                $csFetchConn  = $csFetchM->getConnectionName() ?: config('database.default');
+                $csFetchM = new TrCS();
+                $csFetchConn = $csFetchM->getConnectionName() ?: config('database.default');
                 $csFetchTable = $csFetchM->getTable();
-                $csFetchRows  = collect();
+                $csFetchRows = collect();
                 foreach ($csDocidsToFetch->chunk(1200) as $chunk) {
                     $csFetchRows = $csFetchRows->concat(
                         DB::connection($csFetchConn)
@@ -403,10 +403,10 @@ class ApprovalDashboardController extends Controller
         try {
             $vptDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPT'))->values();
             if ($vptDocids->isNotEmpty()) {
-                $vptM     = new TrxVplTransfer();
-                $vptConn  = $vptM->getConnectionName() ?: config('database.default');
+                $vptM = new TrxVplTransfer();
+                $vptConn = $vptM->getConnectionName() ?: config('database.default');
                 $vptTable = $vptM->getTable();
-                $vptRows  = collect();
+                $vptRows = collect();
                 foreach ($vptDocids->chunk(1200) as $chunk) {
                     $vptRows = $vptRows->concat(
                         DB::connection($vptConn)
@@ -436,10 +436,10 @@ class ApprovalDashboardController extends Controller
         try {
             $vprDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPR'))->values();
             if ($vprDocids->isNotEmpty()) {
-                $vprM     = new TrxVplReceive();
-                $vprConn  = $vprM->getConnectionName() ?: config('database.default');
+                $vprM = new TrxVplReceive();
+                $vprConn = $vprM->getConnectionName() ?: config('database.default');
                 $vprTable = $vprM->getTable();
-                $vprRows  = collect();
+                $vprRows = collect();
                 foreach ($vprDocids->chunk(1200) as $chunk) {
                     $vprRows = $vprRows->concat(
                         DB::connection($vprConn)
@@ -469,10 +469,10 @@ class ApprovalDashboardController extends Controller
         try {
             $vpuDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPU'))->values();
             if ($vpuDocids->isNotEmpty()) {
-                $vpuM     = new TrxVplUsage();
-                $vpuConn  = $vpuM->getConnectionName() ?: config('database.default');
+                $vpuM = new TrxVplUsage();
+                $vpuConn = $vpuM->getConnectionName() ?: config('database.default');
                 $vpuTable = $vpuM->getTable();
-                $vpuRows  = collect();
+                $vpuRows = collect();
                 foreach ($vpuDocids->chunk(1200) as $chunk) {
                     $vpuRows = $vpuRows->concat(
                         DB::connection($vpuConn)
@@ -502,10 +502,10 @@ class ApprovalDashboardController extends Controller
         try {
             $vpsDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPS'))->values();
             if ($vpsDocids->isNotEmpty()) {
-                $vpsM     = new TrxVplSettlement();
-                $vpsConn  = $vpsM->getConnectionName() ?: config('database.default');
+                $vpsM = new TrxVplSettlement();
+                $vpsConn = $vpsM->getConnectionName() ?: config('database.default');
                 $vpsTable = $vpsM->getTable();
-                $vpsRows  = collect();
+                $vpsRows = collect();
                 foreach ($vpsDocids->chunk(1200) as $chunk) {
                     $vpsRows = $vpsRows->concat(
                         DB::connection($vpsConn)
@@ -535,10 +535,10 @@ class ApprovalDashboardController extends Controller
         try {
             $trnDocids = $docids->filter(fn ($id) => str_starts_with($id, 'TRN'))->values();
             if ($trnDocids->isNotEmpty()) {
-                $trnM     = new TrLndTrainingRegistration();
-                $trnConn  = $trnM->getConnectionName() ?: config('database.default');
+                $trnM = new TrLndTrainingRegistration();
+                $trnConn = $trnM->getConnectionName() ?: config('database.default');
                 $trnTable = $trnM->getTable();
-                $trnRows  = collect();
+                $trnRows = collect();
                 foreach ($trnDocids->chunk(1200) as $chunk) {
                     $trnRows = $trnRows->concat(
                         DB::connection($trnConn)
@@ -623,6 +623,10 @@ class ApprovalDashboardController extends Controller
 
         $data = $this->attachIMBudgetInfo($data);
 
+        if ($status === 'P') {
+            $data = $this->attachWaitingApprovers($data, $aprConn, $tblApr, $resolveGroup);
+        }
+
         Log::info('approvalDashboard', [
             'user' => $user->username,
             'status' => $status,
@@ -635,6 +639,76 @@ class ApprovalDashboardController extends Controller
     }
 
     /**
+     * Adds `waiting_for` to each pending document: the approver name(s) on the
+     * line(s) currently holding it (status P and already activated via aprv_datebefore). Same refnbr+company-group
+     * matching as the main list, since a refnbr can repeat across company groups.
+     */
+    private function attachWaitingApprovers(Collection $data, string $conn, string $table, \Closure $resolveGroup): Collection
+    {
+        if ($data->isEmpty()) {
+            return $data;
+        }
+
+        $docids = $data->pluck('docid')->map(fn ($d) => strtoupper(trim($d)))->unique()->values()->all();
+
+        try {
+            $lines = DB::connection($conn)
+                ->table($table)
+                ->select('refnbr', 'aprv_cpnyid', 'aprv_username', 'aprv_name', 'aprv_leveling')
+                ->whereIn(DB::raw('upper(trim(refnbr))'), $docids)
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->get();
+        } catch (\Throwable $e) {
+            Log::warning('attachWaitingApprovers failed', ['err' => $e->getMessage()]);
+
+            return $data;
+        }
+
+        $me = strtolower(trim((string) auth()->user()?->username));
+
+        $approversByKey = $lines
+            ->groupBy(fn ($r) => strtoupper(trim($r->refnbr)).'|'.$resolveGroup($r->aprv_cpnyid))
+            ->map(function ($rows) use ($me) {
+                $out = [];
+
+                foreach (collect($rows)->sortBy(fn ($r) => (float) $r->aprv_leveling) as $r) {
+                    $users = array_values(array_filter(array_map(fn ($u) => strtolower(trim($u)), explode(',', (string) $r->aprv_username))));
+                    $names = array_values(array_filter(array_map('trim', explode(',', (string) $r->aprv_name))));
+
+                    if (!$names) {
+                        $names = $users;
+                    }
+
+                    // username/name lists only pair up reliably when they have the same length
+                    $paired = count($users) === count($names);
+
+                    foreach ($names as $i => $name) {
+                        $key = mb_strtolower($name);
+                        $isMe = $paired && (($users[$i] ?? '') === $me);
+
+                        if (isset($out[$key])) {
+                            $out[$key]['me'] = $out[$key]['me'] || $isMe;
+                        } else {
+                            $out[$key] = ['name' => $name, 'me' => $isMe];
+                        }
+                    }
+                }
+
+                return array_values($out);
+            });
+
+        return $data->map(function ($r) use ($approversByKey, $resolveGroup) {
+            $key = strtoupper(trim($r['docid'])).'|'.$resolveGroup($r['cpnyid']);
+            $list = $approversByKey->get($key) ?: [];
+            $r['waiting_approvers'] = $list;
+            $r['waiting_for'] = $list ? implode(', ', array_column($list, 'name')) : null;
+
+            return $r;
+        });
+    }
+
+    /**
      * IM Budget can gate CS, RP (RFP Purchase), RFP/RCA (RFP Non-Purchase),
      * and KO (Kontrak) documents. CS/RP/RFP/RCA carry flag_imbudget /
      * imbudgetid / status_imbudget on their own header; KO has none of its
@@ -644,8 +718,8 @@ class ApprovalDashboardController extends Controller
     private function attachIMBudgetInfo(Collection $data): Collection
     {
         $directSources = [
-            'CS'  => [new TrCS(), 'csid'],
-            'RP'  => [new TrRfp(), 'rfp_id'],
+            'CS' => [new TrCS(), 'csid'],
+            'RP' => [new TrRfp(), 'rfp_id'],
             'RFP' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
             'RCA' => [new TrRfpNonPurch(), 'rfpnonpurchaseid'],
         ];
@@ -713,9 +787,10 @@ class ApprovalDashboardController extends Controller
 
         return $data->map(function ($r) use ($imBudgetByDocid) {
             $src = $imBudgetByDocid->get(strtoupper(trim($r['docid'] ?? '')));
-            $r['flag_imbudget']   = $src?->flag_imbudget   ?? null;
-            $r['imbudgetid']      = $src?->imbudgetid      ?? null;
+            $r['flag_imbudget'] = $src?->flag_imbudget ?? null;
+            $r['imbudgetid'] = $src?->imbudgetid ?? null;
             $r['status_imbudget'] = $src?->status_imbudget ?? null;
+
             return $r;
         })->values();
     }
