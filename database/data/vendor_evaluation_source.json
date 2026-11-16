@@ -1,0 +1,2024 @@
+[
+  {
+    "file": "NEW Revised_Form Evaluasi Kinerja Vendor_Fire Alarm.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE FIRE ALARM SYSTEM"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Fire Alarm System"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.45"
+          },
+          {
+            "B11": "a. Kondisi & performa Fire Alarm System",
+            "C11": "0.25",
+            "D11": "Setiap kunjungan dilakukan pengetesan secara menyeluruh terhadap sistem Fire Alarm dan hasil pengujian menunjukkan sistem dapat berfungsi dengan baik dan sesuai dengan regulasi terkait, kecuali terdapat kerusakan part yang memerlukan penggantian.",
+            "G11": "Laporan Maintenance"
+          },
+          {
+            "B12": "b. Pembersihan device",
+            "C12": "0.2",
+            "D12": "Pembersihan dilakukan pada device, control panel, junction box, smoke detector, smoke duct, dan peralatan lain yang terpasang sesuai ruang lingkup kontrak.",
+            "G12": "Laporan Maintenance"
+          },
+          {
+            "A13": "2",
+            "B13": "Maintenance Management",
+            "C13": "0.3"
+          },
+          {
+            "B14": "a. Pelaksanaan maintenance rutin",
+            "C14": "0.1",
+            "D14": "Kunjungan maintenance dilaksanakan sesuai dengan perjanjian kontrak.",
+            "G14": "Schedule Service & Maintenance"
+          },
+          {
+            "B15": "b. Pelaksanaan pekerjaan sesuai SOP",
+            "C15": "0.05",
+            "D15": "Pekerjaan dilaksanakan sesuai SOP/Instruksi Kerja, metode kerja dan rencana kerja telah dijelaskan/diinformasikan, serta peralatan kerja yang diperlukan disediakan oleh vendor.",
+            "G15": "Laporan Maintenance"
+          },
+          {
+            "B16": "c. Manpower & kompetensi pekerja",
+            "C16": "0.1",
+            "D16": "Vendor menyediakan manpower sesuai kebutuhan,  ruang lingkup pekerjaan, dan perjanjian kontrak.",
+            "G16": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B17": "d. Pelaksanaan Training",
+            "C17": "0.05",
+            "D17": "Vendor memberikan training kepada Tim Engineering terkait safety procedure di setiap kunjungan",
+            "G17": "Dokumentasi & Laporan Pelaksanaan Training"
+          },
+          {
+            "A18": "3",
+            "B18": "Reporting & Compliance",
+            "C18": "0.15"
+          },
+          {
+            "B19": "a. Laporan hasil maintenance",
+            "C19": "0.15",
+            "D19": "Setiap kunjungan dilengkapi laporan menyeluruh mengenai kondisi aktual sistem, tahapan maintenance, hasil pengecekan/pengujian, dokumentasi, serta rekomendasi.",
+            "G19": "Ketepatan Tanggal Pengumpulan Laporan"
+          },
+          {
+            "A20": "4",
+            "B20": "Service & Responsiveness",
+            "C20": "0.05"
+          },
+          {
+            "B21": "a. Respons terhadap gangguan/temuan",
+            "C21": "0.03",
+            "D21": "Respons tidak melebihi 5 (lima) jam setelah panggilan emergency dan manpower dikirim maksimal dalam waktu 1 x 24 jam sejak kejadian, tanpa biaya untuk pekerjaan emergency dalam lingkup maintenance.",
+            "G21": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B22": "b. Koordinasi & tindak lanjut",
+            "C22": "0.02",
+            "D22": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G22": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A23": "5",
+            "B23": "Safety/K3 Compliance",
+            "C23": "0.05"
+          },
+          {
+            "B24": "a. Kepatuhan pekerja terhadap K3",
+            "C24": "0.03",
+            "D24": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G24": "Pengecekan K3"
+          },
+          {
+            "B25": "b. Safety performance & perlindungan aset",
+            "C25": "0.02",
+            "D25": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G25": "Pengecekan K3"
+          },
+          {
+            "A26": "TOTAL NILAI KPI",
+            "C26": "1",
+            "F26": "0",
+            "G26": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A28": "Panduan Skor (1-5)",
+            "D28": "Keterangan",
+            "I28": "Rating",
+            "J28": "Nilai"
+          },
+          {
+            "A29": "5 (Sangat Baik)",
+            "D29": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I29": "5",
+            "J29": "120"
+          },
+          {
+            "A30": "4 (Baik)",
+            "D30": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I30": "4",
+            "J30": "100"
+          },
+          {
+            "A31": "3 (Cukup)",
+            "D31": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I31": "3",
+            "J31": "80"
+          },
+          {
+            "A32": "2 (Kurang)",
+            "D32": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I32": "2",
+            "J32": "60"
+          },
+          {
+            "A33": "1 (Sangat Kurang)",
+            "D33": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I33": "1",
+            "J33": "40"
+          },
+          {
+            "A35": "Kategori Hasil Akhir Vendor",
+            "D35": "Predikat"
+          },
+          {
+            "A36": "90 - 100",
+            "D36": "Sangat Baik"
+          },
+          {
+            "A37": "80 - <90",
+            "D37": "Baik"
+          },
+          {
+            "A38": "70 - <80",
+            "D38": "Cukup"
+          },
+          {
+            "A39": "60 - <70",
+            "D39": "Kurang"
+          },
+          {
+            "A40": "< 60",
+            "D40": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A42": "(Tempat, Tanggal)"
+          },
+          {
+            "A44": "Dievaluasi oleh,",
+            "E44": "Mengetahui,"
+          },
+          {
+            "A47": "(Nama)",
+            "E47": "Djohari Tatang",
+            "G47": "Agustius"
+          },
+          {
+            "A48": "Engineering Manager",
+            "E48": "GM Corporate Engineering",
+            "G48": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_AHU, FCU, WCPU, AC Split.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE AHU, FCU, WCPU, & AC SPLIT"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance AHU, FCU, WCPU, & AC Split"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Performa unit Air Conditioning",
+            "C11": "0.2",
+            "D11": "AHU, FCU, WCPU, dan AC Split beroperasi sesuai parameter desain meliputi temperature & RH, supply & return, chilled water in/out, ampere motor, supply voltage, tekanan air, velocity udara, serta kapasitas unit sesuai spesifikasi desain.",
+            "G11": "Laporan Bulanan"
+          },
+          {
+            "B12": "b. Kondisi komponen mekanikal & elektrikal",
+            "C12": "0.15",
+            "D12": "Coil, filter, blower, motor, bearing, V-belt, valve, thermostat, sensor, control panel, drain system, condenser, evaporator, refrigerant, electrical terminal, dan seluruh komponen pendukung diperiksa, dibersihkan, dirawat, serta berfungsi dengan baik sesuai ketentuan kontrak.",
+            "G12": "Berita Acara/Laporan Bulanan"
+          },
+          {
+            "B13": "c. Performance verification",
+            "C13": "0.15",
+            "D13": "Performance unit memenuhi target operasional sesuai parameter desain yang dipersyaratkan, meliputi\n- Room temperature 24°C ±1°C / RH 50-65%\n- Odorless\n- Smokeless\n- Clean",
+            "G13": "Laporan bulanan"
+          },
+          {
+            "A14": "2",
+            "B14": "Maintenance Management",
+            "C14": "0.30000000000000004"
+          },
+          {
+            "B15": "a. Pelaksanaan maintenance rutin",
+            "C15": "0.1",
+            "D15": "Maintenance dilaksanakan minimal 1 (satu) kali setiap bulan pada seluruh unit sesuai schedule yang telah disetujui Engineering Department.",
+            "G15": "Schedule Service & Maintenance"
+          },
+          {
+            "B16": "b. Pelaksanaan pekerjaan sesuai SOP",
+            "C16": "0.1",
+            "D16": "Pekerjaan dilaksanakan sesuai SOP yang disepakati, termasuk penggunaan chemical, cleaning, overhaul, pengukuran sebelum dan sesudah service, serta maintenance ulang apabila hasil pekerjaan belum memenuhi standar.",
+            "G16": "Laporan Bulanan"
+          },
+          {
+            "B17": "c. Manpower & kompetensi pekerja",
+            "C17": "0.1",
+            "D17": "Jumlah pekerja sesuai perjanjian kontrak, serta pekerja tersebut memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G17": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "A18": "3",
+            "B18": "Reporting & Compliance",
+            "C18": "0.05"
+          },
+          {
+            "B19": "a. Laporan hasil maintenance",
+            "C19": "0.05",
+            "D19": "Laporan bulanan berupa checklist, hasil pengukuran, performance dan analisis semua unit, dokumentasi visual (foto), temuan, dan rekomendasi disampaikan secara lengkap dan tepat waktu sesuai ketentuan kontrak.",
+            "G19": "Ketepatan Tanggal Pengumpulan Laporan Bulanan"
+          },
+          {
+            "A20": "4",
+            "B20": "Service & Responsiveness",
+            "C20": "0.1"
+          },
+          {
+            "B21": "a. Respons terhadap gangguan/temuan",
+            "C21": "0.05",
+            "D21": "Emergency call ditanggapi 1x24 jam, tujuh hari seminggu untuk melakukan perbaikan dan pemeriksaan dalam jangka waktu maksimal 30 (tiga puluh) menit setelah menerima panggilan.",
+            "G21": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B22": "b. Koordinasi & tindak lanjut",
+            "C22": "0.05",
+            "D22": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G22": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A23": "5",
+            "B23": "Safety/K3 Compliance",
+            "C23": "0.05"
+          },
+          {
+            "B24": "a. Kepatuhan pekerja terhadap K3",
+            "C24": "0.03",
+            "D24": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G24": "Pengecekan K3"
+          },
+          {
+            "B25": "b. Safety performance & perlindungan aset",
+            "C25": "0.02",
+            "D25": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G25": "Pengecekan K3"
+          },
+          {
+            "A26": "TOTAL NILAI KPI",
+            "C26": "1",
+            "F26": "0",
+            "G26": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A28": "Panduan Skor (1-5)",
+            "D28": "Keterangan",
+            "I28": "Rating",
+            "J28": "Nilai"
+          },
+          {
+            "A29": "5 (Sangat Baik)",
+            "D29": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I29": "5",
+            "J29": "120"
+          },
+          {
+            "A30": "4 (Baik)",
+            "D30": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I30": "4",
+            "J30": "100"
+          },
+          {
+            "A31": "3 (Cukup)",
+            "D31": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I31": "3",
+            "J31": "80"
+          },
+          {
+            "A32": "2 (Kurang)",
+            "D32": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I32": "2",
+            "J32": "60"
+          },
+          {
+            "A33": "1 (Sangat Kurang)",
+            "D33": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I33": "1",
+            "J33": "40"
+          },
+          {
+            "A35": "Kategori Hasil Akhir Vendor",
+            "D35": "Predikat"
+          },
+          {
+            "A36": "90 - 100",
+            "D36": "Sangat Baik"
+          },
+          {
+            "A37": "80 - <90",
+            "D37": "Baik"
+          },
+          {
+            "A38": "70 - <80",
+            "D38": "Cukup"
+          },
+          {
+            "A39": "60 - <70",
+            "D39": "Kurang"
+          },
+          {
+            "A40": "< 60",
+            "D40": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A42": "(Tempat, Tanggal)"
+          },
+          {
+            "A44": "Dievaluasi oleh,",
+            "E44": "Mengetahui,"
+          },
+          {
+            "A47": "(Nama)",
+            "E47": "Djohari Tatang",
+            "G47": "Agustius"
+          },
+          {
+            "A48": "Engineering Manager",
+            "E48": "GM Corporate Engineering",
+            "G48": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Chiller.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE CHILLER"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Chiller"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kondisi & performa unit chiller",
+            "C11": "0.15",
+            "D11": "Kondisi fisik dan operasional unit chiller terjaga baik; tidak terdapat kebocoran oil/refrigerant, abnormal noise, vibration, temperature, kapasitas atau kondisi abnormal lain yang memengaruhi keandalan unit.",
+            "G11": "Written Service Report"
+          },
+          {
+            "B12": "b. Performa & parameter operasi chiller",
+            "C12": "0.15",
+            "D12": "Parameter operasi, control setting, sensor, safety device, oil system, compressor/starter dan komponen utama berfungsi normal",
+            "G12": "Written Service Report"
+          },
+          {
+            "B13": "c. Keandalan sistem elektrikal & kontrol",
+            "C13": "0.1",
+            "D13": "Electrical/control wiring, connection, starter panel, control panel, sensor dan sistem pengaman diperiksa serta berada dalam kondisi baik dan aman.",
+            "G13": "Written Service Report"
+          },
+          {
+            "B14": "d. Analisa kondisi mesin",
+            "C14": "0.1",
+            "D14": "Oil analysis dan vibration analysis dilaksanakan sesuai jadwal; hasil analisa ditindaklanjuti apabila terdapat indikasi abnormal atau potensi kerusakan.",
+            "G14": "Oil Analysis / Vibration Analysis Report"
+          },
+          {
+            "A15": "2",
+            "B15": "Maintenance Management",
+            "C15": "0.30000000000000004"
+          },
+          {
+            "B16": "a. Pelaksanaan maintenance rutin",
+            "C16": "0.1",
+            "D16": "Maintenance rutin dilaksanakan sesuai jadwal kontrak minimal 4 kali kunjungan per unit per tahun dan mencakup pemeriksaan, pembersihan, perawatan serta penyetelan komponen sesuai scope kontrak.",
+            "G16": "Written Service Report"
+          },
+          {
+            "B17": "b. Pelaksanaan Annual Shutdown",
+            "C17": "0.03",
+            "D17": "Annual Shutdown dilaksanakan sesuai jadwal dan scope kontrak",
+            "G17": "Annual Shutdown Report"
+          },
+          {
+            "B18": "c. Tindak lanjut temuan teknis",
+            "C18": "0.1",
+            "D18": "Temuan abnormal selama maintenance dianalisis, dilaporkan dan diberikan rekomendasi corrective action yang jelas serta ditindaklanjuti setelah mendapat persetujuan dari Engineering.",
+            "G18": "Recommendation Report"
+          },
+          {
+            "B19": "d. Manpower & kompetensi pekerja",
+            "C19": "0.05",
+            "D19": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai dan expert untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G19": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B20": "e. Pelaksanaan training",
+            "C20": "0.02",
+            "D20": "Traning kepada Tim Engineering dilaksanakan sebanyak 1x (satu kali) selama 1 tahun masa kontrak.",
+            "G20": "Dokumentasi & Laporan Pelaksanaan Training"
+          },
+          {
+            "A21": "3",
+            "B21": "Reporting & Compliance",
+            "C21": "0.05"
+          },
+          {
+            "B22": "a. Laporan rutin",
+            "C22": "0.05",
+            "D22": "Seluruh laporan disampaikan secara lengkap, akurat, serta tepat waktu setiap kunjungan",
+            "G22": "Ketepatan Tanggal Pengumpulan Laporan"
+          },
+          {
+            "A23": "4",
+            "B23": "Service & Responsiveness",
+            "C23": "0.1"
+          },
+          {
+            "B24": "a. Emergency call response",
+            "C24": "0.05",
+            "D24": "Vendor merespons emergency call sebanyak 2 kali dalam 1 tahun dengan cepat serta memberikan dukungan teknis sampai kondisi unit aman/terkendali.",
+            "G24": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B25": "b. Koordinasi & komunikasi",
+            "C25": "0.05",
+            "D25": "Koordinasi dengan Engineering/Building Management berjalan baik, termasuk penyampaian kondisi unit, rekomendasi teknis dan rencana tindak lanjut.",
+            "G25": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A26": "5",
+            "B26": "Safety / K3 Compliance",
+            "C26": "0.05"
+          },
+          {
+            "B27": "a. Kepatuhan pekerja terhadap K3",
+            "C27": "0.03",
+            "D27": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G27": "Pengecekan K3"
+          },
+          {
+            "B28": "b. Safety performance & perlindungan aset",
+            "C28": "0.02",
+            "D28": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G28": "Pengecekan K3"
+          },
+          {
+            "A29": "TOTAL NILAI KPI",
+            "C29": "1",
+            "F29": "0",
+            "G29": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A31": "Panduan Skor (1-5)",
+            "D31": "Keterangan",
+            "I31": "Rating",
+            "J31": "Nilai"
+          },
+          {
+            "A32": "5 (Sangat Baik)",
+            "D32": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I32": "5",
+            "J32": "120"
+          },
+          {
+            "A33": "4 (Baik)",
+            "D33": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I33": "4",
+            "J33": "100"
+          },
+          {
+            "A34": "3 (Cukup)",
+            "D34": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I34": "3",
+            "J34": "80"
+          },
+          {
+            "A35": "2 (Kurang)",
+            "D35": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I35": "2",
+            "J35": "60"
+          },
+          {
+            "A36": "1 (Sangat Kurang)",
+            "D36": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I36": "1",
+            "J36": "40"
+          },
+          {
+            "A38": "Kategori Hasil Akhir Vendor",
+            "D38": "Predikat"
+          },
+          {
+            "A39": "90 - 100",
+            "D39": "Sangat Baik"
+          },
+          {
+            "A40": "80 - <90",
+            "D40": "Baik"
+          },
+          {
+            "A41": "70 - <80",
+            "D41": "Cukup"
+          },
+          {
+            "A42": "60 - <70",
+            "D42": "Kurang"
+          },
+          {
+            "A43": "< 60",
+            "D43": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A45": "(Tempat, Tanggal)"
+          },
+          {
+            "A47": "Dievaluasi oleh,",
+            "E47": "Mengetahui,"
+          },
+          {
+            "A50": "(Nama)",
+            "E50": "Djohari Tatang",
+            "G50": "Agustius"
+          },
+          {
+            "A51": "Engineering Manager",
+            "E51": "GM Corporate Engineering",
+            "G51": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Cooling Tower.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE COOLING TOWER WATER TREATMENT"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Cooling Tower Water Treatment"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kualitas air cooling tower",
+            "C11": "0.15",
+            "D11": "Parameter kualitas air cooling tower terjaga sesuai standar kontrak: \n- TDS: <1500 ppm\n- TSS: <10 ppm\n- Total Hardness: 450 - 500 ppm\n- Conductivity: <2300 µS/cm\n- Silica: <50 ppm\n- Chloride: <100 ppm\n- Sulphate: <35 ppm\n- Iron: <1 ppm\n- pH: 8 - 9",
+            "G11": "Laporan Bulanan/Logbook Harian"
+          },
+          {
+            "B12": "b. Efektivitas program water treatment",
+            "C12": "0.15",
+            "D12": "Program treatment efektif menjaga sistem dari scaling, korosi, fouling, pertumbuhan mikroba/lumut, serta menjaga filler dan basin dalam kondisi bersih.",
+            "G12": "Laporan Bulanan/Logbook Harian"
+          },
+          {
+            "B13": "c. Performa condenser chiller",
+            "C13": "0.1",
+            "D13": "Approach temperature condenser chiller dijaga maksimal 2°C sesuai dengan kontrak",
+            "G13": "Laporan Bulanan/Logbook Harian"
+          },
+          {
+            "B14": "d. Parameter operasi sistem",
+            "C14": "0.1",
+            "D14": "Delta Pressure dan Delta Temperature sesuai desain unit serta kondisi sistem mendukung performa chiller yang optimal.",
+            "G14": "Laporan Bulanan/Logbook Harian"
+          },
+          {
+            "A15": "2",
+            "B15": "Maintenance Management",
+            "C15": "0.3"
+          },
+          {
+            "B16": "a. Pelaksanaan maintenance rutin",
+            "C16": "0.1",
+            "D16": "Cleaning cooling tower, filler dan basin, sedot lumpur, cleaning strainer, serta pekerjaan rutin lainnya dilaksanakan sesuai jadwal dan kebutuhan lapangan.",
+            "G16": "Logbook Harian"
+          },
+          {
+            "B17": "b. Ketersediaan chemical treatment",
+            "C17": "0.1",
+            "D17": "Chemical yang ramah lingkungan sesuai dengan cicle; pelaksanaan dosing sesuai kebutuhan operasional dan tidak terjadi kekurangan/kelebihan chemical akibat pengelolaan yang tidak tepat.",
+            "G17": "Logbook Harian"
+          },
+          {
+            "B18": "c. Keandalan dosing & monitoring system",
+            "C18": "0.02",
+            "D18": "Automatic blowdown, online monitoring pH/conductivity dan dosing pump berfungsi baik serta dilakukan pengecekan secara berkala.",
+            "G18": "Logbook Harian"
+          },
+          {
+            "B19": "d. Analisa air & pengujian berkala",
+            "C19": "0.03",
+            "D19": "Sampling dan analisa air internal/independen, pengujian Legionella, corrosion coupon dan inspeksi berkala lainnya dilakukan sesuai frekuensi kontrak.",
+            "G19": "Laporan Laboratorium"
+          },
+          {
+            "B20": "e. Manpower & kompetensi pekerja",
+            "C20": "0.05",
+            "D20": "Sebanyak 2 (dua) orang standby di setiap hari Senin sampai dengan Minggu, dengan jam kerja minimal 40 jam/minggu per orang; pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G20": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "A21": "3",
+            "B21": "Reporting & Compliance",
+            "C21": "0.05"
+          },
+          {
+            "B22": "a. Logbook & laporan rutin",
+            "C22": "0.03",
+            "D22": "Seluruh kegiatan dicatat dalam logbook harian dan laporan berkala disampaikan secara lengkap, akurat, serta tepat waktu.",
+            "G22": "Ketepatan Tanggal Pengumpulan Logbook Harian/Laporan Bulanan"
+          },
+          {
+            "B23": "b. Dokumen teknis & kepatuhan kontrak",
+            "C23": "0.02",
+            "D23": "PDS, MSDS, metode kerja/SOP dan dokumen teknis terkait tersedia",
+            "G23": "PDS/MSDS/SOP/Dokumen Kontrak"
+          },
+          {
+            "A24": "4",
+            "B24": "Service & Responsiveness",
+            "C24": "0.1"
+          },
+          {
+            "B25": "a. Respons terhadap gangguan/temuan",
+            "C25": "0.05",
+            "D25": "Vendor merespons keluhan, gangguan atau temuan Engineering secara cepat dan memberikan tindakan korektif yang efektif.",
+            "G25": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B26": "b. Koordinasi & tindak lanjut",
+            "C26": "0.05",
+            "D26": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G26": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A27": "5",
+            "B27": "Safety / K3 Compliance",
+            "C27": "0.05"
+          },
+          {
+            "B28": "a. Kepatuhan pekerja terhadap K3",
+            "C28": "0.03",
+            "D28": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G28": "Pengecekan K3"
+          },
+          {
+            "B29": "b. Safety performance & perlindungan aset",
+            "C29": "0.02",
+            "D29": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G29": "Pengecekan K3"
+          },
+          {
+            "A30": "TOTAL NILAI KPI",
+            "C30": "1",
+            "F30": "0",
+            "G30": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A32": "Panduan Skor (1-5)",
+            "D32": "Keterangan",
+            "I32": "Rating",
+            "J32": "Nilai"
+          },
+          {
+            "A33": "5 (Sangat Baik)",
+            "D33": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I33": "5",
+            "J33": "120"
+          },
+          {
+            "A34": "4 (Baik)",
+            "D34": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I34": "4",
+            "J34": "100"
+          },
+          {
+            "A35": "3 (Cukup)",
+            "D35": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I35": "3",
+            "J35": "80"
+          },
+          {
+            "A36": "2 (Kurang)",
+            "D36": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I36": "2",
+            "J36": "60"
+          },
+          {
+            "A37": "1 (Sangat Kurang)",
+            "D37": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I37": "1",
+            "J37": "40"
+          },
+          {
+            "A39": "Kategori Hasil Akhir Vendor",
+            "D39": "Predikat"
+          },
+          {
+            "A40": "90 - 100",
+            "D40": "Sangat Baik"
+          },
+          {
+            "A41": "80 - <90",
+            "D41": "Baik"
+          },
+          {
+            "A42": "70 - <80",
+            "D42": "Cukup"
+          },
+          {
+            "A43": "60 - <70",
+            "D43": "Kurang"
+          },
+          {
+            "A44": "< 60",
+            "D44": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A46": "(Tempat, Tanggal)"
+          },
+          {
+            "A48": "Dievaluasi oleh,",
+            "E48": "Mengetahui,"
+          },
+          {
+            "A51": "(Nama)",
+            "E51": "Djohari Tatang",
+            "G51": "Agustius"
+          },
+          {
+            "A52": "Engineering Manager",
+            "E52": "GM Corporate Engineering",
+            "G52": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Elevator.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE ELEVATOR"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Elevator"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kondisi operasional elevator",
+            "C11": "0.25",
+            "D11": "Elevator dan seluruh sistem mekanikal dan elektrikal beroperasi dengan baik, aman, dan sesuai fungsi operasional setelah dilakukan pemeriksaan, pembersihan, penyetelan, pelumasan, dan perawatan sesuai ketentuan kontrak",
+            "G11": "Laporan bulanan"
+          },
+          {
+            "B12": "b. Pengujian performa elevator",
+            "C12": "0.15",
+            "D12": "Pengujian performa elevator dilaksanakan secara periodik meliputi vibration, waktu buka/tutup pintu, balancing wire rope, loading test, governor test, wire rope measurement, dan ARD test sesuai jadwal kontrak.",
+            "G12": "Laporan Hasil Pemeliharaan Tahunan"
+          },
+          {
+            "B13": "c. Pengujian tahunan",
+            "C13": "0.1",
+            "D13": "Pengiriman laporan pengujian tahunan, hasil pengujian performa elevator, loading test, governor test, wire rope measurement, ARD test, serta rekomendasi spare part untuk tahun depan nya dilaporkan sesuai ketentuan kontrak.",
+            "G13": "Ketepatan Tanggal Pengumpulan Laporan Hasil Pemeliharaan Tahunan"
+          },
+          {
+            "A14": "2",
+            "B14": "Maintenance Management",
+            "C14": "0.3"
+          },
+          {
+            "B15": "a. Pelaksanaan maintenance rutin",
+            "C15": "0.1",
+            "D15": "Pemeriksaan, pembersihan, perawatan, penyetelan, dan pelumasan elevator dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai schedule yang disetujui Engineering Manager.",
+            "G15": "Laporan Bulanan"
+          },
+          {
+            "B16": "b. Penanganan kerusakan & spare part",
+            "C16": "0.1",
+            "D16": "Kerusakan atau trouble di luar jadwal maintenance ditangani sesegera mungkin, serta penggantian spare part dilaksanakan sesuai prosedur dan persetujuan yang berlaku.",
+            "G16": "Berita Acara Kerusakan & Perbaikan"
+          },
+          {
+            "B17": "c. Kompetensi pekerja",
+            "C17": "0.05",
+            "D17": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 elevator sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G17": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B18": "d. Pelaksanaan training",
+            "C18": "0.05",
+            "D18": "Training kepada pekerja Engineering dilaksanakan minimal 6 (enam) bulan sekali kali atau sesuai permintaan Engineering.",
+            "G18": "Dokumentasi dan Laporan Pelaksanaan Training"
+          },
+          {
+            "A19": "3",
+            "B19": "Monitoring & Compliance",
+            "C19": "0.05"
+          },
+          {
+            "B20": "a. Schedule service & maintenance",
+            "C20": "0.03",
+            "D20": "Schedule service & maintenance serta schedule pekerja disampaikan sesuai ketentuan kontrak.",
+            "G20": "Schedule service & maintenance; schedule pekerja"
+          },
+          {
+            "B21": "b. Laporan bulanan",
+            "C21": "0.02",
+            "D21": "Laporan rutin, Service Report, permasalahan pekerjaan, rencana kerja, dan tindak lanjut disampaikan secara lengkap dan tepat waktu sesuai dengan kontrak",
+            "G21": "Ketepatan Tanggal Pengumpulan Laporan Bulanan"
+          },
+          {
+            "A22": "4",
+            "B22": "Service & Responsiveness",
+            "C22": "0.1"
+          },
+          {
+            "B23": "a. Respons terhadap gangguan/temuan",
+            "C23": "0.05",
+            "D23": "Emergency call ditanggapi sesuai SLA dengan waktu kedatangan maksimal 3 (tiga) jam dan maksimal 1 (satu) jam untuk kasus penumpang terjebak (stuck case).",
+            "G23": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B24": "b. Koordinasi & tindak lanjut",
+            "C24": "0.05",
+            "D24": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G24": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A25": "5",
+            "B25": "Safety / K3 Compliance",
+            "C25": "0.05"
+          },
+          {
+            "B26": "a. Kepatuhan pekerja terhadap K3",
+            "C26": "0.03",
+            "D26": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G26": "Pengecekan K3"
+          },
+          {
+            "B27": "b. Safety performance & perlindungan aset",
+            "C27": "0.02",
+            "D27": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G27": "Pengecekan K3"
+          },
+          {
+            "A28": "TOTAL NILAI KPI",
+            "C28": "1",
+            "F28": "0",
+            "G28": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A30": "Panduan Skor (1-5)",
+            "D30": "Keterangan",
+            "I30": "Rating",
+            "J30": "Nilai"
+          },
+          {
+            "A31": "5 (Sangat Baik)",
+            "D31": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I31": "5",
+            "J31": "120"
+          },
+          {
+            "A32": "4 (Baik)",
+            "D32": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I32": "4",
+            "J32": "100"
+          },
+          {
+            "A33": "3 (Cukup)",
+            "D33": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I33": "3",
+            "J33": "80"
+          },
+          {
+            "A34": "2 (Kurang)",
+            "D34": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I34": "2",
+            "J34": "60"
+          },
+          {
+            "A35": "1 (Sangat Kurang)",
+            "D35": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I35": "1",
+            "J35": "40"
+          },
+          {
+            "A37": "Kategori Hasil Akhir Vendor",
+            "D37": "Predikat"
+          },
+          {
+            "A38": "90 - 100",
+            "D38": "Sangat Baik"
+          },
+          {
+            "A39": "80 - <90",
+            "D39": "Baik"
+          },
+          {
+            "A40": "70 - <80",
+            "D40": "Cukup"
+          },
+          {
+            "A41": "60 - <70",
+            "D41": "Kurang"
+          },
+          {
+            "A42": "< 60",
+            "D42": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A44": "(Tempat, Tanggal)"
+          },
+          {
+            "A46": "Dievaluasi oleh,",
+            "E46": "Mengetahui,"
+          },
+          {
+            "A49": "(Nama)",
+            "E49": "Djohari Tatang",
+            "G49": "Agustius"
+          },
+          {
+            "A50": "Engineering Manager",
+            "E50": "GM Corporate Engineering",
+            "G50": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Escalator & Travelator.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE ESCALATOR & TRAVELATOR"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Escalator & Travelator"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kondisi operasional escalator dan travelator",
+            "C11": "0.25",
+            "D11": "Escalator dan travelator beserta peralatan elektronik dan peralatan pengaman lainnya beroperasi dengan baik, aman, dan sesuai fungsi operasional setelah dilakukan pemeriksaan, pembersihan, penyetelan, dan pelumasan sesuai ketentuan kontrak.",
+            "G11": "Laporan bulanan"
+          },
+          {
+            "B12": "b. Safety audit escalator & travelator",
+            "C12": "0.25",
+            "D12": "Safety audit escalator dan travelator dilaksanakan sesuai jadwal yang dipersyaratkan dalam kontrak, beserta rekomendasi spare part untuk tahun depan nya",
+            "G12": "Laporan audit safety"
+          },
+          {
+            "A13": "2",
+            "B13": "Maintenance Management",
+            "C13": "0.3"
+          },
+          {
+            "B14": "a. Pelaksanaan maintenance rutin",
+            "C14": "0.1",
+            "D14": "Pemeriksaan, pembersihan, perawatan, penyetelan, dan pelumasan escalator dan travelator dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai schedule yang disetujui Engineering Manager.",
+            "G14": "Schedule Service & Maintenance"
+          },
+          {
+            "B15": "b. Penanganan kerusakan & spare part",
+            "C15": "0.1",
+            "D15": "Kerusakan atau trouble di luar jadwal maintenance ditangani sesegera mungkin, serta penggantian spare part dilaksanakan sesuai prosedur dan persetujuan yang berlaku.",
+            "G15": "Berita Acara Kerusakan & Perbaikan"
+          },
+          {
+            "B16": "c. Manpower & kompetensi pekerja",
+            "C16": "0.05",
+            "D16": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 escalator & travelator sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G16": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B17": "d. Pelaksanaan training",
+            "C17": "0.05",
+            "D17": "Training kepada Tim Engineering dilaksanakan minimal 6 (enam) bulan sekali atau sesuai permintaan Engineering.",
+            "G17": "Dokumentasi dan Laporan Pelaksanaan Training"
+          },
+          {
+            "A18": "3",
+            "B18": "Monitoring & Compliance",
+            "C18": "0.05"
+          },
+          {
+            "B19": "a. Schedule service & maintenance",
+            "C19": "0.03",
+            "D19": "Schedule service & maintenance serta schedule pekerja disampaikan sesuai ketentuan kontrak.",
+            "G19": "Schedule service & maintenance; schedule pekerja"
+          },
+          {
+            "B20": "b. Laporan bulanan",
+            "C20": "0.02",
+            "D20": "Laporan rutin, permasalahan pekerjaan, rencana kerja ke depan, dan rekomendasi sparepart disampaikan secara lengkap dan tepat waktu kepada Engineering.",
+            "G20": "Ketepatan Tanggal Pengumpulan Laporan Bulanan"
+          },
+          {
+            "A21": "4",
+            "B21": "Service & Responsiveness",
+            "C21": "0.1"
+          },
+          {
+            "B22": "a. Respons terhadap gangguan/temuan",
+            "C22": "0.05",
+            "D22": "Emergency call ditanggapi secara cepat dan tidak melebihi 5 (lima) jam sejak panggilan diterima sesuai ketentuan kontrak.",
+            "G22": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B23": "b. Koordinasi & tindak lanjut",
+            "C23": "0.05",
+            "D23": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G23": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A24": "5",
+            "B24": "Safety / K3 Compliance",
+            "C24": "0.05"
+          },
+          {
+            "B25": "a. Kepatuhan pekerja terhadap K3",
+            "C25": "0.03",
+            "D25": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G25": "Pengecekan K3"
+          },
+          {
+            "B26": "b. Safety performance & perlindungan aset",
+            "C26": "0.02",
+            "D26": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G26": "Pengecekan K3"
+          },
+          {
+            "A27": "TOTAL NILAI KPI",
+            "C27": "1",
+            "F27": "0",
+            "G27": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A29": "Panduan Skor (1-5)",
+            "D29": "Keterangan",
+            "I29": "Rating",
+            "J29": "Nilai"
+          },
+          {
+            "A30": "5 (Sangat Baik)",
+            "D30": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I30": "5",
+            "J30": "120"
+          },
+          {
+            "A31": "4 (Baik)",
+            "D31": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I31": "4",
+            "J31": "100"
+          },
+          {
+            "A32": "3 (Cukup)",
+            "D32": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I32": "3",
+            "J32": "80"
+          },
+          {
+            "A33": "2 (Kurang)",
+            "D33": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I33": "2",
+            "J33": "60"
+          },
+          {
+            "A34": "1 (Sangat Kurang)",
+            "D34": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I34": "1",
+            "J34": "40"
+          },
+          {
+            "A36": "Kategori Hasil Akhir Vendor",
+            "D36": "Predikat"
+          },
+          {
+            "A37": "90 - 100",
+            "D37": "Sangat Baik"
+          },
+          {
+            "A38": "80 - <90",
+            "D38": "Baik"
+          },
+          {
+            "A39": "70 - <80",
+            "D39": "Cukup"
+          },
+          {
+            "A40": "60 - <70",
+            "D40": "Kurang"
+          },
+          {
+            "A41": "< 60",
+            "D41": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A43": "(Tempat, Tanggal)"
+          },
+          {
+            "A45": "Dievaluasi oleh,",
+            "E45": "Mengetahui,"
+          },
+          {
+            "A48": "(Nama)",
+            "E48": "Djohari Tatang",
+            "G48": "Agustius"
+          },
+          {
+            "A49": "Engineering Manager",
+            "E49": "GM Corporate Engineering",
+            "G49": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Gondola.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE GONDOLA"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Gondola"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kondisi operasional gondola",
+            "C11": "0.25",
+            "D11": "Seluruh platform gondola, mekanikal konstruksi gondola, elektrikal sistem gondola, serta seluruh sistem safety diperiksa, dirawat, dan berfungsi dengan baik sesuai ketentuan kontrak.",
+            "G11": "Laporan bulanan"
+          },
+          {
+            "B12": "b. Audit safety gondola",
+            "C12": "0.25",
+            "D12": "Safety audit gondola dilaksanakan sesuai jadwal yang dipersyaratkan dalam kontrak, beserta rekomendasi spare part untuk tahun depan nya",
+            "G12": "Laporan audit safety"
+          },
+          {
+            "A13": "2",
+            "B13": "Maintenance Management",
+            "C13": "0.30000000000000004"
+          },
+          {
+            "B14": "a. Pelaksanaan maintenance rutin",
+            "C14": "0.1",
+            "D14": "Pemeriksaan, pembersihan, perawatan, dan penyetelan komponen gondola dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai jadwal yang disetujui Engineering Manager.",
+            "G14": "Schedule Service & Maintenance"
+          },
+          {
+            "B15": "b. Penanganan kerusakan & spare part",
+            "C15": "0.1",
+            "D15": "Perbaikan kerusakan dan penggantian spare part dilaksanakan sesuai prosedur kontrak, serta emergency case ditangani dengan baik.",
+            "G15": "Berita Acara Kerusakan & Perbaikan"
+          },
+          {
+            "B16": "c. Manpower & Kompetensi pekerja",
+            "C16": "0.1",
+            "D16": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 Gondola sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G16": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "A17": "3",
+            "B17": "Reporting & Compliance",
+            "C17": "0.05"
+          },
+          {
+            "B18": "a. Schedule service & maintenance",
+            "C18": "0.03",
+            "D18": "Schedule service & maintenance serta schedule pekerja disampaikan secara lengkap sesuai ketentuan kontrak.",
+            "G18": "Schedule service & maintenance; schedule pekerja"
+          },
+          {
+            "B19": "b. Laporan bulanan",
+            "C19": "0.02",
+            "D19": "Laporan rutin, permasalahan pekerjaan, rekomendasi spare part, serta rencana kerja ke depan disampaikan secara lengkap dan tepat waktu kepada Engineering.",
+            "G19": "Ketepatan Tanggal Pengumpulan Laporan Bulanan"
+          },
+          {
+            "A20": "4",
+            "B20": "Service & Responsiveness",
+            "C20": "0.1"
+          },
+          {
+            "B21": "a. Respons terhadap gangguan/temuan",
+            "C21": "0.05",
+            "D21": "Emergency call ditanggapi secara cepat dan teknisi hadir maksimal 1 × 24 jam sesuai ketentuan kontrak.",
+            "G21": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B22": "b. Koordinasi & tindak lanjut",
+            "C22": "0.05",
+            "D22": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G22": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A23": "5",
+            "B23": "Safety / K3 Compliance",
+            "C23": "0.05"
+          },
+          {
+            "B24": "a. Kepatuhan pekerja terhadap K3",
+            "C24": "0.03",
+            "D24": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G24": "Pengecekan K3"
+          },
+          {
+            "B25": "b. Safety performance & perlindungan aset",
+            "C25": "0.02",
+            "D25": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G25": "Pengecekan K3"
+          },
+          {
+            "A26": "TOTAL NILAI KPI",
+            "C26": "1",
+            "F26": "0",
+            "G26": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A28": "Panduan Skor (1-5)",
+            "D28": "Keterangan",
+            "I28": "Rating",
+            "J28": "Nilai"
+          },
+          {
+            "A29": "5 (Sangat Baik)",
+            "D29": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I29": "5",
+            "J29": "120"
+          },
+          {
+            "A30": "4 (Baik)",
+            "D30": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I30": "4",
+            "J30": "100"
+          },
+          {
+            "A31": "3 (Cukup)",
+            "D31": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I31": "3",
+            "J31": "80"
+          },
+          {
+            "A32": "2 (Kurang)",
+            "D32": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I32": "2",
+            "J32": "60"
+          },
+          {
+            "A33": "1 (Sangat Kurang)",
+            "D33": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I33": "1",
+            "J33": "40"
+          },
+          {
+            "A35": "Kategori Hasil Akhir Vendor",
+            "D35": "Predikat"
+          },
+          {
+            "A36": "90 - 100",
+            "D36": "Sangat Baik"
+          },
+          {
+            "A37": "80 - <90",
+            "D37": "Baik"
+          },
+          {
+            "A38": "70 - <80",
+            "D38": "Cukup"
+          },
+          {
+            "A39": "60 - <70",
+            "D39": "Kurang"
+          },
+          {
+            "A40": "< 60",
+            "D40": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A42": "(Tempat, Tanggal)"
+          },
+          {
+            "A44": "Dievaluasi oleh,",
+            "E44": "Mengetahui,"
+          },
+          {
+            "A47": "(Nama)",
+            "E47": "Djohari Tatang",
+            "G47": "Agustius"
+          },
+          {
+            "A48": "Engineering Manager",
+            "E48": "GM Corporate Engineering",
+            "G48": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_Sliding Door.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE SLIDING DOOR"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance Sliding Door"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.49999999999999994"
+          },
+          {
+            "B11": "a. Kondisi operasional automatic sliding door & revolving door",
+            "C11": "0.15",
+            "D11": "Kecepatan membuka dan menutup pintu telah disetel dengan baik, dan seluruh pintu dapat beroperasi secara normal, aman, dan sesuai fungsi.",
+            "G11": "Checklist Report"
+          },
+          {
+            "B12": "b. Kondisi sistem mekanikal, elektrikal & control",
+            "C12": "0.15",
+            "D12": "Motor, belt, gearbox, control unit, kabel, koneksi, serta seluruh komponen mekanikal dan elektrikal diperiksa, dirawat, dan berfungsi dengan baik.",
+            "G12": "Checklist Report"
+          },
+          {
+            "B13": "c. Keandalan safety device",
+            "C13": "0.15",
+            "D13": "Radar sensor, PDR, CFD sensor, panic breakout, vertical edge safety, dan seluruh safety device berfungsi dengan baik sesuai standar operasional.",
+            "G13": "Checklist Report"
+          },
+          {
+            "B14": "d. Kondisi kaca & komponen pintu",
+            "C14": "0.05",
+            "D14": "Kaca pintu, roda, dan seluruh komponen yang mudah aus diperiksa, dirawat, serta tetap terpasang dengan baik.",
+            "G14": "Checklist Report"
+          },
+          {
+            "A15": "2",
+            "B15": "Maintenance Management",
+            "C15": "0.3"
+          },
+          {
+            "B16": "a. Pelaksanaan maintenance rutin",
+            "C16": "0.1",
+            "D16": "Pelaksanaan maintenance secara rutin setiap 3 bulan sekali (4 kali per tahun) sesuai jadwal dan lingkup pekerjaan yang tercantum dalam kontrak.",
+            "G16": "Checklist Report"
+          },
+          {
+            "B17": "b. Manpower & kompetensi pekerja",
+            "C17": "0.1",
+            "D17": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G17": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B18": "c. Pelaksanaan training",
+            "C18": "0.05",
+            "D18": "Terlaksana nya training 2x setahun kepada Tim Engineering mengenai pengoperasian, troubleshooting, dan dasar pemeliharaan sistem sesuai lingkup kontrak.",
+            "G18": "Dokumentasi & Laporan Pelaksanaan Training"
+          },
+          {
+            "B19": "c. Penanganan kerusakan & rekomendasi",
+            "C19": "0.05",
+            "D19": "Penyampaian rekomendasi perbaikan dan melakukan penanganan kerusakan atau penggantian spare part sesuai prosedur dan persetujuan Engineering.",
+            "G19": "Checklist Report"
+          },
+          {
+            "A20": "3",
+            "B20": "Reporting & Compliance",
+            "C20": "0.05"
+          },
+          {
+            "B21": "a. Checklist Report",
+            "C21": "0.05",
+            "D21": "Penyampaian checklist report beserta rekomendasi perbaikan secara lengkap dan tepat waktu sesuai ketentuan kontrak.",
+            "G21": "Ketepatan Tanggal Pengumpulan Checklist Report"
+          },
+          {
+            "A22": "4",
+            "B22": "Service & Responsiveness",
+            "C22": "0.1"
+          },
+          {
+            "B23": "a. Emergency responses",
+            "C23": "0.05",
+            "D23": "Merespons emergency call secara cepat dan mengirim teknisi dalam  waktu 1 x 24 jam (maksimal), serta memastikan gangguan dapat segera ditangani hingga peralatan kembali beroperasi normal.",
+            "G23": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B24": "b. Koordinasi & komunikasi",
+            "C24": "0.05",
+            "D24": "Koordinasi dan komunikasi yang baik dengan Engineering serta menyampaikan informasi kondisi peralatan, hasil pemeriksaan, dan tindak lanjut pekerjaan secara jelas.",
+            "G24": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A25": "5",
+            "B25": "Safety/K3 Compliance",
+            "C25": "0.05"
+          },
+          {
+            "B26": "a. Kepatuhan pekerja terhadap K3",
+            "C26": "0.03",
+            "D26": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G26": "Pengecekan K3"
+          },
+          {
+            "B27": "b. Safety performance & perlindungan aset",
+            "C27": "0.02",
+            "D27": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G27": "Pengecekan K3"
+          },
+          {
+            "A28": "TOTAL NILAI KPI",
+            "C28": "1",
+            "F28": "0",
+            "G28": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A30": "Panduan Skor (1-5)",
+            "D30": "Keterangan",
+            "I30": "Rating",
+            "J30": "Nilai"
+          },
+          {
+            "A31": "5 (Sangat Baik)",
+            "D31": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I31": "5",
+            "J31": "120"
+          },
+          {
+            "A32": "4 (Baik)",
+            "D32": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I32": "4",
+            "J32": "100"
+          },
+          {
+            "A33": "3 (Cukup)",
+            "D33": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I33": "3",
+            "J33": "80"
+          },
+          {
+            "A34": "2 (Kurang)",
+            "D34": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I34": "2",
+            "J34": "60"
+          },
+          {
+            "A35": "1 (Sangat Kurang)",
+            "D35": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I35": "1",
+            "J35": "40"
+          },
+          {
+            "A37": "Kategori Hasil Akhir Vendor",
+            "D37": "Predikat"
+          },
+          {
+            "A38": "90 - 100",
+            "D38": "Sangat Baik"
+          },
+          {
+            "A39": "80 - <90",
+            "D39": "Baik"
+          },
+          {
+            "A40": "70 - <80",
+            "D40": "Cukup"
+          },
+          {
+            "A41": "60 - <70",
+            "D41": "Kurang"
+          },
+          {
+            "A42": "< 60",
+            "D42": "Buruk / Perlu Evaluasi Khusus"
+          },
+          {
+            "A44": "(Tempat, Tanggal)"
+          },
+          {
+            "A46": "Dievaluasi oleh,",
+            "E46": "Mengetahui,"
+          },
+          {
+            "A49": "(Nama)",
+            "E49": "Djohari Tatang",
+            "G49": "Agustius"
+          },
+          {
+            "A50": "Engineering Manager",
+            "E50": "GM Corporate Engineering",
+            "G50": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Revised_Form Evaluasi Kinerja Vendor_STP.xlsx",
+    "sheets": [
+      {
+        "name": "Form",
+        "rows": [
+          {
+            "A1": "FORM EVALUASI KINERJA VENDOR MAINTENANCE STP"
+          },
+          {
+            "A3": "Business Unit"
+          },
+          {
+            "A4": "Nama Vendor"
+          },
+          {
+            "A5": "Jenis Pekerjaan",
+            "C5": "Maintenance STP, Water Recycle, & Pump Station"
+          },
+          {
+            "A6": "Periode Evaluasi"
+          },
+          {
+            "A7": "Tanggal Evaluasi"
+          },
+          {
+            "A9": "No",
+            "B9": "Aspek Penilaian (KPI)",
+            "C9": "Bobot (%)",
+            "D9": "Kriteria Penilaian",
+            "E9": "Skor (1-5)",
+            "F9": "Skor Terbobot",
+            "G9": "Catatan / Bukti Lapangan"
+          },
+          {
+            "A10": "1",
+            "B10": "Technical Performance & Quality",
+            "C10": "0.5"
+          },
+          {
+            "B11": "a. Kualitas air outlet STP",
+            "C11": "0.15",
+            "D11": "Kualitas air outlet STP memenuhi baku mutu sesuai PERMENLH No 68 Tahun 2016 tentang Baku Mutu Air Limbah Domestik yaitu sebagai berikut:\n- pH: 6 - 9\n- BOD: 30 mg/L\n- COD: 100 mg/L\n- TSS: 30 mg/L\n- Minyak dan lemak: 5 mg/L\n- Amoniak: 10 mg/L\n- Total Coliform: 3000 jumlah/100 mL",
+            "G11": "Hasil analisa laboratorium terakreditasi/pihak ketiga baik Inlet dan Outlet"
+          },
+          {
+            "B12": "b. Produksi water recycling",
+            "C12": "0.15",
+            "D12": "Terpenuhinya kebutuhan air daur ulang/water recycling untuk kebutuhan operasional bangunan gedung.",
+            "G12": "Laporan harian"
+          },
+          {
+            "B13": "c. Kualitas water recycle",
+            "C13": "0.1",
+            "D13": "Kualitas water recycle memenuhi baku mutu sesuai \nPeraturan Menteri Kesehatan Republik Indonesia Nomor 32 Tahun 2017 tentang Standar Baku Mutu Kesehatan Lingkungan dan Persyaratan Kesehatan Air untuk Keperluan Higiene Sanitasi, dan pH wajib menjaga diangka 7-9.",
+            "G13": "Hasil analisa laboratorium terakreditasi/pihak ketiga baik Inlet dan Outlet"
+          },
+          {
+            "B14": "d. Kondisi operasi equipment STP",
+            "C14": "0.05",
+            "D14": "Blower, diffuser, dosing pump, water level control, pompa, dan equipment STP lainnya beroperasi dengan baik sesuai fungsi serta tidak mengalami gangguan.",
+            "G14": "Laporan harian"
+          },
+          {
+            "B15": "e. Pengelolaan chemical & bakteri",
+            "C15": "0.05",
+            "D15": "Chemical, bakteri, serta pelaksanaan dosing dilakukan sesuai ketentuan sehingga proses pengolahan air limbah berjalan optimal.",
+            "G15": "Data barang masuk warehouse"
+          },
+          {
+            "A16": "2",
+            "B16": "Maintenance Management",
+            "C16": "0.30000000000000004"
+          },
+          {
+            "B17": "a. Pelaksanaan maintenance rutin",
+            "C17": "0.1",
+            "D17": "Perawatan harian, mingguan, dan bulanan dilaksanakan sesuai jadwal serta lingkup pekerjaan yang tercantum dalam kontrak.",
+            "G17": "Laporan harian"
+          },
+          {
+            "B18": "b. Pembersihan fasilitas STP",
+            "C18": "0.05",
+            "D18": "Pembersihan bar screen, fine screen, solid grinder, bak aerasi, bak sedimentasi, sump pit, grease trap, pump station, dan area STP dilaksanakan sesuai prosedur.",
+            "G18": "Laporan harian"
+          },
+          {
+            "B19": "c. Pengelolaan grease & sludge",
+            "C19": "0.05",
+            "D19": "Pengelolaan lumpur dan limbah lemak dilaksanakan sesuai jadwal, batas ketebalan grease trap terjaga, dan pengangkutan dilakukan tanpa menimbulkan pencemaran atau gangguan pada sistem STP.",
+            "G19": "Manifest resmi pengangkutan limbah lemak"
+          },
+          {
+            "B20": "d. Ketersediaan chemical, tools & consumable",
+            "C20": "0.03",
+            "D20": "Chemical, tools, consumable, dan perlengkapan kerja tersedia sesuai kebutuhan kontrak serta diterima dan tercatat melalui warehouse sebelum digunakan.",
+            "G20": "Data barang masuk warehouse"
+          },
+          {
+            "B21": "e. Manpower & kompetensi pekerja",
+            "C21": "0.05",
+            "D21": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "G21": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)"
+          },
+          {
+            "B22": "f. Pelaksanaan training",
+            "C22": "0.02",
+            "D22": "Terlaksana nya training 1x setahun kepada Tim Engineering mengenai pengoperasian, troubleshooting, dan dasar pemeliharaan sistem sesuai lingkup kontrak.",
+            "G22": "Dokumentasi & Laporan Pelaksanaan Training"
+          },
+          {
+            "A23": "3",
+            "B23": "Reporting & Compliance",
+            "C23": "0.05"
+          },
+          {
+            "B24": "a. Laporan rutin",
+            "C24": "0.03",
+            "D24": "Laporan harian, laporan bulanan, hasil analisa laboratorium, jadwal pekerjaan, permasalahan, dan rencana tindak lanjut disampaikan secara lengkap dan tepat waktu.",
+            "G24": "Ketepatan Tanggal Pengumpulan Seluruh Laporan"
+          },
+          {
+            "B25": "b. Dokumen kontrak & lingkungan",
+            "C25": "0.02",
+            "D25": "PDS, MSDS, manifest limbah, dokumen legal, serta dokumen pendukung pekerjaan tersedia dan sesuai ketentuan kontrak.",
+            "G25": "PDS/MSDS/SOP/Dokumen Kontrak"
+          },
+          {
+            "A26": "4",
+            "B26": "Service & Responsiveness",
+            "C26": "0.1"
+          },
+          {
+            "B27": "a. Respons terhadap gangguan/temuan",
+            "C27": "0.05",
+            "D27": "Vendor merespons keluhan, gangguan atau temuan Engineering secara cepat dan memberikan tindakan korektif yang efektif.",
+            "G27": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "B28": "b. Koordinasi & tindak lanjut",
+            "C28": "0.05",
+            "D28": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "G28": "Bukti Komunikasi (Email/WhatsApp)"
+          },
+          {
+            "A29": "5",
+            "B29": "Safety/K3 Compliance",
+            "C29": "0.05"
+          },
+          {
+            "B30": "a. Kepatuhan pekerja terhadap K3",
+            "C30": "0.02",
+            "D30": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "G30": "Pengecekan K3/Laporan harian"
+          },
+          {
+            "B31": "b. Safety performance & perlindungan aset",
+            "C31": "0.01",
+            "D31": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "G31": "Pengecekan K3/Laporan harian"
+          },
+          {
+            "B32": "c. Pengelolaan limbah dan lingkungan",
+            "C32": "0.02",
+            "D32": "Limbah lemak, chemical, jeriken bekas, dan kegiatan pengangkutan dikelola sesuai prosedur serta tidak menimbulkan pencemaran, kebocoran, maupun bau di area pekerjaan.",
+            "G32": "Manifest resmi pengangkutan limbah lemak/Berita Acara Pengambilan Jeriken Kosong"
+          },
+          {
+            "A33": "TOTAL NILAI KPI",
+            "C33": "1",
+            "F33": "0",
+            "G33": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A35": "Panduan Skor (1-5)",
+            "D35": "Keterangan",
+            "I35": "Rating",
+            "J35": "Nilai"
+          },
+          {
+            "A36": "5 (Sangat Baik)",
+            "D36": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.",
+            "I36": "5",
+            "J36": "120"
+          },
+          {
+            "A37": "4 (Baik)",
+            "D37": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.",
+            "I37": "4",
+            "J37": "100"
+          },
+          {
+            "A38": "3 (Cukup)",
+            "D38": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.",
+            "I38": "3",
+            "J38": "80"
+          },
+          {
+            "A39": "2 (Kurang)",
+            "D39": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.",
+            "I39": "2",
+            "J39": "60"
+          },
+          {
+            "A40": "1 (Sangat Kurang)",
+            "D40": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.",
+            "I40": "1",
+            "J40": "40"
+          },
+          {
+            "A42": "Kategori Hasil Akhir Vendor",
+            "D42": "Predikat"
+          },
+          {
+            "A43": "90 - 100",
+            "D43": "Sangat Baik"
+          },
+          {
+            "A44": "80 - <90",
+            "D44": "Baik"
+          },
+          {
+            "A45": "70 - <80",
+            "D45": "Cukup"
+          },
+          {
+            "A46": "60 - <70",
+            "D46": "Kurang"
+          },
+          {
+            "A47": "< 60",
+            "D47": "Sangat Kurang/Perlu Evaluasi Khusus"
+          },
+          {
+            "A49": "(Tempat, Tanggal)"
+          },
+          {
+            "A51": "Dievaluasi oleh,",
+            "E51": "Mengetahui,"
+          },
+          {
+            "A54": "(Nama)",
+            "E54": "Djohari Tatang",
+            "G54": "Agustius"
+          },
+          {
+            "A55": "Engineering Manager",
+            "E55": "GM Corporate Engineering",
+            "G55": "GM Corporate Operations & Technical Auditor"
+          }
+        ]
+      }
+    ]
+  }
+]

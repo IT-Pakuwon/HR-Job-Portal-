@@ -14,6 +14,7 @@ use App\Http\Controllers\AttachmentMasterController;
 use App\Http\Controllers\AutonbrController;
 use App\Http\Controllers\BastController;
 use App\Http\Controllers\BastListController;
+use App\Http\Controllers\EvaluasiVendorController;
 use App\Http\Controllers\BigQueryController;
 use App\Http\Controllers\BookingCarController;
 use App\Http\Controllers\BookingCarSetupController;
@@ -3145,6 +3146,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
     Route::middleware('admin')->group(function () {
+        Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
+            Route::get('/', [EvaluasiVendorController::class, 'index']);
+            Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json');
+            Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create');
+            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template');
+            Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store');
+            Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show');
+            Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update');
+            Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status');
+        });
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
 

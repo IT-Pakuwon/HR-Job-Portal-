@@ -1,0 +1,1692 @@
+[
+  {
+    "id": "VPE-FIRE-ALARM",
+    "description": "Maintenance Fire Alarm System",
+    "source": "NEW Revised_Form Evaluasi Kinerja Vendor_Fire Alarm.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-FIRE-ALARM-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "45.00",
+        "details": [
+          {
+            "id": "VPE-FIRE-ALARM-A01-S01",
+            "description": "a. Kondisi & performa Fire Alarm System",
+            "criteria": "Setiap kunjungan dilakukan pengetesan secara menyeluruh terhadap sistem Fire Alarm dan hasil pengujian menunjukkan sistem dapat berfungsi dengan baik dan sesuai dengan regulasi terkait, kecuali terdapat kerusakan part yang memerlukan penggantian.",
+            "note": "Laporan Maintenance",
+            "weight": "25.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A01-S02",
+            "description": "b. Pembersihan device",
+            "criteria": "Pembersihan dilakukan pada device, control panel, junction box, smoke detector, smoke duct, dan peralatan lain yang terpasang sesuai ruang lingkup kontrak.",
+            "note": "Laporan Maintenance",
+            "weight": "20.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-FIRE-ALARM-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-FIRE-ALARM-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Kunjungan maintenance dilaksanakan sesuai dengan perjanjian kontrak.",
+            "note": "Schedule Service & Maintenance",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A02-S02",
+            "description": "b. Pelaksanaan pekerjaan sesuai SOP",
+            "criteria": "Pekerjaan dilaksanakan sesuai SOP/Instruksi Kerja, metode kerja dan rencana kerja telah dijelaskan/diinformasikan, serta peralatan kerja yang diperlukan disediakan oleh vendor.",
+            "note": "Laporan Maintenance",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A02-S03",
+            "description": "c. Manpower & kompetensi pekerja",
+            "criteria": "Vendor menyediakan manpower sesuai kebutuhan,  ruang lingkup pekerjaan, dan perjanjian kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A02-S04",
+            "description": "d. Pelaksanaan Training",
+            "criteria": "Vendor memberikan training kepada Tim Engineering terkait safety procedure di setiap kunjungan",
+            "note": "Dokumentasi & Laporan Pelaksanaan Training",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-FIRE-ALARM-A03",
+        "description": "Reporting & Compliance",
+        "weight": "15.00",
+        "details": [
+          {
+            "id": "VPE-FIRE-ALARM-A03-S01",
+            "description": "a. Laporan hasil maintenance",
+            "criteria": "Setiap kunjungan dilengkapi laporan menyeluruh mengenai kondisi aktual sistem, tahapan maintenance, hasil pengecekan/pengujian, dokumentasi, serta rekomendasi.",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan",
+            "weight": "15.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-FIRE-ALARM-A04",
+        "description": "Service & Responsiveness",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-FIRE-ALARM-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Respons tidak melebihi 5 (lima) jam setelah panggilan emergency dan manpower dikirim maksimal dalam waktu 1 x 24 jam sejak kejadian, tanpa biaya untuk pekerjaan emergency dalam lingkup maintenance.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-FIRE-ALARM-A05",
+        "description": "Safety/K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-FIRE-ALARM-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-FIRE-ALARM-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-AHU-FCU-WCPU-AC",
+    "description": "Maintenance AHU, FCU, WCPU, & AC Split",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_AHU, FCU, WCPU, AC Split.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-AHU-FCU-WCPU-AC-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A01-S01",
+            "description": "a. Performa unit Air Conditioning",
+            "criteria": "AHU, FCU, WCPU, dan AC Split beroperasi sesuai parameter desain meliputi temperature & RH, supply & return, chilled water in/out, ampere motor, supply voltage, tekanan air, velocity udara, serta kapasitas unit sesuai spesifikasi desain.",
+            "note": "Laporan Bulanan",
+            "weight": "20.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A01-S02",
+            "description": "b. Kondisi komponen mekanikal & elektrikal",
+            "criteria": "Coil, filter, blower, motor, bearing, V-belt, valve, thermostat, sensor, control panel, drain system, condenser, evaporator, refrigerant, electrical terminal, dan seluruh komponen pendukung diperiksa, dibersihkan, dirawat, serta berfungsi dengan baik sesuai ketentuan kontrak.",
+            "note": "Berita Acara/Laporan Bulanan",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A01-S03",
+            "description": "c. Performance verification",
+            "criteria": "Performance unit memenuhi target operasional sesuai parameter desain yang dipersyaratkan, meliputi\n- Room temperature 24°C ±1°C / RH 50-65%\n- Odorless\n- Smokeless\n- Clean",
+            "note": "Laporan bulanan",
+            "weight": "15.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-AHU-FCU-WCPU-AC-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Maintenance dilaksanakan minimal 1 (satu) kali setiap bulan pada seluruh unit sesuai schedule yang telah disetujui Engineering Department.",
+            "note": "Schedule Service & Maintenance",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A02-S02",
+            "description": "b. Pelaksanaan pekerjaan sesuai SOP",
+            "criteria": "Pekerjaan dilaksanakan sesuai SOP yang disepakati, termasuk penggunaan chemical, cleaning, overhaul, pengukuran sebelum dan sesudah service, serta maintenance ulang apabila hasil pekerjaan belum memenuhi standar.",
+            "note": "Laporan Bulanan",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A02-S03",
+            "description": "c. Manpower & kompetensi pekerja",
+            "criteria": "Jumlah pekerja sesuai perjanjian kontrak, serta pekerja tersebut memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "10.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-AHU-FCU-WCPU-AC-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A03-S01",
+            "description": "a. Laporan hasil maintenance",
+            "criteria": "Laporan bulanan berupa checklist, hasil pengukuran, performance dan analisis semua unit, dokumentasi visual (foto), temuan, dan rekomendasi disampaikan secara lengkap dan tepat waktu sesuai ketentuan kontrak.",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan Bulanan",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-AHU-FCU-WCPU-AC-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Emergency call ditanggapi 1x24 jam, tujuh hari seminggu untuk melakukan perbaikan dan pemeriksaan dalam jangka waktu maksimal 30 (tiga puluh) menit setelah menerima panggilan.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-AHU-FCU-WCPU-AC-A05",
+        "description": "Safety/K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-AHU-FCU-WCPU-AC-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-CHILLER",
+    "description": "Maintenance Chiller",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Chiller.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-CHILLER-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-CHILLER-A01-S01",
+            "description": "a. Kondisi & performa unit chiller",
+            "criteria": "Kondisi fisik dan operasional unit chiller terjaga baik; tidak terdapat kebocoran oil/refrigerant, abnormal noise, vibration, temperature, kapasitas atau kondisi abnormal lain yang memengaruhi keandalan unit.",
+            "note": "Written Service Report",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-CHILLER-A01-S02",
+            "description": "b. Performa & parameter operasi chiller",
+            "criteria": "Parameter operasi, control setting, sensor, safety device, oil system, compressor/starter dan komponen utama berfungsi normal",
+            "note": "Written Service Report",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-CHILLER-A01-S03",
+            "description": "c. Keandalan sistem elektrikal & kontrol",
+            "criteria": "Electrical/control wiring, connection, starter panel, control panel, sensor dan sistem pengaman diperiksa serta berada dalam kondisi baik dan aman.",
+            "note": "Written Service Report",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-CHILLER-A01-S04",
+            "description": "d. Analisa kondisi mesin",
+            "criteria": "Oil analysis dan vibration analysis dilaksanakan sesuai jadwal; hasil analisa ditindaklanjuti apabila terdapat indikasi abnormal atau potensi kerusakan.",
+            "note": "Oil Analysis / Vibration Analysis Report",
+            "weight": "10.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-CHILLER-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-CHILLER-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Maintenance rutin dilaksanakan sesuai jadwal kontrak minimal 4 kali kunjungan per unit per tahun dan mencakup pemeriksaan, pembersihan, perawatan serta penyetelan komponen sesuai scope kontrak.",
+            "note": "Written Service Report",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-CHILLER-A02-S02",
+            "description": "b. Pelaksanaan Annual Shutdown",
+            "criteria": "Annual Shutdown dilaksanakan sesuai jadwal dan scope kontrak",
+            "note": "Annual Shutdown Report",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-CHILLER-A02-S03",
+            "description": "c. Tindak lanjut temuan teknis",
+            "criteria": "Temuan abnormal selama maintenance dianalisis, dilaporkan dan diberikan rekomendasi corrective action yang jelas serta ditindaklanjuti setelah mendapat persetujuan dari Engineering.",
+            "note": "Recommendation Report",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-CHILLER-A02-S04",
+            "description": "d. Manpower & kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai dan expert untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-CHILLER-A02-S05",
+            "description": "e. Pelaksanaan training",
+            "criteria": "Traning kepada Tim Engineering dilaksanakan sebanyak 1x (satu kali) selama 1 tahun masa kontrak.",
+            "note": "Dokumentasi & Laporan Pelaksanaan Training",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-CHILLER-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-CHILLER-A03-S01",
+            "description": "a. Laporan rutin",
+            "criteria": "Seluruh laporan disampaikan secara lengkap, akurat, serta tepat waktu setiap kunjungan",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-CHILLER-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-CHILLER-A04-S01",
+            "description": "a. Emergency call response",
+            "criteria": "Vendor merespons emergency call sebanyak 2 kali dalam 1 tahun dengan cepat serta memberikan dukungan teknis sampai kondisi unit aman/terkendali.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-CHILLER-A04-S02",
+            "description": "b. Koordinasi & komunikasi",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik, termasuk penyampaian kondisi unit, rekomendasi teknis dan rencana tindak lanjut.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-CHILLER-A05",
+        "description": "Safety / K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-CHILLER-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-CHILLER-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-COOLING-TOWER",
+    "description": "Maintenance Cooling Tower Water Treatment",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Cooling Tower.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-COOLING-TOWER-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-COOLING-TOWER-A01-S01",
+            "description": "a. Kualitas air cooling tower",
+            "criteria": "Parameter kualitas air cooling tower terjaga sesuai standar kontrak: \n- TDS: <1500 ppm\n- TSS: <10 ppm\n- Total Hardness: 450 - 500 ppm\n- Conductivity: <2300 µS/cm\n- Silica: <50 ppm\n- Chloride: <100 ppm\n- Sulphate: <35 ppm\n- Iron: <1 ppm\n- pH: 8 - 9",
+            "note": "Laporan Bulanan/Logbook Harian",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A01-S02",
+            "description": "b. Efektivitas program water treatment",
+            "criteria": "Program treatment efektif menjaga sistem dari scaling, korosi, fouling, pertumbuhan mikroba/lumut, serta menjaga filler dan basin dalam kondisi bersih.",
+            "note": "Laporan Bulanan/Logbook Harian",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A01-S03",
+            "description": "c. Performa condenser chiller",
+            "criteria": "Approach temperature condenser chiller dijaga maksimal 2°C sesuai dengan kontrak",
+            "note": "Laporan Bulanan/Logbook Harian",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A01-S04",
+            "description": "d. Parameter operasi sistem",
+            "criteria": "Delta Pressure dan Delta Temperature sesuai desain unit serta kondisi sistem mendukung performa chiller yang optimal.",
+            "note": "Laporan Bulanan/Logbook Harian",
+            "weight": "10.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-COOLING-TOWER-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-COOLING-TOWER-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Cleaning cooling tower, filler dan basin, sedot lumpur, cleaning strainer, serta pekerjaan rutin lainnya dilaksanakan sesuai jadwal dan kebutuhan lapangan.",
+            "note": "Logbook Harian",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A02-S02",
+            "description": "b. Ketersediaan chemical treatment",
+            "criteria": "Chemical yang ramah lingkungan sesuai dengan cicle; pelaksanaan dosing sesuai kebutuhan operasional dan tidak terjadi kekurangan/kelebihan chemical akibat pengelolaan yang tidak tepat.",
+            "note": "Logbook Harian",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A02-S03",
+            "description": "c. Keandalan dosing & monitoring system",
+            "criteria": "Automatic blowdown, online monitoring pH/conductivity dan dosing pump berfungsi baik serta dilakukan pengecekan secara berkala.",
+            "note": "Logbook Harian",
+            "weight": "2.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A02-S04",
+            "description": "d. Analisa air & pengujian berkala",
+            "criteria": "Sampling dan analisa air internal/independen, pengujian Legionella, corrosion coupon dan inspeksi berkala lainnya dilakukan sesuai frekuensi kontrak.",
+            "note": "Laporan Laboratorium",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A02-S05",
+            "description": "e. Manpower & kompetensi pekerja",
+            "criteria": "Sebanyak 2 (dua) orang standby di setiap hari Senin sampai dengan Minggu, dengan jam kerja minimal 40 jam/minggu per orang; pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-COOLING-TOWER-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-COOLING-TOWER-A03-S01",
+            "description": "a. Logbook & laporan rutin",
+            "criteria": "Seluruh kegiatan dicatat dalam logbook harian dan laporan berkala disampaikan secara lengkap, akurat, serta tepat waktu.",
+            "note": "Ketepatan Tanggal Pengumpulan Logbook Harian/Laporan Bulanan",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A03-S02",
+            "description": "b. Dokumen teknis & kepatuhan kontrak",
+            "criteria": "PDS, MSDS, metode kerja/SOP dan dokumen teknis terkait tersedia",
+            "note": "PDS/MSDS/SOP/Dokumen Kontrak",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-COOLING-TOWER-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-COOLING-TOWER-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Vendor merespons keluhan, gangguan atau temuan Engineering secara cepat dan memberikan tindakan korektif yang efektif.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-COOLING-TOWER-A05",
+        "description": "Safety / K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-COOLING-TOWER-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-COOLING-TOWER-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-ELEVATOR",
+    "description": "Maintenance Elevator",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Elevator.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-ELEVATOR-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-ELEVATOR-A01-S01",
+            "description": "a. Kondisi operasional elevator",
+            "criteria": "Elevator dan seluruh sistem mekanikal dan elektrikal beroperasi dengan baik, aman, dan sesuai fungsi operasional setelah dilakukan pemeriksaan, pembersihan, penyetelan, pelumasan, dan perawatan sesuai ketentuan kontrak",
+            "note": "Laporan bulanan",
+            "weight": "25.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A01-S02",
+            "description": "b. Pengujian performa elevator",
+            "criteria": "Pengujian performa elevator dilaksanakan secara periodik meliputi vibration, waktu buka/tutup pintu, balancing wire rope, loading test, governor test, wire rope measurement, dan ARD test sesuai jadwal kontrak.",
+            "note": "Laporan Hasil Pemeliharaan Tahunan",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A01-S03",
+            "description": "c. Pengujian tahunan",
+            "criteria": "Pengiriman laporan pengujian tahunan, hasil pengujian performa elevator, loading test, governor test, wire rope measurement, ARD test, serta rekomendasi spare part untuk tahun depan nya dilaporkan sesuai ketentuan kontrak.",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan Hasil Pemeliharaan Tahunan",
+            "weight": "10.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ELEVATOR-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-ELEVATOR-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Pemeriksaan, pembersihan, perawatan, penyetelan, dan pelumasan elevator dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai schedule yang disetujui Engineering Manager.",
+            "note": "Laporan Bulanan",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A02-S02",
+            "description": "b. Penanganan kerusakan & spare part",
+            "criteria": "Kerusakan atau trouble di luar jadwal maintenance ditangani sesegera mungkin, serta penggantian spare part dilaksanakan sesuai prosedur dan persetujuan yang berlaku.",
+            "note": "Berita Acara Kerusakan & Perbaikan",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A02-S03",
+            "description": "c. Kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 elevator sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A02-S04",
+            "description": "d. Pelaksanaan training",
+            "criteria": "Training kepada pekerja Engineering dilaksanakan minimal 6 (enam) bulan sekali kali atau sesuai permintaan Engineering.",
+            "note": "Dokumentasi dan Laporan Pelaksanaan Training",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ELEVATOR-A03",
+        "description": "Monitoring & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-ELEVATOR-A03-S01",
+            "description": "a. Schedule service & maintenance",
+            "criteria": "Schedule service & maintenance serta schedule pekerja disampaikan sesuai ketentuan kontrak.",
+            "note": "Schedule service & maintenance; schedule pekerja",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A03-S02",
+            "description": "b. Laporan bulanan",
+            "criteria": "Laporan rutin, Service Report, permasalahan pekerjaan, rencana kerja, dan tindak lanjut disampaikan secara lengkap dan tepat waktu sesuai dengan kontrak",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan Bulanan",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ELEVATOR-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-ELEVATOR-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Emergency call ditanggapi sesuai SLA dengan waktu kedatangan maksimal 3 (tiga) jam dan maksimal 1 (satu) jam untuk kasus penumpang terjebak (stuck case).",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ELEVATOR-A05",
+        "description": "Safety / K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-ELEVATOR-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-ELEVATOR-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-ESCALATOR-TRAVELATOR",
+    "description": "Maintenance Escalator & Travelator",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Escalator & Travelator.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-ESCALATOR-TRAVELATOR-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A01-S01",
+            "description": "a. Kondisi operasional escalator dan travelator",
+            "criteria": "Escalator dan travelator beserta peralatan elektronik dan peralatan pengaman lainnya beroperasi dengan baik, aman, dan sesuai fungsi operasional setelah dilakukan pemeriksaan, pembersihan, penyetelan, dan pelumasan sesuai ketentuan kontrak.",
+            "note": "Laporan bulanan",
+            "weight": "25.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A01-S02",
+            "description": "b. Safety audit escalator & travelator",
+            "criteria": "Safety audit escalator dan travelator dilaksanakan sesuai jadwal yang dipersyaratkan dalam kontrak, beserta rekomendasi spare part untuk tahun depan nya",
+            "note": "Laporan audit safety",
+            "weight": "25.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ESCALATOR-TRAVELATOR-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Pemeriksaan, pembersihan, perawatan, penyetelan, dan pelumasan escalator dan travelator dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai schedule yang disetujui Engineering Manager.",
+            "note": "Schedule Service & Maintenance",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A02-S02",
+            "description": "b. Penanganan kerusakan & spare part",
+            "criteria": "Kerusakan atau trouble di luar jadwal maintenance ditangani sesegera mungkin, serta penggantian spare part dilaksanakan sesuai prosedur dan persetujuan yang berlaku.",
+            "note": "Berita Acara Kerusakan & Perbaikan",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A02-S03",
+            "description": "c. Manpower & kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 escalator & travelator sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A02-S04",
+            "description": "d. Pelaksanaan training",
+            "criteria": "Training kepada Tim Engineering dilaksanakan minimal 6 (enam) bulan sekali atau sesuai permintaan Engineering.",
+            "note": "Dokumentasi dan Laporan Pelaksanaan Training",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ESCALATOR-TRAVELATOR-A03",
+        "description": "Monitoring & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A03-S01",
+            "description": "a. Schedule service & maintenance",
+            "criteria": "Schedule service & maintenance serta schedule pekerja disampaikan sesuai ketentuan kontrak.",
+            "note": "Schedule service & maintenance; schedule pekerja",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A03-S02",
+            "description": "b. Laporan bulanan",
+            "criteria": "Laporan rutin, permasalahan pekerjaan, rencana kerja ke depan, dan rekomendasi sparepart disampaikan secara lengkap dan tepat waktu kepada Engineering.",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan Bulanan",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ESCALATOR-TRAVELATOR-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Emergency call ditanggapi secara cepat dan tidak melebihi 5 (lima) jam sejak panggilan diterima sesuai ketentuan kontrak.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-ESCALATOR-TRAVELATOR-A05",
+        "description": "Safety / K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-ESCALATOR-TRAVELATOR-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-GONDOLA",
+    "description": "Maintenance Gondola",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Gondola.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-GONDOLA-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-GONDOLA-A01-S01",
+            "description": "a. Kondisi operasional gondola",
+            "criteria": "Seluruh platform gondola, mekanikal konstruksi gondola, elektrikal sistem gondola, serta seluruh sistem safety diperiksa, dirawat, dan berfungsi dengan baik sesuai ketentuan kontrak.",
+            "note": "Laporan bulanan",
+            "weight": "25.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A01-S02",
+            "description": "b. Audit safety gondola",
+            "criteria": "Safety audit gondola dilaksanakan sesuai jadwal yang dipersyaratkan dalam kontrak, beserta rekomendasi spare part untuk tahun depan nya",
+            "note": "Laporan audit safety",
+            "weight": "25.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-GONDOLA-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-GONDOLA-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Pemeriksaan, pembersihan, perawatan, dan penyetelan komponen gondola dilaksanakan secara rutin minimal 1 (satu) kali setiap bulan sesuai jadwal yang disetujui Engineering Manager.",
+            "note": "Schedule Service & Maintenance",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A02-S02",
+            "description": "b. Penanganan kerusakan & spare part",
+            "criteria": "Perbaikan kerusakan dan penggantian spare part dilaksanakan sesuai prosedur kontrak, serta emergency case ditangani dengan baik.",
+            "note": "Berita Acara Kerusakan & Perbaikan",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A02-S03",
+            "description": "c. Manpower & Kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan (Sertifikat K3 Gondola sesuai dengan nama pekerjanya), serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "10.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-GONDOLA-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-GONDOLA-A03-S01",
+            "description": "a. Schedule service & maintenance",
+            "criteria": "Schedule service & maintenance serta schedule pekerja disampaikan secara lengkap sesuai ketentuan kontrak.",
+            "note": "Schedule service & maintenance; schedule pekerja",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A03-S02",
+            "description": "b. Laporan bulanan",
+            "criteria": "Laporan rutin, permasalahan pekerjaan, rekomendasi spare part, serta rencana kerja ke depan disampaikan secara lengkap dan tepat waktu kepada Engineering.",
+            "note": "Ketepatan Tanggal Pengumpulan Laporan Bulanan",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-GONDOLA-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-GONDOLA-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Emergency call ditanggapi secara cepat dan teknisi hadir maksimal 1 × 24 jam sesuai ketentuan kontrak.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-GONDOLA-A05",
+        "description": "Safety / K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-GONDOLA-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-GONDOLA-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-SLIDING-DOOR",
+    "description": "Maintenance Sliding Door",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_Sliding Door.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-SLIDING-DOOR-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-SLIDING-DOOR-A01-S01",
+            "description": "a. Kondisi operasional automatic sliding door & revolving door",
+            "criteria": "Kecepatan membuka dan menutup pintu telah disetel dengan baik, dan seluruh pintu dapat beroperasi secara normal, aman, dan sesuai fungsi.",
+            "note": "Checklist Report",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A01-S02",
+            "description": "b. Kondisi sistem mekanikal, elektrikal & control",
+            "criteria": "Motor, belt, gearbox, control unit, kabel, koneksi, serta seluruh komponen mekanikal dan elektrikal diperiksa, dirawat, dan berfungsi dengan baik.",
+            "note": "Checklist Report",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A01-S03",
+            "description": "c. Keandalan safety device",
+            "criteria": "Radar sensor, PDR, CFD sensor, panic breakout, vertical edge safety, dan seluruh safety device berfungsi dengan baik sesuai standar operasional.",
+            "note": "Checklist Report",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A01-S04",
+            "description": "d. Kondisi kaca & komponen pintu",
+            "criteria": "Kaca pintu, roda, dan seluruh komponen yang mudah aus diperiksa, dirawat, serta tetap terpasang dengan baik.",
+            "note": "Checklist Report",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-SLIDING-DOOR-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-SLIDING-DOOR-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Pelaksanaan maintenance secara rutin setiap 3 bulan sekali (4 kali per tahun) sesuai jadwal dan lingkup pekerjaan yang tercantum dalam kontrak.",
+            "note": "Checklist Report",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A02-S02",
+            "description": "b. Manpower & kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A02-S03",
+            "description": "c. Pelaksanaan training",
+            "criteria": "Terlaksana nya training 2x setahun kepada Tim Engineering mengenai pengoperasian, troubleshooting, dan dasar pemeliharaan sistem sesuai lingkup kontrak.",
+            "note": "Dokumentasi & Laporan Pelaksanaan Training",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A02-S04",
+            "description": "c. Penanganan kerusakan & rekomendasi",
+            "criteria": "Penyampaian rekomendasi perbaikan dan melakukan penanganan kerusakan atau penggantian spare part sesuai prosedur dan persetujuan Engineering.",
+            "note": "Checklist Report",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-SLIDING-DOOR-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-SLIDING-DOOR-A03-S01",
+            "description": "a. Checklist Report",
+            "criteria": "Penyampaian checklist report beserta rekomendasi perbaikan secara lengkap dan tepat waktu sesuai ketentuan kontrak.",
+            "note": "Ketepatan Tanggal Pengumpulan Checklist Report",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-SLIDING-DOOR-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-SLIDING-DOOR-A04-S01",
+            "description": "a. Emergency responses",
+            "criteria": "Merespons emergency call secara cepat dan mengirim teknisi dalam  waktu 1 x 24 jam (maksimal), serta memastikan gangguan dapat segera ditangani hingga peralatan kembali beroperasi normal.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A04-S02",
+            "description": "b. Koordinasi & komunikasi",
+            "criteria": "Koordinasi dan komunikasi yang baik dengan Engineering serta menyampaikan informasi kondisi peralatan, hasil pemeriksaan, dan tindak lanjut pekerjaan secara jelas.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-SLIDING-DOOR-A05",
+        "description": "Safety/K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-SLIDING-DOOR-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-SLIDING-DOOR-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Buruk / Perlu Evaluasi Khusus"
+      }
+    ]
+  },
+  {
+    "id": "VPE-STP",
+    "description": "Maintenance STP, Water Recycle, & Pump Station",
+    "source": "Revised_Form Evaluasi Kinerja Vendor_STP.xlsx",
+    "aspects": [
+      {
+        "id": "VPE-STP-A01",
+        "description": "Technical Performance & Quality",
+        "weight": "50.00",
+        "details": [
+          {
+            "id": "VPE-STP-A01-S01",
+            "description": "a. Kualitas air outlet STP",
+            "criteria": "Kualitas air outlet STP memenuhi baku mutu sesuai PERMENLH No 68 Tahun 2016 tentang Baku Mutu Air Limbah Domestik yaitu sebagai berikut:\n- pH: 6 - 9\n- BOD: 30 mg/L\n- COD: 100 mg/L\n- TSS: 30 mg/L\n- Minyak dan lemak: 5 mg/L\n- Amoniak: 10 mg/L\n- Total Coliform: 3000 jumlah/100 mL",
+            "note": "Hasil analisa laboratorium terakreditasi/pihak ketiga baik Inlet dan Outlet",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-STP-A01-S02",
+            "description": "b. Produksi water recycling",
+            "criteria": "Terpenuhinya kebutuhan air daur ulang/water recycling untuk kebutuhan operasional bangunan gedung.",
+            "note": "Laporan harian",
+            "weight": "15.00"
+          },
+          {
+            "id": "VPE-STP-A01-S03",
+            "description": "c. Kualitas water recycle",
+            "criteria": "Kualitas water recycle memenuhi baku mutu sesuai \nPeraturan Menteri Kesehatan Republik Indonesia Nomor 32 Tahun 2017 tentang Standar Baku Mutu Kesehatan Lingkungan dan Persyaratan Kesehatan Air untuk Keperluan Higiene Sanitasi, dan pH wajib menjaga diangka 7-9.",
+            "note": "Hasil analisa laboratorium terakreditasi/pihak ketiga baik Inlet dan Outlet",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-STP-A01-S04",
+            "description": "d. Kondisi operasi equipment STP",
+            "criteria": "Blower, diffuser, dosing pump, water level control, pompa, dan equipment STP lainnya beroperasi dengan baik sesuai fungsi serta tidak mengalami gangguan.",
+            "note": "Laporan harian",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-STP-A01-S05",
+            "description": "e. Pengelolaan chemical & bakteri",
+            "criteria": "Chemical, bakteri, serta pelaksanaan dosing dilakukan sesuai ketentuan sehingga proses pengolahan air limbah berjalan optimal.",
+            "note": "Data barang masuk warehouse",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-STP-A02",
+        "description": "Maintenance Management",
+        "weight": "30.00",
+        "details": [
+          {
+            "id": "VPE-STP-A02-S01",
+            "description": "a. Pelaksanaan maintenance rutin",
+            "criteria": "Perawatan harian, mingguan, dan bulanan dilaksanakan sesuai jadwal serta lingkup pekerjaan yang tercantum dalam kontrak.",
+            "note": "Laporan harian",
+            "weight": "10.00"
+          },
+          {
+            "id": "VPE-STP-A02-S02",
+            "description": "b. Pembersihan fasilitas STP",
+            "criteria": "Pembersihan bar screen, fine screen, solid grinder, bak aerasi, bak sedimentasi, sump pit, grease trap, pump station, dan area STP dilaksanakan sesuai prosedur.",
+            "note": "Laporan harian",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-STP-A02-S03",
+            "description": "c. Pengelolaan grease & sludge",
+            "criteria": "Pengelolaan lumpur dan limbah lemak dilaksanakan sesuai jadwal, batas ketebalan grease trap terjaga, dan pengangkutan dilakukan tanpa menimbulkan pencemaran atau gangguan pada sistem STP.",
+            "note": "Manifest resmi pengangkutan limbah lemak",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-STP-A02-S04",
+            "description": "d. Ketersediaan chemical, tools & consumable",
+            "criteria": "Chemical, tools, consumable, dan perlengkapan kerja tersedia sesuai kebutuhan kontrak serta diterima dan tercatat melalui warehouse sebelum digunakan.",
+            "note": "Data barang masuk warehouse",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-STP-A02-S05",
+            "description": "e. Manpower & kompetensi pekerja",
+            "criteria": "Pekerja yang ditugaskan memiliki identitas, surat tugas, perizinan yang dipersyaratkan, serta kompetensi yang memadai untuk melaksanakan pekerjaan sesuai ketentuan kontrak.",
+            "note": "Absensi/Sertifikat/Surat Tugas (Sertifikat K3 harus masih berlaku)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-STP-A02-S06",
+            "description": "f. Pelaksanaan training",
+            "criteria": "Terlaksana nya training 1x setahun kepada Tim Engineering mengenai pengoperasian, troubleshooting, dan dasar pemeliharaan sistem sesuai lingkup kontrak.",
+            "note": "Dokumentasi & Laporan Pelaksanaan Training",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-STP-A03",
+        "description": "Reporting & Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-STP-A03-S01",
+            "description": "a. Laporan rutin",
+            "criteria": "Laporan harian, laporan bulanan, hasil analisa laboratorium, jadwal pekerjaan, permasalahan, dan rencana tindak lanjut disampaikan secara lengkap dan tepat waktu.",
+            "note": "Ketepatan Tanggal Pengumpulan Seluruh Laporan",
+            "weight": "3.00"
+          },
+          {
+            "id": "VPE-STP-A03-S02",
+            "description": "b. Dokumen kontrak & lingkungan",
+            "criteria": "PDS, MSDS, manifest limbah, dokumen legal, serta dokumen pendukung pekerjaan tersedia dan sesuai ketentuan kontrak.",
+            "note": "PDS/MSDS/SOP/Dokumen Kontrak",
+            "weight": "2.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-STP-A04",
+        "description": "Service & Responsiveness",
+        "weight": "10.00",
+        "details": [
+          {
+            "id": "VPE-STP-A04-S01",
+            "description": "a. Respons terhadap gangguan/temuan",
+            "criteria": "Vendor merespons keluhan, gangguan atau temuan Engineering secara cepat dan memberikan tindakan korektif yang efektif.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          },
+          {
+            "id": "VPE-STP-A04-S02",
+            "description": "b. Koordinasi & tindak lanjut",
+            "criteria": "Koordinasi dengan Engineering/Building Management berjalan baik; rekomendasi dan action plan ditindaklanjuti sampai selesai.",
+            "note": "Bukti Komunikasi (Email/WhatsApp)",
+            "weight": "5.00"
+          }
+        ]
+      },
+      {
+        "id": "VPE-STP-A05",
+        "description": "Safety/K3 Compliance",
+        "weight": "5.00",
+        "details": [
+          {
+            "id": "VPE-STP-A05-S01",
+            "description": "a. Kepatuhan pekerja terhadap K3",
+            "criteria": "Pekerja menggunakan seragam, tanda pengenal dan APD yang dipersyaratkan serta mematuhi tata tertib dan prosedur K3 di lokasi pekerjaan.",
+            "note": "Pengecekan K3/Laporan harian",
+            "weight": "2.00"
+          },
+          {
+            "id": "VPE-STP-A05-S02",
+            "description": "b. Safety performance & perlindungan aset",
+            "criteria": "Pekerjaan dilaksanakan dengan aman, tidak menimbulkan unsafe action/condition, kecelakaan, atau kerusakan aset akibat kelalaian vendor.",
+            "note": "Pengecekan K3/Laporan harian",
+            "weight": "1.00"
+          },
+          {
+            "id": "VPE-STP-A05-S03",
+            "description": "c. Pengelolaan limbah dan lingkungan",
+            "criteria": "Limbah lemak, chemical, jeriken bekas, dan kegiatan pengangkutan dikelola sesuai prosedur serta tidak menimbulkan pencemaran, kebocoran, maupun bau di area pekerjaan.",
+            "note": "Manifest resmi pengangkutan limbah lemak/Berita Acara Pengambilan Jeriken Kosong",
+            "weight": "2.00"
+          }
+        ]
+      }
+    ],
+    "scores": [
+      {
+        "score": 5,
+        "value": 120,
+        "label": "5 (Sangat Baik)",
+        "description": "Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target."
+      },
+      {
+        "score": 4,
+        "value": 100,
+        "label": "4 (Baik)",
+        "description": "Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik."
+      },
+      {
+        "score": 3,
+        "value": 80,
+        "label": "3 (Cukup)",
+        "description": "Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil."
+      },
+      {
+        "score": 2,
+        "value": 60,
+        "label": "2 (Kurang)",
+        "description": "Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif."
+      },
+      {
+        "score": 1,
+        "value": 40,
+        "label": "1 (Sangat Kurang)",
+        "description": "Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3."
+      }
+    ],
+    "result_categories": [
+      {
+        "range": "90 - 100",
+        "label": "Sangat Baik"
+      },
+      {
+        "range": "80 - <90",
+        "label": "Baik"
+      },
+      {
+        "range": "70 - <80",
+        "label": "Cukup"
+      },
+      {
+        "range": "60 - <70",
+        "label": "Kurang"
+      },
+      {
+        "range": "< 60",
+        "label": "Sangat Kurang/Perlu Evaluasi Khusus"
+      }
+    ]
+  }
+]
