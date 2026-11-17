@@ -3147,6 +3147,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor');
+        Route::get('/editevaluasivendor/{hash}', [EvaluasiVendorController::class, 'editHashEvaluasi'])->name('editevaluasivendor');
         Route::get('/pdf_evaluasivendor/{hash}', [EvaluasiVendorController::class, 'printEvaluasi'])->name('evaluasivendor.print');
         Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
             Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);

@@ -53,11 +53,11 @@
                     <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-700"><dt class="text-xs text-gray-500 dark:text-gray-400">Pekerjaan</dt><dd class="mt-1 whitespace-pre-line">{{ $evaluation->keperluan ?: '—' }}</dd></div>
                 </dl>
             </section>
-            <section x-data="{ tab: 'approval' }" class="overflow-hidden rounded-xl bg-white dark:bg-gray-800" style="min-height:360px">
+            <section x-data="{ tab: 'notes' }" class="overflow-hidden rounded-xl bg-white dark:bg-gray-800" style="min-height:400px;display:flex;flex-direction:column">
                 <div class="flex border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700" role="tablist" aria-label="Informasi penilaian">
-                    <button type="button" @click="tab = 'approval'" :aria-selected="tab === 'approval'" :class="tab === 'approval' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Approval Details</button>
-                    <button type="button" @click="tab = 'comments'; $dispatch('load-vendor-comments')" :aria-selected="tab === 'comments'" :class="tab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Comments <span id="vendor-comment-count" class="text-xs"></span></button>
                     <button type="button" @click="tab = 'notes'" :aria-selected="tab === 'notes'" :class="tab === 'notes' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Catatan Vendor</button>
+                    <button type="button" @click="tab = 'approval'" :aria-selected="tab === 'approval'" :class="tab === 'approval' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Approval Details</button>
+                    <button type="button" @click="tab = 'comments'; $dispatch('load-vendor-comments')" :aria-selected="tab === 'comments'" :class="tab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Comments <span id="vendor-comment-count" hidden style="margin-left:4px;padding:2px 5px;border-radius:999px;background:#4f35ff;color:white;font-size:10px;font-weight:700;line-height:1"></span></button>
                 </div>
                 <div x-show="tab === 'approval'" class="overflow-x-auto p-4" role="tabpanel">
                     <table class="w-full text-left text-sm">
@@ -83,22 +83,28 @@
                         </tbody>
                     </table>
                 </div>
-                <div x-show="tab === 'comments'" x-cloak class="p-4" role="tabpanel">
-                    <div id="vendor-comment-list" class="space-y-3 overflow-y-auto" style="max-height:250px" aria-live="polite"><p class="text-sm text-gray-500">Memuat pesan…</p></div>
-                    <form id="vendor-comment-form" class="mt-4 flex items-end gap-3 border-t border-gray-200 pt-3 dark:border-gray-700">
-                        <label class="flex-1 text-sm">Pesan<textarea id="vendor-comment-input" name="comment" required maxlength="500" rows="2" placeholder="Tulis komentar atau pesan…" class="mt-1 w-full rounded-lg border-gray-300 bg-gray-50 text-sm dark:bg-gray-700"></textarea></label>
-                        <button type="submit" id="vendor-comment-send" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Kirim</button>
+                <div x-show="tab === 'comments'" x-cloak class="flex flex-col px-4" style="flex:1;min-height:0" role="tabpanel">
+                    <div id="vendor-comment-list" class="space-y-3 overflow-y-auto p-4" style="flex:1;min-height:210px;max-height:300px" aria-live="polite"><p class="text-sm text-gray-500">Memuat pesan…</p></div>
+                    <form id="vendor-comment-form" class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                        <input id="vendor-comment-input" name="comment" type="text" required maxlength="500" aria-label="Write a comment" placeholder="Write a comment..." class="flex-1 rounded-lg border-gray-500 bg-gray-100 p-3 text-sm dark:bg-gray-700" style="min-width:0">
+                        <button type="submit" id="vendor-comment-send" class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">Post 🚀</button>
                     </form>
                 </div>
                 <div x-show="tab === 'notes'" x-cloak class="space-y-4 p-5 text-sm" role="tabpanel">
-                    <div><h2 class="font-semibold text-gray-500">Catatan Evaluasi</h2><p class="mt-2 whitespace-pre-line">{{ $evaluation->vendor_perfomance_note ?: '—' }}</p></div>
-                    <div><h2 class="font-semibold text-gray-500">Komentar / Rekomendasi</h2><p class="mt-2 whitespace-pre-line">{{ $evaluation->template_vpe_aspect_comment ?: '—' }}</p></div>
+                    <section class="vendor-note-box">
+                        <h2 class="vendor-note-heading">Catatan Evaluasi</h2>
+                        <p class="vendor-note-content">{{ $evaluation->vendor_perfomance_note ?: 'Belum ada catatan evaluasi.' }}</p>
+                    </section>
+                    <section class="vendor-note-box vendor-note-recommendation">
+                        <h2 class="vendor-note-heading">Komentar / Rekomendasi</h2>
+                        <p class="vendor-note-content">{{ $evaluation->template_vpe_aspect_comment ?: 'Belum ada komentar atau rekomendasi.' }}</p>
+                    </section>
                 </div>
             </section>
         </div>
         <section class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
             <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-3 dark:border-gray-700">
-                <h2 class="text-sm font-bold">Detail Penilaian Vendor — Aspek Penilaian (KPI)</h2>
+                <div class="flex flex-wrap items-center gap-3"><h2 class="text-sm font-bold">Detail Penilaian Vendor — Aspek Penilaian (KPI)</h2>@include('pages.evaluasivendor.partials.score-guide-button')</div>
                 <div class="vendor-kpi-summary" style="--kpi-accent:{{ $kpiAccent }};--kpi-tint:{{ $kpiTint }}" aria-label="Total Nilai KPI {{ number_format($kpiScore, 2) }}, {{ $evaluation->template_vpe_aspect_result }}">
                     <div>
                         <span class="vendor-kpi-label">Total Nilai KPI</span>
@@ -136,7 +142,14 @@
             </div>
         </section>
     </div>
+    @include('pages.evaluasivendor.partials.score-guide')
     <style>
+        .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #6366f1;border-radius:8px;padding:14px 16px;background:#f8fafc}
+        .vendor-note-recommendation{border-left-color:#0d9488;background:#f0fdfa}
+        .vendor-note-heading{margin:0;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#334155}
+        .vendor-note-content{margin:10px 0 0;white-space:pre-line;overflow-wrap:anywhere;line-height:1.65;color:#0f172a}
+        .dark .vendor-note-box{background:#1f2937;border-color:#475569;border-left-color:#818cf8}.dark .vendor-note-recommendation{border-left-color:#2dd4bf}
+        .dark .vendor-note-heading{color:#e2e8f0;border-bottom-color:#475569}.dark .vendor-note-content{color:#f1f5f9}
         .vendor-kpi-summary{display:flex;align-items:center;gap:12px;min-width:210px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--kpi-accent) 18%,transparent);border-left:4px solid var(--kpi-accent);border-radius:10px;background:linear-gradient(120deg,var(--kpi-tint),#fff);box-shadow:0 4px 16px color-mix(in srgb,var(--kpi-accent) 8%,transparent)}
         .vendor-kpi-label{display:block;color:#64748b;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
         .vendor-kpi-value{display:block;margin-top:2px;color:var(--kpi-accent);font-size:24px;font-weight:800;line-height:1.1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
@@ -152,6 +165,15 @@
             const commentList = document.getElementById('vendor-comment-list');
             const commentInput = document.getElementById('vendor-comment-input');
             const sendComment = document.getElementById('vendor-comment-send');
+            const relativeTime = new Intl.RelativeTimeFormat('en', {numeric: 'auto'});
+            function commentTime(value) {
+                const time = new Date(value);
+                if (Number.isNaN(time.getTime())) return '';
+                const seconds = (time.getTime() - Date.now()) / 1000;
+                const units = [[31536000, 'year'], [2592000, 'month'], [86400, 'day'], [3600, 'hour'], [60, 'minute'], [1, 'second']];
+                const [divisor, unit] = units.find(([size]) => Math.abs(seconds) >= size) || units[units.length - 1];
+                return relativeTime.format(Math.round(seconds / divisor), unit);
+            }
             let commentsRequest = 0;
             async function loadComments() {
                 const requestId = ++commentsRequest;
@@ -161,7 +183,9 @@
                     const result = await response.json();
                     if (requestId !== commentsRequest) return;
                     commentList.replaceChildren();
-                    document.getElementById('vendor-comment-count').textContent = result.comments.length ? '(' + result.comments.length + ')' : '';
+                    const count = document.getElementById('vendor-comment-count');
+                    count.textContent = result.comments.length > 99 ? '99+' : result.comments.length;
+                    count.hidden = result.comments.length === 0;
                     if (!result.comments.length) {
                         const empty = document.createElement('p');
                         empty.className = 'py-4 text-center text-sm text-gray-500';
@@ -170,16 +194,21 @@
                     }
                     result.comments.forEach(comment => {
                         const card = document.createElement('article');
-                        card.className = 'rounded-lg bg-gray-50 p-3 text-sm dark:bg-gray-700';
-                        const author = document.createElement('strong');
-                        author.textContent = comment.name || comment.username;
-                        const date = document.createElement('div');
-                        date.className = 'mt-1 text-xs text-gray-500 dark:text-gray-400';
-                        date.textContent = comment.message_date ? new Date(comment.message_date).toLocaleString('id-ID') : '';
+                        card.className = 'rounded-lg bg-gray-100 p-3 text-sm dark:bg-gray-700';
+                        const heading = document.createElement('p');
+                        heading.className = 'text-xs';
+                        const author = document.createElement('span');
+                        author.className = 'font-semibold';
+                        author.textContent = comment.username || comment.name;
+                        const date = document.createElement('span');
+                        date.className = 'text-gray-500 dark:text-gray-400';
+                        const time = commentTime(comment.message_date || comment.created_at);
+                        date.textContent = time ? ' (' + time + ')' : '';
+                        heading.append(author, date);
                         const text = document.createElement('p');
-                        text.className = 'mt-2 whitespace-pre-line break-words';
+                        text.className = 'mt-1 whitespace-pre-line break-words';
                         text.textContent = comment.message;
-                        card.append(author, date, text);
+                        card.append(heading, text);
                         commentList.append(card);
                     });
                 } catch (error) {
@@ -196,7 +225,7 @@
                     return;
                 }
                 sendComment.disabled = true;
-                sendComment.textContent = 'Mengirim…';
+                sendComment.textContent = 'Posting...';
                 try {
                     const response = await fetch(commentsUrl, {method: 'POST', headers: {
                         'Accept': 'application/json', 'Content-Type': 'application/json',
@@ -210,7 +239,7 @@
                     await Swal.fire({icon: 'error', title: 'Pesan belum terkirim', text: error.message});
                 } finally {
                     sendComment.disabled = false;
-                    sendComment.textContent = 'Kirim';
+                    sendComment.textContent = 'Post 🚀';
                 }
             });
             loadComments();
