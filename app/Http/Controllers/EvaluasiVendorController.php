@@ -31,30 +31,46 @@ class EvaluasiVendorController extends Controller
 
     public const STATUSES = ['P' => 'On Progress', 'R' => 'Rejected', 'D' => 'Revised', 'C' => 'Completed'];
 
+    private function scopeEvaluasi($query, string $prefix = '')
+    {
+        $user = request()->user();
+        if ($user->hasRole('EVOACCESS')) {
+            return $query;
+        }
+        $ids = fn ($value) => array_values(array_filter(array_map('trim', explode(',', (string) $value)), fn ($id) => $id !== ''));
+        return $query->whereIn($prefix.'cpny_id', $ids($user->cpny_id))
+            ->whereIn($prefix.'department_id', $ids($user->department_id));
+    }
+
     private function sources()
     {
         $po = TrPO::query()->selectRaw("id as source_id, 'SPK' as source_type, ponbr as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, spkstartworkingdate as start_date, spkendtworkingdate as end_date, created_by, status")
             ->where('potype', 'SPK')->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
         $contract = TrKontrak::query()->selectRaw("id as source_id, 'KONTRAK' as source_type, kontrakid as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, startdate as start_date, enddate as end_date, created_by, status")
-            ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
+            ->whereNull('deleted_at')->whereIn('status', ['P', 'C'])
+            ->whereDate('enddate', '>=', Carbon::now('Asia/Jakarta')->toDateString());
 
-        return DB::connection('pgsql')->query()->fromSub($po->unionAll($contract), 'jobs');
+        return $this->scopeEvaluasi(DB::connection('pgsql')->query()->fromSub($po->unionAll($contract), 'jobs'), 'jobs.');
     }
 
     private function jobs()
     {
-        return $this->sources()->whereNotExists(function ($query) {
-            $query->selectRaw('1')->from('tr_vendor_perfomance as e')
-                ->whereColumn('e.vendor_perfomance_type', 'jobs.source_type')
-                ->whereColumn('e.ponbr', 'jobs.document_no')
-                ->whereRaw('e.cpny_id IS NOT DISTINCT FROM jobs.cpny_id')
-                ->whereNull('e.deleted_at')->where('e.status', '<>', 'R');
+        return $this->sources()->where(function ($jobs) {
+            $jobs->where('jobs.source_type', 'KONTRAK')->orWhere(function ($spk) {
+                $spk->where('jobs.source_type', 'SPK')->whereNotExists(function ($query) {
+                    $query->selectRaw('1')->from('tr_vendor_perfomance as e')
+                        ->whereColumn('e.vendor_perfomance_type', 'jobs.source_type')
+                        ->whereColumn('e.ponbr', 'jobs.document_no')
+                        ->whereRaw('e.cpny_id IS NOT DISTINCT FROM jobs.cpny_id')
+                        ->whereNull('e.deleted_at');
+                });
+            });
         });
     }
 
     private function evaluations()
     {
-        return TrVendorPerfomance::query()->whereNull('deleted_at');
+        return $this->scopeEvaluasi(TrVendorPerfomance::query()->whereNull('deleted_at'));
     }
 
     public function indexEvaluasi()
@@ -130,7 +146,7 @@ class EvaluasiVendorController extends Controller
                 'created_by' => $row->created_by, 'status' => self::STATUSES[$row->status] ?? $row->status,
                 'score' => $jobs ? null : $row->template_vpe_aspect_grandtotal_score,
                 'url' => $jobs ? route('evaluasivendor.create', ['source_type' => $row->source_type, 'source_id' => $row->source_id])
-                    : $this->showUrlEvaluasi($row->id),
+                    : ($row->status === 'D' ? route('editevaluasivendor', Hashids::encode($row->id)) : $this->showUrlEvaluasi($row->id)),
             ];
         });
 
@@ -145,7 +161,10 @@ class EvaluasiVendorController extends Controller
             ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
         if ($type === 'SPK') {
             $query->where('potype', 'SPK');
+        } else {
+            $query->whereDate('enddate', '>=', Carbon::now('Asia/Jakarta')->toDateString());
         }
+        $this->scopeEvaluasi($query);
         if ($lock) {
             $query->lockForUpdate();
         }
@@ -214,9 +233,10 @@ class EvaluasiVendorController extends Controller
             'vendor_perfomance_note' => 'nullable|string|max:10000',
             'template_vpe_aspect_comment' => 'nullable|string|max:10000',
             'ratings' => 'required|array', 'ratings.*' => 'required|integer|between:1,5',
+            'template_vpe_id' => 'required|string|max:50',
             'notes' => 'nullable|array', 'notes.*' => 'nullable|string|max:10000',
         ], $creating ? ['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])],
-            'source_id' => 'required|integer|min:1', 'template_vpe_id' => 'required|string|max:50'] : []), [
+            'source_id' => 'required|integer|min:1'] : []), [
             'template_vpe_id.required' => 'Jenis Pekerjaan wajib dipilih.',
             'ratings.required' => 'Seluruh skor penilaian wajib diisi.',
             'ratings.*.required' => 'Skor pada setiap subaspek wajib diisi.',
@@ -241,8 +261,9 @@ class EvaluasiVendorController extends Controller
             return DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl) {
                 $source = $this->source($data['source_type'], $data['source_id'], true);
                 $fields = $this->sourceFields($source, $data['source_type']);
-                $duplicate = $this->evaluations()->where('vendor_perfomance_type', $fields['vendor_perfomance_type'])
-                    ->where('ponbr', $fields['ponbr'])->where('cpny_id', $fields['cpny_id'])->where('status', '<>', 'R')->exists();
+                $duplicate = $fields['vendor_perfomance_type'] === 'SPK' && TrVendorPerfomance::query()
+                    ->whereNull('deleted_at')->where('vendor_perfomance_type', 'SPK')
+                    ->where('ponbr', $fields['ponbr'])->where('cpny_id', $fields['cpny_id'])->exists();
                 if ($duplicate) {
                     throw ValidationException::withMessages(['source_id' => 'Pekerjaan ini sudah memiliki penilaian vendor.']);
                 }
@@ -346,13 +367,23 @@ class EvaluasiVendorController extends Controller
         ]);
     }
 
+    public function editHashEvaluasi(string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_unless(count($decoded) === 1, 404);
+        return $this->editEvaluasi((int) $decoded[0]);
+    }
+
     public function editEvaluasi(int $id)
     {
         $evaluation = $this->evaluations()->findOrFail($id);
         abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
-        return view('pages.evaluasivendor.form', ['evaluation' => $evaluation, 'details' => $details,
-            'templates' => collect(), 'sourceId' => null, 'editable' => in_array($evaluation->status, ['P', 'D']), 'statuses' => self::STATUSES]);
+        $templates = MsTemplateVendorPerfomance::query()->whereNull('cpny_id')->whereNull('department_id')
+            ->whereNull('deleted_at')->where('status', 'A')->select('template_vpe_id', 'template_vpe_descr')
+            ->distinct()->orderBy('template_vpe_descr')->get();
+        return view('pages.evaluasivendor.editevaluasivendor', ['evaluation' => $evaluation, 'details' => $details,
+            'templates' => $templates, 'sourceId' => null, 'editable' => true, 'statuses' => self::STATUSES]);
     }
 
     public function printEvaluasi(string $hash)
@@ -364,12 +395,10 @@ class EvaluasiVendorController extends Controller
             ->where('aprv_departementid', $evaluation->department_id)->where('status', '<>', 'X')
             ->orderBy('created_at')->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->orderBy('id')->get();
         $creatorName = User::query()->where('username', $evaluation->created_by)->value('name') ?: $evaluation->created_by;
-        $templates = json_decode(file_get_contents(database_path('data/vendor_evaluation_templates.json')), true, 512, JSON_THROW_ON_ERROR);
-        $guide = collect($templates)->firstWhere('id', $evaluation->template_vpe_id);
 
         return \PDF::loadView('pages.evaluasivendor.pdf_evaluasivendor', [
             'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
-            'creatorName' => $creatorName, 'guide' => $guide, 'statuses' => self::STATUSES,
+            'creatorName' => $creatorName, 'statuses' => self::STATUSES,
         ])->setPaper('A4', 'portrait')->stream('Evaluasi_Vendor_'.$evaluation->vendor_perfomance_id.'.pdf');
     }
 
@@ -406,20 +435,32 @@ class EvaluasiVendorController extends Controller
                 $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
                 abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
                 $approvalCtl->loadLines($doctype, $evaluation->cpny_id, $evaluation->department_id);
-                // Preserve the recorded criteria/weights; only the ratings and header inputs change.
+                // Keep recorded criteria unless the user explicitly selects another template.
                 $details = $this->detailQuery($evaluation)->get();
-                $master = $this->master($evaluation->template_vpe_id);
-                $result = $scoring->calculate($details->toArray(), $data['ratings'], $master['scale']);
+                $templateChanged = $data['template_vpe_id'] !== $evaluation->template_vpe_id;
+                $master = $this->master($data['template_vpe_id']);
+                $result = $scoring->calculate($templateChanged ? $master['details'] : $details->toArray(), $data['ratings'], $master['scale']);
                 $evaluation->fill(array_merge($this->inputFields($data), ['status' => 'P',
+                    'template_vpe_id' => $data['template_vpe_id'],
+                    'template_vpe_descr' => $templateChanged ? $master['description'] : $evaluation->template_vpe_descr,
                     'template_vpe_aspect_grandtotal_score' => $result['total'], 'template_vpe_aspect_result' => $result['result'],
                     'updated_by' => $request->user()->username]))->save();
-                foreach ($result['details'] as $detail) {
+                if ($templateChanged) {
+                    $this->detailQuery($evaluation)->delete();
+                    foreach ($result['details'] as &$detail) {
+                        $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
+                    }
+                    unset($detail);
+                    $this->saveDetails($evaluation, $result['details'], $username);
+                } else {
+                    foreach ($result['details'] as $detail) {
                     $this->detailQuery($evaluation)->where('id', $detail['id'])->update([
                         'template_vpe_subaspect_score' => $detail['template_vpe_subaspect_score'],
                         'template_vpe_subaspect_nilai' => $detail['template_vpe_subaspect_nilai'],
                         'template_vpe_subaspect_note' => $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'],
                         'status' => 'P', 'updated_by' => $request->user()->username, 'updated_at' => now(),
                     ]);
+                    }
                 }
                 $approvalCtl->generateForDocument(
                     $evaluation->vendor_perfomance_id,

@@ -3,11 +3,15 @@
     <div class="mx-auto w-full space-y-3 p-2 md:px-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><a href="{{ route('evaluasivendor') }}" class="text-sm text-indigo-600">&larr; Penilaian Vendor</a>
-                <h1 class="mt-1 text-xl font-bold">{{ $creating ? 'Input Penilaian Vendor' : $evaluation->vendor_perfomance_id }}</h1>
+                <h1 class="mt-1 text-xl font-bold">{{ $creating ? 'Input Penilaian Vendor' : 'Edit Penilaian Vendor' }}</h1>
+                @unless($creating)<p class="mt-1 text-sm font-semibold text-gray-500">{{ $evaluation->vendor_perfomance_id }}</p>@endunless
             </div>
         </div>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="rounded-lg bg-red-50 p-3 text-red-700"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @if(!$creating && $evaluation->status === 'D')
+            <div class="rounded-lg border border-orange-300 bg-orange-50 p-3 text-sm text-orange-800"><strong>Penilaian perlu direvisi.</strong><p class="mt-1 whitespace-pre-line">{{ $evaluation->template_vpe_aspect_comment ?: 'Periksa dan perbaiki informasi penilaian.' }}</p><p class="mt-2">Perbarui informasi dan skor, lalu submit ulang untuk approval.</p></div>
+        @endif
         <section class="grid grid-cols-1 gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white p-3 text-sm dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3 xl:grid-cols-4">
             <div><span class="text-xs text-gray-500">Sumber / No. Dokumen</span><p class="mt-1 font-semibold">{{ $evaluation->vendor_perfomance_type }} / {{ $evaluation->ponbr }}</p></div>
             <div><span class="text-xs text-gray-500">Company / Department</span><p class="mt-1">{{ $evaluation->cpny_id }} / {{ $evaluation->department_id ?: '—' }}</p></div>
@@ -27,16 +31,14 @@
                     <label>Periode Mulai<input type="date" name="vendor_perfomance_start_date" required value="{{ old('vendor_perfomance_start_date', $evaluation->vendor_perfomance_start_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label>Periode Selesai<input type="date" name="vendor_perfomance_end_date" required value="{{ old('vendor_perfomance_end_date', $evaluation->vendor_perfomance_end_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label class="md:col-span-3 xl:col-span-3">Jenis Pekerjaan / Template Evaluasi <span class="text-red-600">*</span>
-                        @if($creating)
                             <select name="template_vpe_id" id="template-select" required class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">
                                 <option value="">Pilih jenis pekerjaan</option>
-                                @foreach($templates as $template)<option value="{{ $template->template_vpe_id }}" @selected(old('template_vpe_id') === $template->template_vpe_id)>{{ $template->template_vpe_descr }}</option>@endforeach
+                                @foreach($templates as $template)<option value="{{ $template->template_vpe_id }}" @selected(old('template_vpe_id', $evaluation->template_vpe_id) === $template->template_vpe_id)>{{ $template->template_vpe_descr }}</option>@endforeach
                             </select>
-                        @else <p class="mt-1 font-semibold">{{ $evaluation->template_vpe_descr }}</p> @endif
                     </label>
                 </div>
                 <section class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-                    <div class="border-b p-4"><h2 class="font-bold">Aspek Penilaian (KPI)</h2><p class="mt-1 text-xs text-gray-500">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p></div>
+                    <div class="border-b p-4"><div class="flex flex-wrap items-center gap-3"><h2 class="font-bold">Aspek Penilaian (KPI)</h2>@include('pages.evaluasivendor.partials.score-guide-button')</div><p class="mt-1 text-xs text-gray-500">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p></div>
                     <p id="template-error" class="p-4 text-sm text-gray-500" role="status">{{ $creating ? 'Pilih template untuk menampilkan kriteria evaluasi.' : '' }}</p>
                     <div class="overflow-x-auto"><table class="w-full text-left text-sm" id="rating-table" style="table-layout:fixed;min-width:1100px;overflow-wrap:anywhere">
                         <colgroup>
@@ -59,7 +61,7 @@
                     <label class="block text-sm">Komentar / Rekomendasi<textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
                 </div>
             </fieldset>
-            @if($editable)<div class="flex justify-end"><button id="save-evaluation" type="submit" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">Submit Approval</button></div>@endif
+            @if($editable)<div class="flex justify-end"><button id="save-evaluation" type="submit" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{{ !$creating && $evaluation->status === 'D' ? 'Submit Ulang Approval' : 'Submit Approval' }}</button></div>@endif
         </form>
         @if($evaluation->exists && $evaluation->status === 'P')
             <form method="POST" action="{{ route('evaluasivendor.status', $evaluation->id) }}" class="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
@@ -75,6 +77,7 @@
             </form>
         @endif
     </div>
+    @include('pages.evaluasivendor.partials.score-guide')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const editable = @json($editable);
@@ -191,14 +194,12 @@
                     message.textContent = error.message;
                 }
             }
-            if (creating) {
-                const select = document.getElementById('template-select');
-                requiredMessage(select, 'Jenis Pekerjaan wajib dipilih.');
-                select.addEventListener('change', () => load(select.value, false));
-                if (select.value) load(select.value, false);
-            } else if (editable) {
-                load(@json($evaluation->template_vpe_id), true);
-            } else {render(recorded); message.textContent = '';}
+            const select = document.getElementById('template-select');
+            const originalTemplate = @json($evaluation->template_vpe_id);
+            requiredMessage(select, 'Jenis Pekerjaan wajib dipilih.');
+            const loadSelection = () => load(select.value, !creating && select.value === originalTemplate);
+            select.addEventListener('change', loadSelection);
+            if (select.value) loadSelection();
         });
     </script>
 </x-app-layout>

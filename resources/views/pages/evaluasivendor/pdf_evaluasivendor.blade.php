@@ -25,6 +25,23 @@
     @php
         $date = fn ($value) => $value ? \Carbon\Carbon::parse($value)->format('d M Y') : '—';
         $timestamp = fn ($value) => $value ? \Carbon\Carbon::parse($value)->format('d M Y H:i') : '';
+        // Standard printed legend from the evaluation forms; independent of import files.
+        $guide = [
+            'scores' => [
+                ['label' => '5 (Sangat Baik)', 'value' => 120, 'description' => 'Melebihi ekspektasi, kualitas di atas standar, tidak ada temuan, pekerjaan selesai lebih cepat dari target.'],
+                ['label' => '4 (Baik)', 'value' => 100, 'description' => 'Memenuhi seluruh persyaratan kontrak dan spesifikasi dengan baik.'],
+                ['label' => '3 (Cukup)', 'value' => 80, 'description' => 'Memenuhi standar minimum namun terdapat temuan minor atau perbaikan kecil.'],
+                ['label' => '2 (Kurang)', 'value' => 60, 'description' => 'Terdapat beberapa ketidaksesuaian, keterlambatan, atau kualitas pekerjaan di bawah target yang memerlukan tindakan korektif.'],
+                ['label' => '1 (Sangat Kurang)', 'value' => 40, 'description' => 'Gagal memenuhi kontrak, kualitas pekerjaan tidak dapat diterima, terdapat temuan mayor/berulang, atau pelanggaran K3.'],
+            ],
+            'result_categories' => [
+                ['range' => '≥ 90', 'label' => 'Sangat Baik'],
+                ['range' => '80 - <90', 'label' => 'Baik'],
+                ['range' => '70 - <80', 'label' => 'Cukup'],
+                ['range' => '60 - <70', 'label' => 'Kurang'],
+                ['range' => '< 60', 'label' => $evaluation->template_vpe_id === 'VPE-SLIDING-DOOR' ? 'Buruk / Perlu Evaluasi Khusus' : 'Sangat Kurang/Perlu Evaluasi Khusus'],
+            ],
+        ];
     @endphp
     <h1>Form Evaluasi Kinerja Vendor<br>{{ $evaluation->template_vpe_descr }}</h1>
     <table class="meta">
@@ -37,8 +54,15 @@
         <tr><td class="label">Pekerjaan</td><td colspan="3" class="text">{{ $evaluation->keperluan }}</td></tr>
     </table>
     <table class="kpi">
-        <colgroup><col style="width:4%"><col style="width:21%"><col style="width:7%"><col style="width:33%"><col style="width:6%"><col style="width:9%"><col style="width:20%"></colgroup>
-        <thead><tr><th>No</th><th>Aspek Penilaian (KPI)</th><th>Bobot (%)</th><th>Kriteria Penilaian</th><th>Skor (1–5)</th><th>Skor Terbobot</th><th>Catatan / Bukti Lapangan</th></tr></thead>
+        <thead><tr>
+            <th style="width:3%">No</th>
+            <th style="width:19%">Aspek Penilaian (KPI)</th>
+            <th style="width:6%">Bobot (%)</th>
+            <th style="width:43%">Kriteria Penilaian</th>
+            <th style="width:5%">Skor (1–5)</th>
+            <th style="width:7%">Skor Terbobot</th>
+            <th style="width:17%">Catatan / Bukti Lapangan</th>
+        </tr></thead>
         <tbody>
             @forelse($details->groupBy('template_vpe_aspect_id') as $group)
                 <tr class="aspect"><td class="number">{{ $loop->iteration }}</td><td>{{ $group->first()->template_vpe_aspect_descr }}</td><td class="number">{{ number_format($group->sum('template_vpe_subaspect_bobot'), 2) }}</td><td colspan="4"></td></tr>

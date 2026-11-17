@@ -452,6 +452,7 @@
                                 'project-archive',
                                 'evaluasivendor',
                                 'showevaluasivendor',
+                                'editevaluasivendor',
                                 'task-archive',
                                 'tenancy',
                             ];
@@ -805,7 +806,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li x-data="{ open: {{ request()->routeIs('evaluasivendor*', 'showevaluasivendor') ? 'true' : 'false' }} }">
+                                <li x-data="{ open: {{ request()->routeIs('evaluasivendor*', 'showevaluasivendor', 'editevaluasivendor') ? 'true' : 'false' }} }">
                                     <button type="button" @click="open = !open"
                                         class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40">
                                         <span class="flex flex-1 items-center gap-2 text-left">
@@ -815,7 +816,7 @@
                                         <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6" /></svg>
                                     </button>
                                     <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
-                                        <li><a href="{{ route('evaluasivendor') }}" class="{{ request()->routeIs('evaluasivendor*', 'showevaluasivendor') ? 'text-indigo-600' : '' }} sidebar-link text-sm">Penilaian Vendor</a></li>
+                                        <li><a href="{{ route('evaluasivendor') }}" class="{{ request()->routeIs('evaluasivendor*', 'showevaluasivendor', 'editevaluasivendor') ? 'text-indigo-600' : '' }} sidebar-link text-sm">Penilaian Vendor</a></li>
                                     </ul>
                                 </li>
                             </ul>
