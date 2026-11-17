@@ -294,8 +294,10 @@
                                         ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
-                                    <a href="{{ $menu->_sidebar_url }}"
-                                        class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
+                                    @php $routeOk = Route::has($menu->menu_route); @endphp
+                                    <a href="{{ $routeOk ? route($menu->menu_route) : '#' }}"
+                                        @unless ($routeOk) onclick="return false" aria-disabled="true" title="Route '{{ $menu->menu_route }}' is not defined" @endunless
+                                        class="{{ $routeOk ? '' : 'cursor-not-allowed opacity-50' }} flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
 
                                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round"
@@ -364,8 +366,10 @@
 
                                             <li class="flex items-center justify-between rounded-md">
 
-                                                <a href="{{ $child->_sidebar_url }}"
-                                                    class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
+                                                @php $childOk = !$child->menu_route || Route::has($child->menu_route); @endphp
+                                                <a href="{{ $child->menu_route && $childOk ? route($child->menu_route) : '#' }}"
+                                                    @unless ($childOk) onclick="return false" aria-disabled="true" title="Route '{{ $child->menu_route }}' is not defined" @endunless
+                                                    class="{{ $childOk ? '' : 'cursor-not-allowed opacity-50' }} {{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                         ? 'text-indigo-600'
                                                         : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                     flex min-h-8 min-w-0 flex-1 items-center truncate px-3 py-1 text-sm">
@@ -400,8 +404,10 @@
                             ? 'bg-indigo-500/10 text-indigo-600'
                             : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
-                            <a href="{{ $rootMenu->_sidebar_url }}"
-                                class="flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
+                            @php $rootOk = Route::has($rootMenu->menu_route); @endphp
+                            <a href="{{ $rootOk ? route($rootMenu->menu_route) : '#' }}"
+                                @unless ($rootOk) onclick="return false" aria-disabled="true" title="Route '{{ $rootMenu->menu_route }}' is not defined" @endunless
+                                class="{{ $rootOk ? '' : 'cursor-not-allowed opacity-50' }} flex min-h-9 min-w-0 flex-1 items-center gap-3 px-3 py-1.5 text-sm">
 
                                 <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round"

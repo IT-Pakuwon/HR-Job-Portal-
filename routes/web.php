@@ -3147,14 +3147,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
-            Route::get('/', [EvaluasiVendorController::class, 'index']);
-            Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json');
-            Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create');
-            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template');
-            Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store');
-            Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show');
-            Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update');
-            Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status');
+            Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);
+            Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json');
+            Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create');
+            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template');
+            Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store');
+            Route::get('/{id}', [EvaluasiVendorController::class, 'showEvaluasi'])->whereNumber('id')->name('.show');
+            Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update');
+            Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status');
         });
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
@@ -3246,6 +3246,11 @@ Route::middleware(['auth'])->group(function () {
         // ================== ACCESS CONTROL STUDIO (guided one-page console) ==================
         Route::get('/access-control-studio', [AccessControlStudioController::class, 'index'])->name('access_control_studio');
         Route::get('/access-control-studio/coverage', [AccessControlStudioController::class, 'coverage'])->name('access_control_studio.coverage');
+        Route::get('/access-control-studio/role/{roleId}/overview', [AccessControlStudioController::class, 'roleOverview'])->name('access_control_studio.role_overview');
+        Route::get('/access-control-studio/menu/{menuId}/roles', [AccessControlStudioController::class, 'menuRoles'])->name('access_control_studio.menu_roles');
+        Route::get('/access-control-studio/impact/{type}/{id}', [AccessControlStudioController::class, 'impact'])->whereIn('type', ['role', 'menu'])->name('access_control_studio.impact');
+        Route::post('/access-control-studio/role/clone', [AccessControlStudioController::class, 'cloneRole'])->name('access_control_studio.clone_role');
+        Route::get('/access-control-studio/audit', [AccessControlStudioController::class, 'audit'])->name('access_control_studio.audit');
 
         Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
         Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');

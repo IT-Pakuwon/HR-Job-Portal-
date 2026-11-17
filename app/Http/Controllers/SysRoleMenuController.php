@@ -57,6 +57,8 @@ class SysRoleMenuController extends Controller
         try {
             $user = Auth::user();
 
+            $oldMenus = SysRoleMenu::where('role_id', $request->role_id)->where('status', 'A')->pluck('menu_id')->all();
+
             SysRoleMenu::where('role_id', $request->role_id)->delete();
 
             foreach ($request->input('menu_id', []) as $menuId) {
@@ -70,6 +72,15 @@ class SysRoleMenuController extends Controller
             }
 
             DB::connection('pgsql2')->commit();
+
+            $newMenus = array_values(array_unique($request->input('menu_id', [])));
+            $added = array_values(array_diff($newMenus, $oldMenus));
+            $removed = array_values(array_diff($oldMenus, $newMenus));
+            if ($added || $removed) {
+                \App\Services\AccessAuditLogger::log('role_menu', $request->role_id, $removed && !$added ? 'revoke' : ($added && !$removed ? 'grant' : 'update'),
+                    "Role {$request->role_id} menus: +" . count($added) . ' / -' . count($removed),
+                    ['added' => $added, 'removed' => $removed]);
+            }
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

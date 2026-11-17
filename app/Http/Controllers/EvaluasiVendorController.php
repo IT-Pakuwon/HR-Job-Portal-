@@ -23,7 +23,7 @@ class EvaluasiVendorController extends Controller
     private function sources()
     {
         $po = TrPO::query()->selectRaw("id as source_id, 'PO' as source_type, ponbr as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, spkstartworkingdate as start_date, spkendtworkingdate as end_date, created_by, status")
-            ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
+            ->where('potype', 'SPK')->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
         $contract = TrKontrak::query()->selectRaw("id as source_id, 'KONTRAK' as source_type, kontrakid as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, startdate as start_date, enddate as end_date, created_by, status")
             ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
 
@@ -46,7 +46,7 @@ class EvaluasiVendorController extends Controller
         return TrVendorPerfomance::query()->whereNull('deleted_at');
     }
 
-    public function index()
+    public function indexEvaluasi()
     {
         $counts = $this->evaluations()->selectRaw('status, count(*) AS total')->groupBy('status')->pluck('total', 'status');
         $stats = ['jobs' => $this->jobs()->count(), 'onprogress' => (int) ($counts['P'] ?? 0),
@@ -57,7 +57,7 @@ class EvaluasiVendorController extends Controller
         return view('pages.evaluasivendor.index', compact('stats', 'vendors'));
     }
 
-    public function json(Request $request)
+    public function jsonEvaluasi(Request $request)
     {
         $filters = $request->validate([
             'scope' => ['nullable', Rule::in(['jobs', 'onprogress', 'rejected', 'revised', 'completed', 'all'])],
@@ -131,13 +131,16 @@ class EvaluasiVendorController extends Controller
         abort_unless(in_array($type, ['PO', 'KONTRAK'], true), 404);
         $query = ($type === 'PO' ? TrPO::query() : TrKontrak::query())
             ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
+        if ($type === 'PO') {
+            $query->where('potype', 'SPK');
+        }
         if ($lock) {
             $query->lockForUpdate();
         }
         return $query->findOrFail($id);
     }
 
-    public function create(Request $request)
+    public function createEvaluasi(Request $request)
     {
         $data = $request->validate(['source_type' => ['required', Rule::in(['PO', 'KONTRAK'])], 'source_id' => 'required|integer|min:1']);
         $source = $this->source($data['source_type'], $data['source_id']);
@@ -185,7 +188,7 @@ class EvaluasiVendorController extends Controller
         return ['description' => $aspects->first()->template_vpe_descr, 'details' => $details, 'scale' => $scale];
     }
 
-    public function template(string $template)
+    public function templateEvaluasi(string $template)
     {
         return response()->json($this->master($template));
     }
@@ -204,7 +207,7 @@ class EvaluasiVendorController extends Controller
             'source_id' => 'required|integer|min:1', 'template_vpe_id' => 'required|string|max:50'] : []));
     }
 
-    public function store(Request $request, VendorEvaluationScoring $scoring)
+    public function storeEvaluasi(Request $request, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, true);
         $id = DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring) {
@@ -260,7 +263,7 @@ class EvaluasiVendorController extends Controller
         }
     }
 
-    public function show(int $id)
+    public function showEvaluasi(int $id)
     {
         $evaluation = $this->evaluations()->findOrFail($id);
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
@@ -268,7 +271,7 @@ class EvaluasiVendorController extends Controller
             'templates' => collect(), 'sourceId' => null, 'editable' => in_array($evaluation->status, ['P', 'D']), 'statuses' => self::STATUSES]);
     }
 
-    public function update(Request $request, int $id, VendorEvaluationScoring $scoring)
+    public function updateEvaluasi(Request $request, int $id, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, false);
         DB::connection('pgsql')->transaction(function () use ($id, $data, $scoring, $request) {
@@ -293,7 +296,7 @@ class EvaluasiVendorController extends Controller
         return redirect()->route('evaluasivendor.show', $id)->with('success', 'Penilaian diperbarui sebagai On Progress.');
     }
 
-    public function status(Request $request, int $id)
+    public function statusEvaluasi(Request $request, int $id)
     {
         $data = $request->validate(['status' => ['required', Rule::in(['C', 'R', 'D'])],
             'comment' => 'required_if:status,R,D|nullable|string|max:10000']);

@@ -63,7 +63,13 @@ class SysMenuController extends Controller
             ->orderBy('parent_menu_id')
             ->orderBy('menu_sort_order')
             ->orderBy('menu_id')
-            ->get();
+            ->get()
+            // Flag rows whose menu_route has no matching named route in this
+            // codebase (DB menu ahead of code, e.g. a different branch).
+            ->each(fn ($m) => $m->setAttribute(
+                'route_missing',
+                !empty($m->menu_route) && !\Illuminate\Support\Facades\Route::has($m->menu_route)
+            ));
 
         return response()->json(['data' => $menus]);
     }
@@ -135,6 +141,10 @@ class SysMenuController extends Controller
 
             DB::commit();
 
+            \App\Services\AccessAuditLogger::log('menu', $menu->menu_id, 'create',
+                "Created menu {$menu->menu_id} ({$menu->menu_name})",
+                ['route' => $menu->menu_route, 'screen' => $menu->screen_id, 'parent' => $menu->parent_menu_id, 'granted_roles' => $selectedRoleIds->values()->all()]);
+
             return response()->json(['success' => true, 'data' => $menu]);
 
         } catch (\Exception $e) {
@@ -205,6 +215,8 @@ class SysMenuController extends Controller
                     ->value('application_id') ?? $applicationId;
             }
 
+            $before = $menu->only(['menu_id', 'parent_menu_id', 'menu_name', 'menu_route', 'menu_url', 'screen_id', 'application_id']);
+
             $menu->update([
                 'menu_id'        => $newMenuId,
                 'parent_menu_id' => $newParentMenuId,
@@ -228,6 +240,16 @@ class SysMenuController extends Controller
             ]);
 
             DB::commit();
+
+            $diff = [];
+            foreach ($before as $k => $v) {
+                $now = $menu->{$k};
+                if ((string) $v !== (string) $now) $diff[$k] = ['from' => $v, 'to' => $now];
+            }
+            if ($diff) {
+                \App\Services\AccessAuditLogger::log('menu', $menu->menu_id, 'update',
+                    'Updated menu ' . $menu->menu_id . ' (' . implode(', ', array_keys($diff)) . ')', $diff);
+            }
 
             return response()->json(['success' => true]);
 
@@ -264,6 +286,9 @@ class SysMenuController extends Controller
                 ]);
 
             DB::commit();
+
+            \App\Services\AccessAuditLogger::log('menu', $menu->menu_id, $newStatus === 'A' ? 'enable' : 'disable',
+                ($newStatus === 'A' ? 'Enabled' : 'Disabled') . " menu {$menu->menu_id} ({$menu->menu_name})");
 
             return response()->json([
                 'success' => true,

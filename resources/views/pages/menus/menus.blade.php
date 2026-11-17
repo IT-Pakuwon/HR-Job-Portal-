@@ -312,6 +312,7 @@
                                         <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">
                                             ${highlight(m.menu_route || m.menu_url || '-', term)}
                                         </span>
+                                        ${m.route_missing ? `<span class="ml-1 inline-flex items-center gap-1 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300" title="Route '${m.menu_route}' is not defined in this codebase. The sidebar shows this menu as disabled."><i class="fas fa-exclamation-triangle"></i> Route missing</span>` : ''}
                                         <span class="ml-1 text-[10px] text-gray-400">
                                             [Sort: ${m.menu_sort_order ?? 0}]
                                         </span>

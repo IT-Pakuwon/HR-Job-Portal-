@@ -30,8 +30,27 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
+        {{-- Hero --}}
+        <section class="acs-hero">
+            <div class="acs-hero-glow"></div>
+            <div class="relative flex flex-wrap items-center gap-x-5 gap-y-3">
+                <div class="min-w-0">
+                    <div class="acs-eyebrow"><i class="fas fa-shield-halved"></i> RBAC Console</div>
+                    <h1 class="acs-hero-title">Access Control Studio</h1>
+                </div>
+                <div class="acs-tiles relative">
+                    <button type="button" class="acs-tile" data-step="application" style="--t:#6366f1" title="Applications"><i class="fas fa-cubes"></i><b id="tile_app">{{ count($applications) }}</b><span>Apps</span></button>
+                    <button type="button" class="acs-tile" data-step="screen" style="--t:#0ea5e9" title="Screens"><i class="fas fa-display"></i><b id="tile_scr">{{ count($screens) }}</b><span>Screens</span></button>
+                    <button type="button" class="acs-tile" data-step="menu" style="--t:#10b981" title="Menus"><i class="fas fa-bars-staggered"></i><b id="tile_mnu">{{ count($menus) }}</b><span>Menus</span></button>
+                    <button type="button" class="acs-tile" data-step="role" style="--t:#f59e0b" title="Roles"><i class="fas fa-user-shield"></i><b id="tile_rol">{{ count($roles) }}</b><span>Roles</span></button>
+                    <button type="button" class="acs-tile acs-tile-gaps" id="tile_gapsBtn" style="--t:#ef4444" title="Open setup gaps"><i class="fas fa-triangle-exclamation"></i><b id="tile_gaps">…</b><span>Gaps</span></button>
+                </div>
+                <button type="button" id="acs_historyBtn" class="acs-ghost-btn ml-auto"><i class="fas fa-clock-rotate-left"></i> History</button>
+            </div>
+        </section>
+
         {{-- Stepper --}}
-        <div class="mb-4 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="mb-3 overflow-x-auto rounded-2xl border border-gray-100 bg-white px-4 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <ol class="flex min-w-[900px] items-center">
                 @foreach ($stepDefs as $step)
                     <li class="flex flex-1 items-center {{ !$loop->last ? '' : 'flex-none' }}">
@@ -55,19 +74,25 @@
         </div>
 
         {{-- Setup Gaps (read-only coverage report — no table, no middleware, just introspection) --}}
-        <div id="gaps_panel" class="mb-4 rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <button type="button" id="gaps_toggle" class="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left">
+        <div id="gaps_panel" class="mb-3 rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <button type="button" id="gaps_toggle" class="flex w-full items-center justify-between gap-3 px-4 py-2 text-left">
                 <div class="flex items-center gap-2.5">
                     <span id="gaps_statusIcon" class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-700">
                         <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" opacity=".25"/><path d="M21 12a9 9 0 00-9-9"/></svg>
                     </span>
                     <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Setup Gaps</span>
                     <span id="gaps_summary" class="text-xs text-gray-400">Checking...</span>
+                    <span id="gaps_chips" class="ml-1 hidden flex-wrap items-center gap-1.5 sm:flex"></span>
                 </div>
                 <svg id="gaps_chevron" class="h-4 w-4 shrink-0 text-gray-400 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div id="gaps_body" class="hidden border-t border-gray-100 px-5 py-4 dark:border-gray-700">
-                <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+                    <div class="gaps-card gaps-card-red ring-1 ring-red-200 dark:ring-red-900/50">
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400"><i class="fas fa-link-slash mr-1"></i> Menus with a missing Route <span id="gaps_cnt_route" class="gaps-count"></span></h3>
+                        <p class="mt-0.5 text-xs text-gray-400">The menu's route name isn't defined in this codebase (DB is ahead of the code, or a typo). The sidebar shows these disabled — click to fix.</p>
+                        <ul id="gaps_menusRouteMissing" class="gaps-list mt-2"></ul>
+                    </div>
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Menus missing a Screen</h3>
                         <p class="mt-0.5 text-xs text-gray-400">Leaf menus (no sub-menus) with no Screen set — jump to the Menu step and edit them.</p>
@@ -218,9 +243,11 @@
                     <table id="rol_table" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead class="studio-thead">
                             <tr>
-                                <th class="w-24 px-4 py-3 text-center">Actions</th>
+                                <th class="w-48 px-4 py-3 text-center">Actions</th>
                                 <th class="px-4 py-3 text-left">Role ID</th>
                                 <th class="px-4 py-3 text-left">Name</th>
+                                <th class="w-24 px-4 py-3 text-center">Users</th>
+                                <th class="w-24 px-4 py-3 text-center">Menus</th>
                                 <th class="w-28 px-4 py-3 text-center">Status</th>
                             </tr>
                         </thead>
@@ -246,7 +273,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-end gap-3">
+                <div class="rm-toolbar">
                     <div class="min-w-[260px] flex-1">
                         <label class="studio-label">Role</label>
                         <select id="rm_roleSelect" class="studio-select2 w-full">
@@ -256,16 +283,43 @@
                             @endforeach
                         </select>
                     </div>
-                    <div id="rm_actions" class="hidden flex flex-wrap items-center gap-2">
-                        <input id="rm_search" type="text" placeholder="Search menu..." class="studio-input !w-auto">
-                        <button type="button" id="rm_selectAll" class="studio-mini-btn">Select All</button>
-                        <button type="button" id="rm_selectNone" class="studio-mini-btn">Select None</button>
-                        <button type="button" id="rm_save" class="studio-add-btn">{!! $icon('check', 'h-4 w-4') !!} Save Changes</button>
+                    <div id="rm_actions" class="hidden flex flex-1 flex-wrap items-end justify-end gap-2" style="min-width:320px">
+                        <div class="acs-search" style="margin:0;min-width:200px;flex:1;max-width:320px"><i class="fas fa-magnifying-glass"></i><input id="rm_search" type="text" placeholder="Search menu or ID…"></div>
+                        <div class="rm-seg" id="rm_filter">
+                            <button type="button" class="active" data-mode="all">All</button>
+                            <button type="button" data-mode="granted">Granted</button>
+                            <button type="button" data-mode="none">Not granted</button>
+                        </div>
+                        <div class="rm-copy" title="Copy another role's menus into this one (you can review before saving)">
+                            <i class="fas fa-copy"></i>
+                            <select id="rm_copyFrom">
+                                <option value="">Copy from role…</option>
+                                @foreach ($roles as $r)
+                                    <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div id="rm_empty" class="studio-empty">Pick a role above to manage its menus.</div>
-                <p id="rm_hint" class="hidden text-xs text-gray-400 dark:text-gray-500">Grouped by top-level menu, matching the Menu step's tree.</p>
-                <div id="rm_grid" class="hidden max-h-[30rem] grid grid-cols-1 gap-3 overflow-y-auto rounded-xl border border-gray-100 p-3 dark:border-gray-700 lg:grid-cols-2"></div>
+                <div id="rm_empty" class="studio-empty"><div class="acs-empty-ico"><i class="fas fa-user-shield"></i></div>Pick a role above to manage which menus it sees.</div>
+                <div id="rm_summary" class="rm-summary hidden">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span class="rm-count"><b id="rm_granted">0</b><small> / <span id="rm_total">0</span> menus granted</small></span>
+                            <span id="rm_dirtyChip" class="rm-dirty hidden"></span>
+                        </div>
+                        <div class="rm-progress"><i id="rm_bar"></i></div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" id="rm_foldAll" class="studio-mini-btn" title="Expand / collapse all groups"><i class="fas fa-angles-down"></i></button>
+                        <button type="button" id="rm_selectAll" class="studio-mini-btn">Select visible</button>
+                        <button type="button" id="rm_selectNone" class="studio-mini-btn">Clear visible</button>
+                        <button type="button" id="rm_reset" class="studio-mini-btn hidden"><i class="fas fa-rotate-left"></i> Undo</button>
+                        <button type="button" id="rm_save" class="studio-add-btn">{!! $icon('check', 'h-4 w-4') !!} Save Changes <kbd class="rm-kbd">Ctrl S</kbd></button>
+                    </div>
+                </div>
+                <p id="rm_hint" class="hidden text-xs text-gray-400 dark:text-gray-500">Grouped by top-level menu. Green = about to be granted, red = about to be removed. Nothing is saved until you press Save.</p>
+                <div id="rm_grid" class="rm-grid hidden"></div>
             </div>
             <div class="mt-3 flex justify-between">
                 <button type="button" class="studio-back-btn" data-back="role">← Back</button>
@@ -285,7 +339,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-end gap-3">
+                <div class="rm-toolbar">
                     <div class="min-w-[260px] flex-1">
                         <label class="studio-label">Role</label>
                         <select id="ar_roleSelect" class="studio-select2 w-full">
@@ -295,32 +349,45 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="min-w-[220px]">
-                        <label class="studio-label">Copy rights from...</label>
-                        <select id="ar_copyFrom" class="studio-select2 w-full">
-                            <option value="">-- optional, start blank --</option>
-                            @foreach ($roles as $r)
-                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div id="ar_actions" class="hidden flex flex-wrap items-center gap-2">
-                        <input id="ar_search" type="text" placeholder="Search screen..." class="studio-input !w-auto">
-                        <button type="button" id="ar_selectAll" class="studio-mini-btn">Select All</button>
-                        <button type="button" id="ar_selectNone" class="studio-mini-btn">Select None</button>
-                        <button type="button" id="ar_save" class="studio-add-btn">{!! $icon('check', 'h-4 w-4') !!} Save Changes</button>
+                    <div id="ar_actions" class="hidden flex flex-1 flex-wrap items-end justify-end gap-2" style="min-width:320px">
+                        <div class="acs-search" style="margin:0;min-width:200px;flex:1;max-width:320px"><i class="fas fa-magnifying-glass"></i><input id="ar_search" type="text" placeholder="Search screen or ID…"></div>
+                        <div class="rm-copy" title="Copy another role's rights into this one (you can review before saving)">
+                            <i class="fas fa-copy" style="color:#f43f5e"></i>
+                            <select id="ar_copyFrom">
+                                <option value="">Copy from role…</option>
+                                @foreach ($roles as $r)
+                                    <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div id="ar_empty" class="studio-empty">Pick a role above to manage its access rights.</div>
-                <p class="text-xs text-gray-400 dark:text-gray-500">Grouped by Application. Click a column header (e.g. VIEW) to toggle it for every screen currently shown.</p>
-                <div id="ar_tableWrap" class="hidden max-h-[30rem] overflow-y-auto rounded-xl border border-gray-100 dark:border-gray-700">
+                <div id="ar_empty" class="studio-empty"><div class="acs-empty-ico"><i class="fas fa-shield-halved"></i></div>Pick a role above to manage what it is allowed to do on each screen.</div>
+                <div id="ar_summary" class="rm-summary ar-summary hidden">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span class="rm-count"><b id="ar_screens">0</b><small> / <span id="ar_totalScreens">0</span> screens with access</small></span>
+                            <span id="ar_dirtyChip" class="rm-dirty hidden"></span>
+                        </div>
+                        <div id="ar_chips" class="mt-2 flex flex-wrap gap-1.5"></div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" id="ar_presetView" class="studio-mini-btn" title="On the screens currently shown: allow VIEW only"><i class="fas fa-eye"></i> Read-only</button>
+                        <button type="button" id="ar_presetFull" class="studio-mini-btn" title="On the screens currently shown: allow everything"><i class="fas fa-key"></i> Full access</button>
+                        <button type="button" id="ar_selectNone" class="studio-mini-btn" title="On the screens currently shown: clear everything">Clear</button>
+                        <button type="button" id="ar_reset" class="studio-mini-btn hidden"><i class="fas fa-rotate-left"></i> Undo</button>
+                        <button type="button" id="ar_save" class="studio-add-btn">{!! $icon('check', 'h-4 w-4') !!} Save Changes <kbd class="rm-kbd">Ctrl S</kbd></button>
+                    </div>
+                </div>
+                <p id="ar_hint" class="hidden text-xs text-gray-400 dark:text-gray-500">Grouped by Application. Click a column header (e.g. VIEW) to toggle it for every screen shown, or the box next to a screen name to toggle the whole row. Green ring = about to be granted, red = about to be removed. Nothing is saved until you press Save.</p>
+                <div id="ar_tableWrap" class="ar-wrap hidden">
                     <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="studio-thead">
                                 <th class="px-3 py-2.5 text-left">Screen</th>
                                 @foreach ($accessNames as $an)
-                                    <th class="ar-col-header cursor-pointer select-none px-3 py-2.5 text-center hover:text-indigo-600 dark:hover:text-indigo-400"
-                                        data-name="{{ $an }}" title="Click to toggle this column">{{ $an }}</th>
+                                    <th class="ar-col-header cursor-pointer select-none px-3 py-2.5 text-center"
+                                        data-name="{{ $an }}" title="Click to toggle {{ $an }} for every screen shown"><span class="ar-col-pill">{{ $an }} <small class="ar-col-n"></small></span></th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -452,7 +519,13 @@
                 <div class="mb-3 grid grid-cols-2 gap-3">
                     <div>
                         <label class="studio-label">Route Name</label>
-                        <input type="text" id="mnu_menu_route" name="menu_route" class="studio-input">
+                        <input type="text" id="mnu_menu_route" name="menu_route" class="studio-input" list="mnu_route_list" autocomplete="off" placeholder="Start typing a route name…">
+                        <datalist id="mnu_route_list">
+                            @foreach ($routeNames as $rn)
+                                <option value="{{ $rn }}"></option>
+                            @endforeach
+                        </datalist>
+                        <p id="mnu_route_hint" class="mt-1 hidden text-[11px] font-medium"></p>
                     </div>
                     <div>
                         <label class="studio-label">URL</label>
@@ -511,6 +584,20 @@
             </form>
         </div>
     </div>
+
+    {{-- Shared right-hand drawer: role overview / menu->roles / change history --}}
+    <div id="acs_drawerMask" class="acs-mask"></div>
+    <aside id="acs_drawer" class="acs-drawer" aria-hidden="true">
+        <header class="acs-drawer-head">
+            <div class="min-w-0">
+                <div id="acs_drawerKicker" class="text-[10px] font-bold uppercase tracking-widest text-indigo-500"></div>
+                <h2 id="acs_drawerTitle" class="truncate text-lg font-bold text-gray-800 dark:text-gray-100"></h2>
+                <p id="acs_drawerSub" class="truncate text-xs text-gray-400"></p>
+            </div>
+            <button type="button" id="acs_drawerClose" class="acs-x" title="Close"><i class="fas fa-xmark"></i></button>
+        </header>
+        <div id="acs_drawerBody" class="acs-drawer-body"></div>
+    </aside>
 
     <div id="loadingOverlay" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
         <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
@@ -699,6 +786,318 @@
         .gaps-list::-webkit-scrollbar { width: 6px; }
         .gaps-list::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 3px; }
         .dark .gaps-list::-webkit-scrollbar-thumb { background-color: #4b5563; }
+        /* =====================  REDESIGN LAYER  ===================== */
+        /* ---- hero ---- */
+        .acs-hero { position: relative; overflow: hidden; margin-bottom: 1rem; border-radius: 1.5rem; padding: 1.6rem 1.75rem 1.4rem;
+            color: #fff; background: linear-gradient(120deg, #312e81 0%, #4f46e5 45%, #7c3aed 100%);
+            box-shadow: 0 18px 40px -18px rgba(79,70,229,.65); }
+        .acs-hero-glow { position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(600px 220px at 85% -10%, rgba(255,255,255,.28), transparent 60%),
+                        radial-gradient(420px 260px at 0% 110%, rgba(56,189,248,.28), transparent 60%); }
+        .acs-eyebrow { display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .2rem .75rem; font-size: .68rem; font-weight: 700;
+            letter-spacing: .12em; text-transform: uppercase; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); }
+        .acs-hero-title { margin-top: .6rem; font-size: 1.65rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+        .acs-hero-sub { margin-top: .35rem; max-width: 46rem; font-size: .84rem; line-height: 1.5; color: rgba(255,255,255,.78); }
+        .acs-ghost-btn { display: inline-flex; align-items: center; gap: .5rem; border-radius: .85rem; padding: .55rem 1rem; font-size: .78rem; font-weight: 600;
+            background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(8px); transition: .15s; }
+        .acs-ghost-btn:hover { background: rgba(255,255,255,.28); transform: translateY(-1px); }
+        .acs-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; margin-top: 1.25rem; }
+        @media (max-width: 900px) { .acs-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .acs-tile { position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: .75rem; align-items: center; text-align: left;
+            border-radius: 1rem; padding: .75rem .9rem; background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(8px); transition: .18s; }
+        .acs-tile:hover { background: rgba(255,255,255,.22); transform: translateY(-2px); box-shadow: 0 10px 24px -12px rgba(0,0,0,.5); }
+        .acs-tile i { grid-row: 1 / 3; display: grid; place-items: center; height: 2.3rem; width: 2.3rem; border-radius: .8rem; font-size: .95rem; color: #fff;
+            background: var(--t); box-shadow: 0 6px 14px -6px var(--t); }
+        .acs-tile b { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+        .acs-tile span { font-size: .68rem; color: rgba(255,255,255,.75); }
+        .acs-tile-gaps.is-clear { --t: #10b981; }
+        .acs-tile-gaps:not(.is-clear) i { animation: acsPulse 2.2s ease-in-out infinite; }
+        @keyframes acsPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.55); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+
+        /* ---- stepper ---- */
+        .step-circle { height: 2.75rem !important; width: 2.75rem !important; border-width: 2px; background: #fff; }
+        .dark .step-circle { background: #1f2937; }
+        .step-node.is-active .step-circle { background-image: linear-gradient(135deg, #6366f1, #7c3aed); border-color: transparent;
+            box-shadow: 0 0 0 5px rgba(99,102,241,.18), 0 10px 20px -8px rgba(99,102,241,.7); transform: scale(1.06); }
+        .step-node.is-done .step-circle { background-image: linear-gradient(135deg, #22c55e, #16a34a); border-color: transparent; }
+        .step-connector { height: 3px !important; border-radius: 999px; }
+        .step-connector.is-done { background-image: linear-gradient(90deg, #22c55e, #16a34a); }
+
+        /* ---- cards with per-step accent ---- */
+        .step-panel[data-panel="application"] { --acc: #6366f1; --acc2: #818cf8; }
+        .step-panel[data-panel="screen"] { --acc: #0ea5e9; --acc2: #38bdf8; }
+        .step-panel[data-panel="menu"] { --acc: #10b981; --acc2: #34d399; }
+        .step-panel[data-panel="role"] { --acc: #f59e0b; --acc2: #fbbf24; }
+        .step-panel[data-panel="rolemenu"] { --acc: #8b5cf6; --acc2: #a78bfa; }
+        .step-panel[data-panel="accessrights"] { --acc: #f43f5e; --acc2: #fb7185; }
+        .studio-card { position: relative; overflow: hidden; border-radius: 1.4rem; padding: 1.5rem; border: 1px solid #eef0f6;
+            box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 18px 40px -26px rgba(15,23,42,.25); }
+        .studio-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, var(--acc, #6366f1), var(--acc2, #818cf8)); }
+        .studio-card::after { content: ''; position: absolute; right: -70px; top: -70px; height: 220px; width: 220px; border-radius: 50%; pointer-events: none;
+            background: radial-gradient(circle, var(--acc, #6366f1), transparent 70%); opacity: .08; }
+        .studio-card-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+        .studio-icon-badge { height: 2.9rem; width: 2.9rem; border-radius: 1rem; box-shadow: inset 0 0 0 1px rgba(0,0,0,.04); }
+        .studio-add-btn { background-image: linear-gradient(135deg, var(--acc, #4f46e5), var(--acc2, #6366f1)); border-radius: .9rem; padding: .65rem 1.3rem;
+            box-shadow: 0 10px 20px -10px var(--acc, #4f46e5); }
+        .studio-add-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+        .studio-next-btn, .studio-back-btn { border-radius: .9rem; padding: .65rem 1.4rem; background: #fff; transition: .15s; }
+        .studio-next-btn { background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
+        .studio-next-btn:hover, .studio-back-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px -10px rgba(79,70,229,.5); }
+        .dark .studio-back-btn { background: transparent; }
+        .studio-card .studio-input, .studio-modal .studio-input { border-radius: .8rem; background: #f8fafc; border-color: #e5e7eb; }
+        .dark .studio-card .studio-input, .dark .studio-modal .studio-input { background: #374151; }
+        .studio-input:focus { border-color: var(--acc, #6366f1); box-shadow: 0 0 0 4px rgba(99,102,241,.14); background: #fff; }
+
+        /* ---- tables ---- */
+        .studio-card .rounded-base { border: 1px solid #eef0f6; border-radius: 1rem; }
+        .dark .studio-card .rounded-base { border-color: #374151; }
+        .studio-thead th, tr.studio-thead th { background: #f6f7fb; font-size: .66rem; letter-spacing: .09em; padding-top: .8rem; padding-bottom: .8rem; }
+        .studio-card table.dataTable tbody tr, .studio-card table tbody tr { transition: background-color .12s; }
+        .studio-card table.dataTable tbody tr:hover td { background-color: rgba(99,102,241,.06); }
+        .studio-card table td { border-top: 1px solid #f3f4f8; padding-top: .7rem; padding-bottom: .7rem; }
+        .dark .studio-card table td { border-color: #2d3748; }
+        .studio-card .studio-edit-btn, .studio-card .acs-role-view, .studio-card .acs-role-clone {
+            height: 1.9rem; width: 1.9rem; padding: 0 !important; border-radius: .6rem !important; display: inline-grid; place-items: center; transition: .15s; }
+        .studio-card .studio-edit-btn:hover, .studio-card .acs-role-view:hover, .studio-card .acs-role-clone:hover { transform: translateY(-1px) scale(1.06); box-shadow: 0 8px 14px -8px rgba(0,0,0,.45); }
+        .studio-card .mnu-edit-btn, .studio-card .mnu-child-btn, .studio-card .acs-menu-roles { border-radius: .6rem !important; transition: .15s; }
+        .studio-card .mnu-edit-btn:hover, .studio-card .mnu-child-btn:hover, .studio-card .acs-menu-roles:hover { transform: translateY(-1px) scale(1.06); }
+        .mnu-tree-row { border-radius: .8rem !important; }
+
+        /* ---- DataTables chrome ---- */
+        .studio-card .dataTables_wrapper .dataTables_filter input, .studio-card .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #e5e7eb; border-radius: .75rem; padding: .4rem .8rem; background: #f8fafc; outline: none; }
+        .studio-card .dataTables_wrapper .dataTables_filter input:focus { border-color: var(--acc, #6366f1); box-shadow: 0 0 0 4px rgba(99,102,241,.14); background: #fff; }
+        .studio-card .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: .7rem !important; border: 0 !important; margin: 0 2px; }
+        .studio-card .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .studio-card .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: linear-gradient(135deg, var(--acc, #6366f1), var(--acc2, #818cf8)) !important; color: #fff !important; box-shadow: 0 8px 16px -8px var(--acc, #6366f1); }
+        .studio-card .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) { background: rgba(99,102,241,.1) !important; color: #4338ca !important; }
+
+        /* ---- gaps panel + modals ---- */
+        #gaps_panel { border-radius: 1.2rem; overflow: hidden; border-color: #eef0f6; box-shadow: 0 14px 34px -26px rgba(15,23,42,.35); scroll-margin-top: 1rem; }
+        .studio-modal { border-radius: 1.4rem; box-shadow: 0 30px 70px -20px rgba(15,23,42,.55); border: 1px solid rgba(255,255,255,.4); }
+        .studio-modal-header { background: linear-gradient(135deg, rgba(99,102,241,.09), transparent 65%); }
+        #rol_modal, #app_modal, #scr_modal, #mnu_modal { backdrop-filter: blur(3px); }
+        .studio-save-btn { border-radius: .85rem; background-image: linear-gradient(135deg, #4f46e5, #7c3aed); box-shadow: 0 10px 20px -10px #4f46e5; }
+        .studio-cancel-btn { border-radius: .85rem; }
+        .count-pill { box-shadow: inset 0 0 0 1px rgba(0,0,0,.04); }
+
+        /* ---- compact header (overrides the roomier redesign values above) ---- */
+        .acs-hero { margin-bottom: .75rem; border-radius: 1.1rem; padding: .65rem 1rem; box-shadow: 0 12px 26px -18px rgba(79,70,229,.65); }
+        .acs-eyebrow { display: none; }
+        .acs-hero-title { margin: 0; font-size: 1.05rem; font-weight: 800; white-space: nowrap; }
+        .acs-hero-title::before { content: '\f3ed'; font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free'; font-weight: 900; margin-right: .5rem; opacity: .85; }
+        .acs-tiles { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 0; }
+        .acs-tile { display: inline-flex; align-items: center; gap: .45rem; border-radius: .75rem; padding: .3rem .65rem .3rem .35rem; }
+        .acs-tile:hover { transform: translateY(-1px); }
+        .acs-tile i { height: 1.55rem; width: 1.55rem; border-radius: .5rem; font-size: .7rem; box-shadow: 0 4px 10px -5px var(--t); }
+        .acs-tile b { font-size: .95rem; }
+        .acs-tile span { font-size: .68rem; }
+        .acs-ghost-btn { padding: .4rem .8rem; border-radius: .7rem; font-size: .74rem; }
+        .step-circle { height: 2.1rem !important; width: 2.1rem !important; }
+        .step-circle svg { width: .95rem; height: .95rem; }
+        .step-node { gap: .25rem !important; }
+        .step-node .step-label { font-size: 11px; line-height: 1.1; }
+        .step-node .step-label > span { display: none; }
+        .step-node .step-label br { display: none; }
+        .step-connector { margin-bottom: 1.15rem !important; height: 2.5px !important; }
+        .step-node.is-active .step-circle { transform: none; box-shadow: 0 0 0 4px rgba(99,102,241,.18), 0 6px 14px -6px rgba(99,102,241,.7); }
+
+        /* ---- Role Menu step ---- */
+        .rm-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
+        .rm-seg { display: inline-flex; padding: 3px; border-radius: .8rem; background: #f1f3f9; }
+        .dark .rm-seg { background: rgba(255,255,255,.07); }
+        .rm-seg button { border-radius: .6rem; padding: .38rem .8rem; font-size: .75rem; font-weight: 600; color: #6b7280; transition: .15s; white-space: nowrap; }
+        .rm-seg button.active { background: #fff; color: #7c3aed; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+        .dark .rm-seg button.active { background: #374151; color: #c4b5fd; }
+        .rm-copy { position: relative; }
+        .rm-copy i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #8b5cf6; pointer-events: none; }
+        .rm-copy select { appearance: none; border: 1px solid #e5e7eb; background: #f8fafc; border-radius: .8rem; padding: .5rem 1rem .5rem 2.1rem; font-size: .8rem; cursor: pointer; max-width: 190px; }
+        .rm-copy select:hover { border-color: #c4b5fd; }
+        .dark .rm-copy select { background: #374151; border-color: #4b5563; color: #f3f4f6; }
+
+        .rm-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-radius: 1rem; padding: .9rem 1.1rem;
+            background: linear-gradient(135deg, rgba(139,92,246,.10), rgba(99,102,241,.05)); border: 1px solid rgba(139,92,246,.18); }
+        .rm-count b { font-size: 1.6rem; font-weight: 800; color: #6d28d9; line-height: 1; }
+        .dark .rm-count b { color: #c4b5fd; }
+        .rm-count small { font-size: .8rem; color: #6b7280; }
+        .rm-progress { margin-top: .5rem; height: 6px; border-radius: 999px; background: rgba(139,92,246,.15); overflow: hidden; max-width: 28rem; }
+        .rm-progress i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6, #6366f1); transition: width .35s cubic-bezier(.2,.8,.2,1); }
+        .rm-dirty { border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 700; background: #fef3c7; color: #92400e; }
+        .rm-d-add { color: #15803d; } .rm-d-del { color: #b91c1c; }
+        .rm-kbd { margin-left: 6px; border-radius: 6px; padding: 1px 6px; font-size: 9.5px; font-family: inherit; background: rgba(255,255,255,.22); }
+        .rm-pulse { animation: rmPulse 1.8s ease-in-out infinite; }
+        @keyframes rmPulse { 0%,100% { box-shadow: 0 10px 20px -10px var(--acc); } 50% { box-shadow: 0 0 0 6px rgba(139,92,246,.22), 0 10px 20px -10px var(--acc); } }
+
+        .rm-grid { display: grid; grid-template-columns: 1fr; gap: .9rem; max-height: 68vh; overflow-y: auto; padding: .2rem .25rem .5rem; align-items: start; }
+        @media (min-width: 1024px) { .rm-grid { grid-template-columns: 1fr 1fr; } }
+        .rm-group { border-radius: 1.1rem; border: 1px solid #eceef6; background: #fff; overflow: hidden; transition: box-shadow .2s, border-color .2s; }
+        .rm-group:hover { box-shadow: 0 14px 30px -22px rgba(99,102,241,.6); border-color: #ddd6fe; }
+        .dark .rm-group { background: rgba(255,255,255,.025); border-color: #374151; }
+        .rm-group-head { display: flex; align-items: center; gap: .6rem; padding: .65rem .85rem; background: linear-gradient(90deg, rgba(139,92,246,.10), rgba(139,92,246,0) 70%); border-bottom: 1px solid #f1f2f8; }
+        .dark .rm-group-head { border-color: #374151; }
+        .rm-group-title { font-size: .82rem; font-weight: 800; letter-spacing: .01em; color: #4c1d95; flex: none; }
+        .dark .rm-group-title { color: #ddd6fe; }
+        .rm-group-pill { flex: none; border-radius: 999px; padding: 1px 9px; font-size: 10.5px; font-weight: 700; background: #ede9fe; color: #6d28d9; }
+        .rm-pill-full { background: #dcfce7; color: #15803d; }
+        .rm-group-bar { flex: 1; height: 4px; border-radius: 999px; background: rgba(139,92,246,.15); overflow: hidden; }
+        .rm-group-bar i { display: block; height: 100%; background: linear-gradient(90deg, #8b5cf6, #22c55e); transition: width .3s; }
+        .rm-group-fold, .rm-fold { flex: none; height: 22px; width: 22px; border-radius: 7px; color: #9ca3af; font-size: 10px; transition: .15s; margin-left: auto; }
+        .rm-group-fold { margin-left: 0; order: -1; }
+        .rm-group-fold:hover, .rm-fold:hover { background: rgba(139,92,246,.12); color: #7c3aed; }
+        .rm-group-fold i, .rm-fold i { transition: transform .2s; }
+        .rm-folded > .rm-group-head .rm-group-fold i, .rm-node.rm-folded > .rm-row .rm-fold i { transform: rotate(-90deg); }
+        .rm-group.rm-folded .rm-group-body { display: none; }
+        .rm-group.rm-folded .rm-group-head { border-bottom-color: transparent; }
+        .rm-node.rm-folded > .rm-kids { display: none; }
+        .rm-group-body { padding: .45rem; }
+        .rm-kids { margin-left: 1.15rem; padding-left: .5rem; border-left: 1.5px dashed #e3e5f0; }
+        .dark .rm-kids { border-color: #374151; }
+
+        .rm-row { display: flex; align-items: center; gap: .55rem; padding: .38rem .55rem; border-radius: .7rem; cursor: pointer; transition: background-color .12s, box-shadow .12s; font-size: .83rem; }
+        .rm-row:hover { background: rgba(139,92,246,.07); }
+        .rm-ico { width: 14px; font-size: 12px; color: #c4b5fd; text-align: center; }
+        .rm-on .rm-ico { color: #8b5cf6; }
+        .rm-name { color: #6b7280; transition: color .12s; }
+        .rm-name-parent { font-weight: 700; }
+        .rm-on .rm-name { color: #1f2937; }
+        .dark .rm-name { color: #9ca3af; } .dark .rm-on .rm-name { color: #f3f4f6; }
+        .rm-state { margin-left: auto; font-size: 10px; font-weight: 700; }
+        .rm-fold + .rm-state, .rm-state + .rm-fold { margin-left: 4px; }
+        .rm-added { background: rgba(16,185,129,.10); box-shadow: inset 3px 0 0 #10b981; }
+        .rm-added .rm-state { color: #059669; }
+        .rm-removed { background: rgba(239,68,68,.08); box-shadow: inset 3px 0 0 #ef4444; }
+        .rm-removed .rm-state { color: #dc2626; }
+
+        /* custom checkbox with tri-state */
+        .rm-cb { appearance: none; -webkit-appearance: none; flex: none; position: relative; height: 18px; width: 18px; border-radius: 6px; border: 1.6px solid #cbd5e1; background: #fff; cursor: pointer; transition: .15s; }
+        .rm-cb:hover { border-color: #a78bfa; }
+        .rm-cb:checked, .rm-cb:indeterminate { background: linear-gradient(135deg, #8b5cf6, #6366f1); border-color: transparent; box-shadow: 0 4px 10px -4px #7c3aed; }
+        .rm-cb:checked::after { content: ''; position: absolute; inset: 4px 3px 3.5px 3px; background: #fff; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); animation: rmTick .18s ease-out; }
+        .rm-cb:indeterminate::after { content: ''; position: absolute; left: 3.5px; right: 3.5px; top: 50%; height: 2px; margin-top: -1px; background: #fff; border-radius: 2px; }
+        .dark .rm-cb { background: #374151; border-color: #6b7280; }
+        @keyframes rmTick { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* ---- Access Rights step ---- */
+        .ar-wrap { max-height: 68vh; overflow: auto; border-radius: 1rem; border: 1px solid #eceef6; background: #fff; }
+        .dark .ar-wrap { background: rgba(255,255,255,.02); border-color: #374151; }
+        .ar-summary { background: linear-gradient(135deg, rgba(244,63,94,.09), rgba(251,113,133,.04)); border-color: rgba(244,63,94,.18); }
+        .ar-summary .rm-count b { color: #e11d48; }
+        .dark .ar-summary .rm-count b { color: #fda4af; }
+        .ar-col-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 11px; font-size: 11px; font-weight: 800; letter-spacing: .05em; background: #fff; border: 1px solid #e5e7eb; transition: .15s; }
+        .ar-col-header:hover .ar-col-pill { background: #fff1f2; border-color: #fda4af; color: #e11d48; transform: translateY(-1px); }
+        .dark .ar-col-pill { background: #1f2937; border-color: #4b5563; }
+        .ar-col-n { font-size: 10px; font-weight: 700; color: #e11d48; }
+        .ar-cb:checked, .ar-cb:indeterminate { background: linear-gradient(135deg, #f43f5e, #fb7185); box-shadow: 0 4px 10px -4px #e11d48; }
+        .ar-cb:hover { border-color: #fb7185; }
+        .ar-chk.ar-added { box-shadow: 0 0 0 3px rgba(16,185,129,.4); }
+        .ar-chk.ar-removed { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.28); }
+        .ar-row .ar-screen-name { display: inline-flex; align-items: center; gap: .5rem; }
+        .ar-row-cb { height: 16px !important; width: 16px !important; border-radius: 5px !important; }
+        .ar-row td { transition: background-color .12s; }
+        .ar-row-on td:first-child { box-shadow: inset 3px 0 0 #fb7185; }
+        .ar-fold-hide { display: none !important; }
+        .ar-group-fold { height: 22px; width: 22px; border-radius: 7px; color: #6b7280; font-size: 10px; transition: .15s; }
+        .ar-group-fold:hover { background: rgba(79,70,229,.12); color: #4338ca; }
+        .ar-group-fold i { transition: transform .2s; }
+        .ar-folded .ar-group-fold i { transform: rotate(-90deg); }
+        .ar-group-header td { padding-top: .6rem; padding-bottom: .6rem; }
+
+        /* ---- drawer (role overview / menu roles / history) ---- */
+        .acs-mask { position: fixed; inset: 0; z-index: 60; background: rgba(15,23,42,.45); opacity: 0; pointer-events: none; transition: opacity .2s; backdrop-filter: blur(2px); }
+        .acs-mask.open { opacity: 1; pointer-events: auto; }
+        .acs-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; width: min(560px, 100vw); display: flex; flex-direction: column; background: #fff; box-shadow: -20px 0 50px rgba(15,23,42,.18); transform: translateX(105%); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+        .dark .acs-drawer { background: #1f2937; }
+        .acs-drawer.open { transform: none; }
+        .acs-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 16px; border-bottom: 1px solid #eef0f4; background: linear-gradient(135deg, rgba(99,102,241,.10), rgba(139,92,246,.04) 60%, transparent); }
+        .dark .acs-drawer-head { border-color: #374151; }
+        .acs-drawer-body { flex: 1; overflow-y: auto; padding: 18px 22px 28px; }
+        .acs-x { height: 32px; width: 32px; border-radius: 10px; color: #6b7280; transition: .15s; }
+        .acs-x:hover { background: rgba(0,0,0,.06); color: #111827; }
+        .acs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+        .acs-stat { border-radius: 14px; padding: 12px 14px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
+        .dark .acs-stat { background: rgba(99,102,241,.14); }
+        .acs-stat b { display: block; font-size: 22px; line-height: 1.1; color: #4338ca; }
+        .dark .acs-stat b { color: #a5b4fc; }
+        .acs-stat span { font-size: 11px; color: #6b7280; }
+        .acs-alert { display: flex; gap: 8px; align-items: flex-start; border-radius: 12px; padding: 9px 12px; font-size: 12px; margin-bottom: 10px; }
+        .acs-alert-warn { background: #fef3c7; color: #92400e; }
+        .acs-alert-bad { background: #fee2e2; color: #991b1b; }
+        .acs-tabs { display: flex; gap: 4px; margin: 14px 0 12px; padding: 4px; border-radius: 12px; background: #f3f4f6; }
+        .dark .acs-tabs { background: rgba(255,255,255,.06); }
+        .acs-tab { flex: 1; border-radius: 9px; padding: 6px 8px; font-size: 12px; font-weight: 600; color: #6b7280; transition: .15s; white-space: nowrap; }
+        .acs-tab.active { background: #fff; color: #4f46e5; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        .dark .acs-tab.active { background: #374151; color: #a5b4fc; }
+        .acs-empty { padding: 28px 12px; text-align: center; font-size: 13px; color: #9ca3af; }
+        .acs-mono { font-family: ui-monospace, monospace; font-size: 10.5px; color: #9ca3af; }
+        .acs-tree, .acs-tree ul { list-style: none; margin: 0; padding: 0; }
+        .acs-tree ul { margin-left: 14px; padding-left: 12px; border-left: 1px dashed #d1d5db; }
+        .dark .acs-tree ul { border-color: #4b5563; }
+        .acs-node { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; font-size: 13px; }
+        .acs-node:hover { background: rgba(99,102,241,.07); }
+        .acs-node-ico { width: 14px; font-size: 12px; color: #818cf8; }
+        .acs-node-bad { background: rgba(254,226,226,.6); }
+        .acs-warn { margin-left: auto; border-radius: 999px; background: #fee2e2; color: #b91c1c; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+        .acs-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        .acs-table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; padding: 6px 8px; }
+        .acs-table td { padding: 9px 8px; border-top: 1px solid #f1f2f6; vertical-align: top; }
+        .dark .acs-table td { border-color: #374151; }
+        .acs-act { display: inline-block; margin: 1px 4px 1px 0; border-radius: 999px; padding: 1px 9px; font-size: 10.5px; font-weight: 700; background: #e5e7eb; color: #374151; }
+        .acs-act-view { background: #dbeafe; color: #1d4ed8; } .acs-act-create { background: #dcfce7; color: #15803d; }
+        .acs-act-edit { background: #fef3c7; color: #b45309; } .acs-act-delete { background: #fee2e2; color: #b91c1c; }
+        .acs-empty-ico { display: grid; place-items: center; height: 56px; width: 56px; margin: 0 auto 10px; border-radius: 18px; font-size: 22px; color: #a5b4fc; background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
+        .dark .acs-empty-ico { background: rgba(99,102,241,.15); }
+        .acs-search { position: relative; margin-bottom: 12px; }
+        .acs-search i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #9ca3af; }
+        .acs-search input { width: 100%; border-radius: 12px; border: 1px solid #e5e7eb; background: #f8fafc; padding: 9px 12px 9px 34px; font-size: 13px; outline: none; transition: .15s; }
+        .acs-search input:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,.14); }
+        .dark .acs-search input { background: #374151; border-color: #4b5563; color: #f3f4f6; }
+        .acs-people { display: grid; gap: 8px; }
+        .acs-person { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; border: 1px solid #eef0f6; background: #fff; transition: .15s; }
+        .acs-person:hover { transform: translateY(-1px); border-color: #c7d2fe; box-shadow: 0 10px 22px -16px rgba(79,70,229,.6); }
+        .dark .acs-person { background: rgba(255,255,255,.03); border-color: #374151; }
+        .acs-avatar { flex: none; display: grid; place-items: center; height: 38px; width: 38px; border-radius: 13px; font-size: 13px; font-weight: 800; color: #fff; letter-spacing: .02em; box-shadow: 0 8px 16px -8px rgba(0,0,0,.4); }
+        .acs-seen { flex: none; border-radius: 999px; padding: 2px 9px; font-size: 10.5px; font-weight: 600; background: #dcfce7; color: #15803d; }
+        .acs-seen-never { background: #f3f4f6; color: #9ca3af; }
+        .acs-badge-off { margin-left: 4px; border-radius: 999px; padding: 0 7px; font-size: 9.5px; font-weight: 700; background: #fee2e2; color: #b91c1c; }
+        .acs-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .acs-chip { border-radius: 999px; background: #eef2ff; color: #4338ca; padding: 3px 11px; font-size: 12px; }
+        .dark .acs-chip { background: rgba(99,102,241,.18); color: #c7d2fe; }
+        .acs-rolelist { list-style: none; margin: 0; padding: 0; }
+        .acs-rolelist li { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-top: 1px solid #f1f2f6; }
+        .dark .acs-rolelist li { border-color: #374151; }
+        .acs-link { font-size: 12px; font-weight: 600; color: #4f46e5; }
+        .acs-timeline { list-style: none; margin: 0; padding: 0; }
+        .acs-timeline li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f2f6; }
+        .dark .acs-timeline li { border-color: #374151; }
+        .acs-dot { flex: none; height: 28px; width: 28px; display: grid; place-items: center; border-radius: 999px; font-size: 11px; background: #e5e7eb; color: #4b5563; }
+        .acs-dot-create, .acs-dot-grant, .acs-dot-enable { background: #dcfce7; color: #15803d; }
+        .acs-dot-disable, .acs-dot-revoke { background: #fee2e2; color: #b91c1c; }
+        .acs-dot-update { background: #dbeafe; color: #1d4ed8; } .acs-dot-clone { background: #ccfbf1; color: #0f766e; }
+        .acs-diff { margin-top: 3px; font-size: 11.5px; color: #6b7280; word-break: break-word; }
+        .acs-diff-add { color: #15803d; } .acs-diff-del { color: #b91c1c; }
+        .gaps-card { border-radius: 14px; padding: 12px 14px; background: linear-gradient(180deg, rgba(248,250,252,.9), rgba(255,255,255,0)); }
+        .dark .gaps-card { background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)); }
+        .gaps-card-red { background: linear-gradient(180deg, rgba(254,226,226,.55), rgba(255,255,255,0)); }
+        .dark .gaps-card-red { background: linear-gradient(180deg, rgba(127,29,29,.25), rgba(0,0,0,0)); }
+        .gaps-count { margin-left: 4px; border-radius: 999px; background: #dc2626; color: #fff; padding: 0 7px; font-size: 10px; line-height: 16px; }
+        .gaps-count:empty { display: none; }
+        .gaps-chip { border-radius: 999px; padding: 1px 9px; font-size: 11px; font-weight: 600; }
+        .gaps-chip-red { background: #fee2e2; color: #b91c1c; }
+        .gaps-chip-amber { background: #fef3c7; color: #b45309; }
+        .gaps-chip-rose { background: #ffe4e6; color: #be123c; }
+        .gaps-chip-indigo { background: #e0e7ff; color: #4338ca; }
+        .gaps-chip-fuchsia { background: #fae8ff; color: #a21caf; }
+        .count-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+        .count-pill i { font-size: 9px; opacity: .8; }
+        .count-pill-blue { background: #dbeafe; color: #1d4ed8; }
+        .count-pill-violet { background: #ede9fe; color: #6d28d9; }
+        .count-pill-zero { background: #f3f4f6; color: #9ca3af; }
+        .count-pill-warn { background: #fef3c7; color: #b45309; }
+        .dark .count-pill-blue { background: rgba(59,130,246,.2); color: #93c5fd; }
+        .dark .count-pill-violet { background: rgba(139,92,246,.2); color: #c4b5fd; }
+        .dark .count-pill-zero { background: rgba(255,255,255,.06); color: #6b7280; }
+        .dark .count-pill-warn { background: rgba(245,158,11,.2); color: #fcd34d; }
         .gaps-id-badge {
             font-family: ui-monospace, monospace; font-size: 0.6875rem; flex-shrink: 0;
             padding: 0.05rem 0.4rem; border-radius: 0.35rem; background-color: #f3f4f6; color: #4b5563;
@@ -752,6 +1151,7 @@
                         return `<div class="flex items-center justify-center gap-2">
                             <label class="switch"><input type="checkbox" class="studio-toggle" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}><span class="slider round"></span></label>
                             <button type="button" class="studio-edit-btn bg-blue-500 text-white px-2 py-1 rounded text-xs" data-id="${data}"><i class="fas fa-edit"></i></button>
+                            ${cfg.extraActions ? cfg.extraActions(row) : ''}
                         </div>`;
                     }
                 }, ...cfg.columns],
@@ -790,13 +1190,21 @@
             $(document).on('change', cfg.tableSel + ' .studio-toggle', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
-                $.ajax({
+                const $cb = $(this);
+                const doToggle = () => $.ajax({
                     url: cfg.toggleUrl(id),
                     type: 'PUT',
                     headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
                     data: { status: newStatus },
                     success: () => { dt.ajax.reload(null, false); if (cfg.onSaved) cfg.onSaved(); }
                 });
+                // Optional impact confirmation when switching OFF
+                if (newStatus === 'X' && cfg.confirmDisable) {
+                    const row = dt.row($cb.closest('tr')).data();
+                    cfg.confirmDisable(row).then(ok => { if (ok) doToggle(); else $cb.prop('checked', true); });
+                } else {
+                    doToggle();
+                }
             });
 
             $(cfg.formSel).on('submit', function(e) {
@@ -868,7 +1276,26 @@
 
             function gapsLoad() {
                 $.get("{{ route('access_control_studio.coverage') }}", function(data) {
-                    const total = data.menus_missing_screen.length + data.screens_without_route.length + data.unregistered_screen_ids.length + data.menus_app_mismatch.length;
+                    const routeMissing = data.menus_route_missing || [];
+                    const total = routeMissing.length + data.menus_missing_screen.length + data.screens_without_route.length + data.unregistered_screen_ids.length + data.menus_app_mismatch.length;
+
+                    // Per-category chips in the collapsed header + counts on each card
+                    const chip = (n, label, cls) => n ? `<span class="gaps-chip ${cls}">${n} ${label}</span>` : '';
+                    $('#gaps_chips').html(
+                        chip(routeMissing.length, 'route missing', 'gaps-chip-red') +
+                        chip(data.menus_missing_screen.length, 'no screen', 'gaps-chip-amber') +
+                        chip(data.screens_without_route.length, 'unwired', 'gaps-chip-rose') +
+                        chip(data.unregistered_screen_ids.length, 'unregistered', 'gaps-chip-indigo') +
+                        chip(data.menus_app_mismatch.length, 'app mismatch', 'gaps-chip-fuchsia'));
+                    $('#gaps_cnt_route').text(routeMissing.length || '');
+
+                    gapsRenderList('#gaps_menusRouteMissing', routeMissing, (m) =>
+                        `<li>
+                            <button type="button" class="gaps-jump-menu flex min-w-0 flex-1 items-center gap-1.5 text-left text-indigo-600 hover:underline dark:text-indigo-400" data-menu-id="${m.id}">
+                                <span class="truncate">${m.menu_name}</span>
+                                <span class="gaps-id-badge" style="color:#b91c1c">${m.menu_route}</span>
+                            </button>
+                        </li>`);
 
                     $('#gaps_statusIcon')
                         .removeClass('bg-gray-100 text-gray-400 dark:bg-gray-700 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300')
@@ -879,6 +1306,8 @@
                             ? '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>'
                             : '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>');
 
+                    $('#tile_gaps').text(total);
+                    $('#tile_gapsBtn').toggleClass('is-clear', total === 0).find('span').text(total === 0 ? 'All wired up' : 'Open gaps');
                     $('#gaps_summary').text(total ? `${total} thing${total === 1 ? '' : 's'} need attention` : 'Everything is wired up');
 
                     gapsRenderList('#gaps_menusMissingScreen', data.menus_missing_screen, (m) =>
@@ -915,6 +1344,15 @@
                 });
             }
 
+            // Hero tiles: jump to a step / open gaps panel
+            $(document).on('click', '.acs-tile[data-step]', function() { goToStep($(this).data('step')); });
+            $('#tile_gapsBtn').on('click', function() {
+                $('#gaps_body').removeClass('hidden'); $('#gaps_chevron').addClass('rotate-180');
+                document.getElementById('gaps_panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            // Keep tile counts live as tables reload
+            const acsLiveCount = (sel, tile) => $(sel).on('xhr.dt', (e, s, json) => { if (json?.data) $(tile).text(json.data.filter(r => r.status === 'A').length); });
+
             $('#gaps_toggle').on('click', function() {
                 $('#gaps_body').toggleClass('hidden');
                 $('#gaps_chevron').toggleClass('rotate-180');
@@ -927,6 +1365,201 @@
             });
 
             gapsLoad();
+
+            // Live "does this route exist?" hint under the Menu Route Name input
+            const knownRoutes = new Set(@json($routeNames));
+            function mnuRouteHint() {
+                const v = ($('#mnu_menu_route').val() || '').trim();
+                const $h = $('#mnu_route_hint');
+                if (!v) return $h.addClass('hidden');
+                // Param routes (e.g. foo.show) aren't in the picker list, so "unknown" is a soft warning
+                const ok = knownRoutes.has(v);
+                $h.removeClass('hidden text-green-600 text-amber-600')
+                  .addClass(ok ? 'text-green-600' : 'text-amber-600')
+                  .html(ok ? '<i class="fas fa-check-circle"></i> Route exists'
+                           : '<i class="fas fa-exclamation-triangle"></i> Not a known route — the sidebar will show this menu disabled');
+            }
+            $(document).on('input change', '#mnu_menu_route', mnuRouteHint);
+            $(document).on('click', '.mnu-edit-btn, #mnu_addBtn, .mnu-child-btn', () => setTimeout(mnuRouteHint, 400));
+
+            // ===== Role overview / menu->roles / history drawer, clone, impact confirm =====
+            const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+            function acsOpenDrawer(kicker, title, sub, html) {
+                $('#acs_drawerKicker').text(kicker); $('#acs_drawerTitle').text(title); $('#acs_drawerSub').text(sub || '');
+                $('#acs_drawerBody').html(html);
+                $('#acs_drawerMask').addClass('open'); $('#acs_drawer').addClass('open').attr('aria-hidden', 'false');
+            }
+            function acsCloseDrawer() { $('#acs_drawerMask').removeClass('open'); $('#acs_drawer').removeClass('open').attr('aria-hidden', 'true'); }
+            $('#acs_drawerClose, #acs_drawerMask').on('click', acsCloseDrawer);
+            $(document).on('keydown', e => { if (e.key === 'Escape') acsCloseDrawer(); });
+            const acsLoadingHtml = '<div class="acs-empty"><i class="fas fa-circle-notch fa-spin"></i> Loading…</div>';
+
+            // --- Role overview ("what can this role see?")
+            function acsMenuTreeHtml(menus) {
+                const ids = new Set(menus.map(m => m.menu_id));
+                const kids = (pid) => menus.filter(m => (m.parent_menu_id || null) === pid);
+                // Menus whose parent isn't granted still show, as roots
+                const roots = menus.filter(m => !m.parent_menu_id || !ids.has(m.parent_menu_id));
+                const node = (m) => {
+                    const c = kids(m.menu_id);
+                    return `<li><div class="acs-node ${m.route_missing ? 'acs-node-bad' : ''}">
+                            <i class="fas ${c.length ? 'fa-folder-open' : 'fa-file-lines'} acs-node-ico"></i>
+                            <span class="font-medium">${esc(m.menu_name)}</span>
+                            <span class="acs-mono">${esc(m.menu_id)}</span>
+                            ${m.route_missing ? '<span class="acs-warn"><i class="fas fa-triangle-exclamation"></i> route missing</span>' : ''}
+                        </div>${c.length ? `<ul>${c.map(node).join('')}</ul>` : ''}</li>`;
+                };
+                return roots.length ? `<ul class="acs-tree">${roots.map(node).join('')}</ul>` : '<div class="acs-empty"><div class="acs-empty-ico"><i class="fas fa-bars-staggered"></i></div>No menus granted yet.<br><span class="text-xs">Grant them in the Role Menu step.</span></div>';
+            }
+            // People list: gradient initials avatar, name, @username, title/dept, last login
+            const acsAvatarGrads = ['#6366f1,#8b5cf6', '#0ea5e9,#6366f1', '#10b981,#0ea5e9', '#f59e0b,#ef4444', '#ec4899,#8b5cf6', '#14b8a6,#22c55e', '#f43f5e,#f59e0b'];
+            function acsAgo(ts) {
+                if (!ts) return 'never signed in';
+                const d = new Date(String(ts).replace(' ', 'T')); if (isNaN(d)) return '';
+                const days = Math.floor((Date.now() - d) / 864e5);
+                return days < 1 ? 'active today' : days === 1 ? 'yesterday' : days < 30 ? `${days}d ago` : days < 365 ? `${Math.floor(days / 30)}mo ago` : `${Math.floor(days / 365)}y ago`;
+            }
+            function acsUsersHtml(users) {
+                if (!users.length) return `<div class="acs-empty"><div class="acs-empty-ico"><i class="fas fa-user-slash"></i></div>No one has this role yet.<br><span class="text-xs">Assign it from the Users page.</span></div>`;
+                const cards = users.map(u => {
+                    const label = u.name || u.username;
+                    const ini = label.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+                    let h = 0; for (const c of u.username) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+                    const sub = [u.jabatan, u.department_id].filter(Boolean).map(esc).join(' · ');
+                    return `<div class="acs-person" data-q="${esc((label + ' ' + u.username + ' ' + (u.department_id || '') + ' ' + (u.jabatan || '')).toLowerCase())}">
+                        <span class="acs-avatar" style="background:linear-gradient(135deg,${acsAvatarGrads[h % acsAvatarGrads.length]})">${esc(ini)}</span>
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${esc(label)}${u.user_status && u.user_status !== 'A' ? ' <span class="acs-badge-off">inactive</span>' : ''}</div>
+                            <div class="truncate text-[11px] text-gray-400">@${esc(u.username)}${sub ? ' · ' + sub : ''}</div>
+                        </div>
+                        <span class="acs-seen ${u.last_login_at ? '' : 'acs-seen-never'}">${acsAgo(u.last_login_at)}</span>
+                    </div>`;
+                }).join('');
+                return `<div class="acs-search"><i class="fas fa-magnifying-glass"></i><input type="text" class="acs-user-search" placeholder="Search ${users.length} user${users.length > 1 ? 's' : ''}…"></div>
+                    <div class="acs-people">${cards}</div><div class="acs-empty acs-no-match hidden">No matching users.</div>`;
+            }
+            $(document).on('input', '.acs-user-search', function() {
+                const q = $(this).val().toLowerCase().trim(), $pane = $(this).closest('.acs-pane');
+                let n = 0;
+                $pane.find('.acs-person').each(function() { const ok = !q || String($(this).data('q')).includes(q); $(this).toggle(ok); if (ok) n++; });
+                $pane.find('.acs-no-match').toggleClass('hidden', n > 0);
+            });
+
+            function acsRoleOverview(roleId) {
+                acsOpenDrawer('Role overview', roleId, '', acsLoadingHtml);
+                $.get(`/access-control-studio/role/${encodeURIComponent(roleId)}/overview`, function(d) {
+                    $('#acs_drawerTitle').text(d.role.role_name);
+                    $('#acs_drawerSub').text(d.role.role_id + (d.role.status === 'A' ? '' : ' · inactive'));
+                    const bad = d.menus.filter(m => m.route_missing).length;
+                    const rights = d.rights.map(r => `<tr><td><span class="font-medium">${esc(r.screen_name || r.screen_id)}</span><div class="acs-mono">${esc(r.screen_id)}</div></td>
+                        <td>${r.actions.map(a => `<span class="acs-act acs-act-${esc(a).toLowerCase()}">${esc(a)}</span>`).join('')}</td></tr>`).join('');
+                    const html = `
+                        <div class="acs-stats">
+                            <div class="acs-stat"><b>${d.users.length}</b><span>Users</span></div>
+                            <div class="acs-stat"><b>${d.menus.length}</b><span>Menus</span></div>
+                            <div class="acs-stat"><b>${d.rights.length}</b><span>Screens with rights</span></div>
+                        </div>
+                        ${d.menus.length === 0 ? '<div class="acs-alert acs-alert-warn"><i class="fas fa-triangle-exclamation"></i> No menus granted — users with only this role see an empty sidebar.</div>' : ''}
+                        ${bad ? `<div class="acs-alert acs-alert-bad"><i class="fas fa-link-slash"></i> ${bad} granted menu${bad > 1 ? 's have' : ' has'} a route that doesn't exist in this codebase.</div>` : ''}
+                        <div class="acs-tabs">
+                            <button class="acs-tab active" data-tab="menus">Menus (${d.menus.length})</button>
+                            <button class="acs-tab" data-tab="rights">Access rights (${d.rights.length})</button>
+                            <button class="acs-tab" data-tab="users">Users (${d.users.length})</button>
+                            <button class="acs-tab" data-tab="hist">History</button>
+                        </div>
+                        <div class="acs-pane" data-pane="menus">${acsMenuTreeHtml(d.menus)}</div>
+                        <div class="acs-pane hidden" data-pane="rights">${rights ? `<table class="acs-table"><thead><tr><th>Screen</th><th>Allowed actions</th></tr></thead><tbody>${rights}</tbody></table>` : '<div class="acs-empty"><div class="acs-empty-ico"><i class="fas fa-shield-halved"></i></div>No access rights granted yet.<br><span class="text-xs">Set them in the Access Rights step.</span></div>'}</div>
+                        <div class="acs-pane hidden" data-pane="users">${acsUsersHtml(d.users)}</div>
+                        <div class="acs-pane hidden" data-pane="hist" data-entity="${esc(roleId)}">${acsLoadingHtml}</div>`;
+                    $('#acs_drawerBody').html(html);
+                }).fail(() => $('#acs_drawerBody').html('<div class="acs-empty">Failed to load role.</div>'));
+            }
+            $(document).on('click', '.acs-tab', function() {
+                const tab = $(this).data('tab');
+                $(this).addClass('active').siblings().removeClass('active');
+                const $pane = $(this).closest('.acs-drawer-body').find(`.acs-pane[data-pane="${tab}"]`);
+                $(this).closest('.acs-drawer-body').find('.acs-pane').addClass('hidden'); $pane.removeClass('hidden');
+                if (tab === 'hist' && !$pane.data('loaded')) {
+                    $pane.data('loaded', 1);
+                    $.get("{{ route('access_control_studio.audit') }}", { entity: $pane.data('entity') }, d => $pane.html(acsAuditHtml(d.data)));
+                }
+            });
+            $(document).on('click', '.acs-role-view', function() { acsRoleOverview($(this).data('role')); });
+
+            // --- Reverse view: roles that can see a menu
+            $(document).on('click', '.acs-menu-roles', function() {
+                const id = $(this).data('menu'), name = $(this).data('name');
+                acsOpenDrawer('Menu access', name, id, acsLoadingHtml);
+                $.get(`/access-control-studio/menu/${encodeURIComponent(id)}/roles`, function(d) {
+                    $('#acs_drawerBody').html(d.roles.length
+                        ? `<p class="mb-3 text-sm text-gray-500">${d.roles.length} role${d.roles.length > 1 ? 's' : ''} can see this menu:</p>
+                           <ul class="acs-rolelist">${d.roles.map(r => `<li><div><span class="font-medium">${esc(r.role_name)}</span><div class="acs-mono">${esc(r.role_id)}</div></div>
+                              <button class="acs-role-view acs-link" data-role="${esc(r.role_id)}">View <i class="fas fa-arrow-right"></i></button></li>`).join('')}</ul>`
+                        : '<div class="acs-empty">No active role can see this menu.</div>');
+                });
+            });
+
+            // --- Change history
+            const acsActionIcon = { create: 'fa-plus', update: 'fa-pen', enable: 'fa-toggle-on', disable: 'fa-toggle-off', clone: 'fa-copy', grant: 'fa-key', revoke: 'fa-ban' };
+            function acsAuditHtml(rows) {
+                if (!rows.length) return '<div class="acs-empty">No changes recorded yet. New role, menu and permission changes will show up here.</div>';
+                return `<ul class="acs-timeline">${rows.map(r => {
+                    let det = '';
+                    if (r.changes?.added?.length) det += `<div class="acs-diff acs-diff-add">+ ${r.changes.added.map(esc).join(', ')}</div>`;
+                    if (r.changes?.removed?.length) det += `<div class="acs-diff acs-diff-del">− ${r.changes.removed.map(esc).join(', ')}</div>`;
+                    if (r.changes && !r.changes.added && !r.changes.removed) {
+                        det = Object.entries(r.changes).filter(([, v]) => v && typeof v === 'object' && 'to' in v)
+                            .map(([k, v]) => `<div class="acs-diff">${esc(k)}: <s>${esc(v.from ?? '—')}</s> → <b>${esc(v.to ?? '—')}</b></div>`).join('');
+                    }
+                    return `<li><span class="acs-dot acs-dot-${esc(r.action)}"><i class="fas ${acsActionIcon[r.action] || 'fa-circle'}"></i></span>
+                        <div class="min-w-0"><div class="text-sm font-medium text-gray-800 dark:text-gray-100">${esc(r.description)}</div>${det}
+                        <div class="mt-0.5 text-[11px] text-gray-400">${esc(r.created_by || 'system')} · ${esc(String(r.created_at).slice(0, 16))}</div></div></li>`;
+                }).join('')}</ul>`;
+            }
+            $('#acs_historyBtn').on('click', function() {
+                acsOpenDrawer('Audit trail', 'Change History', 'Latest 200 role, menu and permission changes', acsLoadingHtml);
+                $.get("{{ route('access_control_studio.audit') }}", d => $('#acs_drawerBody').html(acsAuditHtml(d.data)));
+            });
+
+            // --- Clone role
+            $(document).on('click', '.acs-role-clone', function() {
+                const src = $(this).data('role'), srcName = $(this).data('name');
+                Swal.fire({
+                    title: 'Clone role',
+                    html: `<p style="font-size:13px;color:#6b7280;margin-bottom:12px">Copies <b>${esc(src)}</b>'s menus and access rights. Users are <b>not</b> copied.</p>
+                        <input id="clone_id" class="swal2-input" placeholder="New Role ID" value="${esc(src)}_COPY">
+                        <input id="clone_name" class="swal2-input" placeholder="New Role Name" value="${esc(srcName)} (copy)">`,
+                    showCancelButton: true, confirmButtonText: 'Clone', focusConfirm: false,
+                    preConfirm: () => {
+                        const role_id = $('#clone_id').val().trim(), role_name = $('#clone_name').val().trim();
+                        if (!role_id || !role_name) { Swal.showValidationMessage('Role ID and name are required'); return false; }
+                        return $.ajax({ url: "{{ route('access_control_studio.clone_role') }}", type: 'POST', headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
+                            data: { source_role_id: src, role_id, role_name } })
+                            .catch(xhr => { Swal.showValidationMessage(xhr.responseJSON?.errors ? Object.values(xhr.responseJSON.errors).flat().join(' ') : (xhr.responseJSON?.message || 'Clone failed')); return false; });
+                    }
+                }).then(res => {
+                    if (res.isConfirmed && res.value?.success) {
+                        $('#rol_table').DataTable().ajax.reload(null, false);
+                        if (typeof refreshRoleSelects === 'function') refreshRoleSelects();
+                        Swal.fire({ icon: 'success', title: 'Role cloned', text: `${res.value.counts.menus} menus and ${res.value.counts.rights} access rights copied.`, timer: 1800, showConfirmButton: false });
+                    }
+                });
+            });
+
+            // --- Impact confirmation before disabling a role / menu
+            function acsConfirmImpact(type, id, name) {
+                return $.get(`/access-control-studio/impact/${type}/${encodeURIComponent(id)}`).then(d => {
+                    const lines = type === 'role'
+                        ? [`<b>${d.users}</b> user${d.users === 1 ? '' : 's'} will lose this role`, `<b>${d.menus}</b> menu grant${d.menus === 1 ? '' : 's'} stop applying`]
+                        : [`<b>${d.roles}</b> role${d.roles === 1 ? '' : 's'} lose this menu`, d.children ? `<b>${d.children}</b> sub-menu${d.children === 1 ? '' : 's'} sit under it` : null].filter(Boolean);
+                    return Swal.fire({
+                        icon: 'warning', title: `Disable ${type} “${name || id}”?`,
+                        html: `<ul style="text-align:left;display:inline-block;font-size:14px;line-height:1.8">${lines.map(l => `<li>• ${l}</li>`).join('')}</ul>`,
+                        showCancelButton: true, confirmButtonText: 'Yes, disable', confirmButtonColor: '#dc2626',
+                    }).then(r => r.isConfirmed);
+                }).catch(() => Swal.fire({ icon: 'warning', title: `Disable ${type} “${name || id}”?`, showCancelButton: true, confirmButtonText: 'Yes, disable' }).then(r => r.isConfirmed));
+            }
 
             const statusCol = {
                 data: 'status',
@@ -974,7 +1607,7 @@
 
             function refreshRoleSelects() {
                 const url = "{{ route('roles.json') }}";
-                ['#rm_roleSelect', '#ar_roleSelect', '#ar_copyFrom'].forEach(sel => {
+                ['#rm_roleSelect', '#rm_copyFrom', '#ar_roleSelect', '#ar_copyFrom'].forEach(sel => {
                     studioReloadSelectOptions($(sel), url, r => `<option value="${r.role_id}">${r.role_name}</option>`);
                 });
             }
@@ -1057,6 +1690,7 @@
                 $('#mnu_treeContainer').css('opacity', 1).html('<div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Loading menus...</div>');
                 $.get("{{ route('menus.json') }}", function(res) {
                     mnuTreeData = res.data || [];
+                    $('#tile_mnu').text(mnuTreeData.filter(m => m.status === 'A').length);
                     mnuRefreshParentOptions();
                     mnuRenderTree();
                 });
@@ -1120,6 +1754,7 @@
                                         <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">${mnuHighlight(m.screen_id || '-', term)}</span>
                                         <span class="ml-1 text-[10px] text-gray-400">[Sort: ${m.menu_sort_order ?? 0}]</span>
                                         ${!isExpanded && hasChildren ? `<span class="ml-1 text-[10px] text-gray-400">(${childCount} sub)</span>` : ''}
+                                        ${m.route_missing ? `<span class="ml-2 inline-flex items-center gap-1 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300" title="Route '${m.menu_route}' is not defined in this codebase. The sidebar shows this menu as disabled."><i class="fas fa-exclamation-triangle"></i> Route missing: ${m.menu_route}</span>` : ''}
                                     </div>
                                     <div class="flex items-center space-x-1.5">
                                         <label class="switch" title="${isActive ? 'Active' : 'Inactive'}">
@@ -1128,6 +1763,9 @@
                                         </label>
                                         <button type="button" title="Edit menu" class="mnu-edit-btn flex h-7 w-7 items-center justify-center rounded bg-blue-500 text-sm text-white hover:bg-blue-600" data-id="${m.id}">
                                             <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" title="Which roles can see this menu?" class="acs-menu-roles flex h-7 w-7 items-center justify-center rounded bg-violet-500 text-sm text-white hover:bg-violet-600" data-menu="${m.menu_id}" data-name="${(m.menu_name || '').replace(/"/g, '&quot;')}">
+                                            <i class="fas fa-users"></i>
                                         </button>
                                         <button type="button" title="Add child menu" class="mnu-child-btn flex h-7 w-7 items-center justify-center rounded bg-emerald-500 text-sm text-white hover:bg-emerald-600" data-parent-menu="${m.menu_id}">
                                             <i class="fas fa-plus"></i>
@@ -1289,13 +1927,20 @@
             $(document).on('change', '.mnu-toggle-status', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
-                $.ajax({
+                const $cb = $(this);
+                const doToggle = () => $.ajax({
                     url: `/menus/${id}/toggle-status`,
                     type: 'PUT',
                     headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
                     data: { status: newStatus },
                     success: () => mnuLoadTree()
                 });
+                if (newStatus === 'X') {
+                    const m = mnuTreeData.find(x => String(x.id) === String(id));
+                    acsConfirmImpact('menu', m?.menu_id, m?.menu_name).then(ok => { if (ok) doToggle(); else $cb.prop('checked', true); });
+                } else {
+                    doToggle();
+                }
             });
 
             $(document).on('click', '.mnu-tree-toggle', function() {
@@ -1462,7 +2107,14 @@
             // ===== Step 4: Role =====
             studioMiniCrud({
                 tableSel: '#rol_table', prefix: 'rol', jsonUrl: "{{ route('roles.json') }}",
-                columns: [{ data: 'role_id' }, { data: 'role_name' }, statusCol],
+                extraActions: (row) => `
+                    <button type="button" class="acs-role-view rounded bg-violet-500 px-2 py-1 text-xs text-white hover:bg-violet-600" data-role="${row.role_id}" title="What can this role see?"><i class="fas fa-eye"></i></button>
+                    <button type="button" class="acs-role-clone rounded bg-teal-500 px-2 py-1 text-xs text-white hover:bg-teal-600" data-role="${row.role_id}" data-name="${(row.role_name || '').replace(/"/g, '&quot;')}" title="Clone this role"><i class="fas fa-copy"></i></button>`,
+                confirmDisable: (row) => acsConfirmImpact('role', row.role_id, row.role_name),
+                columns: [{ data: 'role_id' }, { data: 'role_name' },
+                    { data: 'user_count', className: 'text-center', render: (d) => `<span class="count-pill ${d ? 'count-pill-blue' : 'count-pill-zero'}" title="Active users with this role"><i class="fas fa-user"></i> ${d ?? 0}</span>` },
+                    { data: 'menu_count', className: 'text-center', render: (d) => `<span class="count-pill ${d ? 'count-pill-violet' : 'count-pill-warn'}" title="${d ? 'Menus granted to this role' : 'No menus granted — this role sees an empty sidebar'}"><i class="fas fa-bars"></i> ${d ?? 0}</span>` },
+                    statusCol],
                 modalSel: '#rol_modal', formSel: '#rol_form', titleSel: '#rol_modalTitle', idSel: '#rol_id',
                 addBtnSel: '#rol_addBtn', closeBtnSel: '#rol_closeBtn',
                 addLabel: 'Add Role', editLabel: 'Edit Role',
@@ -1474,6 +2126,8 @@
                 onSaved: (resp) => { if (resp?.data?.role_id) lastCreated.role = resp.data.role_id; refreshRoleSelects(); }
             });
 
+            acsLiveCount('#app_table', '#tile_app'); acsLiveCount('#scr_table', '#tile_scr'); acsLiveCount('#rol_table', '#tile_rol');
+
             // ===== Step 5: Role Menu matrix (grouped like the Menu tree) =====
             // Reads live from mnuTreeData (kept fresh by mnuLoadTree on every
             // menu add/edit/drag/toggle) instead of a static PHP-baked array,
@@ -1484,21 +2138,26 @@
                     .sort((a, b) => (a.menu_name || '').localeCompare(b.menu_name || ''));
             }
 
+            // Baseline = what's saved in the DB; everything else is an unsaved change.
+            let rmBase = new Set(), rmRole = '', rmFilterMode = 'all', rmAllFolded = false;
+            const rmChecked = () => new Set($('.rm-chk:checked').map(function() { return $(this).val(); }).get());
+
             function rmRenderNode(m, checkedSet) {
                 const children = rmChildrenOf(m.menu_id);
                 const hasChildren = children.length > 0;
                 const childrenHtml = hasChildren
-                    ? `<div class="ml-4 border-l border-gray-100 pl-2 dark:border-gray-700">${children.map(c => rmRenderNode(c, checkedSet)).join('')}</div>`
+                    ? `<div class="rm-kids">${children.map(c => rmRenderNode(c, checkedSet)).join('')}</div>`
                     : '';
-
                 return `
-                    <div data-menu-id="${m.menu_id}">
-                        <label class="rm-row flex items-center gap-2 rounded-lg px-2 py-1 text-sm hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                               data-name="${(m.menu_name + ' ' + m.menu_id).toLowerCase()}">
-                            <input type="checkbox" class="rm-chk h-4 w-4 shrink-0" value="${m.menu_id}" ${checkedSet.has(m.menu_id) ? 'checked' : ''}>
-                            <span class="${hasChildren ? 'font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-300'}">${m.menu_name}</span>
-                            <span class="text-xs text-gray-400">(${m.menu_id})</span>
-                            ${hasChildren ? `<span class="ml-auto text-[10px] text-gray-400">${children.length} sub</span>` : ''}
+                    <div data-menu-id="${esc(m.menu_id)}" class="rm-node">
+                        <label class="rm-row" data-name="${esc((m.menu_name + ' ' + m.menu_id).toLowerCase())}" data-id="${esc(m.menu_id)}">
+                            <input type="checkbox" class="rm-chk rm-cb" value="${esc(m.menu_id)}" ${checkedSet.has(m.menu_id) ? 'checked' : ''}>
+                            <i class="fas ${hasChildren ? 'fa-folder' : 'fa-file-lines'} rm-ico"></i>
+                            <span class="rm-name ${hasChildren ? 'rm-name-parent' : ''}">${esc(m.menu_name)}</span>
+                            <span class="acs-mono">${esc(m.menu_id)}</span>
+                            ${m.route_missing ? `<span class="acs-warn" style="margin-left:4px" title="Route '${esc(m.menu_route)}' is not defined — shown disabled in the sidebar"><i class="fas fa-link-slash"></i></span>` : ''}
+                            <span class="rm-state"></span>
+                            ${hasChildren ? `<button type="button" class="rm-fold" title="Collapse / expand"><i class="fas fa-chevron-down"></i></button>` : ''}
                         </label>
                         ${childrenHtml}
                     </div>`;
@@ -1506,29 +2165,75 @@
 
             function renderRoleMenuMatrix(checkedIds) {
                 const checkedSet = new Set(checkedIds);
+                rmBase = new Set(checkedIds);
                 const roots = rmChildrenOf(null);
 
                 const html = roots.map(root => `
-                    <div class="rm-group overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
-                        <div class="flex items-center justify-end gap-2 border-b border-gray-100 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900/40">
-                            <button type="button" class="rm-group-all text-[10px] font-semibold text-indigo-600 hover:underline dark:text-indigo-400">select all</button>
-                            <span class="text-gray-300 dark:text-gray-600">·</span>
-                            <button type="button" class="rm-group-none text-[10px] font-semibold text-gray-400 hover:underline">none</button>
-                        </div>
-                        <div class="p-1.5">${rmRenderNode(root, checkedSet)}</div>
-                    </div>`).join('');
+                    <section class="rm-group">
+                        <header class="rm-group-head">
+                            <input type="checkbox" class="rm-group-cb rm-cb" title="Grant / clear the whole group">
+                            <button type="button" class="rm-group-fold" title="Collapse / expand group"><i class="fas fa-chevron-down"></i></button>
+                            <span class="rm-group-title">${esc(root.menu_name)}</span>
+                            <span class="rm-group-pill">0/0</span>
+                            <span class="rm-group-bar"><i></i></span>
+                        </header>
+                        <div class="rm-group-body">${rmRenderNode(root, checkedSet)}</div>
+                    </section>`).join('');
 
-                $('#rm_grid').html(html).removeClass('hidden');
+                $('#rm_grid').html(html || '<div class="acs-empty">No active menus yet.</div>').removeClass('hidden');
                 $('#rm_empty').addClass('hidden');
-                $('#rm_hint').removeClass('hidden');
+                $('#rm_hint, #rm_summary').removeClass('hidden');
                 $('#rm_actions').removeClass('hidden');
+                $('#rm_search').val(''); rmFilterMode = 'all';
+                $('#rm_filter button').removeClass('active').filter('[data-mode="all"]').addClass('active');
+                rmRefresh();
             }
 
-            $('#rm_roleSelect').on('change', function() {
+            // Recompute counts, tri-state checkboxes, progress and the unsaved-diff highlight.
+            function rmRefresh() {
+                const now = rmChecked();
+                const total = $('.rm-chk').length;
+                $('#rm_granted').text(now.size); $('#rm_total').text(total);
+                $('#rm_bar').css('width', total ? (now.size / total * 100) + '%' : 0);
+
+                let added = 0, removed = 0;
+                $('.rm-row').each(function() {
+                    const id = String($(this).data('id')), on = now.has(id), was = rmBase.has(id);
+                    $(this).toggleClass('rm-added', on && !was).toggleClass('rm-removed', !on && was).toggleClass('rm-on', on);
+                    $(this).find('.rm-state').text(on && !was ? 'will grant' : (!on && was ? 'will remove' : ''));
+                    if (on && !was) added++;
+                    if (!on && was) removed++;
+                });
+                $('.rm-group').each(function() {
+                    const $c = $(this).find('.rm-chk'), n = $c.length, k = $c.filter(':checked').length;
+                    $(this).find('.rm-group-pill').text(`${k}/${n}`).toggleClass('rm-pill-full', n > 0 && k === n);
+                    $(this).find('.rm-group-bar i').css('width', n ? (k / n * 100) + '%' : 0);
+                    const gcb = $(this).find('.rm-group-cb')[0];
+                    gcb.checked = n > 0 && k === n; gcb.indeterminate = k > 0 && k < n;
+                });
+                const dirty = added || removed;
+                $('#rm_dirtyChip').toggleClass('hidden', !dirty).html(dirty
+                    ? `<span class="rm-d-add">+${added}</span> <span class="rm-d-del">−${removed}</span> unsaved` : '');
+                $('#rm_reset').toggleClass('hidden', !dirty);
+                $('#rm_save').toggleClass('rm-pulse', !!dirty);
+                return !!dirty;
+            }
+
+            // Role switch — guard unsaved changes
+            let rmSwitching = false;
+            $('#rm_roleSelect').on('change', async function() {
+                if (rmSwitching) return;
                 const roleId = $(this).val();
+                // Re-triggered by a role-list refresh for the same role: keep the grid (and unsaved ticks) as is
+                if (roleId && roleId === rmRole && $('#rm_grid').children().length) return;
+                if ($('#rm_grid').children().length && rmRefresh()) {
+                    const r = await Swal.fire({ icon: 'question', title: 'Discard unsaved changes?', text: 'You have unsaved menu changes for the current role.', showCancelButton: true, confirmButtonText: 'Discard', cancelButtonText: 'Keep editing' });
+                    if (!r.isConfirmed) { rmSwitching = true; $(this).val(rmRole).trigger('change.select2'); rmSwitching = false; return; }
+                }
+                rmRole = roleId;
                 if (!roleId) {
                     $('#rm_grid').addClass('hidden').empty();
-                    $('#rm_actions, #rm_hint').addClass('hidden');
+                    $('#rm_actions, #rm_hint, #rm_summary').addClass('hidden');
                     $('#rm_empty').removeClass('hidden');
                     return;
                 }
@@ -1539,52 +2244,93 @@
                 }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load menus' }); });
             });
 
-            // A node stays visible if it matches, or any descendant matches.
-            function rmApplyFilter(q) {
+            // Search + Granted/Not-granted filter. A node stays visible if it matches, or any descendant does.
+            function rmApplyFilter() {
+                const q = ($('#rm_search').val() || '').toLowerCase().trim(), mode = rmFilterMode;
+                const rowOk = ($row) => {
+                    if (q && !String($row.data('name')).includes(q)) return false;
+                    const on = $row.find('.rm-chk').prop('checked');
+                    return mode === 'all' || (mode === 'granted' ? on : !on);
+                };
                 function walk($node) {
-                    const $row = $node.children('.rm-row').first();
-                    let match = ($row.data('name') || '').includes(q);
-                    $node.children('div').children('[data-menu-id]').each(function() {
-                        if (walk($(this))) match = true;
-                    });
+                    let match = rowOk($node.children('.rm-row').first());
+                    $node.children('.rm-kids').children('[data-menu-id]').each(function() { if (walk($(this))) match = true; });
                     $node.toggle(match);
                     return match;
                 }
                 $('#rm_grid > .rm-group').each(function() {
-                    const $group = $(this);
-                    let groupVisible = false;
-                    $group.find('> div > [data-menu-id]').each(function() {
-                        if (walk($(this))) groupVisible = true;
-                    });
-                    $group.toggle(groupVisible);
+                    let vis = false;
+                    $(this).find('> .rm-group-body > [data-menu-id]').each(function() { if (walk($(this))) vis = true; });
+                    $(this).toggle(vis);
                 });
             }
-
-            $('#rm_search').on('input', function() {
-                rmApplyFilter($(this).val().toLowerCase());
-            });
-            $('#rm_selectAll').on('click', () => $('.rm-row:visible .rm-chk').prop('checked', true));
-            $('#rm_selectNone').on('click', () => $('.rm-row:visible .rm-chk').prop('checked', false));
-
-            $(document).on('click', '.rm-group-all', function() {
-                $(this).closest('.rm-group').find('.rm-chk').prop('checked', true);
-            });
-            $(document).on('click', '.rm-group-none', function() {
-                $(this).closest('.rm-group').find('.rm-chk').prop('checked', false);
+            $('#rm_search').on('input', rmApplyFilter);
+            $('#rm_filter').on('click', 'button', function() {
+                $(this).addClass('active').siblings().removeClass('active');
+                rmFilterMode = $(this).data('mode'); rmApplyFilter();
             });
 
-            $('#rm_save').on('click', function() {
+            // Selection helpers
+            $(document).on('change', '.rm-chk', rmRefresh);
+            $(document).on('change', '.rm-group-cb', function() {
+                $(this).closest('.rm-group').find('.rm-chk').prop('checked', this.checked); rmRefresh();
+            });
+            $('#rm_selectAll').on('click', () => { $('.rm-row:visible .rm-chk').prop('checked', true); rmRefresh(); });
+            $('#rm_selectNone').on('click', () => { $('.rm-row:visible .rm-chk').prop('checked', false); rmRefresh(); });
+            $('#rm_reset').on('click', () => { $('.rm-chk').each(function() { this.checked = rmBase.has($(this).val()); }); rmRefresh(); });
+
+            // Collapse / expand
+            $(document).on('click', '.rm-fold', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                $(this).closest('.rm-node').toggleClass('rm-folded');
+            });
+            $(document).on('click', '.rm-group-fold', function() { $(this).closest('.rm-group').toggleClass('rm-folded'); });
+            $('#rm_foldAll').on('click', function() {
+                rmAllFolded = !rmAllFolded;
+                $('.rm-group').toggleClass('rm-folded', rmAllFolded);
+                $(this).find('i').attr('class', 'fas ' + (rmAllFolded ? 'fa-angles-up' : 'fa-angles-down'));
+            });
+
+            // Copy another role's menus in (as an unsaved change you can review/undo)
+            $('#rm_copyFrom').on('change', async function() {
+                const src = $(this).val(); $(this).val('');
+                if (!src || !rmRole) return;
+                if (src === rmRole) return Swal.fire({ icon: 'info', title: 'That is the same role', timer: 1400, showConfirmButton: false });
+                const r = await Swal.fire({ icon: 'question', title: `Copy menus from ${src}?`, text: "Replace this role's selection, or add them on top of what's ticked? Nothing is saved until you press Save.",
+                    showDenyButton: true, showCancelButton: true, confirmButtonText: 'Replace', denyButtonText: 'Add on top', confirmButtonColor: '#6366f1', denyButtonColor: '#0ea5e9' });
+                if (r.isDismissed) return;
+                showLoading();
+                $.get(`/role-menus/by-role/${encodeURIComponent(src)}`, function(data) {
+                    hideLoading();
+                    const ids = new Set(data.menu_ids || []);
+                    $('.rm-chk').each(function() { if (ids.has($(this).val())) this.checked = true; else if (r.isConfirmed) this.checked = false; });
+                    rmRefresh();
+                    Swal.fire({ icon: 'success', title: 'Copied — review and press Save', timer: 1600, showConfirmButton: false });
+                }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Failed to load that role' }); });
+            });
+
+            function rmSave() {
                 const roleId = $('#rm_roleSelect').val();
                 if (!roleId) return;
-                const menuIds = $('.rm-chk:checked').map(function() { return $(this).val(); }).get();
+                const menuIds = [...rmChecked()];
                 showLoading();
                 $.ajax({
                     url: "{{ route('role_menus.save_by_role') }}", type: 'POST',
                     headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
                     data: { role_id: roleId, menu_id: menuIds },
-                    success: () => { hideLoading(); Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false }); },
+                    success: () => {
+                        hideLoading(); rmBase = new Set(menuIds); rmRefresh();
+                        $('#rol_table').DataTable().ajax.reload(null, false);
+                        Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
+                    },
                     error: () => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save' }); }
                 });
+            }
+            $('#rm_save').on('click', rmSave);
+            $(document).on('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && $('.step-panel[data-panel="rolemenu"]').is(':visible') && $('#rm_roleSelect').val()) {
+                    e.preventDefault(); rmSave();
+                }
             });
 
             // ===== Step 6: Access Rights matrix (grouped by Application) =====
@@ -1646,11 +2392,11 @@
                         const checkedNames = new Set(rights[key] || []);
                         const cells = accessColumns.map(name => `
                             <td class="px-3 py-1.5 text-center">
-                                <input type="checkbox" class="ar-chk h-4 w-4 accent-indigo-600" data-screen="${s.screen_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
+                                <input type="checkbox" class="ar-chk rm-cb ar-cb" data-screen="${s.screen_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
                             </td>`).join('');
                         return `<tr class="ar-row ar-orphan-row${i % 2 === 1 ? ' ar-row-alt' : ''} border-b dark:border-gray-700" data-search="${(s.screen_name + ' ' + s.screen_id).toLowerCase()}" data-app-group="${appId}" data-ancestors="">
                             <td class="whitespace-nowrap py-1.5 pr-3" style="padding-left:0.75rem">
-                                <span class="ar-screen-name">${s.screen_name} <span class="text-gray-400">(${s.screen_id})</span></span>
+                                <span class="ar-screen-name"><input type="checkbox" class="ar-row-cb rm-cb ar-cb" title="Toggle every action for this screen"> ${esc(s.screen_name)} <span class="acs-mono">${esc(s.screen_id)}</span></span>
                             </td>
                             ${cells}
                         </tr>`;
@@ -1690,11 +2436,11 @@
                                 const checkedNames = new Set(rights[key] || []);
                                 const cells = accessColumns.map(name => `
                                     <td class="px-3 py-1.5 text-center">
-                                        <input type="checkbox" class="ar-chk h-4 w-4 accent-indigo-600" data-screen="${m.menu_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
+                                        <input type="checkbox" class="ar-chk rm-cb ar-cb" data-screen="${m.menu_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
                                     </td>`).join('');
                                 rows += `<tr class="ar-row${leafIndex % 2 === 1 ? ' ar-row-alt' : ''} border-b dark:border-gray-700" data-search="${(m.menu_name + ' ' + m.menu_id).toLowerCase()}" data-app-group="${appId}" data-ancestors="${ancestors.join(',')}">
                                     <td class="whitespace-nowrap py-1.5 pr-3" style="padding-left:${pad}">
-                                        <span class="ar-screen-name">${m.menu_name} <span class="text-gray-400">(${m.menu_id})</span></span>
+                                        <span class="ar-screen-name"><input type="checkbox" class="ar-row-cb rm-cb ar-cb" title="Toggle every action for this screen"> ${esc(m.menu_name)} <span class="acs-mono">${esc(m.menu_id)}</span></span>
                                     </td>
                                     ${cells}
                                 </tr>`;
@@ -1716,6 +2462,11 @@
                 return walk(roots, 0, true, []);
             }
 
+            // Baseline = saved rights as "screen|app|ACTION" keys; anything else is an unsaved change.
+            let arBase = new Set(), arRole = '';
+            const arKey = ($c) => `${$c.data('screen')}|${$c.data('app')}|${$c.data('name')}`;
+            const arCheckedKeys = () => new Set($('.ar-chk:checked').map(function() { return arKey($(this)); }).get());
+
             function renderAccessMatrix(rights) {
                 const groups = {};
                 getMatrixTree().forEach(m => {
@@ -1728,20 +2479,21 @@
                 const appIds = Array.from(new Set([...Object.keys(groups), ...Object.keys(orphansByApp)]))
                     .sort((a, b) => (arAppNames[a] || a).localeCompare(arAppNames[b] || b));
 
-                const arGroupIconSvg = '<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
-
                 const html = appIds.map(appId => {
                     const label = arAppNames[appId] ? `${arAppNames[appId]} (${appId})` : appId;
 
                     const headerRow = `
-                        <tr class="ar-group-header" data-app="${appId}">
+                        <tr class="ar-group-header" data-app="${esc(appId)}">
                             <td colspan="${accessColumns.length + 1}" class="px-3">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="ar-group-icon">${arGroupIconSvg}</span>
-                                    <span class="ar-group-label">${label}</span>
+                                    <button type="button" class="ar-group-fold" data-app="${esc(appId)}" title="Collapse / expand"><i class="fas fa-chevron-down"></i></button>
+                                    <span class="ar-group-icon"><i class="fas fa-cubes" style="font-size:10px"></i></span>
+                                    <span class="ar-group-label">${esc(label)}</span>
+                                    <span class="ar-grp-pill rm-group-pill" data-app="${esc(appId)}">0/0</span>
                                     <span class="ml-auto flex items-center gap-1.5">
-                                        <button type="button" class="ar-group-all ar-group-pill ar-group-pill-all" data-app="${appId}">Select all</button>
-                                        <button type="button" class="ar-group-none ar-group-pill ar-group-pill-none" data-app="${appId}">None</button>
+                                        <button type="button" class="ar-group-view ar-group-pill ar-group-pill-none" data-app="${esc(appId)}" title="Allow VIEW only for this application">Read-only</button>
+                                        <button type="button" class="ar-group-all ar-group-pill ar-group-pill-all" data-app="${esc(appId)}">Full</button>
+                                        <button type="button" class="ar-group-none ar-group-pill ar-group-pill-none" data-app="${esc(appId)}">None</button>
                                     </span>
                                 </div>
                             </td>
@@ -1757,21 +2509,108 @@
                 $('#ar_tableWrap').removeClass('hidden');
                 $('#ar_empty').addClass('hidden');
                 $('#ar_actions').removeClass('hidden');
+                $('#ar_summary, #ar_hint').removeClass('hidden');
+                $('#ar_search').val('');
+                arBase = arCheckedKeys();
+                arRefresh();
             }
 
-            $(document).on('click', '.ar-group-all', function() {
-                $(`.ar-row[data-app-group="${$(this).data('app')}"] .ar-chk`).prop('checked', true);
-            });
-            $(document).on('click', '.ar-group-none', function() {
-                $(`.ar-row[data-app-group="${$(this).data('app')}"] .ar-chk`).prop('checked', false);
+            // Counts, per-action chips, tri-state row/group boxes and the unsaved-diff highlight.
+            function arRefresh() {
+                const now = arCheckedKeys();
+                let added = 0, removed = 0;
+                $('.ar-chk').each(function() {
+                    const k = arKey($(this)), on = now.has(k), was = arBase.has(k);
+                    $(this).toggleClass('ar-added', on && !was).toggleClass('ar-removed', !on && was);
+                    if (on && !was) added++;
+                    if (!on && was) removed++;
+                });
+
+                let withAccess = 0;
+                const perApp = {};
+                $('.ar-row').each(function() {
+                    const $c = $(this).find('.ar-chk'), k = $c.filter(':checked').length, n = $c.length;
+                    const rcb = $(this).find('.ar-row-cb')[0];
+                    if (rcb) { rcb.checked = n > 0 && k === n; rcb.indeterminate = k > 0 && k < n; }
+                    $(this).toggleClass('ar-row-on', k > 0);
+                    if (k > 0) withAccess++;
+                    const app = String($(this).data('app-group'));
+                    (perApp[app] = perApp[app] || { on: 0, n: 0 });
+                    perApp[app].n++; if (k > 0) perApp[app].on++;
+                });
+                $('.ar-grp-pill').each(function() {
+                    const g = perApp[String($(this).data('app'))] || { on: 0, n: 0 };
+                    $(this).text(`${g.on}/${g.n}`).toggleClass('rm-pill-full', g.n > 0 && g.on === g.n);
+                });
+                $('#ar_screens').text(withAccess); $('#ar_totalScreens').text($('.ar-row').length);
+
+                const chips = accessColumns.map(name => {
+                    const n = $(`.ar-chk[data-name="${name}"]:checked`).length;
+                    $(`.ar-col-header[data-name="${name}"] .ar-col-n`).text(n || '');
+                    return `<span class="acs-act acs-act-${esc(name).toLowerCase()}" style="opacity:${n ? 1 : .45}">${esc(name)} · ${n}</span>`;
+                }).join('');
+                $('#ar_chips').html(chips);
+
+                const dirty = added || removed;
+                $('#ar_dirtyChip').toggleClass('hidden', !dirty).html(dirty
+                    ? `<span class="rm-d-add">+${added}</span> <span class="rm-d-del">−${removed}</span> unsaved` : '');
+                $('#ar_reset').toggleClass('hidden', !dirty);
+                $('#ar_save').toggleClass('rm-pulse', !!dirty);
+                return !!dirty;
+            }
+
+            const arVisibleChecks = (extra = '') => $('.ar-row').filter(function() { return this.style.display !== 'none' && !$(this).hasClass('ar-fold-hide'); }).find('.ar-chk' + extra);
+            const arSetPreset = ($scopeRows, mode) => {
+                $scopeRows.find('.ar-chk').each(function() {
+                    const isView = String($(this).data('name')).toUpperCase() === 'VIEW';
+                    this.checked = mode === 'full' ? true : (mode === 'view' ? isView : false);
+                });
+                arRefresh();
+            };
+
+            // Group level actions + folding
+            $(document).on('click', '.ar-group-all', function() { arSetPreset($(`.ar-row[data-app-group="${$(this).data('app')}"]`), 'full'); });
+            $(document).on('click', '.ar-group-view', function() { arSetPreset($(`.ar-row[data-app-group="${$(this).data('app')}"]`), 'view'); });
+            $(document).on('click', '.ar-group-none', function() { arSetPreset($(`.ar-row[data-app-group="${$(this).data('app')}"]`), 'none'); });
+            $(document).on('click', '.ar-group-fold', function() {
+                const app = $(this).data('app'), folded = !$(this).closest('tr').hasClass('ar-folded');
+                $(this).closest('tr').toggleClass('ar-folded', folded);
+                $(`.ar-row[data-app-group="${app}"], .ar-folder-header[data-app="${app}"], .ar-orphan-header[data-app="${app}"]`).toggleClass('ar-fold-hide', folded);
             });
 
-            $('#ar_roleSelect').on('change', function() {
+            // Cell, row and column toggles
+            $(document).on('change', '.ar-chk', arRefresh);
+            $(document).on('change', '.ar-row-cb', function() {
+                $(this).closest('tr').find('.ar-chk').prop('checked', this.checked); arRefresh();
+            });
+            $(document).on('click', '.ar-col-header', function() {
+                const name = $(this).data('name');
+                const $boxes = arVisibleChecks(`[data-name="${name}"]`);
+                if (!$boxes.length) return;
+                const allChecked = $boxes.filter(':checked').length === $boxes.length;
+                $boxes.prop('checked', !allChecked); arRefresh();
+            });
+            $('#ar_presetView').on('click', () => arSetPreset($('.ar-row').filter(function() { return this.style.display !== 'none'; }), 'view'));
+            $('#ar_presetFull').on('click', () => arSetPreset($('.ar-row').filter(function() { return this.style.display !== 'none'; }), 'full'));
+            $('#ar_selectNone').on('click', () => arSetPreset($('.ar-row').filter(function() { return this.style.display !== 'none'; }), 'none'));
+            $('#ar_reset').on('click', () => { $('.ar-chk').each(function() { this.checked = arBase.has(arKey($(this))); }); arRefresh(); });
+
+            // Role switch — guard unsaved changes
+            let arSwitching = false;
+            $('#ar_roleSelect').on('change', async function() {
+                if (arSwitching) return;
                 const roleId = $(this).val();
+                // Re-triggered by a role-list refresh for the same role: keep the grid (and unsaved ticks) as is
+                if (roleId && roleId === arRole && $('#ar_tableBody').children().length) return;
+                if ($('#ar_tableBody').children().length && arRefresh()) {
+                    const r = await Swal.fire({ icon: 'question', title: 'Discard unsaved changes?', text: 'You have unsaved access-right changes for the current role.', showCancelButton: true, confirmButtonText: 'Discard', cancelButtonText: 'Keep editing' });
+                    if (!r.isConfirmed) { arSwitching = true; $(this).val(arRole).trigger('change.select2'); arSwitching = false; return; }
+                }
+                arRole = roleId;
                 if (!roleId) {
                     $('#ar_tableWrap').addClass('hidden');
                     $('#ar_tableBody').empty();
-                    $('#ar_actions').addClass('hidden');
+                    $('#ar_actions, #ar_summary, #ar_hint').addClass('hidden');
                     $('#ar_empty').removeClass('hidden');
                     return;
                 }
@@ -1782,59 +2621,50 @@
                 }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load access rights' }); });
             });
 
+            // Search: rows by name/id; folders, orphan headers and app headers follow their rows.
+            // (Uses the inline display flag so collapsed groups don't make headers disappear.)
             $('#ar_search').on('input', function() {
-                const q = $(this).val().toLowerCase();
-                $('.ar-row').each(function() { $(this).toggle($(this).data('search').includes(q)); });
+                const q = $(this).val().toLowerCase().trim();
+                const shown = (el) => el.style.display !== 'none';
+                $('.ar-row').each(function() { $(this).toggle(!q || String($(this).data('search')).includes(q)); });
                 $('.ar-folder-header').each(function() {
-                    const folder = String($(this).data('folder'));
-                    const app = $(this).data('app');
-                    const anyVisible = $(`.ar-row[data-app-group="${app}"]:visible`).filter(function() {
-                        return ($(this).data('ancestors') || '').toString().split(',').includes(folder);
-                    }).length > 0;
-                    $(this).toggle(anyVisible);
+                    const folder = String($(this).data('folder')), app = $(this).data('app');
+                    const any = $(`.ar-row[data-app-group="${app}"]`).filter(function() { return shown(this) && String($(this).data('ancestors') || '').split(',').includes(folder); }).length > 0;
+                    $(this).toggle(any);
                 });
                 $('.ar-orphan-header').each(function() {
                     const app = $(this).data('app');
-                    $(this).toggle($(`.ar-orphan-row[data-app-group="${app}"]:visible`).length > 0);
+                    $(this).toggle($(`.ar-orphan-row[data-app-group="${app}"]`).filter(function() { return shown(this); }).length > 0);
                 });
                 $('.ar-group-header').each(function() {
                     const app = $(this).data('app');
-                    $(this).toggle($(`.ar-row[data-app-group="${app}"]:visible`).length > 0);
+                    $(this).toggle($(`.ar-row[data-app-group="${app}"]`).filter(function() { return shown(this); }).length > 0);
                 });
             });
 
-            $('#ar_selectAll').on('click', () => $('.ar-row:visible .ar-chk').prop('checked', true));
-            $('#ar_selectNone').on('click', () => $('.ar-row:visible .ar-chk').prop('checked', false));
-
-            $(document).on('click', '.ar-col-header', function() {
-                const name = $(this).data('name');
-                const $boxes = $(`.ar-row:visible .ar-chk[data-name="${name}"]`);
-                if (!$boxes.length) return;
-                const allChecked = $boxes.filter(':checked').length === $boxes.length;
-                $boxes.prop('checked', !allChecked);
-            });
-
-            $('#ar_copyFrom').on('change', function() {
-                const sourceRoleId = $(this).val();
-                const targetRoleId = $('#ar_roleSelect').val();
-                if (!sourceRoleId) return;
-
-                if (!targetRoleId) {
-                    Swal.fire({ icon: 'warning', title: 'Pick a role to edit first', text: 'Select the Role at the top before copying rights into it.' });
-                    $(this).val(null).trigger('change');
-                    return;
-                }
-
+            // Copy another role's rights in (as an unsaved change you can review/undo)
+            $('#ar_copyFrom').on('change', async function() {
+                const src = $(this).val(); $(this).val('');
+                if (!src) return;
+                if (!arRole) return Swal.fire({ icon: 'warning', title: 'Pick a role to edit first', text: 'Select the Role at the top before copying rights into it.' });
+                if (src === arRole) return Swal.fire({ icon: 'info', title: 'That is the same role', timer: 1400, showConfirmButton: false });
+                const r = await Swal.fire({ icon: 'question', title: `Copy rights from ${src}?`, text: "Replace this role's rights, or add them on top of what's ticked? Nothing is saved until you press Save.",
+                    showDenyButton: true, showCancelButton: true, confirmButtonText: 'Replace', denyButtonText: 'Add on top', confirmButtonColor: '#f43f5e', denyButtonColor: '#0ea5e9' });
+                if (r.isDismissed) return;
                 showLoading();
-                $.get(`/access-rights/by-role/${sourceRoleId}`, function(data) {
+                $.get(`/access-rights/by-role/${encodeURIComponent(src)}`, function(data) {
                     hideLoading();
-                    renderAccessMatrix(data.rights || {});
-                    $('#ar_copyFrom').val(null).trigger('change');
-                    Swal.fire({ icon: 'info', title: 'Copied', text: 'Review the checkboxes, then click Save Changes to apply them to the selected role.', timer: 2200, showConfirmButton: false });
-                }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load that role\'s rights' }); });
+                    const keys = new Set();
+                    Object.entries(data.rights || {}).forEach(([k, names]) => (names || []).forEach(n => keys.add(`${k}|${String(n).toUpperCase()}`)));
+                    $('.ar-chk').each(function() {
+                        if (keys.has(arKey($(this)))) this.checked = true; else if (r.isConfirmed) this.checked = false;
+                    });
+                    arRefresh();
+                    Swal.fire({ icon: 'success', title: 'Copied — review and press Save', timer: 1600, showConfirmButton: false });
+                }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Failed to load that role' }); });
             });
 
-            $('#ar_save').on('click', function() {
+            function arSave() {
                 const roleId = $('#ar_roleSelect').val();
                 if (!roleId) return;
                 const byScreen = {};
@@ -1849,9 +2679,15 @@
                     url: "{{ route('access_rights.save_by_role') }}", type: 'POST',
                     headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
                     data: { role_id: roleId, rights: Object.values(byScreen) },
-                    success: () => { hideLoading(); Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false }); },
+                    success: () => { hideLoading(); arBase = arCheckedKeys(); arRefresh(); Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false }); },
                     error: () => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save' }); }
                 });
+            }
+            $('#ar_save').on('click', arSave);
+            $(document).on('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && $('.step-panel[data-panel="accessrights"]').is(':visible') && $('#ar_roleSelect').val()) {
+                    e.preventDefault(); arSave();
+                }
             });
 
             // ===== Stepper navigation =====

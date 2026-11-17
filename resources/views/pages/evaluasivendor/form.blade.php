@@ -1,19 +1,19 @@
 <x-app-layout>
     @php($creating = !$evaluation->exists)
-    <div class="mx-auto w-full max-w-7xl space-y-4 p-4">
+    <div class="mx-auto w-full space-y-3 p-2 md:px-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><a href="{{ route('evaluasivendor') }}" class="text-sm text-indigo-600">&larr; Penilaian Vendor</a>
-                <h1 class="mt-2 text-xl font-bold">{{ $creating ? 'Input Penilaian Vendor' : $evaluation->vendor_perfomance_id }}</h1>
+                <h1 class="mt-1 text-xl font-bold">{{ $creating ? 'Input Penilaian Vendor' : $evaluation->vendor_perfomance_id }}</h1>
             </div>
             <span class="rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">{{ $statuses[$evaluation->status] ?? $evaluation->status }}</span>
         </div>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="rounded-lg bg-red-50 p-3 text-red-700"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-        <section class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-5 text-sm dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3">
+        <section class="grid grid-cols-1 gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white p-3 text-sm dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3 xl:grid-cols-4">
             <div><span class="text-xs text-gray-500">Sumber / No. Dokumen</span><p class="mt-1 font-semibold">{{ $evaluation->vendor_perfomance_type }} / {{ $evaluation->ponbr }}</p></div>
             <div><span class="text-xs text-gray-500">Company / Department</span><p class="mt-1">{{ $evaluation->cpny_id }} / {{ $evaluation->department_id ?: '—' }}</p></div>
             <div><span class="text-xs text-gray-500">Vendor</span><p class="mt-1 font-semibold">{{ $evaluation->vendorname }}</p></div>
-            <div class="md:col-span-3"><span class="text-xs text-gray-500">Pekerjaan</span><p class="mt-1 whitespace-pre-line">{{ $evaluation->keperluan }}</p></div>
+            <div class="md:col-span-3 xl:col-span-1"><span class="text-xs text-gray-500">Pekerjaan</span><p class="mt-1 whitespace-pre-line">{{ $evaluation->keperluan }}</p></div>
         </section>
         <form method="POST" id="evaluation-form" action="{{ $creating ? route('evaluasivendor.store') : route('evaluasivendor.update', $evaluation->id) }}" class="space-y-4">
             @csrf
@@ -22,12 +22,12 @@
                 <input type="hidden" name="source_type" value="{{ $evaluation->vendor_perfomance_type }}">
                 <input type="hidden" name="source_id" value="{{ $sourceId }}">
             @endif
-            <fieldset @disabled(!$editable) class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-5 text-sm dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3">
+            <fieldset @disabled(!$editable) class="space-y-3">
+                <div class="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-3 text-sm dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3 xl:grid-cols-6">
                     <label>Tanggal Evaluasi<input type="date" name="vendor_perfomance_date" required value="{{ old('vendor_perfomance_date', $evaluation->vendor_perfomance_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label>Periode Mulai<input type="date" name="vendor_perfomance_start_date" required value="{{ old('vendor_perfomance_start_date', $evaluation->vendor_perfomance_start_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label>Periode Selesai<input type="date" name="vendor_perfomance_end_date" required value="{{ old('vendor_perfomance_end_date', $evaluation->vendor_perfomance_end_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
-                    <label class="md:col-span-3">Jenis Pekerjaan / Template Evaluasi
+                    <label class="md:col-span-3 xl:col-span-3">Jenis Pekerjaan / Template Evaluasi
                         @if($creating)
                             <select name="template_vpe_id" id="template-select" required class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">
                                 <option value="">Pilih jenis pekerjaan</option>
@@ -35,7 +35,6 @@
                             </select>
                         @else <p class="mt-1 font-semibold">{{ $evaluation->template_vpe_descr }}</p> @endif
                     </label>
-                    <label class="md:col-span-3">Catatan Evaluasi<textarea name="vendor_perfomance_note" rows="2" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('vendor_perfomance_note', $evaluation->vendor_perfomance_note) }}</textarea></label>
                 </div>
                 <section class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <div class="border-b p-4"><h2 class="font-bold">Aspek Penilaian (KPI)</h2><p class="mt-1 text-xs text-gray-500">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p></div>
@@ -48,7 +47,10 @@
                         <strong>Total Nilai KPI</strong><div><strong id="score-total">{{ $evaluation->template_vpe_aspect_grandtotal_score ?? '0.00' }}</strong> <span id="score-result" class="ml-3 text-sm">{{ $evaluation->template_vpe_aspect_result }}</span></div>
                     </div>
                 </section>
-                <label class="block text-sm">Komentar / Rekomendasi<textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <label class="block text-sm">Catatan Evaluasi<textarea name="vendor_perfomance_note" rows="3" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('vendor_perfomance_note', $evaluation->vendor_perfomance_note) }}</textarea></label>
+                    <label class="block text-sm">Komentar / Rekomendasi<textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
+                </div>
             </fieldset>
             @if($editable)<div class="flex justify-end"><button id="save-evaluation" type="submit" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50" @disabled($creating)>Simpan On Progress</button></div>@endif
         </form>
