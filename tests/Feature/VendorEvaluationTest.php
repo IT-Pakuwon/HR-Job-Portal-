@@ -38,7 +38,7 @@ class VendorEvaluationTest extends TestCase
         $this->approvalDb->statement('CREATE TEMP TABLE ms_approval ON COMMIT DROP AS SELECT * FROM public.ms_approval WITH NO DATA');
         $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'EVO', 'aprv_cpnyid' => 'TEST',
             'aprv_departementid' => 'ENG', 'aprv_leveling' => '1', 'aprv_type' => 'Normal',
-            'aprv_username' => 'test_approver', 'aprv_name' => 'Test Approver', 'status' => 'A']);
+            'aprv_username' => 'evaluation_test', 'aprv_name' => 'Test Approver', 'status' => 'A']);
         $this->actingAs(new User(['id' => 999999, 'username' => 'evaluation_test', 'user_role' => 'admin', 'status' => 'A']));
         $this->db->table('tr_po')->insert(['id' => 101, 'ponbr' => 'PO-TEST', 'cpny_id' => 'TEST', 'vendorid' => 'VTEST',
             'vendorname' => 'Vendor Test', 'department_id' => 'ENG', 'status' => 'P', 'potype' => 'SPK',
@@ -185,9 +185,9 @@ class VendorEvaluationTest extends TestCase
         $this->post('/evaluasivendor', $this->payload())->assertRedirect();
         $id = $this->db->table('tr_vendor_perfomance')->value('id');
         $this->get('/evaluasivendor/'.$id.'/edit?embed=1')->assertOk()->assertSee('Submit Approval')->assertSee('Proses Penilaian');
-        $this->get('/showevaluasivendor/'.$id.'?embed=1')->assertOk()->assertSee('Detail Penilaian Vendor')->assertSee('Approval Details')->assertSee('Edit Penilaian');
+        $this->get('/showevaluasivendor/'.\Vinkla\Hashids\Facades\Hashids::encode($id).'?embed=1')->assertOk()->assertSee('Detail Penilaian Vendor')->assertSee('Approval Details')->assertDontSee('Edit Penilaian')->assertSee('approveBtn');
         $this->post('/evaluasivendor/'.$id.'/status', ['status' => 'C'])->assertRedirect();
-        $this->get('/evaluasivendor/'.$id.'?embed=1')->assertOk()->assertDontSee('id="save-evaluation"', false)->assertDontSee('Proses Penilaian');
+        $this->get('/showevaluasivendor/'.\Vinkla\Hashids\Facades\Hashids::encode($id).'?embed=1')->assertOk()->assertDontSee('id="save-evaluation"', false)->assertDontSee('Proses Penilaian');
     }
 
     public function test_missing_approval_setup_does_not_allocate_number_or_save_evaluation(): void
@@ -258,10 +258,10 @@ class VendorEvaluationTest extends TestCase
         $response = $this->postJson('/evaluasivendor', $this->payload())->assertOk()
             ->assertJsonPath('message', 'Penilaian vendor berhasil diajukan untuk approval.');
         $id = $this->db->table('tr_vendor_perfomance')->value('id');
-        $response->assertJsonPath('redirect', route('showevaluasivendor', $id));
+        $response->assertJsonPath('redirect', route('showevaluasivendor', \Vinkla\Hashids\Facades\Hashids::encode($id)));
         $this->putJson('/evaluasivendor/'.$id, $this->payload())->assertOk()
             ->assertJsonPath('message', 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.')
-            ->assertJsonPath('redirect', route('showevaluasivendor', $id));
+            ->assertJsonPath('redirect', route('showevaluasivendor', \Vinkla\Hashids\Facades\Hashids::encode($id)));
     }
 
     public function test_show_reads_saved_header_and_details_instead_of_source_or_master(): void
@@ -273,13 +273,46 @@ class VendorEvaluationTest extends TestCase
         $payload['notes'] = ['VPE-CHILLER-A01-S01' => 'Bukti lapangan tersimpan'];
         $response = $this->postJson('/evaluasivendor', $payload)->assertOk();
         $id = $this->db->table('tr_vendor_perfomance')->value('id');
-        $response->assertJsonPath('redirect', route('showevaluasivendor', $id));
+        $response->assertJsonPath('redirect', route('showevaluasivendor', \Vinkla\Hashids\Facades\Hashids::encode($id)));
         $this->db->table('tr_po')->update(['vendorname' => 'Vendor sumber berubah']);
         $this->db->table('ms_template_vendor_perfomance')->update(['template_vpe_descr' => 'Master berubah']);
         $this->db->table('ms_template_vendor_perfomance_detail')->update(['template_vpe_subaspect_descr' => 'Subaspek master berubah']);
-        $this->get('/showevaluasivendor/'.$id.'?embed=1')->assertOk()->assertSee('Vendor Test')
+        $this->get('/showevaluasivendor/'.\Vinkla\Hashids\Facades\Hashids::encode($id).'?embed=1')->assertOk()->assertSee('Vendor Test')
             ->assertSee('Maintenance Chiller')->assertSee('Catatan evaluasi tersimpan')->assertSee('Bukti lapangan tersimpan')
             ->assertDontSee('Vendor sumber berubah')->assertDontSee('Master berubah')->assertDontSee('Subaspek master berubah');
         $this->getJson('/showevaluasivendor/999999999')->assertNotFound();
+    }
+
+    public function test_hashed_detail_url_and_only_active_approver_can_process(): void
+    {
+        $this->post('/evaluasivendor', $this->payload())->assertRedirect();
+        $id = $this->db->table('tr_vendor_perfomance')->value('id');
+        $hash = \Vinkla\Hashids\Facades\Hashids::encode($id);
+        $this->getJson('/evaluasivendor/json?scope=onprogress')->assertOk()
+            ->assertJsonPath('data.0.url', route('showevaluasivendor', $hash));
+        $this->getJson('/showevaluasivendor/'.$id)->assertNotFound();
+        $this->actingAs(new User(['username' => 'another_admin', 'user_role' => 'admin', 'status' => 'A']));
+        foreach (['approve', 'revise', 'reject'] as $action) {
+            $this->postJson('/evaluasivendor/'.$hash.'/approval/'.$action, ['comment' => 'Test'])->assertForbidden();
+        }
+        $this->assertSame('P', $this->db->table('tr_vendor_perfomance')->value('status'));
+    }
+
+    public function test_multilevel_approval_finishes_only_after_last_approver(): void
+    {
+        $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'EVO', 'aprv_cpnyid' => 'TEST',
+            'aprv_departementid' => 'ENG', 'aprv_leveling' => '2', 'aprv_type' => 'Normal',
+            'aprv_username' => 'second_approver', 'aprv_name' => 'Second Approver', 'status' => 'A']);
+        $this->post('/evaluasivendor', $this->payload())->assertRedirect();
+        $id = $this->db->table('tr_vendor_perfomance')->value('id');
+        $hash = \Vinkla\Hashids\Facades\Hashids::encode($id);
+        $this->postJson('/evaluasivendor/'.$hash.'/approval/approve')->assertOk();
+        $this->assertSame('P', $this->db->table('tr_vendor_perfomance')->value('status'));
+        $this->postJson('/evaluasivendor/'.$hash.'/approval/approve')->assertForbidden();
+        $this->actingAs(new User(['username' => 'second_approver', 'user_role' => 'admin', 'status' => 'A']));
+        $this->postJson('/evaluasivendor/'.$hash.'/approval/approve')->assertOk();
+        $this->assertSame('C', $this->db->table('tr_vendor_perfomance')->value('status'));
+        $this->assertSame(['C'], $this->db->table('tr_vendor_perfomance_detail')->distinct()->pluck('status')->all());
+        $this->assertSame(['A'], $this->approvalDb->table('tr_approval')->distinct()->pluck('status')->all());
     }
 }

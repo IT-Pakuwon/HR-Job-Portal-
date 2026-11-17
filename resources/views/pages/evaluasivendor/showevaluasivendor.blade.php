@@ -13,9 +13,7 @@
                 <a href="{{ route('evaluasivendor') }}" class="hover:text-indigo-600">Penilaian Vendor</a><span>/</span>
                 <span class="font-semibold text-gray-800 dark:text-gray-100">Show Details</span>
             </nav>
-            @if(in_array($evaluation->status, ['P', 'D']))
-                <a href="{{ route('evaluasivendor.edit', $evaluation->id) }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Edit Penilaian</a>
-            @endif
+            <x-approval-actions :status="$evaluation->status" :is-approver="$isApprover" />
         </div>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -44,14 +42,25 @@
             <section x-data="{ tab: 'approval' }" class="overflow-hidden rounded-xl bg-white dark:bg-gray-800" style="min-height:360px">
                 <div class="flex border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700" role="tablist" aria-label="Informasi penilaian">
                     <button type="button" @click="tab = 'approval'" :aria-selected="tab === 'approval'" :class="tab === 'approval' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Approval Details</button>
-                    <button type="button" @click="tab = 'notes'" :aria-selected="tab === 'notes'" :class="tab === 'notes' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Catatan / Rekomendasi</button>
+                    <button type="button" @click="tab = 'notes'" :aria-selected="tab === 'notes'" :class="tab === 'notes' ? 'border-indigo-600 text-indigo-600' : 'border-transparent'" class="flex-1 border-b-2 px-4 py-4 text-sm" role="tab">Comments</button>
                 </div>
                 <div x-show="tab === 'approval'" class="overflow-x-auto p-4" role="tabpanel">
                     <table class="w-full text-left text-sm">
-                        <thead class="border-b text-xs text-gray-500"><tr><th class="p-3">Level</th><th class="p-3">Approver</th><th class="p-3">Status</th><th class="p-3">Tanggal</th></tr></thead>
+                        <thead class="border-b text-xs text-gray-500"><tr><th class="p-3">Level</th><th class="p-3">Name</th><th class="p-3">Date</th><th class="p-3">Status</th></tr></thead>
                         <tbody>
                             @forelse($approvals as $approval)
-                                <tr class="border-b border-gray-100 dark:border-gray-700"><td class="p-3">{{ $approval->aprv_leveling }}</td><td class="p-3">{{ $approval->aprv_name ?: $approval->aprv_username }}</td><td class="p-3">{{ ['P' => 'Waiting Approval', 'A' => 'Approved', 'C' => 'Completed', 'R' => 'Rejected', 'D' => 'Revised', 'X' => 'Cancelled'][$approval->status] ?? $approval->status }}</td><td class="p-3">{{ $formatDate($approval->aprv_dateafter) }}</td></tr>
+                                @php
+                                    $badge = match ($approval->status) {
+                                        'A', 'C' => 'bg-green-500 text-white', 'R' => 'bg-red-500 text-white',
+                                        'D' => 'bg-blue-500 text-white', default => 'bg-gray-100 text-gray-600',
+                                    };
+                                @endphp
+                                <tr class="border-b border-gray-100 dark:border-gray-700">
+                                    <td class="p-3">{{ number_format((float) $approval->aprv_leveling, 2) }}</td>
+                                    <td class="p-3">{{ $approval->aprv_name ?: $approval->aprv_username }}</td>
+                                    <td class="p-3">{{ $approval->aprv_dateafter ? \Carbon\Carbon::parse($approval->aprv_dateafter)->format('d M Y H:i:s') : '—' }}</td>
+                                    <td class="p-3"><span class="{{ $badge }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ ['P' => 'Waiting Approval', 'A' => 'Approved', 'C' => 'Completed', 'R' => 'Rejected', 'D' => 'Revised', 'X' => 'Cancelled'][$approval->status] ?? $approval->status }}</span></td>
+                                </tr>
                             @empty
                                 <tr><td colspan="4" class="p-6 text-center text-gray-500">Belum ada data approval.</td></tr>
                             @endforelse
@@ -95,4 +104,42 @@
             </div>
         </section>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const actions = {approveBtn: ['approve', 'Approve'], reviseBtn: ['revise', 'Revise'], rejectBtn: ['reject', 'Reject']};
+            let processing = false;
+            Object.entries(actions).forEach(([id, [action, label]]) => {
+                const button = document.getElementById(id);
+                if (!button) return;
+                button.addEventListener('click', async function () {
+                    if (processing) return;
+                    const confirmation = await Swal.fire({title: label + ' penilaian ini?',
+                        input: action === 'approve' ? undefined : 'textarea', inputLabel: 'Alasan / komentar',
+                        inputValidator: value => action !== 'approve' && !value.trim() ? 'Alasan wajib diisi.' : undefined,
+                        showCancelButton: true, confirmButtonText: label, cancelButtonText: 'Batal'});
+                    if (!confirmation.isConfirmed) return;
+                    processing = true;
+                    Object.keys(actions).forEach(key => {const el = document.getElementById(key); if (el) el.disabled = true;});
+                    try {
+                        const url = @json(route('evaluasivendor.approval', ['hash' => $hash, 'action' => '__ACTION__'])).replace('__ACTION__', action);
+                        const response = await fetch(url, {method: 'POST', headers: {
+                            'Accept': 'application/json', 'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }, body: JSON.stringify({comment: action === 'approve' ? null : confirmation.value})});
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            const errors = result.errors ? Object.values(result.errors).flat().join('\n') : '';
+                            throw new Error(errors || (response.status < 500 ? result.message : '') || 'Approval gagal diproses.');
+                        }
+                        window.location.assign(result.redirect);
+                    } catch (error) {
+                        await Swal.fire({icon: 'error', title: 'Proses belum berhasil', text: error.message});
+                    } finally {
+                        processing = false;
+                        Object.keys(actions).forEach(key => {const el = document.getElementById(key); if (el) el.disabled = false;});
+                    }
+                });
+            });
+        });
+    </script>
 </x-app-layout>

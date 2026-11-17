@@ -17,10 +17,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Vinkla\Hashids\Facades\Hashids;
 
 class EvaluasiVendorController extends Controller
 {
     use HasAutonbr;
+
+    private function showUrlEvaluasi(int $id): string
+    {
+        return route('showevaluasivendor', Hashids::encode($id));
+    }
 
     public const STATUSES = ['P' => 'On Progress', 'R' => 'Rejected', 'D' => 'Revised', 'C' => 'Completed'];
 
@@ -123,7 +129,7 @@ class EvaluasiVendorController extends Controller
                 'created_by' => $row->created_by, 'status' => self::STATUSES[$row->status] ?? $row->status,
                 'score' => $jobs ? null : $row->template_vpe_aspect_grandtotal_score,
                 'url' => $jobs ? route('evaluasivendor.create', ['source_type' => $row->source_type, 'source_id' => $row->source_id])
-                    : route('showevaluasivendor', $row->id),
+                    : $this->showUrlEvaluasi($row->id),
             ];
         });
 
@@ -274,9 +280,9 @@ class EvaluasiVendorController extends Controller
         });
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Penilaian vendor berhasil diajukan untuk approval.',
-                'redirect' => route('showevaluasivendor', $id)]);
+                'redirect' => $this->showUrlEvaluasi($id)]);
         }
-        return redirect()->route('showevaluasivendor', $id)->with('success', 'Penilaian vendor berhasil diajukan untuk approval.');
+        return redirect($this->showUrlEvaluasi($id))->with('success', 'Penilaian vendor berhasil diajukan untuk approval.');
     }
 
     private function inputFields(array $data): array
@@ -305,8 +311,17 @@ class EvaluasiVendorController extends Controller
         }
     }
 
-    public function showEvaluasi(int $id)
+    public function legacyShowEvaluasi(int $id)
     {
+        $this->evaluations()->findOrFail($id);
+        return redirect($this->showUrlEvaluasi($id));
+    }
+
+    public function showEvaluasi(string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_unless(count($decoded) === 1, 404);
+        $id = (int) $decoded[0];
         $evaluation = $this->evaluations()->findOrFail($id);
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
         $approvals = TrApproval::query()->where('refnbr', $evaluation->vendor_perfomance_id)
@@ -314,9 +329,13 @@ class EvaluasiVendorController extends Controller
             ->where('aprv_departementid', $evaluation->department_id)
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->get();
 
+        $active = $approvals->where('status', 'P')->firstWhere('aprv_datebefore', '!=', null)
+            ?? $approvals->where('status', 'P')->first();
+        $isApprover = $evaluation->status === 'P' && $active
+            && in_array(strtolower(request()->user()->username), app(ApprovalController::class)->normalizeApproverList($active->aprv_username), true);
         return view('pages.evaluasivendor.showevaluasivendor', [
             'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
-            'statuses' => self::STATUSES,
+            'statuses' => self::STATUSES, 'isApprover' => $isApprover, 'hash' => $hash,
         ]);
     }
 
@@ -371,9 +390,9 @@ class EvaluasiVendorController extends Controller
         });
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.',
-                'redirect' => route('showevaluasivendor', $id)]);
+                'redirect' => $this->showUrlEvaluasi($id)]);
         }
-        return redirect()->route('showevaluasivendor', $id)->with('success', 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.');
+        return redirect($this->showUrlEvaluasi($id))->with('success', 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.');
     }
 
     private function notifyApprovalEvaluasi(ApprovalController $approvalCtl, TrVendorPerfomance $evaluation, string $doctype, Carbon $dt): void
@@ -383,7 +402,7 @@ class EvaluasiVendorController extends Controller
             $doctype,
             $evaluation->status,
             'Evaluasi Vendor',
-            route('showevaluasivendor', $evaluation->id),
+            $this->showUrlEvaluasi($evaluation->id),
             [
                 'info' => $evaluation->keperluan,
                 'createdby' => $evaluation->created_by,
@@ -396,13 +415,50 @@ class EvaluasiVendorController extends Controller
     {
         $data = $request->validate(['status' => ['required', Rule::in(['C', 'R', 'D'])],
             'comment' => 'required_if:status,R,D|nullable|string|max:10000']);
-        DB::connection('pgsql')->transaction(function () use ($id, $data, $request) {
-            $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
-            abort_unless($evaluation->status === 'P', 409, 'Hanya penilaian On Progress yang dapat diproses.');
-            $evaluation->fill(['status' => $data['status'], 'updated_by' => $request->user()->username,
-                'template_vpe_aspect_comment' => $data['comment'] ?? $evaluation->template_vpe_aspect_comment])->save();
-            $this->detailQuery($evaluation)->update(['status' => $data['status'], 'updated_by' => $request->user()->username, 'updated_at' => now()]);
+        return $this->processApprovalEvaluasi($request, $id, $data['status'], $data['comment'] ?? null);
+    }
+
+    public function approvalEvaluasi(Request $request, string $hash, string $action)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_unless(count($decoded) === 1, 404);
+        $status = ['approve' => 'C', 'revise' => 'D', 'reject' => 'R'][$action] ?? null;
+        abort_unless($status, 404);
+        $data = $request->validate(['comment' => ($status === 'C' ? 'nullable' : 'required').'|string|max:10000']);
+        return $this->processApprovalEvaluasi($request, (int) $decoded[0], $status, $data['comment'] ?? null);
+    }
+
+    private function processApprovalEvaluasi(Request $request, int $id, string $status, ?string $comment)
+    {
+        DB::connection('pgsql2')->transaction(function () use ($id, $status, $comment, $request) {
+            DB::connection('pgsql')->transaction(function () use ($id, $status, $comment, $request) {
+                $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
+                abort_unless($evaluation->status === 'P', 409, 'Hanya penilaian On Progress yang dapat diproses.');
+                $ctl = app(ApprovalController::class);
+                $action = ['C' => 'approve', 'D' => 'revise', 'R' => 'reject'][$status];
+                [$allowed, , $message] = $ctl->assertUserCanAct($evaluation->vendor_perfomance_id, 'EVO', $action, $request->user()->username);
+                abort_unless($allowed, 403, $message ?: 'Anda bukan approver aktif.');
+                $apply = function () use ($evaluation, $status, $comment, $request) {
+                    $evaluation->fill(['status' => $status, 'updated_by' => $request->user()->username,
+                        'template_vpe_aspect_comment' => $comment ?? $evaluation->template_vpe_aspect_comment])->save();
+                    $this->detailQuery($evaluation)->update(['status' => $status, 'updated_by' => $request->user()->username, 'updated_at' => now()]);
+                };
+                $args = [$evaluation->vendor_perfomance_id, 'EVO', $request->user()->username, $request->user()->name ?: $request->user()->username];
+                $result = match ($status) {
+                    'C' => $ctl->approveStep(...[...$args, $apply, function () use ($ctl, $evaluation) {
+                        $this->notifyApprovalEvaluasi($ctl, $evaluation, 'EVO', Carbon::now('Asia/Jakarta'));
+                    }]),
+                    'D' => $ctl->reviseStep(...[...$args, $apply]),
+                    'R' => $ctl->rejectStep(...[...$args, $apply]),
+                };
+                if (!$result['ok']) {
+                    throw ValidationException::withMessages(['approval' => $result['message'] ?? 'Approval gagal diproses.']);
+                }
+            });
         });
-        return redirect()->route('showevaluasivendor', $id)->with('success', 'Status diperbarui menjadi '.self::STATUSES[$data['status']].'.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Proses approval berhasil.', 'redirect' => $this->showUrlEvaluasi($id)]);
+        }
+        return redirect($this->showUrlEvaluasi($id))->with('success', 'Proses approval berhasil.');
     }
 }
