@@ -3093,14 +3093,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
-            Route::get('/', [EvaluasiVendorController::class, 'index']);
-            Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json');
-            Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create');
-            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template');
-            Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store');
-            Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show');
-            Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update');
-            Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status');
+            Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);
+            Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json');
+            Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create');
+            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template');
+            Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store');
+            Route::get('/{id}', [EvaluasiVendorController::class, 'showEvaluasi'])->whereNumber('id')->name('.show');
+            Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update');
+            Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status');
         });
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');

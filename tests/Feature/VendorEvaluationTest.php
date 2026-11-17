@@ -26,7 +26,7 @@ class VendorEvaluationTest extends TestCase
         }
         $this->actingAs(new User(['id' => 999999, 'username' => 'evaluation_test', 'user_role' => 'admin', 'status' => 'A']));
         $this->db->table('tr_po')->insert(['id' => 101, 'ponbr' => 'PO-TEST', 'cpny_id' => 'TEST', 'vendorid' => 'VTEST',
-            'vendorname' => 'Vendor Test', 'department_id' => 'ENG', 'status' => 'P',
+            'vendorname' => 'Vendor Test', 'department_id' => 'ENG', 'status' => 'P', 'potype' => 'SPK',
             'spkstartworkingdate' => '2026-01-01', 'spkendtworkingdate' => '2026-12-31']);
         $this->db->table('tr_kontrak')->insert(['id' => 201, 'kontrakid' => 'KT-TEST', 'cpny_id' => 'TEST',
             'vendorname' => 'Vendor Kontrak', 'status' => 'C', 'startdate' => '2026-01-01', 'enddate' => '2026-12-31']);
@@ -51,13 +51,16 @@ class VendorEvaluationTest extends TestCase
 
     public function test_jobs_include_po_and_contract_and_exclude_unapproved_sources(): void
     {
-        $this->db->table('tr_po')->insert(['ponbr' => 'PO-DRAFT', 'status' => 'H']);
+        $this->db->table('tr_po')->insert(['ponbr' => 'PO-DRAFT', 'status' => 'H', 'potype' => 'SPK']);
+        $this->db->table('tr_po')->insert(['id' => 102, 'ponbr' => 'PO-NON-SPK', 'status' => 'P', 'potype' => 'PO']);
         $this->getJson('/evaluasivendor/json?scope=jobs')->assertOk()->assertJsonPath('recordsTotal', 2)
             ->assertJsonFragment(['document_no' => 'PO-TEST', 'source_type' => 'PO'])
             ->assertJsonFragment(['document_no' => 'KT-TEST', 'source_type' => 'KONTRAK']);
         $this->getJson('/evaluasivendor/json?scope=jobs&source_type=KONTRAK')->assertOk()->assertJsonPath('recordsFiltered', 1);
         $this->getJson('/evaluasivendor/json?scope=jobs&end_date=2026-12-31')->assertOk()->assertJsonPath('recordsFiltered', 2);
         $this->getJson('/evaluasivendor/json?scope=jobs&start_date=2027-01-01&end_date=2026-12-31')->assertUnprocessable();
+        $this->getJson('/evaluasivendor/create?source_type=PO&source_id=102')->assertNotFound();
+        $this->postJson('/evaluasivendor', array_merge($this->payload(), ['source_id' => 102]))->assertNotFound();
     }
 
     public function test_store_uses_source_identity_and_server_computed_scores_and_prevents_duplicates(): void
