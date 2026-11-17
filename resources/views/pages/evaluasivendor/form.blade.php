@@ -5,7 +5,6 @@
             <div><a href="{{ route('evaluasivendor') }}" class="text-sm text-indigo-600">&larr; Penilaian Vendor</a>
                 <h1 class="mt-1 text-xl font-bold">{{ $creating ? 'Input Penilaian Vendor' : $evaluation->vendor_perfomance_id }}</h1>
             </div>
-            <span class="rounded-full bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700">{{ $statuses[$evaluation->status] ?? $evaluation->status }}</span>
         </div>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="rounded-lg bg-red-50 p-3 text-red-700"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
@@ -27,7 +26,7 @@
                     <label>Tanggal Evaluasi<input type="date" name="vendor_perfomance_date" required value="{{ old('vendor_perfomance_date', $evaluation->vendor_perfomance_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label>Periode Mulai<input type="date" name="vendor_perfomance_start_date" required value="{{ old('vendor_perfomance_start_date', $evaluation->vendor_perfomance_start_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
                     <label>Periode Selesai<input type="date" name="vendor_perfomance_end_date" required value="{{ old('vendor_perfomance_end_date', $evaluation->vendor_perfomance_end_date) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800"></label>
-                    <label class="md:col-span-3 xl:col-span-3">Jenis Pekerjaan / Template Evaluasi
+                    <label class="md:col-span-3 xl:col-span-3">Jenis Pekerjaan / Template Evaluasi <span class="text-red-600">*</span>
                         @if($creating)
                             <select name="template_vpe_id" id="template-select" required class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">
                                 <option value="">Pilih jenis pekerjaan</option>
@@ -39,7 +38,15 @@
                 <section class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <div class="border-b p-4"><h2 class="font-bold">Aspek Penilaian (KPI)</h2><p class="mt-1 text-xs text-gray-500">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p></div>
                     <p id="template-error" class="p-4 text-sm text-gray-500" role="status">{{ $creating ? 'Pilih template untuk menampilkan kriteria evaluasi.' : '' }}</p>
-                    <div class="overflow-x-auto"><table class="w-full text-left text-sm" id="rating-table">
+                    <div class="overflow-x-auto"><table class="w-full text-left text-sm" id="rating-table" style="table-layout:fixed;min-width:1100px;overflow-wrap:anywhere">
+                        <colgroup>
+                            <col style="width:17%">
+                            <col style="width:5%">
+                            <col style="width:32%">
+                            <col style="width:12%">
+                            <col style="width:8%">
+                            <col style="width:26%">
+                        </colgroup>
                         <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-800"><tr><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th></tr></thead>
                         <tbody id="rating-body"></tbody>
                     </table></div>
@@ -52,7 +59,7 @@
                     <label class="block text-sm">Komentar / Rekomendasi<textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
                 </div>
             </fieldset>
-            @if($editable)<div class="flex justify-end"><button id="save-evaluation" type="submit" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50" @disabled($creating)>Simpan On Progress</button></div>@endif
+            @if($editable)<div class="flex justify-end"><button id="save-evaluation" type="submit" class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">Submit Approval</button></div>@endif
         </form>
         @if($evaluation->exists && $evaluation->status === 'P')
             <form method="POST" action="{{ route('evaluasivendor.status', $evaluation->id) }}" class="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
@@ -80,6 +87,51 @@
             const body = document.getElementById('rating-body');
             const message = document.getElementById('template-error');
             const save = document.getElementById('save-evaluation');
+            const form = document.getElementById('evaluation-form');
+            let submitting = false;
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                if (submitting || !form.reportValidity() || !save || save.disabled) return;
+                const payload = new FormData(form);
+                submitting = true;
+                save.disabled = true;
+                const label = save.textContent;
+                save.textContent = 'Mengirim…';
+                const fields = form.querySelector('fieldset');
+                fields.disabled = true;
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST', body: payload,
+                        headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+                    });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        const errors = result.errors ? Object.values(result.errors).flat().join('\n') : '';
+                        const fallback = response.status === 419 ? 'Sesi telah berakhir. Silakan muat ulang halaman.'
+                            : 'Pengajuan gagal diproses. Silakan coba kembali.';
+                        await Swal.fire({icon: response.status === 422 ? 'warning' : 'error',
+                            title: 'Pengajuan belum berhasil',
+                            text: errors || (response.status < 500 ? result.message : '') || fallback,
+                            confirmButtonText: 'OK'});
+                        return;
+                    }
+                    window.location.assign(result.redirect);
+                } catch (error) {
+                    await Swal.fire({icon: 'error', title: 'Koneksi bermasalah',
+                        text: 'Respons server tidak dapat diterima. Isian Anda tetap tersedia; periksa koneksi dan daftar penilaian sebelum mencoba kembali.', confirmButtonText: 'OK'});
+                } finally {
+                    submitting = false;
+                    save.disabled = false;
+                    save.textContent = label;
+                    fields.disabled = !editable;
+                }
+            });
+            function requiredMessage(field, text) {
+                field.addEventListener('invalid', () => {
+                    if (field.validity.valueMissing) field.setCustomValidity(text);
+                });
+                field.addEventListener('change', () => field.setCustomValidity(''));
+            }
             function total() {
                 let sum = 0;
                 document.querySelectorAll('.rating-input').forEach(input => {
@@ -106,20 +158,23 @@
                     const labels = {1: 'Sangat Kurang', 2: 'Kurang', 3: 'Cukup', 4: 'Baik', 5: 'Sangat Baik'};
                     const options = [1,2,3,4,5].map(score => `<option value="${score}" ${Number(selected) === score ? 'selected' : ''}>${score} — ${labels[score]}</option>`).join('');
                     body.insertAdjacentHTML('beforeend', `<tr class="border-b border-gray-100 dark:border-gray-700">
-                        <td class="p-3" style="min-width:210px">${escape(detail.template_vpe_subaspect_descr)}</td>
+                        <td class="p-3">${escape(detail.template_vpe_subaspect_descr)}</td>
                         <td class="p-3">${Number(detail.template_vpe_subaspect_bobot).toFixed(2)}</td>
-                        <td class="whitespace-pre-line p-3" style="min-width:280px">${escape(detail.template_vpe_subaspect_kriteria)}</td>
+                        <td class="whitespace-pre-line p-3">${escape(detail.template_vpe_subaspect_kriteria)}</td>
                         <td class="p-3"><select class="rating-input rounded border-gray-300 text-sm dark:bg-gray-800" name="ratings[${escape(id)}]" data-aspect="${escape(detail.template_vpe_aspect_id)}" data-weight="${Number(detail.template_vpe_subaspect_bobot)}" required ${editable ? '' : 'disabled'}><option value="">—</option>${options}</select></td>
                         <td class="weighted-score p-3">${detail.template_vpe_subaspect_nilai ?? '—'}</td>
-                        <td class="p-3" style="min-width:200px"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td></tr>`);
+                        <td class="p-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td></tr>`);
                 });
-                body.querySelectorAll('.rating-input').forEach(input => input.addEventListener('change', total));
+                body.querySelectorAll('.rating-input').forEach(input => {
+                    requiredMessage(input, 'Skor pada setiap subaspek wajib diisi.');
+                    input.addEventListener('change', total);
+                });
                 if (editable) total();
             }
             async function load(template, preserve) {
                 const current = ++requestNumber;
                 if (save) save.disabled = true;
-                if (!template) {body.innerHTML = ''; message.textContent = 'Pilih template untuk menampilkan kriteria evaluasi.'; return;}
+                if (!template) {body.innerHTML = ''; message.textContent = 'Pilih template untuk menampilkan kriteria evaluasi.'; if (save) save.disabled = false; return;}
                 message.textContent = 'Memuat template evaluasi…';
                 try {
                     const url = @json(route('evaluasivendor.template', '__TEMPLATE__')).replace('__TEMPLATE__', encodeURIComponent(template));
@@ -138,6 +193,7 @@
             }
             if (creating) {
                 const select = document.getElementById('template-select');
+                requiredMessage(select, 'Jenis Pekerjaan wajib dipilih.');
                 select.addEventListener('change', () => load(select.value, false));
                 if (select.value) load(select.value, false);
             } else if (editable) {

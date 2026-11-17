@@ -17,7 +17,7 @@
         <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
                 <h1 class="text-base font-bold" id="evaluation-title">Penilaian Vendor — Jobs</h1>
-                <p class="mt-1 text-xs text-gray-500">Pilih pekerjaan PO atau kontrak untuk membuat penilaian vendor.</p>
+                <p class="mt-1 text-xs text-gray-500">Pilih pekerjaan SPK atau kontrak untuk membuat penilaian vendor.</p>
             </div>
             <form id="evaluation-filters" class="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-5">
                 <label class="text-xs text-gray-500">Vendor
@@ -28,7 +28,7 @@
                 </label>
                 <label class="text-xs text-gray-500">Sumber pekerjaan
                     <select name="source_type" class="mt-1 w-full rounded border-gray-300 text-sm dark:bg-gray-800">
-                        <option value="">PO & Kontrak</option><option value="PO">PO</option><option value="KONTRAK">Kontrak</option>
+                        <option value="">SPK & Kontrak</option><option value="SPK">SPK</option><option value="KONTRAK">Kontrak</option>
                     </select>
                 </label>
                 <label class="text-xs text-gray-500">Mulai periode
@@ -43,7 +43,7 @@
             <div class="overflow-x-auto px-3 pb-4">
                 <table id="evaluation-table" class="w-full text-sm">
                     <thead><tr class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800">
-                        <th>Action</th><th>Sumber</th><th>No. PO / Kontrak</th><th>Company</th><th>Vendor</th>
+                        <th>Action</th><th>Sumber</th><th>No. SPK / Kontrak</th><th>Company</th><th>Department</th><th>Vendor</th>
                         <th>Pekerjaan</th><th>Mulai</th><th>Selesai</th><th>Created By</th><th>Status</th><th>Nilai</th>
                     </tr></thead><tbody></tbody>
                 </table>
@@ -71,17 +71,21 @@
                     {data: 'source_type', render: text},
                     {data: 'document_no', render: (value, type, row) => type === 'display'
                         ? `<strong>${escape(value)}</strong>${row.evaluation_no ? `<div class="mt-1 text-xs text-gray-500">${escape(row.evaluation_no)}</div>` : ''}` : value},
-                    {data: 'cpny_id', defaultContent: '', render: text}, {data: 'vendorname', defaultContent: '', render: text},
+                    {data: 'cpny_id', defaultContent: '', render: text},
+                    {data: 'department_id', defaultContent: '', render: text},
+                    {data: 'vendorname', defaultContent: '', render: text},
                     {data: 'keperluan', defaultContent: '', render: text},
                     {data: 'start_date', defaultContent: '—', render: text}, {data: 'end_date', defaultContent: '—', render: text},
                     {data: 'created_by', defaultContent: '', render: text},
-                    {data: 'status', render: value => `<span class="inline-block whitespace-nowrap rounded-full border border-indigo-300 px-2 py-1 text-xs text-indigo-600">${escape(value)}</span>`},
-                    {data: 'score', orderable: false, render: value => value == null ? '—' : Number(value).toFixed(2)}
+                    {data: 'status', visible: false, render: value => `<span class="inline-block whitespace-nowrap rounded-full border border-indigo-300 px-2 py-1 text-xs text-indigo-600">${escape(value)}</span>`},
+                    {data: 'score', visible: false, orderable: false, render: value => value == null ? '—' : Number(value).toFixed(2)}
                 ],
                 language: {emptyTable: 'Belum ada data penilaian vendor.', zeroRecords: 'Tidak ada data yang sesuai filter.'}
             });
             $('.evaluation-tab').on('click', function () {
                 scope = this.dataset.scope;
+                table.columns([10, 11]).visible(scope !== 'jobs', false);
+                table.columns.adjust();
                 $('.evaluation-tab').attr('aria-selected', 'false');
                 $(this).attr('aria-selected', 'true');
                 $('#evaluation-title').text('Penilaian Vendor — ' + $(this).find('span').text());

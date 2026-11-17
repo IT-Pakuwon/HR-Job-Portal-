@@ -2,27 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsTemplateVendorPerfomance;
 use App\Models\MsTemplateVendorPerfomanceDetail;
 use App\Models\MsTemplateVendorPerfomanceScore;
 use App\Models\TrKontrak;
 use App\Models\TrPO;
+use App\Models\TrApproval;
 use App\Models\TrVendorPerfomance;
 use App\Models\TrVendorPerfomanceDetail;
 use App\Services\VendorEvaluationScoring;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class EvaluasiVendorController extends Controller
 {
+    use HasAutonbr;
+
     public const STATUSES = ['P' => 'On Progress', 'R' => 'Rejected', 'D' => 'Revised', 'C' => 'Completed'];
 
     private function sources()
     {
-        $po = TrPO::query()->selectRaw("id as source_id, 'PO' as source_type, ponbr as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, spkstartworkingdate as start_date, spkendtworkingdate as end_date, created_by, status")
+        $po = TrPO::query()->selectRaw("id as source_id, 'SPK' as source_type, ponbr as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, spkstartworkingdate as start_date, spkendtworkingdate as end_date, created_by, status")
             ->where('potype', 'SPK')->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
         $contract = TrKontrak::query()->selectRaw("id as source_id, 'KONTRAK' as source_type, kontrakid as document_no, cpny_id, department_id, vendorid, vendorname, keperluan, startdate as start_date, enddate as end_date, created_by, status")
             ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
@@ -61,7 +65,7 @@ class EvaluasiVendorController extends Controller
     {
         $filters = $request->validate([
             'scope' => ['nullable', Rule::in(['jobs', 'onprogress', 'rejected', 'revised', 'completed', 'all'])],
-            'source_type' => ['nullable', Rule::in(['PO', 'KONTRAK'])],
+            'source_type' => ['nullable', Rule::in(['SPK', 'KONTRAK'])],
             'vendor' => 'nullable|string|max:255', 'start_date' => 'nullable|date_format:Y-m-d',
             'end_date' => 'nullable|date_format:Y-m-d'.($request->filled('start_date') ? '|after_or_equal:start_date' : ''),
         ]);
@@ -91,7 +95,7 @@ class EvaluasiVendorController extends Controller
         $search = mb_substr(trim((string) $request->input('search.value', '')), 0, 200);
         if ($search !== '') {
             $query->where(function ($q) use ($search, $documentColumn, $jobs) {
-                foreach ([$documentColumn, 'cpny_id', 'vendorname', 'keperluan', 'created_by'] as $column) {
+                foreach ([$documentColumn, 'cpny_id', 'department_id', 'vendorname', 'keperluan', 'created_by'] as $column) {
                     $q->orWhere($column, 'ilike', '%'.$search.'%');
                 }
                 if (!$jobs) {
@@ -100,8 +104,8 @@ class EvaluasiVendorController extends Controller
             });
         }
         $filtered = (clone $query)->count();
-        $columns = [1 => $typeColumn, 2 => $documentColumn, 3 => 'cpny_id', 4 => 'vendorname',
-            5 => 'keperluan', 6 => $startColumn, 7 => $endColumn, 8 => 'created_by', 9 => 'status'];
+        $columns = [1 => $typeColumn, 2 => $documentColumn, 3 => 'cpny_id', 4 => 'department_id', 5 => 'vendorname',
+            6 => 'keperluan', 7 => $startColumn, 8 => $endColumn, 9 => 'created_by', 10 => 'status'];
         $order = $columns[(int) $request->input('order.0.column', 2)] ?? $documentColumn;
         $direction = $request->input('order.0.dir') === 'asc' ? 'asc' : 'desc';
         $rows = $query->orderBy($order, $direction)->orderBy($jobs ? 'source_id' : 'id')
@@ -112,13 +116,14 @@ class EvaluasiVendorController extends Controller
                 'source_type' => $jobs ? $row->source_type : $row->vendor_perfomance_type,
                 'document_no' => $jobs ? $row->document_no : $row->ponbr,
                 'evaluation_no' => $jobs ? null : $row->vendor_perfomance_id,
-                'cpny_id' => $row->cpny_id, 'vendorname' => $row->vendorname, 'keperluan' => $row->keperluan,
+                'cpny_id' => $row->cpny_id, 'department_id' => $row->department_id,
+                'vendorname' => $row->vendorname, 'keperluan' => $row->keperluan,
                 'start_date' => $jobs ? $row->start_date : $row->vendor_perfomance_start_date,
                 'end_date' => $jobs ? $row->end_date : $row->vendor_perfomance_end_date,
                 'created_by' => $row->created_by, 'status' => self::STATUSES[$row->status] ?? $row->status,
                 'score' => $jobs ? null : $row->template_vpe_aspect_grandtotal_score,
                 'url' => $jobs ? route('evaluasivendor.create', ['source_type' => $row->source_type, 'source_id' => $row->source_id])
-                    : route('evaluasivendor.show', $row->id),
+                    : route('showevaluasivendor', $row->id),
             ];
         });
 
@@ -128,10 +133,10 @@ class EvaluasiVendorController extends Controller
 
     private function source(string $type, int $id, bool $lock = false)
     {
-        abort_unless(in_array($type, ['PO', 'KONTRAK'], true), 404);
-        $query = ($type === 'PO' ? TrPO::query() : TrKontrak::query())
+        abort_unless(in_array($type, ['SPK', 'KONTRAK'], true), 404);
+        $query = ($type === 'SPK' ? TrPO::query() : TrKontrak::query())
             ->whereNull('deleted_at')->whereIn('status', ['P', 'C']);
-        if ($type === 'PO') {
+        if ($type === 'SPK') {
             $query->where('potype', 'SPK');
         }
         if ($lock) {
@@ -142,7 +147,7 @@ class EvaluasiVendorController extends Controller
 
     public function createEvaluasi(Request $request)
     {
-        $data = $request->validate(['source_type' => ['required', Rule::in(['PO', 'KONTRAK'])], 'source_id' => 'required|integer|min:1']);
+        $data = $request->validate(['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])], 'source_id' => 'required|integer|min:1']);
         $source = $this->source($data['source_type'], $data['source_id']);
         $evaluation = new TrVendorPerfomance($this->sourceFields($source, $data['source_type']));
         $evaluation->vendor_perfomance_date = now()->toDateString();
@@ -156,12 +161,12 @@ class EvaluasiVendorController extends Controller
 
     private function sourceFields($source, string $type): array
     {
-        return ['vendor_perfomance_type' => $type, 'ponbr' => $type === 'PO' ? $source->ponbr : $source->kontrakid,
+        return ['vendor_perfomance_type' => $type, 'ponbr' => $type === 'SPK' ? $source->ponbr : $source->kontrakid,
             'cpny_id' => $source->cpny_id, 'department_id' => $source->department_id, 'csid' => $source->csid,
             'sppbjktid' => $source->sppbjktid, 'user_peminta' => $source->user_peminta,
             'vendorid' => $source->vendorid, 'vendorname' => $source->vendorname, 'keperluan' => $source->keperluan,
-            'vendor_perfomance_start_date' => $type === 'PO' ? $source->getRawOriginal('spkstartworkingdate') : $source->startdate,
-            'vendor_perfomance_end_date' => $type === 'PO' ? $source->getRawOriginal('spkendtworkingdate') : $source->enddate];
+            'vendor_perfomance_start_date' => $type === 'SPK' ? $source->getRawOriginal('spkstartworkingdate') : $source->startdate,
+            'vendor_perfomance_end_date' => $type === 'SPK' ? $source->getRawOriginal('spkendtworkingdate') : $source->enddate];
     }
 
     private function master(string $template): array
@@ -203,38 +208,75 @@ class EvaluasiVendorController extends Controller
             'template_vpe_aspect_comment' => 'nullable|string|max:10000',
             'ratings' => 'required|array', 'ratings.*' => 'required|integer|between:1,5',
             'notes' => 'nullable|array', 'notes.*' => 'nullable|string|max:10000',
-        ], $creating ? ['source_type' => ['required', Rule::in(['PO', 'KONTRAK'])],
-            'source_id' => 'required|integer|min:1', 'template_vpe_id' => 'required|string|max:50'] : []));
+        ], $creating ? ['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])],
+            'source_id' => 'required|integer|min:1', 'template_vpe_id' => 'required|string|max:50'] : []), [
+            'template_vpe_id.required' => 'Jenis Pekerjaan wajib dipilih.',
+            'ratings.required' => 'Seluruh skor penilaian wajib diisi.',
+            'ratings.*.required' => 'Skor pada setiap subaspek wajib diisi.',
+            'ratings.*.integer' => 'Skor harus berupa angka 1 sampai 5.',
+            'ratings.*.between' => 'Skor harus antara 1 sampai 5.',
+        ]);
     }
 
     public function storeEvaluasi(Request $request, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, true);
-        $id = DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring) {
-            $source = $this->source($data['source_type'], $data['source_id'], true);
-            $fields = $this->sourceFields($source, $data['source_type']);
-            $duplicate = $this->evaluations()->where('vendor_perfomance_type', $fields['vendor_perfomance_type'])
-                ->where('ponbr', $fields['ponbr'])->where('cpny_id', $fields['cpny_id'])->where('status', '<>', 'R')->exists();
-            if ($duplicate) {
-                throw ValidationException::withMessages(['source_id' => 'Pekerjaan ini sudah memiliki penilaian vendor.']);
-            }
-            $master = $this->master($data['template_vpe_id']);
-            $result = $scoring->calculate($master['details'], $data['ratings'], $master['scale']);
-            foreach ($result['details'] as &$detail) {
-                $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
-            }
-            unset($detail);
-            $evaluation = new TrVendorPerfomance(array_merge($fields, $this->inputFields($data), [
-                'vendor_perfomance_id' => 'VPE-'.strtoupper(substr(str_replace('-', '', (string) Str::uuid()), 0, 16)),
-                'template_vpe_id' => $data['template_vpe_id'], 'template_vpe_descr' => $master['description'],
-                'template_vpe_aspect_grandtotal_score' => $result['total'], 'template_vpe_aspect_result' => $result['result'],
-                'status' => 'P', 'created_by' => $request->user()->username, 'updated_by' => $request->user()->username,
-            ]));
-            $evaluation->save();
-            $this->saveDetails($evaluation, $result['details'], $request->user()->username);
-            return $evaluation->id;
+        $doctype = 'EVO';
+        $username = $request->user()->username;
+        $dt = Carbon::now('Asia/Jakarta');
+        $year = (int) $dt->year;
+        $month = $dt->format('m');
+        /** @var ApprovalController $approvalCtl */
+        $approvalCtl = app(ApprovalController::class);
+
+        // Autonbr and TrApproval use pgsql2; keep its locks and writes transactional too.
+        $id = DB::connection('pgsql2')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl) {
+            return DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl) {
+                $source = $this->source($data['source_type'], $data['source_id'], true);
+                $fields = $this->sourceFields($source, $data['source_type']);
+                $duplicate = $this->evaluations()->where('vendor_perfomance_type', $fields['vendor_perfomance_type'])
+                    ->where('ponbr', $fields['ponbr'])->where('cpny_id', $fields['cpny_id'])->where('status', '<>', 'R')->exists();
+                if ($duplicate) {
+                    throw ValidationException::withMessages(['source_id' => 'Pekerjaan ini sudah memiliki penilaian vendor.']);
+                }
+                $master = $this->master($data['template_vpe_id']);
+                $result = $scoring->calculate($master['details'], $data['ratings'], $master['scale']);
+                foreach ($result['details'] as &$detail) {
+                    $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
+                }
+                unset($detail);
+                $approvalCtl->loadLines($doctype, $source->cpny_id, $source->department_id);
+
+                // Also serialize the first allocation, when no EVO counter row exists yet.
+                DB::connection('pgsql2')->select('SELECT pg_advisory_xact_lock(hashtext(?))', ["autonbr:{$doctype}:{$year}:{$month}"]);
+                $auto = $this->nextAutonbr($doctype, $year, $month, $username, 'Evaluasi Vendor');
+                $docid = $doctype.substr((string) $year, 2).$month.sprintf('%04d', (int) $auto['next']);
+                $evaluation = new TrVendorPerfomance(array_merge($fields, $this->inputFields($data), [
+                    'vendor_perfomance_id' => $docid,
+                    'template_vpe_id' => $data['template_vpe_id'], 'template_vpe_descr' => $master['description'],
+                    'template_vpe_aspect_grandtotal_score' => $result['total'], 'template_vpe_aspect_result' => $result['result'],
+                    'status' => 'P', 'created_by' => $request->user()->username, 'updated_by' => $request->user()->username,
+                ]));
+                $evaluation->save();
+                $this->saveDetails($evaluation, $result['details'], $request->user()->username);
+                $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $source->cpny_id,
+                    $source->department_id,
+                    $username,
+                    ['ignore_nominal' => true],
+                    $dt
+                );
+                $this->notifyApprovalEvaluasi($approvalCtl, $evaluation, $doctype, $dt);
+                return $evaluation->id;
+            });
         });
-        return redirect()->route('evaluasivendor.show', $id)->with('success', 'Penilaian vendor disimpan sebagai On Progress.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Penilaian vendor berhasil diajukan untuk approval.',
+                'redirect' => route('showevaluasivendor', $id)]);
+        }
+        return redirect()->route('showevaluasivendor', $id)->with('success', 'Penilaian vendor berhasil diajukan untuk approval.');
     }
 
     private function inputFields(array $data): array
@@ -267,6 +309,22 @@ class EvaluasiVendorController extends Controller
     {
         $evaluation = $this->evaluations()->findOrFail($id);
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
+        $approvals = TrApproval::query()->where('refnbr', $evaluation->vendor_perfomance_id)
+            ->where('aprv_doctype', 'EVO')->where('aprv_cpnyid', $evaluation->cpny_id)
+            ->where('aprv_departementid', $evaluation->department_id)
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->get();
+
+        return view('pages.evaluasivendor.showevaluasivendor', [
+            'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
+            'statuses' => self::STATUSES,
+        ]);
+    }
+
+    public function editEvaluasi(int $id)
+    {
+        $evaluation = $this->evaluations()->findOrFail($id);
+        abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
+        $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
         return view('pages.evaluasivendor.form', ['evaluation' => $evaluation, 'details' => $details,
             'templates' => collect(), 'sourceId' => null, 'editable' => in_array($evaluation->status, ['P', 'D']), 'statuses' => self::STATUSES]);
     }
@@ -274,26 +332,64 @@ class EvaluasiVendorController extends Controller
     public function updateEvaluasi(Request $request, int $id, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, false);
-        DB::connection('pgsql')->transaction(function () use ($id, $data, $scoring, $request) {
-            $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
-            abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
-            // Preserve the recorded criteria/weights; only the ratings and header inputs change.
-            $details = $this->detailQuery($evaluation)->get();
-            $master = $this->master($evaluation->template_vpe_id);
-            $result = $scoring->calculate($details->toArray(), $data['ratings'], $master['scale']);
-            $evaluation->fill(array_merge($this->inputFields($data), ['status' => 'P',
-                'template_vpe_aspect_grandtotal_score' => $result['total'], 'template_vpe_aspect_result' => $result['result'],
-                'updated_by' => $request->user()->username]))->save();
-            foreach ($result['details'] as $detail) {
-                $this->detailQuery($evaluation)->where('id', $detail['id'])->update([
-                    'template_vpe_subaspect_score' => $detail['template_vpe_subaspect_score'],
-                    'template_vpe_subaspect_nilai' => $detail['template_vpe_subaspect_nilai'],
-                    'template_vpe_subaspect_note' => $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'],
-                    'status' => 'P', 'updated_by' => $request->user()->username, 'updated_at' => now(),
-                ]);
-            }
+        $doctype = 'EVO';
+        $username = $request->user()->username;
+        $dt = Carbon::now('Asia/Jakarta');
+        /** @var ApprovalController $approvalCtl */
+        $approvalCtl = app(ApprovalController::class);
+        DB::connection('pgsql2')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl) {
+            DB::connection('pgsql')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl) {
+                $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
+                abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
+                $approvalCtl->loadLines($doctype, $evaluation->cpny_id, $evaluation->department_id);
+                // Preserve the recorded criteria/weights; only the ratings and header inputs change.
+                $details = $this->detailQuery($evaluation)->get();
+                $master = $this->master($evaluation->template_vpe_id);
+                $result = $scoring->calculate($details->toArray(), $data['ratings'], $master['scale']);
+                $evaluation->fill(array_merge($this->inputFields($data), ['status' => 'P',
+                    'template_vpe_aspect_grandtotal_score' => $result['total'], 'template_vpe_aspect_result' => $result['result'],
+                    'updated_by' => $request->user()->username]))->save();
+                foreach ($result['details'] as $detail) {
+                    $this->detailQuery($evaluation)->where('id', $detail['id'])->update([
+                        'template_vpe_subaspect_score' => $detail['template_vpe_subaspect_score'],
+                        'template_vpe_subaspect_nilai' => $detail['template_vpe_subaspect_nilai'],
+                        'template_vpe_subaspect_note' => $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'],
+                        'status' => 'P', 'updated_by' => $request->user()->username, 'updated_at' => now(),
+                    ]);
+                }
+                $approvalCtl->generateForDocument(
+                    $evaluation->vendor_perfomance_id,
+                    $doctype,
+                    $evaluation->cpny_id,
+                    $evaluation->department_id,
+                    $username,
+                    ['ignore_nominal' => true],
+                    $dt
+                );
+                $this->notifyApprovalEvaluasi($approvalCtl, $evaluation, $doctype, $dt);
+            });
         });
-        return redirect()->route('evaluasivendor.show', $id)->with('success', 'Penilaian diperbarui sebagai On Progress.');
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.',
+                'redirect' => route('showevaluasivendor', $id)]);
+        }
+        return redirect()->route('showevaluasivendor', $id)->with('success', 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.');
+    }
+
+    private function notifyApprovalEvaluasi(ApprovalController $approvalCtl, TrVendorPerfomance $evaluation, string $doctype, Carbon $dt): void
+    {
+        $approvalCtl->notifyFirstApprover(
+            $evaluation->vendor_perfomance_id,
+            $doctype,
+            $evaluation->status,
+            'Evaluasi Vendor',
+            route('showevaluasivendor', $evaluation->id),
+            [
+                'info' => $evaluation->keperluan,
+                'createdby' => $evaluation->created_by,
+                'date' => $dt->toDateTimeString(),
+            ]
+        );
     }
 
     public function statusEvaluasi(Request $request, int $id)
@@ -307,6 +403,6 @@ class EvaluasiVendorController extends Controller
                 'template_vpe_aspect_comment' => $data['comment'] ?? $evaluation->template_vpe_aspect_comment])->save();
             $this->detailQuery($evaluation)->update(['status' => $data['status'], 'updated_by' => $request->user()->username, 'updated_at' => now()]);
         });
-        return redirect()->route('evaluasivendor.show', $id)->with('success', 'Status diperbarui menjadi '.self::STATUSES[$data['status']].'.');
+        return redirect()->route('showevaluasivendor', $id)->with('success', 'Status diperbarui menjadi '.self::STATUSES[$data['status']].'.');
     }
 }
