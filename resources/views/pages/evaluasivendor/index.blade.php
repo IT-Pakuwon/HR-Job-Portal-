@@ -26,7 +26,7 @@
                         @foreach($vendors as $vendor)<option value="{{ $vendor }}">{{ $vendor }}</option>@endforeach
                     </select>
                 </label>
-                <label class="text-xs text-gray-500">Sumber pekerjaan
+                <label class="text-xs text-gray-500">Type
                     <select name="source_type" class="mt-1 w-full rounded border-gray-300 text-sm dark:bg-gray-800">
                         <option value="">SPK & Kontrak</option><option value="SPK">SPK</option><option value="KONTRAK">Kontrak</option>
                     </select>
@@ -43,7 +43,7 @@
             <div class="overflow-x-auto px-3 pb-4">
                 <table id="evaluation-table" class="w-full text-sm">
                     <thead><tr class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800">
-                        <th>Action</th><th>Sumber</th><th>No. SPK / Kontrak</th><th>Company</th><th>Department</th><th>Vendor</th>
+                        <th>Action</th><th>Type</th><th>No. SPK / Kontrak</th><th>Company</th><th>Department</th><th>Vendor</th>
                         <th>Pekerjaan</th><th>Mulai</th><th>Selesai</th><th>Created By</th><th>Status</th><th>Nilai</th>
                     </tr></thead><tbody></tbody>
                 </table>
@@ -57,6 +57,12 @@
             const filters = document.getElementById('evaluation-filters');
             const escape = value => $('<span>').text(value ?? '').html();
             const text = $.fn.dataTable.render.text();
+            const statusColors = {
+                'On Progress': 'bg-orange-200/60 text-orange-800 border-orange-600/40',
+                'Revised': 'bg-amber-200/60 text-amber-800 border-amber-600/40',
+                'Rejected': 'bg-red-200/60 text-red-800 border-red-600/40',
+                'Completed': 'bg-green-200/60 text-green-800 border-green-600/40'
+            };
             const table = $('#evaluation-table').DataTable({
                 processing: true, serverSide: true, pageLength: 10, order: [[2, 'desc']],
                 ajax: {url: @json(route('evaluasivendor.json')), data: function (data) {
@@ -67,7 +73,7 @@
                 }},
                 columns: [
                     {data: 'url', orderable: false, searchable: false, render: (url, type, row) => type === 'display'
-                        ? `<a class="inline-block whitespace-nowrap rounded bg-blue-500 px-3 py-1 text-white" href="${escape(url)}">${scope === 'jobs' ? '+ Nilai' : escape(row.evaluation_no)}</a>` : row.evaluation_no || url},
+                        ? `<a class="inline-flex items-center justify-center whitespace-nowrap rounded ${scope === 'jobs' ? 'bg-blue-500' : 'bg-gray-600 hover:bg-gray-700 font-semibold'} px-3 py-1.5 text-white" ${scope === 'jobs' ? '' : 'style="min-width:120px"'} href="${escape(url)}">${scope === 'jobs' ? '+ Nilai' : escape(row.evaluation_no)}</a>` : row.evaluation_no || url},
                     {data: 'source_type', render: text},
                     {data: 'document_no', render: (value, type, row) => type === 'display'
                         ? `<strong>${escape(value)}</strong>` : value},
@@ -77,7 +83,8 @@
                     {data: 'keperluan', defaultContent: '', render: text},
                     {data: 'start_date', defaultContent: '—', render: text}, {data: 'end_date', defaultContent: '—', render: text},
                     {data: 'created_by', defaultContent: '', render: text},
-                    {data: 'status', visible: false, render: value => `<span class="inline-block whitespace-nowrap rounded-full border border-indigo-300 px-2 py-1 text-xs text-indigo-600">${escape(value)}</span>`},
+                    {data: 'status', visible: false, render: (value, type) => type === 'display'
+                        ? `<span class="inline-block whitespace-nowrap rounded border px-3 py-1.5 text-center text-sm font-semibold ${statusColors[value] || 'bg-gray-200/60 text-gray-700 border-gray-500/40'}">${escape(value)}</span>` : value},
                     {data: 'score', visible: false, orderable: false, render: value => value == null ? '—' : Number(value).toFixed(2)}
                 ],
                 language: {emptyTable: 'Belum ada data penilaian vendor.', zeroRecords: 'Tidak ada data yang sesuai filter.'}
