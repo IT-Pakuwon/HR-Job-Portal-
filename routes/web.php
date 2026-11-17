@@ -3092,7 +3092,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
     Route::middleware('admin')->group(function () {
-        Route::get('/showevaluasivendor/{id}', [EvaluasiVendorController::class, 'showEvaluasi'])->whereNumber('id')->name('showevaluasivendor');
+        Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor');
         Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
             Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);
             Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json');
@@ -3100,7 +3100,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template');
             Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store');
             Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit');
-            Route::get('/{id}', [EvaluasiVendorController::class, 'showEvaluasi'])->whereNumber('id')->name('.show');
+            Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show');
+            Route::post('/{hash}/approval/{action}', [EvaluasiVendorController::class, 'approvalEvaluasi'])->whereIn('action', ['approve', 'revise', 'reject'])->name('.approval');
             Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update');
             Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status');
         });

@@ -66,11 +66,11 @@
                     $('#list-error').removeClass('hidden').text('Daftar gagal dimuat. Periksa filter tanggal atau muat ulang halaman.');
                 }},
                 columns: [
-                    {data: 'url', orderable: false, searchable: false, render: (url, type) => type === 'display'
-                        ? `<a class="inline-block rounded bg-blue-500 px-3 py-1 text-white" href="${escape(url)}">${scope === 'jobs' ? '+ Nilai' : 'Lihat'}</a>` : url},
+                    {data: 'url', orderable: false, searchable: false, render: (url, type, row) => type === 'display'
+                        ? `<a class="inline-block whitespace-nowrap rounded bg-blue-500 px-3 py-1 text-white" href="${escape(url)}">${scope === 'jobs' ? '+ Nilai' : escape(row.evaluation_no)}</a>` : row.evaluation_no || url},
                     {data: 'source_type', render: text},
                     {data: 'document_no', render: (value, type, row) => type === 'display'
-                        ? `<strong>${escape(value)}</strong>${row.evaluation_no ? `<div class="mt-1 text-xs text-gray-500">${escape(row.evaluation_no)}</div>` : ''}` : value},
+                        ? `<strong>${escape(value)}</strong>` : value},
                     {data: 'cpny_id', defaultContent: '', render: text},
                     {data: 'department_id', defaultContent: '', render: text},
                     {data: 'vendorname', defaultContent: '', render: text},
@@ -84,6 +84,7 @@
             });
             $('.evaluation-tab').on('click', function () {
                 scope = this.dataset.scope;
+                $(table.column(0).header()).text(scope === 'jobs' ? 'Action' : 'Doc ID');
                 table.columns([10, 11]).visible(scope !== 'jobs', false);
                 table.columns.adjust();
                 $('.evaluation-tab').attr('aria-selected', 'false');
