@@ -11,6 +11,7 @@ use App\Models\TrPO;
 use App\Models\TrApproval;
 use App\Models\TrVendorPerfomance;
 use App\Models\TrVendorPerfomanceDetail;
+use App\Models\User;
 use App\Services\VendorEvaluationScoring;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -333,9 +334,15 @@ class EvaluasiVendorController extends Controller
             ?? $approvals->where('status', 'P')->first();
         $isApprover = $evaluation->status === 'P' && $active
             && in_array(strtolower(request()->user()->username), app(ApprovalController::class)->normalizeApproverList($active->aprv_username), true);
+        $isSpk = $evaluation->vendor_perfomance_type === 'SPK';
+        $sourceId = ($isSpk ? TrPO::query()->where('potype', 'SPK')->where('ponbr', $evaluation->ponbr)
+            : TrKontrak::query()->where('kontrakid', $evaluation->ponbr))
+            ->where('cpny_id', $evaluation->cpny_id)->whereNull('deleted_at')->value('id');
+        $sourceUrl = $sourceId ? url(($isSpk ? '/showpo/' : '/showkontrak/').Hashids::encode($sourceId)) : null;
         return view('pages.evaluasivendor.showevaluasivendor', [
             'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
             'statuses' => self::STATUSES, 'isApprover' => $isApprover, 'hash' => $hash,
+            'sourceUrl' => $sourceUrl, 'sourceLabel' => $isSpk ? 'ponbr' : 'Kontrak No',
         ]);
     }
 
@@ -346,6 +353,44 @@ class EvaluasiVendorController extends Controller
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
         return view('pages.evaluasivendor.form', ['evaluation' => $evaluation, 'details' => $details,
             'templates' => collect(), 'sourceId' => null, 'editable' => in_array($evaluation->status, ['P', 'D']), 'statuses' => self::STATUSES]);
+    }
+
+    public function printEvaluasi(string $hash)
+    {
+        $evaluation = $this->commentDocumentEvaluasi($hash);
+        $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
+        $approvals = TrApproval::query()->where('refnbr', $evaluation->vendor_perfomance_id)
+            ->where('aprv_doctype', 'EVO')->where('aprv_cpnyid', $evaluation->cpny_id)
+            ->where('aprv_departementid', $evaluation->department_id)->where('status', '<>', 'X')
+            ->orderBy('created_at')->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->orderBy('id')->get();
+        $creatorName = User::query()->where('username', $evaluation->created_by)->value('name') ?: $evaluation->created_by;
+        $templates = json_decode(file_get_contents(database_path('data/vendor_evaluation_templates.json')), true, 512, JSON_THROW_ON_ERROR);
+        $guide = collect($templates)->firstWhere('id', $evaluation->template_vpe_id);
+
+        return \PDF::loadView('pages.evaluasivendor.pdf_evaluasivendor', [
+            'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
+            'creatorName' => $creatorName, 'guide' => $guide, 'statuses' => self::STATUSES,
+        ])->setPaper('A4', 'portrait')->stream('Evaluasi_Vendor_'.$evaluation->vendor_perfomance_id.'.pdf');
+    }
+
+    private function commentDocumentEvaluasi(string $hash): TrVendorPerfomance
+    {
+        $decoded = Hashids::decode($hash);
+        abort_unless(count($decoded) === 1, 404);
+        return $this->evaluations()->findOrFail((int) $decoded[0]);
+    }
+
+    public function commentsEvaluasi(string $hash)
+    {
+        $evaluation = $this->commentDocumentEvaluasi($hash);
+        return app(SendCommentController::class)->fetchComments('EVO', $evaluation->vendor_perfomance_id);
+    }
+
+    public function storeCommentEvaluasi(Request $request, string $hash)
+    {
+        $evaluation = $this->commentDocumentEvaluasi($hash);
+        $request->validate(['comment' => 'required|string|max:500']);
+        return app(SendCommentController::class)->storeComment($request, 'EVO', $evaluation->vendor_perfomance_id);
     }
 
     public function updateEvaluasi(Request $request, int $id, VendorEvaluationScoring $scoring)

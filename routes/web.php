@@ -3147,6 +3147,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('admin')->group(function () {
         Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor');
+        Route::get('/pdf_evaluasivendor/{hash}', [EvaluasiVendorController::class, 'printEvaluasi'])->name('evaluasivendor.print');
         Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
             Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);
             Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json');
@@ -3156,6 +3157,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit');
             Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show');
             Route::post('/{hash}/approval/{action}', [EvaluasiVendorController::class, 'approvalEvaluasi'])->whereIn('action', ['approve', 'revise', 'reject'])->name('.approval');
+            Route::get('/{hash}/comments', [EvaluasiVendorController::class, 'commentsEvaluasi'])->name('.comments');
+            Route::post('/{hash}/comments', [EvaluasiVendorController::class, 'storeCommentEvaluasi'])->name('.comments.store');
             Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update');
             Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status');
         });
