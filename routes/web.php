@@ -3165,15 +3165,22 @@ Route::middleware(['auth'])->group(function () {
     // Self-service: any authenticated user may change their own password (not admin-only).
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
+    Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor')->middleware('access:EVALVENDOR,VIEW');
+    Route::get('/editevaluasivendor/{hash}', [EvaluasiVendorController::class, 'editHashEvaluasi'])->name('editevaluasivendor')->middleware('access:EVALVENDOR,EDIT');
+    Route::get('/pdf_evaluasivendor/{hash}', [EvaluasiVendorController::class, 'printEvaluasi'])->name('evaluasivendor.print')->middleware('access:EVALVENDOR,VIEW');
     Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
-        Route::get('/', [EvaluasiVendorController::class, 'index'])->middleware('access:EVALVENDOR,VIEW');
-        Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
-        Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
-        Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
-        Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
-        Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');
-        Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update')->middleware('access:EVALVENDOR,EDIT');
-        Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi'])->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/{hash}/approval/{action}', [EvaluasiVendorController::class, 'approvalEvaluasi'])->whereIn('action', ['approve', 'revise', 'reject'])->name('.approval')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/{hash}/comments', [EvaluasiVendorController::class, 'commentsEvaluasi'])->name('.comments')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/{hash}/comments', [EvaluasiVendorController::class, 'storeCommentEvaluasi'])->name('.comments.store')->middleware('access:EVALVENDOR,VIEW');
+        Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update')->middleware('access:EVALVENDOR,EDIT');
+        Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status')->middleware('access:EVALVENDOR,EDIT');
     });
 
     Route::middleware('admin')->group(function () {
