@@ -73,7 +73,7 @@
                 }},
                 columns: [
                     {data: 'url', orderable: false, searchable: false, render: (url, type, row) => type === 'display'
-                        ? `<a class="inline-flex items-center justify-center whitespace-nowrap rounded ${scope === 'jobs' ? 'bg-blue-500' : 'bg-gray-600 hover:bg-gray-700 font-semibold'} px-3 py-1.5 text-white" ${scope === 'jobs' ? '' : 'style="min-width:120px"'} href="${escape(url)}">${scope === 'jobs' ? '+ Nilai' : escape(row.evaluation_no)}</a>` : row.evaluation_no || url},
+                        ? `<a class="inline-flex items-center justify-center whitespace-nowrap rounded ${scope === 'jobs' ? 'bg-blue-500' : 'bg-gray-600 hover:bg-gray-700 font-semibold'} px-3 py-1.5 text-white" ${scope === 'jobs' ? '' : 'style="min-width:120px"'} href="${escape(url)}">${scope === 'jobs' ? 'Create' : escape(row.evaluation_no)}</a>` : row.evaluation_no || url},
                     {data: 'source_type', render: text},
                     {data: 'document_no', render: (value, type, row) => type === 'display'
                         ? `<strong>${escape(value)}</strong>` : value},

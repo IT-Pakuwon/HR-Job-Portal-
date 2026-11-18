@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 use App\Models\MsTenant;
+use App\Models\MsCompany;
 
 class TenantController extends Controller
 {
@@ -37,9 +38,10 @@ class TenantController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(['cpny_id' => strtoupper(trim((string) $request->input('cpny_id')))]);
         $request->validate([
             'unit_id'    => 'required|string|max:50|unique:pgsql.ms_tenant,unit_id',
-            'cpny_id'    => 'required|string|max:10',
+            'cpny_id'    => ['required', 'string', 'max:10', Rule::exists(MsCompany::class, 'cpny_id')],
             'store_name' => 'required|string|max:200',
             'floor_id'   => 'nullable|string|max:50',
             'store_no'   => 'nullable|string|max:50',
@@ -90,9 +92,10 @@ class TenantController extends Controller
     {
         $t = MsTenant::findOrFail($id);
 
+        $request->merge(['cpny_id' => strtoupper(trim((string) $request->input('cpny_id')))]);
         $request->validate([
             'unit_id'    => ['required', 'string', 'max:50', Rule::unique(MsTenant::class, 'unit_id')->ignore($t->id)],
-            'cpny_id'    => 'required|string|max:10',
+            'cpny_id'    => ['required', 'string', 'max:10', Rule::exists(MsCompany::class, 'cpny_id')],
             'store_name' => 'required|string|max:200',
             'floor_id'   => 'nullable|string|max:50',
             'store_no'   => 'nullable|string|max:50',

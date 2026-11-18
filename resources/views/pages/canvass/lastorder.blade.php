@@ -52,6 +52,10 @@
 
             {{-- TAB BQ --}}
             <div id="tab-bq" class="relative hidden overflow-hidden">
+                <div id="bqLoadError" role="alert" class="hidden mx-4 mt-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    <span id="bqLoadErrorText"></span>
+                    <button id="bqRetry" type="button" class="ml-2 font-semibold underline">Coba lagi</button>
+                </div>
                 <table id="bqTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -61,6 +65,9 @@
                                 BQID</th>
                             <th class="px-4 py-3 text-left font-medium">
                                 CSID</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">PO Number</th>
+                            <th class="px-4 py-3 text-left font-medium">PO Date</th>
                             <th class="px-4 py-3 text-left font-medium">
                                 Vendor</th>
                             <th class="px-4 py-3 text-left font-medium">
@@ -197,6 +204,24 @@
                             if (url === '#') return data ?? '';
                             return `<a href="${url}" target="_blank" class="link-underline">${data ?? ''}</a>`;
                         }
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'ponbr',
+                        render: function(data, type, row) {
+                            if (type !== 'display') return data ?? '';
+                            const text = $('<span>').text(data ?? '').html();
+                            const url = poUrl(row);
+                            return url === '#' ? text : `<a href="${url}" target="_blank" rel="noopener" class="link-underline">${text}</a>`;
+                        }
+                    },
+                    {
+                        data: 'podate',
+                        className: 'text-center',
+                        render: (data, type) => type === 'display' ? fmtDate(data) : (data ?? '')
                     },
                     {
                         data: 'vendor_name',
@@ -337,7 +362,20 @@
                 }],
                 ajax: {
                     url: "{{ route('lastorder.bq.json') }}",
-                    type: "GET"
+                    type: "GET",
+                    timeout: 60000,
+                    beforeSend: function() {
+                        $('#bqLoadError').addClass('hidden');
+                    },
+                    error: function(xhr, status) {
+                        $('#bqTable_processing').hide();
+                        if (status === 'abort') return;
+                        const message = status === 'timeout'
+                            ? 'Data Last Order BQ belum selesai dimuat. Permintaan melewati batas waktu.'
+                            : 'Data Last Order BQ gagal dimuat' + (xhr.status ? ' (HTTP ' + xhr.status + ')' : '') + '.';
+                        $('#bqLoadErrorText').text(message);
+                        $('#bqLoadError').removeClass('hidden');
+                    }
                 },
                 order: [
                     [1, 'desc']
@@ -345,6 +383,10 @@
                 columns: bqColumnsDef(),
                 searchDelay: 400,
                 stateSave: true
+            });
+
+            $('#bqRetry').on('click', function() {
+                bqTable.ajax.reload(null, false);
             });
 
             // ===== Tabs =====
