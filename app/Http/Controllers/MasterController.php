@@ -2139,7 +2139,7 @@ class MasterController extends Controller
         $perPage  = max(1, min(50, (int) $req->get('per_page', 10)));
         $cpnyid   = $req->get('cpnyid'); // tambahan filter by company
         
-        $query = MsTenant::query();
+        $query = MsTenant::query()->where('status', 'A');
 
         // if ($cpnyid) {
         //     $query->where('cpny_id', $cpnyid);

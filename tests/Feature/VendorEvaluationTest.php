@@ -83,9 +83,9 @@ class VendorEvaluationTest extends TestCase
         $row = $this->db->table('tr_vendor_perfomance')->first();
         $this->assertSame('Vendor Test', $row->vendorname);
         $this->assertSame('P', $row->status);
-        $this->assertSame('EVO'.\Carbon\Carbon::now('Asia/Jakarta')->format('ym').'0001', $row->vendor_perfomance_id);
+        $this->assertSame('VE'.\Carbon\Carbon::now('Asia/Jakarta')->format('ym').'0001', $row->vendor_perfomance_id);
         $this->assertSame($row->vendor_perfomance_id, $this->approvalDb->table('tr_approval')->value('refnbr'));
-        $this->assertSame('EVO', $this->approvalDb->table('tr_approval')->value('aprv_doctype'));
+        $this->assertSame('VE', $this->approvalDb->table('tr_approval')->value('aprv_doctype'));
         $this->assertEquals(1, $this->approvalDb->table('ms_autonbr')->value('number'));
         $this->assertEquals(100, $row->template_vpe_aspect_grandtotal_score);
         $this->assertSame('Sangat Baik', $row->template_vpe_aspect_result);
@@ -200,7 +200,7 @@ class VendorEvaluationTest extends TestCase
     {
         $this->post('/evaluasivendor', $this->payload())->assertRedirect();
         $this->post('/evaluasivendor', $this->payload('KONTRAK'))->assertRedirect();
-        $prefix = 'EVO'.\Carbon\Carbon::now('Asia/Jakarta')->format('ym');
+        $prefix = 'VE'.\Carbon\Carbon::now('Asia/Jakarta')->format('ym');
         $this->assertSame([$prefix.'0001', $prefix.'0002'], $this->db->table('tr_vendor_perfomance')->orderBy('id')->pluck('vendor_perfomance_id')->all());
         $this->assertSame(2, $this->approvalDb->table('tr_approval')->count());
         $this->assertEquals(2, $this->approvalDb->table('ms_autonbr')->value('number'));
@@ -224,7 +224,7 @@ class VendorEvaluationTest extends TestCase
     {
         $approval = $this->app->make(\App\Http\Controllers\ApprovalController::class);
         $approval->shouldReceive('notifyFirstApprover')->twice()->withArgs(function ($ref, $doctype, $status, $name, $url, $extra) {
-            return str_starts_with($ref, 'EVO') && $doctype === 'EVO' && $status === 'P'
+            return str_starts_with($ref, 'VE') && $doctype === 'VE' && $status === 'P'
                 && $name === 'Evaluasi Vendor' && str_contains($url, '/showevaluasivendor/')
                 && $extra['createdby'] === 'evaluation_test';
         })->andReturn(1);
@@ -295,7 +295,7 @@ class VendorEvaluationTest extends TestCase
 
     public function test_multilevel_approval_finishes_only_after_last_approver(): void
     {
-        $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'EVO', 'aprv_cpnyid' => 'TEST',
+        $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'VE', 'aprv_cpnyid' => 'TEST',
             'aprv_departementid' => 'ENG', 'aprv_leveling' => '2', 'aprv_type' => 'Normal',
             'aprv_username' => 'second_approver', 'aprv_name' => 'Second Approver', 'status' => 'A']);
         $this->post('/evaluasivendor', $this->payload())->assertRedirect();
@@ -336,7 +336,7 @@ class VendorEvaluationTest extends TestCase
         $this->postJson($url, ['comment' => 'Pesan diskusi vendor'])->assertOk();
         $this->getJson($url)->assertOk()->assertJsonCount(1, 'comments')->assertJsonPath('comments.0.message', 'Pesan diskusi vendor');
         $message = $this->approvalDb->table('tr_message')->first();
-        $this->assertSame('EVO', $message->doctype);
+        $this->assertSame('VE', $message->doctype);
         $this->assertSame($row->vendor_perfomance_id, $message->refnbr);
         $this->assertSame('evaluation_test', $message->username);
         $this->assertSame('Catatan vendor asli', $this->db->table('tr_vendor_perfomance')->value('vendor_perfomance_note'));
@@ -348,7 +348,7 @@ class VendorEvaluationTest extends TestCase
     {
         $this->app['events']->forget('composing: *');
         for ($level = 2; $level <= 6; $level++) {
-            $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'EVO', 'aprv_cpnyid' => 'TEST',
+            $this->approvalDb->table('ms_approval')->insert(['aprv_doctype' => 'VE', 'aprv_cpnyid' => 'TEST',
                 'aprv_departementid' => 'ENG', 'aprv_leveling' => (string) $level, 'aprv_type' => 'Normal',
                 'aprv_username' => 'approver_'.$level, 'aprv_name' => 'Approver '.$level, 'status' => 'A']);
         }
@@ -426,10 +426,10 @@ class VendorEvaluationTest extends TestCase
             'department_id' => 'OTHER', 'potype' => 'SPK', 'status' => 'P']);
         $this->db->table('tr_vendor_perfomance')->insert(['vendor_perfomance_id' => 'OTHER-EVAL',
             'cpny_id' => 'OTHER', 'department_id' => 'OTHER', 'status' => 'P']);
-        $this->approvalDb->table('sys_user_role')->insert(['username' => 'evaluation_test', 'role_id' => 'EVOACCESS', 'status' => 'X']);
+        $this->approvalDb->table('sys_user_role')->insert(['username' => 'evaluation_test', 'role_id' => 'VEACCESS', 'status' => 'X']);
         $this->getJson('/evaluasivendor/json?scope=jobs')->assertOk()->assertJsonPath('recordsTotal', 2);
         $this->getJson('/evaluasivendor/json?scope=all')->assertOk()->assertJsonPath('recordsTotal', 0);
-        $this->approvalDb->table('sys_user_role')->where('role_id', 'EVOACCESS')->update(['status' => 'A']);
+        $this->approvalDb->table('sys_user_role')->where('role_id', 'VEACCESS')->update(['status' => 'A']);
         $this->getJson('/evaluasivendor/json?scope=jobs')->assertOk()->assertJsonPath('recordsTotal', 3);
         $this->getJson('/evaluasivendor/json?scope=all')->assertOk()->assertJsonPath('recordsTotal', 1);
         $this->get('/evaluasivendor?embed=1')->assertOk()->assertViewHas('stats',

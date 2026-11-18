@@ -34,12 +34,12 @@ class EvaluasiVendorController extends Controller
     private function scopeEvaluasi($query, string $prefix = '')
     {
         $user = request()->user();
-        if ($user->hasRole('EVOACCESS')) {
+        $ids = fn ($value) => array_values(array_filter(array_map('trim', explode(',', (string) $value)), fn ($id) => $id !== ''));
+        $query->whereIn($prefix.'cpny_id', $ids($user->cpny_id));
+        if ($user->hasRole('VEACCESS')) {
             return $query;
         }
-        $ids = fn ($value) => array_values(array_filter(array_map('trim', explode(',', (string) $value)), fn ($id) => $id !== ''));
-        return $query->whereIn($prefix.'cpny_id', $ids($user->cpny_id))
-            ->whereIn($prefix.'department_id', $ids($user->department_id));
+        return $query->whereIn($prefix.'department_id', $ids($user->department_id));
     }
 
     private function sources()
@@ -235,6 +235,7 @@ class EvaluasiVendorController extends Controller
             'ratings' => 'required|array', 'ratings.*' => 'required|integer|between:1,5',
             'template_vpe_id' => 'required|string|max:50',
             'notes' => 'nullable|array', 'notes.*' => 'nullable|string|max:10000',
+            'criteria' => 'nullable|array', 'criteria.*' => 'nullable|string|max:10000',
         ], $creating ? ['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])],
             'source_id' => 'required|integer|min:1'] : []), [
             'template_vpe_id.required' => 'Jenis Pekerjaan wajib dipilih.',
@@ -248,7 +249,7 @@ class EvaluasiVendorController extends Controller
     public function storeEvaluasi(Request $request, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, true);
-        $doctype = 'EVO';
+        $doctype = 'VE';
         $username = $request->user()->username;
         $dt = Carbon::now('Asia/Jakarta');
         $year = (int) $dt->year;
@@ -270,12 +271,13 @@ class EvaluasiVendorController extends Controller
                 $master = $this->master($data['template_vpe_id']);
                 $result = $scoring->calculate($master['details'], $data['ratings'], $master['scale']);
                 foreach ($result['details'] as &$detail) {
+                    $detail['template_vpe_subaspect_kriteria'] = array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'];
                     $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
                 }
                 unset($detail);
                 $approvalCtl->loadLines($doctype, $source->cpny_id, $source->department_id);
 
-                // Also serialize the first allocation, when no EVO counter row exists yet.
+                // Also serialize the first allocation, when no VE counter row exists yet.
                 DB::connection('pgsql2')->select('SELECT pg_advisory_xact_lock(hashtext(?))', ["autonbr:{$doctype}:{$year}:{$month}"]);
                 $auto = $this->nextAutonbr($doctype, $year, $month, $username, 'Evaluasi Vendor');
                 $docid = $doctype.substr((string) $year, 2).$month.sprintf('%04d', (int) $auto['next']);
@@ -347,7 +349,7 @@ class EvaluasiVendorController extends Controller
         $evaluation = $this->evaluations()->findOrFail($id);
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
         $approvals = TrApproval::query()->where('refnbr', $evaluation->vendor_perfomance_id)
-            ->where('aprv_doctype', 'EVO')->where('aprv_cpnyid', $evaluation->cpny_id)
+            ->where('aprv_doctype', 'VE')->where('aprv_cpnyid', $evaluation->cpny_id)
             ->where('aprv_departementid', $evaluation->department_id)
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->get();
 
@@ -391,7 +393,7 @@ class EvaluasiVendorController extends Controller
         $evaluation = $this->commentDocumentEvaluasi($hash);
         $details = $this->detailQuery($evaluation)->orderBy('template_vpe_subaspect_id')->get();
         $approvals = TrApproval::query()->where('refnbr', $evaluation->vendor_perfomance_id)
-            ->where('aprv_doctype', 'EVO')->where('aprv_cpnyid', $evaluation->cpny_id)
+            ->where('aprv_doctype', 'VE')->where('aprv_cpnyid', $evaluation->cpny_id)
             ->where('aprv_departementid', $evaluation->department_id)->where('status', '<>', 'X')
             ->orderBy('created_at')->orderByRaw('CAST(aprv_leveling AS numeric) ASC')->orderBy('id')->get();
         $creatorName = User::query()->where('username', $evaluation->created_by)->value('name') ?: $evaluation->created_by;
@@ -412,20 +414,20 @@ class EvaluasiVendorController extends Controller
     public function commentsEvaluasi(string $hash)
     {
         $evaluation = $this->commentDocumentEvaluasi($hash);
-        return app(SendCommentController::class)->fetchComments('EVO', $evaluation->vendor_perfomance_id);
+        return app(SendCommentController::class)->fetchComments('VE', $evaluation->vendor_perfomance_id);
     }
 
     public function storeCommentEvaluasi(Request $request, string $hash)
     {
         $evaluation = $this->commentDocumentEvaluasi($hash);
         $request->validate(['comment' => 'required|string|max:500']);
-        return app(SendCommentController::class)->storeComment($request, 'EVO', $evaluation->vendor_perfomance_id);
+        return app(SendCommentController::class)->storeComment($request, 'VE', $evaluation->vendor_perfomance_id);
     }
 
     public function updateEvaluasi(Request $request, int $id, VendorEvaluationScoring $scoring)
     {
         $data = $this->validated($request, false);
-        $doctype = 'EVO';
+        $doctype = 'VE';
         $username = $request->user()->username;
         $dt = Carbon::now('Asia/Jakarta');
         /** @var ApprovalController $approvalCtl */
@@ -448,6 +450,7 @@ class EvaluasiVendorController extends Controller
                 if ($templateChanged) {
                     $this->detailQuery($evaluation)->delete();
                     foreach ($result['details'] as &$detail) {
+                        $detail['template_vpe_subaspect_kriteria'] = array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'];
                         $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
                     }
                     unset($detail);
@@ -457,6 +460,7 @@ class EvaluasiVendorController extends Controller
                     $this->detailQuery($evaluation)->where('id', $detail['id'])->update([
                         'template_vpe_subaspect_score' => $detail['template_vpe_subaspect_score'],
                         'template_vpe_subaspect_nilai' => $detail['template_vpe_subaspect_nilai'],
+                        'template_vpe_subaspect_kriteria' => array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'],
                         'template_vpe_subaspect_note' => $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'],
                         'status' => 'P', 'updated_by' => $request->user()->username, 'updated_at' => now(),
                     ]);
@@ -522,17 +526,17 @@ class EvaluasiVendorController extends Controller
                 abort_unless($evaluation->status === 'P', 409, 'Hanya penilaian On Progress yang dapat diproses.');
                 $ctl = app(ApprovalController::class);
                 $action = ['C' => 'approve', 'D' => 'revise', 'R' => 'reject'][$status];
-                [$allowed, , $message] = $ctl->assertUserCanAct($evaluation->vendor_perfomance_id, 'EVO', $action, $request->user()->username);
+                [$allowed, , $message] = $ctl->assertUserCanAct($evaluation->vendor_perfomance_id, 'VE', $action, $request->user()->username);
                 abort_unless($allowed, 403, $message ?: 'Anda bukan approver aktif.');
                 $apply = function () use ($evaluation, $status, $comment, $request) {
                     $evaluation->fill(['status' => $status, 'updated_by' => $request->user()->username,
                         'template_vpe_aspect_comment' => $comment ?? $evaluation->template_vpe_aspect_comment])->save();
                     $this->detailQuery($evaluation)->update(['status' => $status, 'updated_by' => $request->user()->username, 'updated_at' => now()]);
                 };
-                $args = [$evaluation->vendor_perfomance_id, 'EVO', $request->user()->username, $request->user()->name ?: $request->user()->username];
+                $args = [$evaluation->vendor_perfomance_id, 'VE', $request->user()->username, $request->user()->name ?: $request->user()->username];
                 $result = match ($status) {
                     'C' => $ctl->approveStep(...[...$args, $apply, function () use ($ctl, $evaluation) {
-                        $this->notifyApprovalEvaluasi($ctl, $evaluation, 'EVO', Carbon::now('Asia/Jakarta'));
+                        $this->notifyApprovalEvaluasi($ctl, $evaluation, 'VE', Carbon::now('Asia/Jakarta'));
                     }]),
                     'D' => $ctl->reviseStep(...[...$args, $apply]),
                     'R' => $ctl->rejectStep(...[...$args, $apply]),

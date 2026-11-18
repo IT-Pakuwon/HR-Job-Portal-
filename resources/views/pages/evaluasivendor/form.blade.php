@@ -84,6 +84,7 @@
             const creating = @json($creating);
             const oldRatings = @json(old('ratings', []));
             const oldNotes = @json(old('notes', []));
+            const oldCriteria = @json(old('criteria', []));
             const recorded = @json($details);
             const escape = value => {const el = document.createElement('span'); el.textContent = value ?? ''; return el.innerHTML.replaceAll('"', '&quot;').replaceAll("'", '&#39;');};
             let scale = {}, requestNumber = 0;
@@ -163,7 +164,7 @@
                     body.insertAdjacentHTML('beforeend', `<tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="p-3">${escape(detail.template_vpe_subaspect_descr)}</td>
                         <td class="p-3">${Number(detail.template_vpe_subaspect_bobot).toFixed(2)}</td>
-                        <td class="whitespace-pre-line p-3">${escape(detail.template_vpe_subaspect_kriteria)}</td>
+                        <td class="p-3"><textarea name="criteria[${escape(id)}]" rows="3" maxlength="10000" aria-label="Kriteria penilaian ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldCriteria[id] ?? detail.template_vpe_subaspect_kriteria)}</textarea></td>
                         <td class="p-3"><select class="rating-input rounded border-gray-300 text-sm dark:bg-gray-800" name="ratings[${escape(id)}]" data-aspect="${escape(detail.template_vpe_aspect_id)}" data-weight="${Number(detail.template_vpe_subaspect_bobot)}" required ${editable ? '' : 'disabled'}><option value="">—</option>${options}</select></td>
                         <td class="weighted-score p-3">${detail.template_vpe_subaspect_nilai ?? '—'}</td>
                         <td class="p-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td></tr>`);

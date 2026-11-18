@@ -118,10 +118,12 @@
             </header>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm" style="table-layout:fixed;min-width:1100px;overflow-wrap:anywhere">
-                    <colgroup><col style="width:4%"><col style="width:17%"><col style="width:6%"><col style="width:29%"><col style="width:7%"><col style="width:9%"><col style="width:28%"></colgroup>
+                    <colgroup><col style="width:3%"><col style="width:16%"><col style="width:5%"><col style="width:29%"><col style="width:13%"><col style="width:8%"><col style="width:26%"></colgroup>
                     <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700"><tr><th class="p-3">No</th><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th></tr></thead>
                     <tbody>
-                        @php($number = 0)
+                        @php
+                            $number = 0;
+                        @endphp
                         @forelse($details->groupBy('template_vpe_aspect_id') as $aspectDetails)
                             <tr class="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"><th colspan="7" class="p-3">{{ $aspectDetails->first()->template_vpe_aspect_descr }}</th></tr>
                             @foreach($aspectDetails as $detail)
@@ -129,7 +131,20 @@
                                     <td class="p-3">{{ ++$number }}</td><td class="p-3">{{ $detail->template_vpe_subaspect_descr }}</td>
                                     <td class="p-3">{{ number_format((float) $detail->template_vpe_subaspect_bobot, 2) }}</td>
                                     <td class="whitespace-pre-line p-3">{{ $detail->template_vpe_subaspect_kriteria }}</td>
-                                    <td class="p-3">{{ $detail->template_vpe_subaspect_score === null ? '—' : (int) $detail->template_vpe_subaspect_score }}</td>
+                                    <td class="p-3">
+                                        @php
+                                            $detailScore = $detail->template_vpe_subaspect_score === null ? null : (int) $detail->template_vpe_subaspect_score;
+                                            [$predicate, $predicateColor, $predicateBackground] = match ($detailScore) {
+                                                5 => ['Sangat Baik', '#15803d', '#dcfce7'],
+                                                4 => ['Baik', '#4338ca', '#e0e7ff'],
+                                                3 => ['Cukup', '#a16207', '#fef3c7'],
+                                                2 => ['Kurang', '#c2410c', '#ffedd5'],
+                                                1 => ['Sangat Kurang', '#b91c1c', '#fee2e2'],
+                                                default => [null, null, null],
+                                            };
+                                        @endphp
+                                        <span class="vendor-detail-score"><strong>{{ $detailScore ?? '—' }}</strong>@if($predicate)<span class="vendor-detail-predicate" style="color:{{ $predicateColor }};background:{{ $predicateBackground }}">{{ $predicate }}</span>@endif</span>
+                                    </td>
                                     <td class="p-3 font-semibold">{{ number_format((float) $detail->template_vpe_subaspect_nilai, 2) }}</td>
                                     <td class="whitespace-pre-line p-3">{{ $detail->template_vpe_subaspect_note ?: '—' }}</td>
                                 </tr>
@@ -144,6 +159,8 @@
     </div>
     @include('pages.evaluasivendor.partials.score-guide')
     <style>
+        .vendor-detail-score{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+        .vendor-detail-predicate{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:600;line-height:1.3}
         .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #6366f1;border-radius:8px;padding:14px 16px;background:#f8fafc}
         .vendor-note-recommendation{border-left-color:#0d9488;background:#f0fdfa}
         .vendor-note-heading{margin:0;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#334155}

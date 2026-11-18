@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
 
 use App\Models\TrPoLastPrice;
 use App\Models\TrPO;
 use App\Models\TrCS;
-use App\Models\ViewLastorderBq;
-use App\Models\TrBQCS;
 
 class LastOrderController extends Controller
 {
@@ -131,78 +130,63 @@ class LastOrderController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
-        // Sesuaikan index dengan kolom DataTables TAB BQ kamu
+        // Index 0 is the DataTables responsive control column.
         $columns = [
-            0 => 'bqid',
-            1 => 'csid',
-            2 => 'vendor_name',
-            3 => 'bq_descr',
-            4 => 'product_price',
-            5 => 'jasa_price',
-            6 => 'total_price',
+            1 => 'bq.bqid',
+            2 => 'bq.csid',
+            3 => 'cs.cpny_id',
+            4 => 'selected_po.ponbr',
+            5 => 'selected_po.podate',
+            6 => 'bq.vendor_name',
+            7 => 'bq.bq_descr',
+            8 => 'bq.product_price',
+            9 => 'bq.jasa_price',
+            10 => 'bq.total_price',
         ];
 
-        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderIdx = (int) $request->input('order.0.column', 1);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'bqid';
+        $orderCol = $columns[$orderIdx] ?? 'bq.bqid';
 
-        $base = ViewLastorderBq::query(); // ✅ otomatis pakai connection pgsql
+        $base = $this->lastOrderBqQuery();
 
         $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->whereRaw("CAST(bqid AS TEXT) ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("CAST(csid AS TEXT) ILIKE ?", ["%{$search}%"])
-                  ->orWhere('vendor_name', 'ilike', "%{$search}%")
-                  ->orWhere('bq_descr', 'ilike', "%{$search}%")
-                  ->orWhereRaw("CAST(product_price AS TEXT) ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("CAST(jasa_price AS TEXT) ILIKE ?", ["%{$search}%"])
-                  ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$search}%"]);
+                $q->whereRaw("CAST(bq.bqid AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(bq.csid AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhere('cs.cpny_id', 'ilike', "%{$search}%")
+                  ->orWhere('selected_po.ponbr', 'ilike', "%{$search}%")
+                  ->orWhereRaw("CAST(selected_po.podate AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("TO_CHAR(selected_po.podate, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("TO_CHAR(selected_po.podate, 'FMDD/FMMM/YYYY') ILIKE ?", ["%{$search}%"])
+                  ->orWhere('bq.vendor_name', 'ilike', "%{$search}%")
+                  ->orWhere('bq.bq_descr', 'ilike', "%{$search}%")
+                  ->orWhereRaw("CAST(bq.product_price AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(bq.jasa_price AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(bq.total_price AS TEXT) ILIKE ?", ["%{$search}%"]);
             });
         }
 
-        $recordsFiltered = (clone $base)->count();
+        $recordsFiltered = $search === '' ? $recordsTotal : (clone $base)->count();
 
         $rows = $base->select([
-                'bqid',
-                'csid',
-                'vendor_id',
-                'vendor_name',
-                'bq_descr',
-                'product_price',
-                'jasa_price',
-                'total_price',
+                'bq.bqid', 'bq.csid', 'cs.cpny_id',
+                'selected_po.ponbr', 'selected_po.podate', 'selected_po.id as po_id',
+                'bqh.id as bq_id', 'cs.id as cs_id',
+                'bq.vendor_id', 'bq.vendor_name', 'bq.bq_descr',
+                'bq.product_price', 'bq.jasa_price', 'bq.total_price',
             ])
             ->orderBy($orderCol, $orderDir)
-            ->skip($start)
-            ->take($length)
+            ->when($length !== -1, fn ($query) => $query->skip($start)->take($length))
             ->get();
 
-        // encode CS link kalau mau klik ke CS
-        $csids = $rows->pluck('csid')->filter()->unique();
-        $csMap = TrCS::on('pgsql')->whereIn('csid', $csids)->pluck('id', 'csid');
-
-        $rows->transform(function ($r) use ($csMap) {
-            $r->cs_eid = isset($csMap[$r->csid])
-                ? Hashids::encode((int)$csMap[$r->csid])
-                : null;
-            return $r;
-        });
-
-        // =========================
-        // ✅ Mapping BQ ID (bqid -> tr_bq_cs.id)
-        // =========================
-        $bqids = $rows->pluck('bqid')->filter()->unique()->values();
-
-        $bqMap = TrBQCS::on('pgsql')
-            ->whereIn('bqid', $bqids)
-            ->pluck('id', 'bqid'); // [bqid => id]
-
-        // encode bq_eid
-        $rows->transform(function ($r) use ($bqMap) {
-            $bqId = $bqMap[$r->bqid] ?? null;
-            $r->bq_eid = $bqId ? Hashids::encode((int) $bqId) : null;
+        $rows->transform(function ($r) {
+            $r->cs_eid = Hashids::encode((int) $r->cs_id);
+            $r->bq_eid = Hashids::encode((int) $r->bq_id);
+            $r->po_eid = Hashids::encode((int) $r->po_id);
+            unset($r->cs_id, $r->bq_id, $r->po_id);
             return $r;
         });
 
@@ -212,5 +196,36 @@ class LastOrderController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data'            => $rows,
         ]);
+    }
+
+    private function lastOrderBqQuery()
+    {
+        $connection = DB::connection('pgsql');
+        $selectedPo = $connection->table('tr_po as po')
+            ->selectRaw('DISTINCT ON (po.csid, po.cpny_id, po.vendorid) po.id, po.ponbr, po.podate, po.csid, po.cpny_id, po.vendorid')
+            ->whereNull('po.deleted_at')
+            ->orderBy('po.csid')
+            ->orderBy('po.cpny_id')
+            ->orderBy('po.vendorid')
+            ->orderByRaw('po.podate DESC NULLS LAST')
+            ->orderByDesc('po.id');
+
+        return $connection->table('v_lastorder_bq as bq')
+            ->join('tr_bq_cs as bqh', function ($join) {
+                $join->on('bqh.bqid', '=', 'bq.bqid')->on('bqh.csid', '=', 'bq.csid');
+            })
+            ->join('tr_cs as cs', function ($join) {
+                $join->on('cs.csid', '=', 'bqh.csid')->on('cs.cpny_id', '=', 'bqh.cpny_id');
+            })
+            ->joinSub($selectedPo, 'selected_po', function ($join) {
+                $join->on('selected_po.csid', '=', 'bq.csid')
+                    ->on('selected_po.cpny_id', '=', 'cs.cpny_id')
+                    ->on('selected_po.vendorid', '=', 'bq.vendor_id');
+            })
+            ->whereNull('bqh.deleted_at')
+            ->whereNull('cs.deleted_at')
+            ->where(function ($query) {
+                $query->whereNull('cs.prev_csid')->orWhere('cs.prev_csid', '');
+            });
     }
 }
