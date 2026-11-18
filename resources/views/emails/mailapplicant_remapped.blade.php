@@ -1,7 +1,7 @@
 @extends('emails.layouts.career')
 
 @section('title', 'Application Update')
-@section('preheader', 'We found another position that may match your profile.')
+@section('preheader', 'We found another position for you — please update your application form.')
 @section('icon', '🔄')
 @section('header', 'Your Application Has Been Updated')
 @section('subtitle', 'A new position match at Pakuwon Group')
@@ -21,7 +21,9 @@
         </tr>
     </table>
 
-    <p style="margin:0 0 4px;">Since you've already completed the application form, you don't need to fill it in again — our recruitment team will continue the process and contact you about next steps.</p>
+    <p style="margin:0 0 4px;">Because this is a different position, please review and update your application form so that it matches the new role. Your previous application remains on record and will not be changed.</p>
+
+    @include('emails.partials.button', ['url' => $url, 'label' => 'Update Your Application'])
 
     <p style="margin:22px 0 0;">Warm regards,<br><strong>Talent Acquisition Pakuwon Group</strong></p>
 @endsection

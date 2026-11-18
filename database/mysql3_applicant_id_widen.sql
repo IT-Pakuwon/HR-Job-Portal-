@@ -1,0 +1,34 @@
+ALTER TABLE `hr_ms_applicant` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_additional` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_course` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_driver_license` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_education` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_family_background` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_language` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_marital_and_children` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_organization` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_payroll_confirm` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_ratings` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_reference` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_skill` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_sw` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_tagging` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_ms_applicant_working_exp` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_doc_checklist` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_interview_assessment` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_interview_assessment_detail` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_interview_assessment_result` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_job_apply` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_job_apply_bckp` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_job_apply_sch` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_job_apply_step` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_job_apply_step_copy1` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_offering` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_onboarding_checklist` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_psychotest` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_psychotest_detail` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+ALTER TABLE `hr_trx_selfposting` MODIFY COLUMN `applicant_id` varchar(20) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT 'NULL';
+
+-- Remap keeps the old form frozen and creates a copy as <root>-N (e.g. APP261100090-1)
+ALTER TABLE `hr_ms_applicant` ADD COLUMN `form_update_required` char(1) NOT NULL DEFAULT 'N' AFTER `status`;
+ALTER TABLE `hr_trx_job_apply` ADD COLUMN `remap_from_docid` varchar(12) NULL DEFAULT NULL AFTER `jobid`;

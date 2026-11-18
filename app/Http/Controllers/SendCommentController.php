@@ -154,13 +154,15 @@ class SendCommentController extends Controller
         int $id,
         string $doctype,
         string $cpnyId,
-        Request $request
+        Request $request,
+        ?string $messageType = null
     ) {
         $user = Auth::user();
         $username = $user->username ?? 'system';
 
         $comment = TrMessage::create([
             'refnbr' => $request->doc_no ?? $request->docid ?? (string) $id,
+            'message_type' => $messageType,
             'doctype' => $doctype,
             'message_date' => Carbon::now(),
             'cpny_id' => strtoupper(trim($cpnyId)),
