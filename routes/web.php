@@ -662,7 +662,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware('access:APPPORTAL,EDIT')->group(function () {
-        Route::post('/jobapplicant/remap', [JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
+        Route::get('/jobapplicant/remap-history', [JobapplicantController::class, 'remapHistory'])->name('jobapplicant.remaphistory');
+        Route::post('/jobapplicant/remap',[JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
     });
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');

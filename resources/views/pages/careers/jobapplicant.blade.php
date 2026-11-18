@@ -72,6 +72,10 @@
         .dark .jobapp-select2-dropdown .select2-results__option { color: #e2e8f0; }
         .dark .jobapp-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
         .dark .jobapp-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
+        @keyframes drawerCardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .drawer-card { opacity: 0; animation: drawerCardIn .35s ease-out forwards; }
+        @keyframes drawerPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,.45); } 50% { box-shadow: 0 0 0 7px rgba(99,102,241,0); } }
+        .tl-dot-current { animation: drawerPulse 2s ease-in-out infinite; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
         {{-- Tab nav --}}
@@ -298,37 +302,26 @@
             </div>
         </div>
 
-        <div id="rowDupPanel"
-            class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="flex items-start justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧬 Matched
-                        Applications</h2>
-                    <p id="rowDupPanelTitle" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
-                </div>
+        <div id="rowDupPanel" class="fixed inset-0 z-50 hidden">
+        <div id="rowDupBackdrop" class="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300"></div>
+        <div id="rowDupDrawer"
+            class="absolute inset-y-0 right-0 flex w-full max-w-xl translate-x-full flex-col bg-gray-50 shadow-2xl transition-transform duration-300 dark:bg-[#0b1220]">
+            <div class="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 px-6 py-5 text-white">
+                <div class="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10"></div>
+                <div class="pointer-events-none absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-white/10"></div>
                 <button type="button" id="rowDupPanelClose"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/30">✕</button>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 text-2xl backdrop-blur">🧬</span>
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-bold tracking-tight">Matched Applications</h2>
+                        <p id="rowDupPanelTitle" class="text-sm text-white/85"></p>
+                    </div>
+                </div>
             </div>
 
-            <div class="relative overflow-hidden">
-                <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
-                    <thead>
-                        <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-sm uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
-                            <th class="w-24 px-4 py-3 text-left font-medium">Action</th>
-                            <th class="px-4 py-3 text-left font-medium">Matched By</th>
-                            <th class="px-4 py-3 text-left font-medium">DocID</th>
-                            <th class="px-4 py-3 text-left font-medium">Name</th>
-                            <th class="px-4 py-3 text-left font-medium">Job Title — Level</th>
-                            <th class="px-4 py-3 text-left font-medium">Company</th>
-                            <th class="px-4 py-3 text-left font-medium">Apply Date</th>
-                            <th class="px-4 py-3 text-left font-medium">Status</th>
-                            <th class="px-4 py-3 text-left font-medium">Step</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rowDupPanelBody" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
-                </table>
-            </div>
+            <div id="rowDupPanelBody" class="flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-5"></div>
+        </div>
         </div>
         </div>
 
@@ -367,6 +360,26 @@
         </div>
         @endif
 
+    </div>
+
+    <!-- Remap History Modal -->
+    <div id="remapHistoryModal" class="fixed inset-0 z-50 hidden">
+        <div id="remapHistoryBackdrop" class="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300"></div>
+        <div id="remapHistoryDrawer" class="absolute inset-y-0 right-0 flex w-full max-w-xl translate-x-full flex-col bg-gray-50 shadow-2xl transition-transform duration-300 dark:bg-[#0b1220]">
+            <div class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-5 text-white">
+                <div class="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10"></div>
+                <div class="pointer-events-none absolute -bottom-10 right-16 h-24 w-24 rounded-full bg-white/10"></div>
+                <button id="closeRemapHistory" class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/30">✕</button>
+                <div class="flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 text-2xl backdrop-blur">🕘</span>
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-bold tracking-tight">Remap History</h2>
+                        <p id="remapHistorySub" class="text-sm text-white/85"></p>
+                    </div>
+                </div>
+            </div>
+            <div id="remapHistoryBody" class="flex-1 overflow-y-auto overscroll-contain px-6 py-6"></div>
+        </div>
     </div>
 
     <!-- Remap Modal -->
@@ -1015,15 +1028,14 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
-                            if (!canRemap) return `<span class="text-sm text-gray-400">—</span>`;
-                            if (row.status === 'R' || row.status === 'C') {
-                                return `<span class="text-sm text-gray-400">—</span>`;
-                            }
-                            return `<button class="remap-btn inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200"
+                            const canRemapRow = canRemap && !['R', 'C', 'T'].includes(row.status);
+                            return `<button type="button" class="row-action-btn inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/30"
                                 data-id="${row.eid}" data-docid="${row.docid}"
+                                data-can-remap="${canRemapRow ? 1 : 0}" data-has-dup="${row.has_duplicate ? 1 : 0}"
                                 data-job-id="${row.docidposting}" data-job-title="${row.job_title || ''}"
                                 data-company="${row.posting_cpnyid || ''}" data-division="${row.division_name || ''}" data-department="${row.department_name || ''}">
-                                🔄 Remap
+                                Actions
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                             </button>`;
                         }
                     }
@@ -1176,7 +1188,152 @@
                 });
             }
 
-            $(document).on('click', '.remap-btn', function() {
+            // While a drawer is open only the drawer scrolls: lock the page behind it
+            // (html + any inner scroller) and pad for the vanished scrollbar so nothing jumps.
+            let pageLock = null;
+            function lockPage() {
+                if (pageLock) return;
+                const html = document.documentElement;
+                const sw = window.innerWidth - html.clientWidth;
+                pageLock = { html: [html.style.overflow, html.style.paddingRight], inner: [] };
+                html.style.overflow = 'hidden';
+                if (sw > 0) html.style.paddingRight = sw + 'px';
+                let el = document.getElementById('applicantsTable');
+                while (el && el !== document.body) {
+                    const oy = getComputedStyle(el).overflowY;
+                    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) {
+                        pageLock.inner.push([el, el.style.overflowY]);
+                        el.style.overflowY = 'hidden';
+                    }
+                    el = el.parentElement;
+                }
+            }
+            function unlockPage() {
+                if (!pageLock) return;
+                const html = document.documentElement;
+                [html.style.overflow, html.style.paddingRight] = pageLock.html;
+                pageLock.inner.forEach(([el, v]) => { el.style.overflowY = v; });
+                pageLock = null;
+            }
+
+            // ── ROW ACTION DROPDOWN ──────────────────────────────────
+            // One shared fixed-position menu (the table wrapper clips overflow, so a
+            // per-row absolute menu would be cut off).
+            const $rowMenu = $(`<div id="rowActionMenu" class="fixed z-50 hidden w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 text-left text-sm shadow-lg dark:border-gray-700 dark:bg-gray-800"></div>`).appendTo('body');
+            let rowMenuBtn = null;
+
+            function closeRowMenu() {
+                $rowMenu.addClass('hidden').empty();
+                rowMenuBtn = null;
+            }
+
+            $(document).on('click', '.row-action-btn', function(e) {
+                e.stopPropagation();
+                const $btn = $(this);
+                if (rowMenuBtn && rowMenuBtn[0] === this) { closeRowMenu(); return; }
+
+                const item = (act, icon, label) => `<button type="button" data-act="${act}" class="row-menu-item flex w-full items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700">${icon}<span>${label}</span></button>`;
+                let html = '';
+                if (Number($btn.attr('data-can-remap'))) html += item('remap', '🔄', 'Remap');
+                html += item('history', '🕘', 'History Remap');
+                if (Number($btn.attr('data-has-dup'))) html += item('dups', '🧬', 'Duplicate List');
+                $rowMenu.html(html).removeClass('hidden');
+                rowMenuBtn = $btn;
+
+                const r = this.getBoundingClientRect();
+                const mw = $rowMenu.outerWidth(), mh = $rowMenu.outerHeight();
+                const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+                const top = (r.bottom + mh + 8 > window.innerHeight) ? Math.max(8, r.top - mh - 4) : r.bottom + 4;
+                $rowMenu.css({ left: left + 'px', top: top + 'px' });
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#rowActionMenu').length) closeRowMenu();
+            });
+            $(window).on('scroll resize', closeRowMenu);
+            $('.dataTables_scrollBody, #applicantsTable').closest('div').on('scroll', closeRowMenu);
+
+            $rowMenu.on('click', '.row-menu-item', function() {
+                const act = $(this).data('act');
+                const $btn = rowMenuBtn;
+                closeRowMenu();
+                if (!$btn) return;
+                if (act === 'remap') $btn.trigger('remap-open');
+                else if (act === 'history') openRemapHistory($btn.data('id'), $btn.data('docid'));
+                else if (act === 'dups') openRowDuplicates($btn.data('docid'), $btn.closest('tr'));
+            });
+
+            // ── REMAP HISTORY MODAL ──────────────────────────────────
+            function closeRemapHistory() {
+                $('#remapHistoryBackdrop').addClass('opacity-0');
+                $('#remapHistoryDrawer').addClass('translate-x-full');
+                setTimeout(() => { $('#remapHistoryModal').addClass('hidden'); unlockPage(); }, 300);
+            }
+            $('#closeRemapHistory, #remapHistoryBackdrop').on('click', closeRemapHistory);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && !$('#remapHistoryModal').hasClass('hidden')) closeRemapHistory();
+            });
+
+            function openRemapHistory(eid, docid) {
+                $('#remapHistorySub').text(docid || '');
+                $('#remapHistoryBody').html('<p class="px-1 py-6 text-center text-sm text-gray-400">Loading…</p>');
+                lockPage();
+                $('#remapHistoryModal').removeClass('hidden');
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    $('#remapHistoryBackdrop').removeClass('opacity-0');
+                    $('#remapHistoryDrawer').removeClass('translate-x-full');
+                }));
+
+                $.getJSON("{{ route('jobapplicant.remaphistory') }}", { eid: eid })
+                    .done(function(json) {
+                        const rows = json.data || [];
+                        const esc = s => $('<div>').text(s ?? '').html();
+                        const remapCount = rows.filter(r => r.status_code === 'T').length;
+                        if (!rows.length || (rows.length === 1 && !remapCount)) {
+                            $('#remapHistoryBody').html('<p class="px-1 py-6 text-center text-sm text-gray-500">This applicant has never been remapped.</p>');
+                            return;
+                        }
+                        const tone = {
+                            Remapped: 'bg-violet-300/30 text-violet-600', Reject: 'bg-red-300/30 text-red-600',
+                            Approved: 'bg-green-300/30 text-green-600', Active: 'bg-blue-300/30 text-blue-600'
+                        };
+                        const last = rows.length - 1;
+                        const items = rows.map(function(r, i) {
+                            const isCurrent = i === last && r.status_code !== 'T';
+                            const dot = r.is_this
+                                ? 'bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white tl-dot-current'
+                                : (r.status_code === 'T' ? 'bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300' : 'bg-emerald-100 text-emerald-600');
+                            const icon = r.status_code === 'T' ? '↪' : (isCurrent ? '●' : '✓');
+                            const pct = Math.round(((r.step_index || 0) / 10) * 100);
+                            const moved = r.transferred_at
+                                ? `<span class="inline-flex items-center gap-1 rounded-md bg-violet-50 px-2 py-0.5 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">↪ moved ${esc(r.transferred_at)}${r.by ? ' · ' + esc(r.by) : ''}</span>`
+                                : `<span class="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">⏱ ${esc(r.step || '—')}</span>`;
+                            return `<li class="drawer-card relative pb-6 pl-12 ${i === last ? '' : 'before:absolute before:left-[15px] before:top-9 before:bottom-0 before:w-0.5 before:bg-gradient-to-b before:from-indigo-300 before:to-transparent dark:before:from-indigo-500/40'}" style="animation-delay:${i * 90}ms">
+                                <span class="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ring-4 ring-gray-50 dark:ring-[#0b1220] ${dot}">${icon}</span>
+                                <div class="rounded-2xl border ${r.is_this ? 'border-indigo-300 bg-white ring-2 ring-indigo-200/70 dark:border-indigo-500/40 dark:bg-white/5 dark:ring-indigo-500/20' : 'border-gray-200 bg-white hover:shadow-md dark:border-white/10 dark:bg-white/5'} p-4 shadow-sm transition-shadow">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <a href="/showcareers/${r.eid}" class="font-semibold text-indigo-600 hover:underline dark:text-indigo-300">${esc(r.docid)}</a>
+                                        ${r.is_this ? '<span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">This row</span>' : ''}
+                                        <span class="ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${tone[r.status] || tone.Active}">${esc(r.status)}</span>
+                                    </div>
+                                    <p class="mt-2 text-sm font-medium text-gray-800 dark:text-gray-100">💼 ${esc(r.job || '—')}</p>
+                                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">${esc(r.jobid)} · 🏢 ${esc(r.company || '—')}</p>
+                                    ${r.remap_from_docid ? `<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">↩ remapped from <span class="font-medium">${esc(r.remap_from_docid)}</span></p>` : ''}
+                                    ${r.status_code === 'T' ? '' : `<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10"><div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500" style="width:${pct}%"></div></div>`}
+                                    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <span>📅 ${esc(r.date || '—')}</span>${moved}
+                                    </div>
+                                </div>
+                            </li>`;
+                        }).join('');
+                        $('#remapHistoryBody').html(`<ol>${items}</ol>`);
+                    })
+                    .fail(function(xhr) {
+                        $('#remapHistoryBody').html(`<p class="px-1 py-6 text-center text-sm text-red-500">${xhr.responseJSON?.error || 'Failed to load history.'}</p>`);
+                    });
+            }
+
+            $(document).on('remap-open', '.row-action-btn', function() {
                 const $btn = $(this);
                 $('#remapApplyId').val($btn.data('id'));
                 $('#remapCurrentJobId').text($btn.data('jobId') || '—');
@@ -1240,29 +1397,34 @@
                 }
             }
 
-            // ── ROW CLICK → SHOW KTP+DOB MATCHED JOBS PANEL (BELOW TABLE) ─
-            // Klik baris (bukan link/tombol di dalamnya) → kalau applicant ini
-            // (matched by KTP+DOB) punya lebih dari 1 job apply, tampilkan
-            // panel terpisah di bawah tabel. Kalau tidak ada duplikat, tidak
-            // terjadi apa-apa.
-            $('#applicantsTable tbody').on('click', 'tr', function(e) {
-                if ($(e.target).closest('a, button, .dtr-control').length) return;
+            // ── ACTIONS → DUPLICATE LIST: matched applications in a right-side drawer ─
+            function showRowDupDrawer() {
+                lockPage();
+                $('#rowDupPanel').removeClass('hidden');
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    $('#rowDupBackdrop').removeClass('opacity-0');
+                    $('#rowDupDrawer').removeClass('translate-x-full');
+                }));
+            }
 
-                const $tr = $(this);
+            function hideRowDupDrawer() {
+                $('#applicantsTable tbody tr').removeClass('row-dup-active');
+                $('#rowDupBackdrop').addClass('opacity-0');
+                $('#rowDupDrawer').addClass('translate-x-full');
+                setTimeout(() => { $('#rowDupPanel').addClass('hidden'); unlockPage(); }, 300);
+            }
+
+            function openRowDuplicates(docid, $tr) {
                 const rowData = applicantTable.row($tr).data();
                 if (!rowData || !rowData.docid) return;
-
-                // toggle kalau baris yang sama diklik lagi
-                if ($tr.hasClass('row-dup-active')) {
-                    $tr.removeClass('row-dup-active');
-                    $('#rowDupPanel').addClass('hidden');
-                    return;
-                }
 
                 $.getJSON("{{ route('jobapplicant.rowduplicates') }}", { docid: rowData.docid })
                     .done(function(json) {
                         const rows = json.data || [];
-                        if (!rows.length) return;
+                        if (!rows.length) {
+                            Swal.fire({ icon: 'info', title: 'No duplicates', text: 'No other visible application matches this applicant.', timer: 2000, showConfirmButton: false });
+                            return;
+                        }
 
                         $('#applicantsTable tbody tr').removeClass('row-dup-active');
                         $tr.addClass('row-dup-active');
@@ -1271,36 +1433,53 @@
                             `${rowData.fullname || 'This applicant'} applied to ${rows.length} jobs — matched by KTP + DOB`
                         );
 
-                        const bodyRows = rows.map(function(r) {
+                        const esc = s => $('<div>').text(s ?? '').html();
+                        const bodyRows = rows.map(function(r, i) {
                             const jobTL = [r.job_title, r.job_level].filter(Boolean).join(' — ') || '—';
                             const isThisRow = r.docid === rowData.docid;
                             const cls = statusBadgeClass[r.status_label] || 'bg-gray-300/30 text-gray-600';
-                            const matchedByBadge = `<span class="inline-block rounded bg-amber-200/60 px-2 py-0.5 text-sm font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r.matched_by || 'KTP + DOB'}</span>`;
+                            const pct = Math.round(((r.step_index || 0) / 10) * 100);
+                            const bar = r.status_label === 'Reject' ? 'bg-red-400' : (r.status_label === 'Transfer' ? 'bg-violet-400' : 'bg-gradient-to-r from-amber-400 to-rose-500');
+                            const initial = esc((r.full_name || '?').trim().charAt(0).toUpperCase());
 
-                            return `<tr class="${isThisRow ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
-                                <td class="px-4 py-3">
-                                    <a href="/showcareers/${r.eid}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
-                                </td>
-                                <td class="px-4 py-3">${matchedByBadge}</td>
-                                <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-sm font-bold text-indigo-500">(this)</span>' : ''}</td>
-                                <td class="px-4 py-3">${r.full_name || '—'}</td>
-                                <td class="px-4 py-3">${jobTL}</td>
-                                <td class="px-4 py-3">${r.company_name || '—'}</td>
-                                <td class="px-4 py-3">${r.apply_date || '—'}</td>
-                                <td class="px-4 py-3"><span class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-center rounded ${cls}">${r.status_label}</span></td>
-                                <td class="px-4 py-3">${r.step_label}</td>
-                            </tr>`;
+                            return `<div class="drawer-card group relative rounded-2xl border ${isThisRow ? 'border-amber-300 bg-amber-50/70 ring-2 ring-amber-200/70 dark:border-amber-500/40 dark:bg-amber-500/10 dark:ring-amber-500/20' : 'border-gray-200 bg-white hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-white/5'} p-4 shadow-sm transition-all duration-200" style="animation-delay:${i * 60}ms">
+                                <div class="flex items-start gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-base font-bold text-white shadow">${initial}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="font-semibold text-gray-800 dark:text-gray-100">${esc(r.docid)}</span>
+                                            ${isThisRow ? '<span class="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">This row</span>' : ''}
+                                            <span class="ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}">${esc(r.status_label)}</span>
+                                        </div>
+                                        <p class="mt-0.5 truncate text-sm text-gray-500 dark:text-gray-400">${esc(r.full_name || '—')}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 rounded-xl bg-gray-50 p-3 text-sm dark:bg-white/5">
+                                    <p class="font-medium text-gray-800 dark:text-gray-100">💼 ${esc(jobTL)}</p>
+                                    <p class="mt-0.5 text-gray-500 dark:text-gray-400">🏢 ${esc(r.company_name || '—')}</p>
+                                    <p class="mt-0.5 text-gray-500 dark:text-gray-400">📅 ${esc(r.apply_date || '—')}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                        <span>${esc(r.step_label || '—')}</span><span class="tabular-nums">${r.step_index || 0}/10</span>
+                                    </div>
+                                    <div class="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10"><div class="h-full rounded-full ${bar}" style="width:${pct}%"></div></div>
+                                </div>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="rounded-md bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${esc(r.matched_by || 'KTP + DOB')}</span>
+                                    <a href="/showcareers/${r.eid}" class="inline-flex items-center gap-1 rounded-lg bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-gray-700 dark:bg-white/10 dark:hover:bg-white/20">View <span aria-hidden="true">→</span></a>
+                                </div>
+                            </div>`;
                         }).join('');
 
                         $('#rowDupPanelBody').html(bodyRows);
-                        $('#rowDupPanel').removeClass('hidden');
-                        $('#rowDupPanel')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        showRowDupDrawer();
                     });
-            });
+            }
 
-            $('#rowDupPanelClose').on('click', function() {
-                $('#applicantsTable tbody tr').removeClass('row-dup-active');
-                $('#rowDupPanel').addClass('hidden');
+            $('#rowDupPanelClose, #rowDupBackdrop').on('click', hideRowDupDrawer);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && !$('#rowDupPanel').hasClass('hidden')) hideRowDupDrawer();
             });
 
             @if(auth()->user()->hasRole('RECACCALLDEPT'))

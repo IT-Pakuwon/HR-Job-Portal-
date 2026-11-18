@@ -197,6 +197,12 @@ class CareerController extends Controller
         $departmentName = $jobposting
             ? DepartmentHR::where('department_id', $jobposting->departementid)->where('group_cpny_id', $jobposting->group_cpny_id)->value('department_name')
             : null;
+        // immediate_superior holds a username; show the person's real name instead.
+        $superiorName = ($jobposting && $jobposting->immediate_superior)
+            ? User::where('username', $jobposting->immediate_superior)
+                ->where('group_cpny_id', $jobposting->group_cpny_id)
+                ->value('name')
+            : null;
 
         $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', function ($join) {
                 $join->on('hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')
@@ -503,7 +509,7 @@ class CareerController extends Controller
             'remapCutoff', 'stepDurations',
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working',
             'applicant_reference', 'applicant_language', 'applicant_course', 'applicant_sw', 'applicant_skill', 'jobapplystep',
-            'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
+            'jobres', 'jobqua', 'jobposting', 'companyName', 'departmentName', 'superiorName', 'tr_checklist', 'prfPersonnel', 'prfHash', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah', 'user', 'datenow',
             'assessmentGroups', 'tr_assessment', 'tr_assessment_user', 'assessmentGroupsUser',
             'tr_assessment_result_hc', 'tr_assessment_results_other_hc',
             'tr_assessment_result_user', 'tr_assessment_results_other_user',
@@ -846,6 +852,21 @@ class CareerController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
+        // Reject reasons: new ones carry message_type 'Reject'. Older ones were saved as plain
+        // comments, so also flag a comment written by the rejecting user within 2 minutes of
+        // the step they rejected.
+        $rejectedSteps = JobApplyStep::where('docid', $career->docid)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->where('status', 'R')
+            ->whereNotNull('aprvuserdate')
+            ->get(['aprvusername', 'aprvuserdate']);
+
+        $comments->each(function ($c) use ($rejectedSteps) {
+            $c->is_reject = $c->message_type === 'Reject'
+                || $rejectedSteps->contains(fn ($s) => $s->aprvusername === $c->username
+                    && abs(Carbon::parse($s->aprvuserdate)->diffInSeconds(Carbon::parse($c->message_date), false)) <= 120);
+        });
+
         return response()->json([
             'status' => 'success',
             'comments' => $comments,
@@ -1131,7 +1152,8 @@ class CareerController extends Controller
         // Kirim notifikasi internal (comment) bila ada
         $id = $career->id;
         $doctype = 'JAP';
-        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid($id, $doctype, $career->cpnyid, $request);
+        // message_type 'Reject' lets the comment panel show the reason in red.
+        app('App\Http\Controllers\SendCommentController')->sendmsgWithCpnyid($id, $doctype, $career->cpnyid, $request, 'Reject');
 
         // Kirim email reject ke applicant
         $this->sendemail_rejected_applicant($career, $user);
@@ -1776,23 +1798,36 @@ class CareerController extends Controller
             $jobapply->save();
         }
 
-        $is_remapped = DB::connection('mysql3')
-            ->table('hr_trx_job_apply')
-            ->where('docid', $career->docid)
-            ->where('status', 'T')
-            ->where('jobid', '!=', $career->jobid)
-            ->exists();
+        // A remap now creates a new JAP (remap_from_docid points at the old one). Older remaps
+        // kept the same docid, so still detect those by a 'T' row on the same docid.
+        $is_remapped = !empty($career->remap_from_docid)
+            || DB::connection('mysql3')
+                ->table('hr_trx_job_apply')
+                ->where('docid', $career->docid)
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->where('status', 'T')
+                ->where('jobid', '!=', $career->jobid)
+                ->exists();
 
         if ($is_remapped && $applicant->process_step == 2) {
             // Remapped + already filled form — notify of position change only
             $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
             $division = \App\Models\Division::where('division_id', $jobposting->division_id ?? '')->value('division_name');
             $department = \App\Models\DepartmentHR::where('department_id', $jobposting->departementid ?? '')->value('department_name');
+            // Token carries the exact applicant (APP…-N copy) and group; the portal verifies the
+            // candidate's email/phone/birthdate before opening the form to update.
+            $encryptedDocId = Crypt::encryptString(json_encode(array_filter([
+                'applicant_id' => $career->applicant_id,
+                'group_cpny_id' => $career->group_cpny_id,
+                'docid' => $career->docid,
+                'jobid' => $career->jobid,
+            ])));
             $data = [
                 'name' => $applicant->full_name ?? 'Pelamar',
                 'job_title' => $jobposting->job_title ?? '-',
                 'division' => $division ?? '-',
                 'department' => $department ?? '-',
+                'url' => url("{$careerPortalBase}/checkform/{$encryptedDocId}"),
             ];
             \Mail::send('emails.mailapplicant_remapped', $data, function ($message) use ($applicant, $fromEmail) {
                 $message->to($applicant->email_address)
@@ -1802,7 +1837,12 @@ class CareerController extends Controller
         } elseif ($is_remapped && $applicant->process_step != 2) {
             // Remapped + hasn't filled form — notify position change and send form link
             $jobposting = Jobposting::where('docid', $career->jobid)->where('group_cpny_id', $career->group_cpny_id)->first();
-            $encryptedDocId = Crypt::encryptString($career->applicant_id);
+            $encryptedDocId = Crypt::encryptString(json_encode(array_filter([
+                'applicant_id' => $career->applicant_id,
+                'group_cpny_id' => $career->group_cpny_id,
+                'docid' => $career->docid,
+                'jobid' => $career->jobid,
+            ])));
             $data = [
                 'name' => $applicant->full_name ?? 'Pelamar',
                 'job_title' => $jobposting->job_title ?? '-',

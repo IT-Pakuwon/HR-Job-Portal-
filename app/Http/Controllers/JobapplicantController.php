@@ -136,6 +136,29 @@ class JobapplicantController extends Controller
             ->toArray();
     }
 
+    // A remap keeps the old form frozen and files a copy as <root>-N (APP261100090 → APP261100090-1).
+    private function rootApplicantId(?string $applicantId): string
+    {
+        return preg_replace('/-\d+$/', '', (string) $applicantId);
+    }
+
+    // hr_ms_applicant_* tables holding the candidate's form; copied on remap so the
+    // old copy (what HR saw for the previous job) is never touched by later edits.
+    private const APPLICANT_FORM_TABLES = [
+        'hr_ms_applicant_additional',
+        'hr_ms_applicant_course',
+        'hr_ms_applicant_driver_license',
+        'hr_ms_applicant_education',
+        'hr_ms_applicant_family_background',
+        'hr_ms_applicant_language',
+        'hr_ms_applicant_marital_and_children',
+        'hr_ms_applicant_organization',
+        'hr_ms_applicant_reference',
+        'hr_ms_applicant_skill',
+        'hr_ms_applicant_sw',
+        'hr_ms_applicant_working_exp',
+    ];
+
     // Clusters hr_ms_applicant records that are likely the same real person, so
     // the "Duplicate Users" tab and the Applicant List row-click panel always
     // agree on who's grouped together and why.
@@ -209,7 +232,10 @@ class JobapplicantController extends Controller
                 }
             }
             foreach ($groups as $ids) {
-                if (count($ids) > 1) {
+                // A remap copy (APP…-N) is the same person as its root, so a group only
+                // counts as a duplicate when it spans more than one distinct root.
+                $roots = array_unique(array_map(fn ($id) => $this->rootApplicantId($id), $ids));
+                if (count($roots) > 1) {
                     foreach ($ids as $id) {
                         $union($ids[0], $id);
                         $signalHasDup[$signal][$id] = true;
@@ -568,6 +594,7 @@ class JobapplicantController extends Controller
                 DB::raw('vc.id as _id'),
                 'vc.created_at',
                 'vc.docid',
+                'vc.applicant_id',
                 'vc.docidposting',
                 'vc.apply_date',
                 'vc.fullname',
@@ -601,7 +628,13 @@ class JobapplicantController extends Controller
                 ->orderBy('step_order')->get()
                 ->groupBy(fn ($step) => json_encode([$step->docid, $step->jobid]));
             $durationNow = now();
-            $data = $rows->map(function ($r) use ($workflowSteps, $durationNow) {
+            // Same clustering as the Duplicate tab; short cache so paging/sorting the list
+            // doesn't rescan hr_ms_applicant every time. Drives the "Duplicate List" action.
+            [$dupApplicantToGroup] = \Cache::remember(
+                'jobapp_dup_clusters_'.$groupCompanyId, 120,
+                fn () => $this->buildApplicantDuplicateClusters($groupCompanyId)
+            );
+            $data = $rows->map(function ($r) use ($workflowSteps, $durationNow, $dupApplicantToGroup) {
                 $duration = \App\Services\RecruitmentStepDuration::cumulative(
                     $workflowSteps->get(json_encode([$r->docid, $r->docidposting]), collect()),
                     $r->apply_step, $r->created_at, $r->status, $durationNow
@@ -609,6 +642,7 @@ class JobapplicantController extends Controller
                 return [
                     'eid' => Hashids::encode($r->_id),
                     'docid' => $r->docid,
+                    'has_duplicate' => isset($dupApplicantToGroup[$r->applicant_id]),
                     'docidposting' => $r->docidposting,
                     'apply_date' => $r->apply_date,
                     'fullname' => $r->fullname,
@@ -929,6 +963,7 @@ class JobapplicantController extends Controller
                     'apply_date' => $r->apply_date,
                     'status_label' => $statusLabel,
                     'step_label' => $stepLabels[$r->apply_step] ?? $r->apply_step,
+                    'step_index' => ($i = array_search($r->apply_step, array_keys($stepLabels), true)) === false ? 0 : $i + 1,
                     'matched_by' => $matchedBy,
                 ];
             });
@@ -1112,6 +1147,81 @@ class JobapplicantController extends Controller
             ->exists();
     }
 
+    // Every apply this person has held (root applicant + its APP…-N remap copies), oldest first,
+    // so the "History Remap" modal shows the full A → B → C trail. Works for both the current
+    // model (a remap files a new JAP with remap_from_docid) and legacy remaps that reused one docid.
+    public function remapHistory(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
+        }
+
+        $id = Hashids::decode((string) $request->query('eid', ''))[0] ?? null;
+        if (!$id) {
+            return response()->json(['error' => 'Invalid ID'], 400);
+        }
+
+        $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+
+        $apply = DB::connection('mysql3')->table('hr_trx_job_apply')
+            ->where('id', $id)
+            ->where('group_cpny_id', $groupCompanyId)
+            ->first();
+        if (!$apply) {
+            return response()->json(['error' => 'Apply record not found'], 404);
+        }
+
+        $root = $this->rootApplicantId($apply->applicant_id);
+        $userCpnyIds = $this->userCpnyIds($user);
+
+        $rows = DB::connection('mysql3')
+            ->table('hr_trx_job_apply as ja')
+            ->leftJoin('viewtrxcareer as vc', 'vc.id', '=', 'ja.id')
+            ->where('ja.group_cpny_id', $groupCompanyId)
+            ->where('ja.status', '!=', 'X')
+            ->where(function ($q) use ($root) {
+                $q->where('ja.applicant_id', $root)
+                    ->orWhere('ja.applicant_id', 'like', $root.'-%');
+            })
+            ->when(!empty($userCpnyIds), fn ($q) => $q->whereIn('ja.cpnyid', $userCpnyIds))
+            ->orderBy('ja.id')
+            ->select([
+                'ja.id', 'ja.docid', 'ja.jobid', 'ja.status', 'ja.apply_step', 'ja.is_read',
+                'ja.remap_from_docid', 'ja.created_at', 'ja.updated_at', 'ja.updated_user',
+                'vc.job_title', 'vc.job_level', 'vc.company_name',
+            ])
+            ->get();
+
+        $stepLabels = [
+            'JOAPHC' => 'Job Apply HC', 'JOAPUS' => 'Job Apply User',
+            'WIHC' => 'Create Schedule Interview HC', 'IHC' => 'Interview HC',
+            'WIU' => 'Create Schedule Interview User', 'IU' => 'Interview User',
+            'WPT' => 'Waiting Psycho Test', 'PT' => 'Psycho Test',
+            'OFF' => 'Offering', 'JOIN' => 'Join',
+        ];
+        $statusLabels = ['T' => 'Remapped', 'R' => 'Reject', 'C' => 'Approved'];
+
+        $data = $rows->map(fn ($r) => [
+            'eid' => Hashids::encode($r->id),
+            'docid' => $r->docid,
+            'jobid' => $r->jobid,
+            'job' => trim(implode(' — ', array_filter([$r->job_title, $r->job_level]))),
+            'company' => $r->company_name,
+            'remap_from_docid' => $r->remap_from_docid,
+            'step' => $stepLabels[$r->apply_step] ?? $r->apply_step,
+            'step_index' => ($i = array_search($r->apply_step, array_keys($stepLabels), true)) === false ? 0 : $i + 1,
+            'status' => $statusLabels[$r->status] ?? 'Active',
+            'status_code' => $r->status,
+            'date' => $r->created_at ? substr((string) $r->created_at, 0, 16) : null,
+            'transferred_at' => $r->status === 'T' && $r->updated_at ? substr((string) $r->updated_at, 0, 16) : null,
+            'by' => $r->status === 'T' ? $r->updated_user : null,
+            'is_this' => (int) $r->id === (int) $id,
+        ])->values();
+
+        return response()->json(['data' => $data]);
+    }
+
     public function storeRemap(Request $request)
     {
         $request->validate([
@@ -1183,11 +1293,17 @@ class JobapplicantController extends Controller
 
         // Steps, assessments, etc. are keyed by docid + jobid, so a second apply row for a job
         // this applicant already had (e.g. A -> B -> A) would collide with the first one.
+        // Each remap now gets its own JAP and applicant copy (APP…-N), so "had this job
+        // before" is checked per person (root applicant + all its copies), not per docid.
+        $rootApplicantId = $this->rootApplicantId($apply->applicant_id);
         $alreadyHadJob = DB::connection('mysql3')
             ->table('hr_trx_job_apply')
-            ->where('docid', $apply->docid)
-            ->where('jobid', $newJobposting->docid)
             ->where('group_cpny_id', $groupCompanyId)
+            ->where('jobid', $newJobposting->docid)
+            ->where(function ($q) use ($rootApplicantId) {
+                $q->where('applicant_id', $rootApplicantId)
+                    ->orWhere('applicant_id', 'like', $rootApplicantId.'-%');
+            })
             ->exists();
 
         if ($alreadyHadJob) {
@@ -1227,13 +1343,79 @@ class JobapplicantController extends Controller
                     'updated_at' => now(),
                 ]);
 
+            // New JAP number, same sequence the candidate portal uses (ms_autonbr JAP per
+            // group company / year / month), so the numbers never collide.
+            $now = now();
+            $year = (string) $now->year;
+            $month = str_pad((string) $now->month, 2, '0', STR_PAD_LEFT);
+            $autonbr = DB::connection('mysql3')->table('ms_autonbr')
+                ->lockForUpdate()
+                ->where('doctype', 'JAP')
+                ->where('cpnyid', $groupCompanyId)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->where('status', 'A')
+                ->first();
+            if ($autonbr) {
+                $urutan = $autonbr->number + 1;
+                DB::connection('mysql3')->table('ms_autonbr')->where('id', $autonbr->id)->update(['number' => $urutan]);
+            } else {
+                $urutan = 1;
+                DB::connection('mysql3')->table('ms_autonbr')->insert([
+                    'doctype' => 'JAP', 'cpnyid' => $groupCompanyId, 'year' => $year,
+                    'month' => $month, 'status' => 'A', 'number' => 1,
+                ]);
+            }
+            $newDocid = 'JAP'.substr($year, 2).$month.sprintf('%05d', $urutan);
+
+            // Copy the candidate's form to APP…-N so the old form stays frozen as HR saw it
+            // for the previous job; the candidate updates the copy for the new job.
+            $sourceApplicant = DB::connection('mysql3')->table('hr_ms_applicant')
+                ->where('applicant_id', $apply->applicant_id)
+                ->where('group_cpny_id', $groupCompanyId)
+                ->lockForUpdate()
+                ->first();
+            if (!$sourceApplicant) {
+                throw new \RuntimeException('Applicant form not found for '.$apply->applicant_id);
+            }
+
+            $lastSuffix = DB::connection('mysql3')->table('hr_ms_applicant')
+                ->where('group_cpny_id', $groupCompanyId)
+                ->where('applicant_id', 'like', $rootApplicantId.'-%')
+                ->pluck('applicant_id')
+                ->map(fn ($aid) => (int) substr($aid, strlen($rootApplicantId) + 1))
+                ->max() ?? 0;
+            $newApplicantId = $rootApplicantId.'-'.($lastSuffix + 1);
+
+            $copy = (array) $sourceApplicant;
+            unset($copy['id']);
+            $copy['applicant_id'] = $newApplicantId;
+            $copy['form_update_required'] = 'Y';
+            $copy['updated_user'] = $user;
+            $copy['updated_at'] = $now;
+            DB::connection('mysql3')->table('hr_ms_applicant')->insert($copy);
+
+            foreach (self::APPLICANT_FORM_TABLES as $formTable) {
+                $rows = DB::connection('mysql3')->table($formTable)
+                    ->where('applicant_id', $apply->applicant_id)
+                    ->where('group_cpny_id', $groupCompanyId)
+                    ->get();
+                foreach ($rows as $row) {
+                    $r = (array) $row;
+                    unset($r['id']);
+                    $r['applicant_id'] = $newApplicantId;
+                    DB::connection('mysql3')->table($formTable)->insert($r);
+                }
+            }
+
             // Insert apply baru
             DB::connection('mysql3')->table('hr_trx_job_apply')->insert([
-                'docid' => $apply->docid,
+                'docid' => $newDocid,
+                'remap_from_docid' => $apply->docid,
                 'cpnyid' => $newJobposting->cpnyid,
                 'group_cpny_id' => $groupCompanyId,
                 'jobid' => $request->new_jobid,
-                'applicant_id' => $apply->applicant_id,
+                'applicant_id' => $newApplicantId,
                 'apply_date' => $apply->apply_date ?: now(),
                 'apply_step' => 'JOAPHC',
                 'prev_apply_step' => 'JOAPHC',
@@ -1255,11 +1437,11 @@ class JobapplicantController extends Controller
 
             foreach ($steps as $step) {
                 DB::connection('mysql3')->table('hr_trx_job_apply_step')->insert([
-                    'docid' => $apply->docid,
+                    'docid' => $newDocid,
                     'cpnyid' => $newJobposting->cpnyid,
                     'group_cpny_id' => $groupCompanyId,
                     'jobid' => $request->new_jobid,
-                    'applicant_id' => $apply->applicant_id,
+                    'applicant_id' => $newApplicantId,
                     'step_id' => $step->step_id,
                     'step_order' => $step->step_order,
                     'type' => $step->type,
@@ -1275,6 +1457,9 @@ class JobapplicantController extends Controller
 
             \Log::info('Applicant remapped', [
                 'docid' => $apply->docid,
+                'new_docid' => $newDocid,
+                'from_applicant_id' => $apply->applicant_id,
+                'new_applicant_id' => $newApplicantId,
                 'from_jobid' => $apply->jobid,
                 'from_apply_status' => $apply->status,
                 'to_jobid' => $request->new_jobid,
