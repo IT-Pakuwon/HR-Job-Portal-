@@ -30,10 +30,19 @@
         const search=form.elements.search;search.addEventListener('input',()=>{clearTimeout(timer);listController?.abort();busy(false);if(!search.composing)timer=setTimeout(()=>form.requestSubmit(),400);});search.addEventListener('compositionstart',()=>{search.composing=true;clearTimeout(timer);listController?.abort();busy(false);});search.addEventListener('compositionend',()=>{search.composing=false;search.dispatchEvent(new Event('input'));});
     }
     initFilters();
-    async function load(url){controller?.abort();controller=new AbortController();currentUrl=url;const content=dialog.querySelector('[data-order-content]');content.textContent='Memuat Invoice Register...';try{const response=await fetch(url,{signal:controller.signal,headers:{Accept:'text/html','X-Requested-With':'XMLHttpRequest'}});if(!response.ok||response.redirected)throw Error('Detail belum dapat dimuat. Periksa sesi login Anda lalu coba kembali.');content.innerHTML=await response.text();}catch(error){if(error.name!=='AbortError')content.textContent=error.message;}}
+    let activeInvoiceTab='summary';
+    function selectInvoiceTab(name){
+        const record=dialog.querySelector('[data-invoice-record]');if(!record)return;
+        if(!record.querySelector(`[data-invoice-panel="${name}"]`))name='summary';
+        activeInvoiceTab=name;
+        record.querySelectorAll('[data-invoice-tab]').forEach(tab=>tab.setAttribute('aria-pressed',String(tab.dataset.invoiceTab===name)));
+        record.querySelectorAll('[data-invoice-panel]').forEach(panel=>panel.hidden=panel.dataset.invoicePanel!==name);
+    }
+    dialog.addEventListener('click',event=>{const tab=event.target.closest('[data-invoice-tab]');if(tab)selectInvoiceTab(tab.dataset.invoiceTab);});
+    async function load(url){controller?.abort();controller=new AbortController();currentUrl=url;const content=dialog.querySelector('[data-order-content]');content.textContent='Memuat Invoice Register...';try{const response=await fetch(url,{signal:controller.signal,headers:{Accept:'text/html','X-Requested-With':'XMLHttpRequest'}});if(!response.ok||response.redirected)throw Error('Detail belum dapat dimuat. Periksa sesi login Anda lalu coba kembali.');content.innerHTML=await response.text();selectInvoiceTab(activeInvoiceTab);}catch(error){if(error.name!=='AbortError')content.textContent=error.message;}}
     document.addEventListener('click',event=>{
         const link=event.target.closest('a');if(!link||!link.closest('[data-invoice-page]')||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||event.button!==0)return;
-        if(link.matches('[data-invoice-detail]')){event.preventDefault();dialog.showModal();load(link.href);return;}
+        if(link.matches('[data-invoice-detail]')){event.preventDefault();activeInvoiceTab='summary';dialog.dataset.invoiceStage=link.closest('[data-invoice-page]').dataset.invoicePage || 'review';dialog.showModal();load(link.href);return;}
         const url=new URL(link.href);if(url.origin===location.origin&&url.pathname===location.pathname){event.preventDefault();loadList(url);}
     });
     dialog.querySelectorAll('[data-invoice-close]').forEach(button=>button.addEventListener('click',()=>{if(!saving)dialog.close();}));dialog.addEventListener('cancel',event=>{if(saving)event.preventDefault();});dialog.addEventListener('close',()=>{controller?.abort();if(changed){changed=false;loadList(listUrl);}});

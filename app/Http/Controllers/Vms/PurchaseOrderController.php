@@ -36,6 +36,16 @@ class PurchaseOrderController extends Controller
         return $query;
     }
 
+    private function cardCounts(array $companyIds, array $filters=[]): array
+    {
+        $query=DB::connection('mysql7')->table('staging_po')->whereIn('cpny_id',$companyIds)
+            ->where('podate','>=','2022-01-01')->whereIn('material_service',['Purchase Material','Purchase Service']);
+        if(!empty($filters['company']))$query->where('cpny_id',$filters['company']);
+        if(!empty($filters['vendor']))$query->where('vendor_id',$filters['vendor']);
+        $totals=$query->selectRaw('COALESCE(SUM(CASE WHEN material_service = ? THEN 1 ELSE 0 END),0) AS po, COALESCE(SUM(CASE WHEN material_service = ? THEN 1 ELSE 0 END),0) AS spk',['Purchase Material','Purchase Service'])->first();
+        return ['po'=>(int)$totals->po,'spk'=>(int)$totals->spk,'kontrak'=>$this->base('kontrak',$companyIds,$filters)->count()];
+    }
+
     private function withStatus($query,string $type)
     {
         $db=DB::connection('mysql7');
@@ -58,18 +68,20 @@ class PurchaseOrderController extends Controller
         $type=$filters['type']??($request->hasSession()?$request->session()->get('vms.purchase-orders.type','po'):'po');
         if(!isset(self::TYPES[$type]))$type='po';
         if($request->hasSession())$request->session()->put('vms.purchase-orders.type',$type);
-        $types=self::TYPES;$counts=[];
-        foreach($types as $key=>$label)$counts[$key]=$this->base($key,$ids,$filters)->count();
+        $types=self::TYPES;$counts=$this->cardCounts($ids,$filters);
+        $isPartial=$request->ajax() && $request->header('X-Vms-Order-Partial')==='1';
+        $loadVendorOptions=!$isPartial || $request->header('X-Vms-Order-Refresh')==='1';
+        $scopeIds=$ids;sort($scopeIds,SORT_STRING);$scopeKey=hash('sha256',json_encode($scopeIds,JSON_THROW_ON_ERROR));
         $query=$this->withStatus($this->base($type,$ids,$filters),$type);
         if(filled($filters['search']??null))$query->where(function($q)use($type,$filters){
             $fields=$type==='kontrak'?['kontrakid','nosk','nopklegal','vendorname','vendor_id','purchaser','department_id']:['ponbr','vendorname','vendor_id','purchaser'];
             foreach($fields as $field)$q->orWhere($field,'like','%'.$filters['search'].'%');
         });
         $orders=$query->orderByDesc($type==='kontrak'?'kontrakdate':'podate')->orderByDesc('id')->paginate($filters['per_page']??10)->withQueryString();
-        $vendors=DB::connection('mysql7')->query()->fromSub(
+        $vendors=$loadVendorOptions ? DB::connection('mysql7')->query()->fromSub(
             DB::connection('mysql7')->table('staging_po')->whereIn('cpny_id',$ids)->select('vendor_id','vendorname')->union(DB::connection('mysql7')->table('staging_kontrak')->whereIn('cpny_id',$ids)->select('vendor_id','vendorname')),'v'
-        )->whereNotNull('vendor_id')->orderBy('vendorname')->get()->unique('vendor_id');
-        return response()->view('pages.vms.purchase-order.index',compact('companies','vendors','filters','types','type','counts','orders'))->header('Cache-Control','no-store, private');
+        )->whereNotNull('vendor_id')->orderBy('vendorname')->get()->unique('vendor_id') : collect();
+        return response()->view($isPartial?'pages.vms.purchase-order.content':'pages.vms.purchase-order.index',compact('companies','vendors','filters','types','type','counts','orders','scopeKey','loadVendorOptions'))->header('Cache-Control','no-store, private');
     }
 
     public function show(Request $request,string $type,int $id)

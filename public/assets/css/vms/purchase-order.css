@@ -5,3 +5,133 @@
 .vms-invoice-actions{display:flex;gap:6px;flex-wrap:wrap}.vms-invoice-actions button{font-size:11px;white-space:nowrap}.vms-invoice-final{padding:8px 0 20px}.vms-invoice-final button{background:#4e70b4!important;color:#fff!important}.vms-order-table td{overflow-wrap:anywhere}.vms-order-table td .vms-invoice-actions{min-width:180px}#vms-order-modal .vms-vendor-card{margin-bottom:18px}#vms-order-modal .vms-order-table td{max-width:380px}#vms-order-modal button:disabled{opacity:.5;cursor:wait}
 
 .vms-invoice-loading{margin:14px 24px;padding:10px 14px;background:#edf3ff;border:1px solid #dce6f8;border-radius:7px;color:#4e70b4;font-size:12px}[data-invoice-page][aria-busy=true] .vms-order-table{opacity:.55;transition:opacity .15s}
+
+
+/* Stage colours for the purchase order directory only. */
+#vms-vendors-page[data-order-directory="po"],#vms-vendors-page [data-order-card="po"]{--order-accent:#3967b2;--order-soft:#edf4ff;--order-line:#cdddf7;--order-icon:#dbe8ff}
+#vms-vendors-page[data-order-directory="spk"],#vms-vendors-page [data-order-card="spk"]{--order-accent:#7051a7;--order-soft:#f6f0ff;--order-line:#dfd1f4;--order-icon:#e9dcfa}
+#vms-vendors-page[data-order-directory="kontrak"],#vms-vendors-page [data-order-card="kontrak"]{--order-accent:#187761;--order-soft:#eaf8f3;--order-line:#c2e6d9;--order-icon:#d3f0e4}
+#vms-vendors-page[data-order-directory] .vms-order-type{background:linear-gradient(135deg,var(--order-soft),#fff 82%);border-color:var(--order-line);color:var(--order-accent);transition:background .15s,border-color .15s,box-shadow .15s}
+#vms-vendors-page[data-order-directory] .vms-order-type:hover{background:var(--order-soft);border-color:var(--order-accent);box-shadow:0 5px 16px #30496d12}
+#vms-vendors-page[data-order-directory] .vms-order-type[aria-current="page"]{background:linear-gradient(135deg,var(--order-soft),#fff 110%);border-color:var(--order-accent);box-shadow:0 4px 15px #30496d12,inset 0 -3px 0 var(--order-accent)}
+#vms-vendors-page[data-order-directory] .vms-order-type-icon,#vms-vendors-page[data-order-directory] .vms-order-type b{background:var(--order-icon);color:var(--order-accent)}
+#vms-vendors-page[data-order-directory] .vms-order-type-icon i{margin-right:0}
+#vms-vendors-page[data-order-directory] .vms-order-type[aria-current="page"] b{background:var(--order-accent);color:#fff}
+#vms-vendors-page[data-order-directory] .vms-document-panel{border-top:3px solid var(--order-accent)}
+#vms-vendors-page[data-order-directory] .vms-document-panel>header{background:linear-gradient(105deg,var(--order-soft),#fff 72%);border-bottom-color:var(--order-line)}
+#vms-vendors-page[data-order-directory] .vms-document-panel h2{color:var(--order-accent)}
+#vms-vendors-page[data-order-directory] .vms-vendor-filters{background:linear-gradient(115deg,var(--order-soft),#fff 85%);border-color:var(--order-line)}
+#vms-vendors-page[data-order-directory] .vms-order-table th{background:#eef3fb;color:#566f97}
+#vms-vendors-page[data-order-directory] .vms-order-table tbody tr:nth-child(even){background:#f8faff}
+#vms-vendors-page[data-order-directory] .vms-order-table tbody tr:hover{background:#edf4ff}
+#vms-vendors-page[data-order-directory] .vms-order-table a.vms-vendor-link{background:var(--order-soft);border-color:var(--order-line);color:var(--order-accent);font-weight:600}
+#vms-vendors-page[data-order-directory] .vms-po-receipt,#vms-vendors-page[data-order-directory] .vms-po-document{display:inline-flex;align-items:center;border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;line-height:1.4;white-space:nowrap}
+#vms-vendors-page[data-order-directory] .vms-po-receipt--received,#vms-vendors-page[data-order-directory] .vms-po-document--approved{background:#e4f6ec;color:#237546}
+#vms-vendors-page[data-order-directory] .vms-po-receipt--partial,#vms-vendors-page[data-order-directory] .vms-po-document--waiting{background:#fff4dc;color:#93620d}
+#vms-vendors-page[data-order-directory] .vms-po-receipt--pending,#vms-vendors-page[data-order-directory] .vms-po-document--empty,#vms-vendors-page[data-order-directory] .vms-po-receipt--unknown{background:#eef2f7;color:#667892}
+#vms-vendors-page[data-order-directory] .vms-po-document--revised{background:#fceaea;color:#a44949}
+
+[data-order-directory] .vms-order-loading{margin:14px 24px;padding:10px 14px;background:#edf3ff;border:1px solid #dce6f8;border-radius:7px;color:#4e70b4;font-size:12px}[data-order-directory][aria-busy=true] .vms-order-table{opacity:.55;transition:opacity .15s}
+
+/* Match each order number to its PO, SPK, or contract card. */
+#vms-vendors-page[data-order-directory] .vms-order-table a.vms-order-number{display:inline-flex;align-items:center;justify-content:center;background:var(--order-accent);border-color:var(--order-accent);color:#fff;font-weight:600}
+#vms-vendors-page[data-order-directory] .vms-order-table a.vms-order-number:hover{color:#fff;filter:brightness(.9)}
+#vms-vendors-page[data-order-directory] .vms-order-table a.vms-order-number:focus-visible{outline:3px solid var(--order-accent);outline-offset:2px}
+
+/* Invoice Register stage colours. */
+#vms-vendors-page[data-invoice-page="review"],#vms-vendors-page [data-invoice-card="review"]{--invoice-accent:#3967b2;--invoice-soft:#edf4ff;--invoice-line:#cdddf7;--invoice-icon:#dbe8ff}
+#vms-vendors-page[data-invoice-page="completed"],#vms-vendors-page [data-invoice-card="completed"]{--invoice-accent:#187761;--invoice-soft:#eaf8f3;--invoice-line:#c2e6d9;--invoice-icon:#d3f0e4}
+#vms-vendors-page[data-invoice-page="scan"],#vms-vendors-page [data-invoice-card="scan"]{--invoice-accent:#7051a7;--invoice-soft:#f6f0ff;--invoice-line:#dfd1f4;--invoice-icon:#e9dcfa}
+#vms-vendors-page[data-invoice-page] .vms-order-type{background:linear-gradient(135deg,var(--invoice-soft),#fff 82%);border-color:var(--invoice-line);color:var(--invoice-accent);transition:background .15s,border-color .15s,box-shadow .15s}
+#vms-vendors-page[data-invoice-page] .vms-order-type:hover{background:var(--invoice-soft);border-color:var(--invoice-accent);box-shadow:0 5px 16px #30496d12}
+#vms-vendors-page[data-invoice-page] .vms-order-type[aria-current="page"]{border-color:var(--invoice-accent);box-shadow:0 4px 15px #30496d12,inset 0 -3px 0 var(--invoice-accent)}
+#vms-vendors-page[data-invoice-page] .vms-order-type-icon,#vms-vendors-page[data-invoice-page] .vms-order-type b{background:var(--invoice-icon);color:var(--invoice-accent)}
+#vms-vendors-page[data-invoice-page] .vms-order-type-icon i{margin-right:0}
+#vms-vendors-page[data-invoice-page] .vms-order-type[aria-current="page"] b{background:var(--invoice-accent);color:#fff}
+#vms-vendors-page[data-invoice-page] .vms-document-panel{border-top:3px solid var(--invoice-accent)}
+#vms-vendors-page[data-invoice-page] .vms-document-panel>header{background:linear-gradient(105deg,var(--invoice-soft),#fff 72%);border-bottom-color:var(--invoice-line)}
+#vms-vendors-page[data-invoice-page] .vms-document-panel h2{color:var(--invoice-accent)}
+#vms-vendors-page[data-invoice-page] .vms-vendor-filters{background:linear-gradient(115deg,var(--invoice-soft),#fff 85%);border-color:var(--invoice-line)}
+#vms-vendors-page[data-invoice-page] .vms-order-table th{background:var(--invoice-soft);color:var(--invoice-accent)}
+#vms-vendors-page[data-invoice-page] .vms-order-table tbody tr:nth-child(even){background:#f8faff}
+#vms-vendors-page[data-invoice-page] .vms-order-table tbody tr:hover{background:var(--invoice-soft)}
+#vms-vendors-page[data-invoice-page] .vms-order-table a.vms-invoice-number{display:inline-flex;align-items:center;background:var(--invoice-accent);border-color:var(--invoice-accent);color:#fff;font-weight:600}
+#vms-vendors-page[data-invoice-page] .vms-order-table a.vms-invoice-number:hover{color:#fff;filter:brightness(.9)}
+#vms-vendors-page[data-invoice-page] .vms-order-table a.vms-invoice-number:focus-visible{outline:3px solid var(--invoice-accent);outline-offset:2px}
+
+/* Purchase order detail modal. */
+.vms-purchase-modal .vms-order-detail[data-detail-type="po"]{--detail-accent:#3967b2;--detail-soft:#edf4ff;--detail-line:#cdddf7;--detail-icon:#dbe8ff}
+.vms-purchase-modal .vms-order-detail[data-detail-type="spk"]{--detail-accent:#7051a7;--detail-soft:#f6f0ff;--detail-line:#dfd1f4;--detail-icon:#e9dcfa}
+.vms-purchase-modal .vms-order-detail[data-detail-type="kontrak"]{--detail-accent:#187761;--detail-soft:#eaf8f3;--detail-line:#c2e6d9;--detail-icon:#d3f0e4}
+#vms-order-modal.vms-purchase-modal{border-radius:16px;box-shadow:0 24px 75px #13294d40}
+#vms-order-modal.vms-purchase-modal>header{padding:17px 24px;background:#fff}
+#vms-order-modal.vms-purchase-modal>footer{padding:14px 24px;background:#f8faff}
+#vms-order-modal.vms-purchase-modal [data-order-content]{padding:24px;background:#fff}
+.vms-purchase-modal .vms-order-detail-hero{display:flex;align-items:center;gap:16px;padding:22px;border:1px solid var(--detail-line);border-left:4px solid var(--detail-accent);border-radius:12px;background:linear-gradient(110deg,var(--detail-soft),#fff)}
+.vms-purchase-modal .vms-order-detail-icon{display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:12px;background:var(--detail-icon);color:var(--detail-accent);font-size:19px}
+.vms-purchase-modal .vms-order-detail-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--detail-accent)}
+.vms-purchase-modal .vms-order-detail-hero h3{margin:5px 0;font-size:20px;line-height:1.25;color:#263e62;overflow-wrap:anywhere}
+.vms-purchase-modal .vms-order-detail-hero p{margin:0;font-size:12px;color:#6c7f99}
+.vms-purchase-modal .vms-order-detail-section{margin-top:22px}
+.vms-purchase-modal .vms-order-detail-section h4{margin:0 0 12px;font-size:13px;font-weight:700;color:#334d72}
+.vms-purchase-modal .vms-order-detail-grid,.vms-purchase-modal .vms-order-detail-amounts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0}
+.vms-purchase-modal .vms-order-detail-grid>div,.vms-purchase-modal .vms-order-detail-amounts>div{min-width:0;padding:13px 15px;border:1px solid #e3eaf5;border-radius:9px;background:#fafcff}
+.vms-purchase-modal .vms-order-detail dt{font-size:11px;color:#7c8da5}
+.vms-purchase-modal .vms-order-detail dd{margin:7px 0 0;font-size:12px;font-weight:600;color:#364f72;overflow-wrap:anywhere}
+.vms-purchase-modal .vms-order-detail-status{display:inline-block;padding:3px 9px;border-radius:20px;background:var(--detail-soft);color:var(--detail-accent)}
+.vms-purchase-modal .vms-order-detail-amounts{grid-template-columns:repeat(3,minmax(0,1fr))}
+.vms-purchase-modal .vms-order-detail-amounts>div:last-child{background:var(--detail-soft);border-color:var(--detail-line)}
+.vms-purchase-modal .vms-order-detail-amounts>div:last-child dd{color:var(--detail-accent);font-size:15px}
+.vms-purchase-modal .vms-order-detail-note{margin-top:12px;padding:13px 15px;border:1px solid var(--detail-line);border-radius:9px;background:var(--detail-soft);font-size:12px;color:#536782}
+.vms-purchase-modal .vms-order-detail-note strong{color:var(--detail-accent)}
+.vms-purchase-modal .vms-order-detail-note p{margin:6px 0 0}
+.vms-purchase-modal .vms-order-detail-lines .vms-order-table{border:1px solid #e3eaf5;border-radius:9px}
+.vms-purchase-modal .vms-order-detail-lines th{background:var(--detail-soft);color:var(--detail-accent)}
+.vms-purchase-modal .vms-order-detail-lines tbody tr:nth-child(even){background:#f8faff}
+@media(max-width:700px){#vms-order-modal.vms-purchase-modal [data-order-content]{padding:16px}.vms-purchase-modal .vms-order-detail-hero{padding:16px}.vms-purchase-modal .vms-order-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vms-purchase-modal .vms-order-detail-amounts{grid-template-columns:1fr}}
+
+/* Invoice detail modal tabs. */
+#vms-order-modal.vms-invoice-modal{border-radius:16px;box-shadow:0 24px 75px #13294d40}
+#vms-order-modal.vms-invoice-modal>header{background:#fff;padding:17px 24px}
+#vms-order-modal.vms-invoice-modal>footer{background:#f8faff;padding:14px 24px}
+#vms-order-modal.vms-invoice-modal [data-order-content]{padding:24px}
+.vms-invoice-modal .vms-invoice-detail-hero{display:flex;align-items:center;gap:16px;padding:20px;border:1px solid #cdddf7;border-left:4px solid #3967b2;border-radius:12px;background:linear-gradient(110deg,#edf4ff,#fff)}
+.vms-invoice-modal .vms-invoice-detail-icon{display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:12px;background:#dbe8ff;color:#3967b2;font-size:19px}
+.vms-invoice-modal .vms-invoice-detail-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;color:#3967b2}
+.vms-invoice-modal .vms-invoice-detail-hero h3{margin:4px 0;font-size:20px;color:#263e62;overflow-wrap:anywhere}
+.vms-invoice-modal .vms-invoice-detail-hero p{margin:0;font-size:12px;color:#6c7f99}
+.vms-invoice-modal .vms-invoice-detail-badge{margin-left:auto;padding:6px 10px;border-radius:20px;background:#dbe8ff;color:#315eaa;font-size:11px;font-weight:700;white-space:nowrap}
+.vms-invoice-modal .vms-invoice-detail-tabs{display:flex;gap:6px;overflow-x:auto;padding:16px 0 12px;border-bottom:1px solid #e3eaf5}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button{display:inline-flex;align-items:center;gap:7px;flex:none;padding:9px 12px;border:1px solid transparent;border-radius:8px;background:transparent;color:#617591;font-size:12px;font-weight:600;white-space:nowrap}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button:hover{background:#f1f5fd;color:#3967b2}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button[aria-pressed="true"]{background:#eaf1ff;border-color:#cdddf7;color:#315eaa}
+.vms-invoice-modal .vms-invoice-detail-tabs button span{padding:2px 6px;border-radius:10px;background:#dbe8ff;font-size:10px}
+.vms-invoice-modal [data-invoice-panel]{padding-top:20px}
+.vms-invoice-modal [data-invoice-panel][hidden]{display:none}
+.vms-invoice-modal .vms-order-summary h4{margin:0;font-size:14px;font-weight:700;color:#334d72}
+.vms-invoice-modal .vms-order-summary dl{gap:10px;margin:14px 0 18px}
+.vms-invoice-modal .vms-order-summary dl>div{padding:13px 15px;border:1px solid #e3eaf5;border-radius:9px;background:#fafcff}
+.vms-invoice-modal .vms-order-summary dd{font-weight:600;color:#364f72}
+.vms-invoice-modal .vms-order-summary dl>div:nth-child(7){background:#edf4ff;border-color:#cdddf7}
+.vms-invoice-modal .vms-order-summary dl>div:nth-child(7) dd{color:#315eaa;font-size:15px}
+.vms-invoice-modal .vms-vendor-card{overflow:hidden;border-radius:10px}
+.vms-invoice-modal .vms-vendor-card>header{background:#f4f7fc}
+.vms-invoice-modal .vms-order-table th{background:#f1f5fc;color:#60789d}
+.vms-invoice-modal .vms-order-table tbody tr:nth-child(even){background:#f9fbff}
+.vms-invoice-modal .vms-order-table a{color:#315eaa;font-weight:600}
+.vms-invoice-modal .vms-order-table td{max-width:380px;overflow-wrap:anywhere}
+@media(max-width:700px){#vms-order-modal.vms-invoice-modal [data-order-content]{padding:16px}.vms-invoice-modal .vms-invoice-detail-hero{flex-wrap:wrap;padding:16px}.vms-invoice-modal .vms-invoice-detail-badge{margin-left:0}.vms-invoice-modal .vms-order-summary dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Invoice modal stage colours. */
+#vms-order-modal.vms-invoice-modal{--modal-accent:#3967b2;--modal-soft:#edf4ff;--modal-line:#cdddf7;--modal-icon:#dbe8ff}
+#vms-order-modal.vms-invoice-modal[data-invoice-stage="completed"]{--modal-accent:#187761;--modal-soft:#eaf8f3;--modal-line:#c2e6d9;--modal-icon:#d3f0e4}
+#vms-order-modal.vms-invoice-modal[data-invoice-stage="scan"]{--modal-accent:#7051a7;--modal-soft:#f6f0ff;--modal-line:#dfd1f4;--modal-icon:#e9dcfa}
+#vms-order-modal.vms-invoice-modal>header{background:linear-gradient(105deg,var(--modal-soft),#fff 75%);border-bottom-color:var(--modal-line)}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-hero{border-color:var(--modal-line);border-left-color:var(--modal-accent);background:linear-gradient(110deg,var(--modal-soft),#fff)}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-icon,#vms-order-modal.vms-invoice-modal .vms-invoice-detail-badge,#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button span{background:var(--modal-icon);color:var(--modal-accent)}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-eyebrow{color:var(--modal-accent)}
+#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button:hover,#vms-order-modal.vms-invoice-modal .vms-invoice-detail-tabs button[aria-pressed="true"]{background:var(--modal-soft);border-color:var(--modal-line);color:var(--modal-accent)}
+#vms-order-modal.vms-invoice-modal .vms-order-summary dl>div:nth-child(7){background:var(--modal-soft);border-color:var(--modal-line)}
+#vms-order-modal.vms-invoice-modal .vms-order-summary dl>div:nth-child(7) dd,#vms-order-modal.vms-invoice-modal .vms-order-table a{color:var(--modal-accent)}
+#vms-order-modal.vms-invoice-modal .vms-vendor-card>header,#vms-order-modal.vms-invoice-modal .vms-order-table th{background:var(--modal-soft)}
+#vms-order-modal.vms-invoice-modal .vms-order-table th{color:var(--modal-accent)}

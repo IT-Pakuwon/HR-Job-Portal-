@@ -41,8 +41,8 @@ class AppServiceProvider extends ServiceProvider
         setlocale(LC_TIME, 'id_ID.UTF-8');
 
         View::composer('*', function ($view) {
-            // Invoice AJAX fragments render no sidebar; avoid its role/menu queries.
-            if (in_array($view->name(), ['pages.vms.invoice-register.content', 'pages.vms.invoice-register.detail'], true)) {
+            // These AJAX fragments render no sidebar; avoid its role/menu queries.
+            if (in_array($view->name(), ['pages.vms.invoice-register.content', 'pages.vms.invoice-register.detail', 'pages.vms.purchase-order.content', 'pages.vms.purchase-order.detail'], true)) {
                 return;
             }
             // This composer fires for every view AND every nested Blade component
