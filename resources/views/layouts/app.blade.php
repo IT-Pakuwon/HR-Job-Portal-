@@ -33,6 +33,7 @@
     <!-- ================= CORE JS ================= -->
     <!-- jQuery (ONLY ONCE, MUST BE FIRST) -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    @include('layouts.partials.double-submit-guard')
 
     <!-- ================= DATATABLES ================= -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">

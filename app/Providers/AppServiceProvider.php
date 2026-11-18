@@ -138,7 +138,7 @@ class AppServiceProvider extends ServiceProvider
                         ->whereIn('menu_id', $allAllowedMenuIds)
                         ->where('status', 'A')
                         ->orderBy('menu_sort_order')
-                        ->with('children')
+                        ->with('children.children')
                         ->get();
 
                     if ($schema->hasTable('sys_menu_favourite')) {

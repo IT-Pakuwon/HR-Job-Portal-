@@ -223,14 +223,7 @@ class TeamController extends Controller
             // rows from the start (ms_team_task_status is already a genuine
             // per-team table), fully editable/deletable like any status the
             // Team adds itself.
-            foreach ([
-                ['TODO', 'To Do', '#9CA3AF', 0],
-                ['INPROGRESS', 'On Progress', '#3B82F6', 1],
-                ['DONE', 'Done', '#10B981', 2],
-                // "Closed", not "Archive" — the card's Archive button hides a
-                // Task entirely (status 'X') and never moves it into a column.
-                ['CLOSED', 'Closed', '#6B7280', 3],
-            ] as [$id, $name, $color, $order]) {
+            foreach (\App\Models\MsProjectTaskStatus::DEFAULTS as [$id, $name, $color, $order]) {
                 MsTeamTaskStatus::create([
                     'status_id' => $id,
                     'team_id' => $teamId,

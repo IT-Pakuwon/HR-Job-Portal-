@@ -1753,6 +1753,7 @@
                     this.quickAddParentId = parent?.task_id || null;
                     this.quickAddParentName = parent?.task_name || '';
                     $('#qc_name, #qc_start_date, #qc_end_date').val('');
+                    syncDatePickers();
                     stagedQcFiles = [];
                     renderStagedQcFiles();
                     initQcDescrEditor();
@@ -3126,6 +3127,26 @@
                     if (this.kind !== 'project') {
                         const task = findTaskInTree(currentDetailTaskId, currentTasksCache);
                         const children = (task && task.children) || [];
+
+                        // Viewing a Subtask (drilled in): its children are the
+                        // deepest level — Checklist items, a plain checkbox
+                        // list with an inline add box (no Add-subtask form).
+                        const checklistMode = this.kind === 'subtask';
+                        $('#addSubtaskBtn').css('display', checklistMode ? 'none' : '');
+                        $('#subtaskTabHeading').text(checklistMode ? 'Checklist' : 'Sub Tasks');
+                        if (checklistMode) {
+                            const done = children.filter(c => c.progress_percent >= 100).length;
+                            const pct = children.length ? Math.round((done / children.length) * 100) : 0;
+                            $('#taskListSummary').html(`<span class="font-semibold text-gray-800 dark:text-gray-100">${done} of ${children.length}</span> done`);
+                            $('#detailProjectSubtaskSummary').text(`${done} / ${children.length} checklist items · ${pct}%`);
+                            $('#detailProjectProgressBar').css('width', pct + '%');
+
+                            const $items = $('#taskListPanel').removeClass('hidden').empty();
+                            children.forEach(c => $items.append(checklistRowHtml(c)));
+                            $items.append(checklistAddBoxHtml());
+                            if (typeof cb === 'function') cb();
+                            return;
+                        }
                         // Cancelled rows still render below (greyed, with a
                         // Cancelled badge) but are excluded from the
                         // completion math — same rule as openTaskEntityDetail().
@@ -3151,6 +3172,8 @@
                         return;
                     }
 
+                    $('#addSubtaskBtn').css('display', '');
+                    $('#subtaskTabHeading').text('Sub Tasks');
                     currentTaskApiBase = `{{ url('projects') }}/${PM_PROJECT_ID}/tasks`;
                     currentTaskDoctype = 'TSK';
                     currentTaskRefreshFn = (cb2) => this.renderTaskTab(cb2);
@@ -3370,6 +3393,53 @@
             return d.isValid() ? d.format('DD MMM YYYY') : dateStr;
         }
 
+        // ── Date pickers ──────────────────────────────────────────────────
+        // Replaces the browser-native <input type="date"> with a Flatpickr
+        // calendar. The real input keeps its ISO value (Y-m-d) so every
+        // .val() read/write elsewhere is unchanged; only the visible
+        // altInput shows "30 Nov 2026". Falls back to the native control if
+        // Flatpickr failed to load.
+        const DATE_PAIRS = [
+            ['#project_start_date', '#project_end_date'],
+            ['#qc_start_date', '#qc_end_date'],
+            ['#task_start_date', '#task_end_date'],
+        ];
+
+        function syncDatePickers() {
+            DATE_PAIRS.forEach(([startSel, endSel]) => {
+                const start = document.querySelector(startSel);
+                const end = document.querySelector(endSel);
+                if (start && start._flatpickr) start._flatpickr.setDate(start.value || null, false);
+                if (end && end._flatpickr) {
+                    end._flatpickr.set('minDate', (start && start.value) || null);
+                    end._flatpickr.setDate(end.value || null, false);
+                }
+            });
+        }
+
+        (function initDatePickers() {
+            if (typeof flatpickr === 'undefined') return;
+            DATE_PAIRS.forEach(([startSel, endSel]) => {
+                const start = document.querySelector(startSel);
+                const end = document.querySelector(endSel);
+                if (!start || !end) return;
+                const base = {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd M Y',
+                    allowInput: false,
+                    disableMobile: true,
+                    monthSelectorType: 'static',
+                };
+                const endPicker = flatpickr(end, { ...base, minDate: start.value || null });
+                flatpickr(start, {
+                    ...base,
+                    onChange: (_d, str) => endPicker.set('minDate', str || null),
+                });
+                $(start).closest('form').on('reset', () => setTimeout(syncDatePickers, 0));
+            });
+        })();
+
         // ── Activity feed (History panel + a Task's Activity tab) ─────────
         // Items come from PmActivityLogger::feed(): {kind, action, at
         // ('YYYY-MM-DD HH:mm:ss', server time), name, text, task_id,
@@ -3566,6 +3636,45 @@
             `;
         }
 
+        // ── Checklist items: Task → Subtask → Checklist is the deepest level.
+        // A checklist item is only a name + checkbox (no PIC, dates, tags,
+        // lock or sub-items); it shows inside its Subtask's panel, and the
+        // Subtask's progress is checked / total (rolled up server-side too).
+        function checklistRowHtml(c) {
+            const done = c.progress_percent >= 100;
+            return `
+                <div class="checklist-row group flex items-start gap-3 rounded-lg px-2 py-1.5 transition hover:bg-gray-50 dark:hover:bg-white/[0.04]" data-item-id="${c.task_id}">
+                    <button type="button" class="checklist-check mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-gray-300 text-transparent hover:border-emerald-400 dark:border-white/20'}" title="Mark ${done ? 'not done' : 'done'}">
+                        <i class="fas fa-check text-[9px]"></i>
+                    </button>
+                    <span class="checklist-name min-w-0 flex-1 cursor-text break-words text-sm ${done ? 'text-gray-400 line-through dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}" title="Click to rename">${activityEsc(c.task_name)}</span>
+                    <button type="button" class="checklist-delete shrink-0 rounded-lg p-1 text-gray-300 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 focus:opacity-100 dark:hover:bg-red-900/20" title="Remove item">
+                        <i class="fas fa-xmark text-xs"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function checklistAddBoxHtml() {
+            return `
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="text" id="checklistNewInput" maxlength="255" autocomplete="off" placeholder="Add an item and press Enter"
+                        class="h-9 min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 placeholder-gray-400 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 dark:focus:ring-indigo-500/20">
+                    <button type="button" id="checklistAddBtn" class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-sm font-medium text-white transition hover:bg-indigo-500">
+                        <i class="fas fa-plus text-xs"></i> Add
+                    </button>
+                </div>
+            `;
+        }
+
+        // Re-render the open Subtask's checklist after any change.
+        function refreshChecklist(focusAdd = false) {
+            refreshTaskDetailContext(() => {
+                Alpine.$data(document.getElementById('pmProjectShowRoot')).renderTaskTab();
+                if (focusAdd) $('#checklistNewInput').trigger('focus');
+            });
+        }
+
         // Shared row markup for both the Task-edit-modal subtask list and the
         // read-only Task-detail subtask list; `deleteClass` differentiates the
         // two contexts' delegated delete-click handlers (see below). Rows are
@@ -3685,7 +3794,7 @@
                                 ${cancelled ? `<span class="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/10 dark:text-gray-400">Cancelled</span>` : ''}
                                 ${late ? `<span class="shrink-0 inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-600 dark:bg-red-500/10 dark:text-red-400"><i class="fas fa-triangle-exclamation text-[9px]"></i> Late</span>` : ''}
                                 ${activeChildren.length ? `<span class="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-white/10 dark:text-gray-400">${childDone}/${activeChildren.length}</span>` : ''}
-                                ${cancelled ? '' : `<button type="button" class="spreadsheet-add-sub-btn hidden h-5 shrink-0 items-center gap-1 rounded px-1.5 text-[11px] font-medium text-gray-400 transition hover:bg-indigo-100 hover:text-indigo-600 group-hover:inline-flex dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300" title="Add subtask"><i class="fas fa-plus text-[9px]"></i> Subtask</button>`}
+                                ${(cancelled || depth >= 1) ? '' : `<button type="button" class="spreadsheet-add-sub-btn hidden h-5 shrink-0 items-center gap-1 rounded px-1.5 text-[11px] font-medium text-gray-400 transition hover:bg-indigo-100 hover:text-indigo-600 group-hover:inline-flex dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300" title="Add subtask"><i class="fas fa-plus text-[9px]"></i> Subtask</button>`}
                             </div>
                         </td>
                         <td class="max-w-[220px] truncate px-3 py-2.5 text-xs text-gray-400">${desc || '—'}</td>
@@ -4147,6 +4256,17 @@
         });
 
         function openTaskEntityDetail(task, historyMode = 'push') {
+            // A checklist item (level 3) has no detail view of its own — it's
+            // a checkbox row inside its Subtask's panel, so open that Subtask
+            // instead (deep links, calendar and spreadsheet rows can land here).
+            if (taskDetailStack.length >= 2) {
+                const parentOfItem = findTaskInTree(taskDetailStack[taskDetailStack.length - 1], currentTasksCache);
+                if (parentOfItem) {
+                    taskDetailStack = taskDetailStack.slice(0, -1);
+                    return openTaskEntityDetail(parentOfItem, historyMode);
+                }
+            }
+
             // Locked Project Task the current user isn't assigned to —
             // board-data already masked it; every open path funnels through
             // here, so this one check covers cards, calendar, spreadsheet and
@@ -4196,7 +4316,8 @@
             const children = (task.children || []).filter(c => c.status !== 'C');
             const childDone = children.filter(c => c.progress_percent >= 100).length;
             const childPct = children.length ? Math.round((childDone / children.length) * 100) : 0;
-            $('#detailProjectSubtaskSummary').text(`${childDone} / ${children.length} subtasks · ${childPct}%`);
+            // A Subtask's children are checklist items.
+            $('#detailProjectSubtaskSummary').text(`${childDone} / ${children.length} ${taskDetailStack.length >= 1 ? 'checklist items' : 'subtasks'} · ${childPct}%`);
             $('#detailProjectProgressBar').css('width', childPct + '%');
 
             const status = currentTaskStatuses.find(s => s.status_id === task.status_id);
@@ -4380,6 +4501,7 @@
             window.taskDescrQuill?.clipboard.dangerouslyPasteHTML(task.task_description || '');
             $('#task_start_date').val(task.start_date);
             $('#task_end_date').val(task.end_date);
+            syncDatePickers();
 
             // #taskModal/#task_assignees is shared between Project and Team
             // contexts — repopulate its eligible pool from whichever is
@@ -4575,6 +4697,7 @@
             $('#project_description').val(data.project_description || '');
             $('#project_start_date').val(data.start_date_raw || '');
             $('#project_end_date').val(data.end_date_raw || '');
+            syncDatePickers();
 
             initTeamPicMultiSelect($('#project_team_pic'), $('#projectModal'));
             loadProjectTeamPicOptions($('#project_team_pic'), teamIds, data.pics || []);
@@ -5476,6 +5599,74 @@
                         Alpine.$data(document.getElementById('pmProjectShowRoot')).renderTaskTab();
                     });
                 });
+            });
+
+            // ── Checklist items (children of the open Subtask) ──
+            const addChecklistItem = () => {
+                const $input = $('#checklistNewInput');
+                const name = ($input.val() || '').trim();
+                if (!name) { $input.trigger('focus'); return; }
+                $input.prop('disabled', true);
+                $.ajax({
+                    url: currentTaskApiBase,
+                    method: 'POST',
+                    data: { task_name: name, parent_task_id: currentDetailTaskId, _token: '{{ csrf_token() }}' },
+                    success: () => refreshChecklist(true),
+                    error: (xhr) => {
+                        $input.prop('disabled', false);
+                        toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                    },
+                });
+            };
+            $(document).on('keydown', '#checklistNewInput', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); addChecklistItem(); }
+            });
+            $(document).on('click', '#checklistAddBtn', addChecklistItem);
+
+            $(document).on('click', '.checklist-check', function () {
+                const item = findTaskInTree($(this).closest('.checklist-row').data('item-id'), currentTasksCache);
+                if (item) toggleTaskProgress(item, () => refreshChecklist());
+            });
+
+            $(document).on('click', '.checklist-delete', function () {
+                $.ajax({
+                    url: `${currentTaskApiBase}/${$(this).closest('.checklist-row').data('item-id')}`,
+                    method: 'DELETE',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: () => refreshChecklist(),
+                    error: (xhr) => toastr.error(xhr.responseJSON?.message || 'Something went wrong.'),
+                });
+            });
+
+            // Click an item's text to rename it in place (Enter/blur saves, Esc cancels).
+            $(document).on('click', '.checklist-name', function () {
+                const $name = $(this);
+                if ($name.find('input').length) return;
+                const itemId = $name.closest('.checklist-row').data('item-id');
+                const item = findTaskInTree(itemId, currentTasksCache);
+                if (!item) return;
+                const $edit = $('<input type="text" maxlength="255" class="h-7 w-full rounded border border-indigo-300 bg-white px-2 text-sm text-gray-700 outline-none dark:border-indigo-500/40 dark:bg-white/[0.06] dark:text-gray-200">').val(item.task_name);
+                $name.empty().append($edit);
+                $edit.trigger('focus').trigger('select');
+
+                let finished = false;
+                const finish = (save) => {
+                    if (finished) return;
+                    finished = true;
+                    const next = ($edit.val() || '').trim();
+                    if (!save || !next || next === item.task_name) { refreshChecklist(); return; }
+                    $.ajax({
+                        url: `${currentTaskApiBase}/${itemId}`,
+                        method: 'PUT',
+                        data: { task_name: next, _token: '{{ csrf_token() }}' },
+                        success: () => refreshChecklist(),
+                        error: (xhr) => { toastr.error(xhr.responseJSON?.message || 'Something went wrong.'); refreshChecklist(); },
+                    });
+                };
+                $edit.on('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+                    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+                }).on('blur', () => finish(true));
             });
 
             // Checkmark toggle for a Task-detail view's own children list.

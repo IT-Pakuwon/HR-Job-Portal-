@@ -973,9 +973,14 @@
                             const label = stepLabelMap[data] || data;
                             const days = row.step_total_days;
                             const hasDays = days !== null && days !== undefined;
-                            if (type !== 'display') return label + (hasDays ? ` (${days} hari)` : '');
-                            const duration = hasDays ? `<div class="mt-1.5"><span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-300" title="${row.step_duration_start} → ${row.step_duration_end}"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg><span class="font-semibold tabular-nums">${days}</span> hari</span></div>` : '';
-                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>${duration}`;
+                            if (type !== 'display') return label + (hasDays ? ` (${days} days)` : '');
+                            const tone = days >= 7 ?
+                                'bg-red-50 text-red-600 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30' :
+                                (days >= 3 ?
+                                    'bg-amber-50 text-amber-600 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30' :
+                                    'bg-gray-50 text-gray-500 ring-gray-200 dark:bg-gray-700/60 dark:text-gray-300 dark:ring-gray-600');
+                            const duration = hasDays ? `<span class="inline-flex w-[120px] items-center justify-center gap-1 rounded-md px-2 py-0.5 text-xs ring-1 ring-inset ${tone}" title="${row.step_duration_start} → ${row.step_duration_end}"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2"/></svg><span class="font-semibold tabular-nums">${days}</span> ${Number(days) === 1 ? 'day' : 'days'}</span>` : '';
+                            return `<div class="flex flex-col items-center gap-1.5"><span class="inline-flex min-h-[32px] w-[120px] items-center justify-center rounded-md bg-blue-300/30 px-3 py-1 text-center text-sm font-semibold leading-tight text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 whitespace-normal break-words">${label}</span>${duration}</div>`;
                         }
                     },
                     {

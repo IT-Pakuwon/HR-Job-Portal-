@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenancy;
 use App\Http\Controllers\Controller;
 use App\Models\Tenancy\TsLocation;
 use App\Models\Tenancy\TsTenant;
+use App\Support\TenantRelationScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ class TsTenantController extends Controller
                 'tenantCompany:id,tenantcompanyname',
             ])
             ->select(['id', 'storename', 'tenantcompanyid', 'siteid', 'locationid', 'floorid', 'unit', 'status'])
+            ->when(TenantRelationScope::siteIds() !== null, fn ($q) => $q->whereIn('siteid', TenantRelationScope::siteIds()))
             ->orderByDesc('id')
             ->get();
 
@@ -28,6 +30,7 @@ class TsTenantController extends Controller
     public function options(Request $request)
     {
         $q = TsTenant::where('status', 'A')->orderBy('storename');
+        if (TenantRelationScope::siteIds() !== null) $q->whereIn('siteid', TenantRelationScope::siteIds());
 
         if ($request->filled('locationid')) {
             $q->where('locationid', $request->locationid);
@@ -50,6 +53,7 @@ class TsTenantController extends Controller
         try {
             $loginUser = Auth::user();
             $location = TsLocation::findOrFail($request->locationid);
+            TenantRelationScope::abortUnless($location->siteid);
 
             $tenant = TsTenant::create([
                 'storename'           => $request->storename,
@@ -79,6 +83,7 @@ class TsTenantController extends Controller
     public function edit($id)
     {
         $tenant = TsTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($tenant->siteid);
 
         return response()->json([
             'id'              => $tenant->id,
@@ -94,6 +99,7 @@ class TsTenantController extends Controller
     public function update(Request $request, $id)
     {
         $tenant = TsTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($tenant->siteid);
 
         $request->validate([
             'tenantcompanyid' => 'required|exists:mysql5.mstenantcompany,id',
@@ -107,6 +113,7 @@ class TsTenantController extends Controller
         try {
             $loginUser = Auth::user();
             $location = TsLocation::findOrFail($request->locationid);
+            TenantRelationScope::abortUnless($location->siteid);
 
             $tenant->update([
                 'storename'           => $request->storename,
@@ -133,6 +140,7 @@ class TsTenantController extends Controller
     public function toggleStatus($id)
     {
         $tenant = TsTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($tenant->siteid);
         $newStatus = request('status'); // A / X
 
         $tenant->update([

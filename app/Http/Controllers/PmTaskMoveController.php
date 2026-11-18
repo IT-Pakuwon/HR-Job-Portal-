@@ -195,6 +195,11 @@ class PmTaskMoveController extends Controller
         $root = $boardRows->firstWhere('task_id', $request->task_id);
         abort_unless($root, 404);
 
+        // A checklist item (level 3) is just a checkbox on its Subtask — it
+        // can't stand alone as a card on another board.
+        $grandparentId = $root->parent_task_id ? $boardRows->firstWhere('task_id', $root->parent_task_id)?->parent_task_id : null;
+        abort_if($grandparentId, 422, 'A checklist item belongs to its subtask — move the subtask instead.');
+
         $subtree = collect([$root]);
         for ($frontier = collect([$root->task_id]); $frontier->isNotEmpty();) {
             $children = $boardRows->whereIn('parent_task_id', $frontier->all());

@@ -7,6 +7,15 @@ use App\Models\Task;
 use App\Models\UserGoogle;
 use Carbon\Carbon;
 
+/**
+ * Google-Calendar-synced personal tasks (App\Models\Task, pgsql2.tr_task). Not
+ * part of Team / Project task management (see PmTaskController / TeamTaskController).
+ * NOTE: routes/web.php registers POST /tasks and PUT /tasks/{id} twice — first for
+ * ProjectTaskController (storeTask / updateTask), then for this controller near
+ * the end of the file. The later registration wins, so those two URLs reach
+ * THIS controller and ProjectTaskController::storeTask()/updateTask() are
+ * shadowed. Resolve before changing either side.
+ */
 class TaskController extends Controller
 {
     public function move(Request $request, $id)

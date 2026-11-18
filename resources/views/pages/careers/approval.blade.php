@@ -240,7 +240,7 @@
                                             @if(isset($stepDurations[$step->id]))
                                                 <span class="ml-2 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
                                                     title="{{ $stepDurations[$step->id]['start'] }} → {{ $stepDurations[$step->id]['end'] }}">
-                                                    {{ $stepDurations[$step->id]['days'] }} hari
+                                                    {{ $stepDurations[$step->id]['days'] }} {{ (int) $stepDurations[$step->id]['days'] === 1 ? 'day' : 'days' }}
                                                 </span>
                                             @endif
                                         </p>

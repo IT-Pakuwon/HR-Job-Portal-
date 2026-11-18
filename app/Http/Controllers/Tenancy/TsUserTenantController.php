@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenancy\TsTenant;
 use App\Models\Tenancy\TsUser;
 use App\Models\Tenancy\TsUserTenant;
+use App\Support\TenantRelationScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ class TsUserTenantController extends Controller
     {
         $userTenants = TsUserTenant::with('tenant:id,storename')
             ->select(['id', 'tenantid', 'name', 'companyname', 'email', 'phone', 'username', 'status'])
+            ->when(TenantRelationScope::siteIds() !== null, fn ($q) => $q->whereIn('siteid', TenantRelationScope::siteIds()))
             ->orderByDesc('id')
             ->get();
 
@@ -33,13 +35,14 @@ class TsUserTenantController extends Controller
             'email'       => 'required|email|max:50',
             'phone'       => 'nullable|string|max:50',
             'username'    => 'required|string|max:50|unique:mysql5.user,username',
-            'password'    => 'required|string|min:6',
+            'password'    => 'required|string|min:8',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
         try {
             $loginUser = Auth::user();
             $tenant = TsTenant::findOrFail($request->tenantid);
+            TenantRelationScope::abortUnless($tenant->siteid);
             $hashed = Hash::make($request->password);
             $now = now();
 
@@ -93,6 +96,7 @@ class TsUserTenantController extends Controller
     public function edit($id)
     {
         $userTenant = TsUserTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($userTenant->siteid);
 
         return response()->json([
             'id'          => $userTenant->id,
@@ -109,6 +113,7 @@ class TsUserTenantController extends Controller
     public function update(Request $request, $id)
     {
         $userTenant = TsUserTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($userTenant->siteid);
 
         $request->validate([
             'tenantid'    => 'required|exists:mysql5.mstenant,id',
@@ -117,13 +122,14 @@ class TsUserTenantController extends Controller
             'email'       => 'required|email|max:50',
             'phone'       => 'nullable|string|max:50',
             'username'    => ['required', 'string', 'max:50', Rule::unique('mysql5.user', 'username')->ignore($userTenant->userid)],
-            'password'    => 'nullable|string|min:6',
+            'password'    => 'nullable|string|min:8',
         ]);
 
         DB::connection('mysql5')->beginTransaction();
         try {
             $loginUser = Auth::user();
             $tenant = TsTenant::findOrFail($request->tenantid);
+            TenantRelationScope::abortUnless($tenant->siteid);
             $now = now();
 
             $shared = [
@@ -158,6 +164,7 @@ class TsUserTenantController extends Controller
     public function toggleStatus($id)
     {
         $userTenant = TsUserTenant::findOrFail($id);
+        TenantRelationScope::abortUnless($userTenant->siteid);
         $newStatus = request('status'); // A / X
         $loginUser = Auth::user();
         $now = now();

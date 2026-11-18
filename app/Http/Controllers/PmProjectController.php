@@ -435,25 +435,42 @@ class PmProjectController extends Controller
     // Shared data feed for both portfolio views (Kanban / Gantt).
     public function boardData(Request $request)
     {
+        // Same gate as the pages that call this feed — it used to have none,
+        // so any logged-in user could read it directly.
+        abort_unless($this->canBrowse(), 403);
+
         $teams = $this->myTeams();
         $teamIds = $teams->pluck('team_id');
 
         $teamId = $request->query('team_id');
 
+        // Narrowing to one Team is only for that Team's members (myTeams()),
+        // module admins (every active Team), and the primary admin.
+        abort_if(
+            $teamId && !$teamIds->contains($teamId) && !Auth::user()->isPrimaryAdmin(),
+            403,
+            'You are not a member of this Team.'
+        );
+
         // Projects linked to (any of) the user's Teams, naming them as a
         // PIC, or created by them — optionally narrowed to one Team.
-        $linkedProjectIds = $this->myProjectIds($teamId);
+        // A module-wide admin on the unscoped board sees every active
+        // Project, so skip the separate "which ids" round trip.
+        $projectsQuery = MsProject::where('status', 'A');
+        if ($teamId || !$this->hasAdminAccess()) {
+            $projectsQuery->whereIn('project_id', $this->myProjectIds($teamId));
+        }
+        $projects = $projectsQuery->orderBy('start_date')->get();
+        $onBoardIds = $projects->pluck('project_id');
 
-        $projects = MsProject::where('status', 'A')
-            ->whereIn('project_id', $linkedProjectIds)
-            ->orderBy('start_date')
-            ->get();
-
-        $projectTeams = TrProjectTeam::where('status', 'A')
-            ->whereIn('project_id', $projects->pluck('project_id'))
+        // An empty IN () list still costs a database round trip, so the
+        // lookups below are skipped when there is nothing to look up.
+        $projectTeams = $onBoardIds->isEmpty() ? collect() : TrProjectTeam::where('status', 'A')
+            ->whereIn('project_id', $onBoardIds)
             ->get()
             ->groupBy('project_id');
-        $teamNames = MsTeam::whereIn('team_id', $projectTeams->flatten()->pluck('team_id')->unique())
+        $teamLookupIds = $projectTeams->flatten()->pluck('team_id')->unique();
+        $teamNames = $teamLookupIds->isEmpty() ? collect() : MsTeam::whereIn('team_id', $teamLookupIds)
             ->get(['team_id', 'team_name'])
             ->keyBy('team_id');
 
@@ -472,21 +489,22 @@ class PmProjectController extends Controller
         $favoriteTeamIds = $favorites->where('fav_type', 'TEAM')->pluck('ref_id');
         $favoriteProjectIds = $favorites->where('fav_type', 'PROJECT')->pluck('ref_id');
 
-        $pics = TrProjectPic::where('status', 'A')
-            ->whereIn('project_id', $projects->pluck('project_id'))
+        $pics = $onBoardIds->isEmpty() ? collect() : TrProjectPic::where('status', 'A')
+            ->whereIn('project_id', $onBoardIds)
             ->get()
             ->groupBy('project_id');
 
         $picUsernames = $pics->flatten()->where('pic_type', 'USER')->pluck('ref_id')->map(fn ($u) => strtolower(trim($u)))->unique();
-        $picUsers = User::whereIn(DB::raw('lower(username)'), $picUsernames->all())
+        $picUsers = $picUsernames->isEmpty() ? collect() : User::whereIn(DB::raw('lower(username)'), $picUsernames->all())
             ->get(['username', 'name'])
             ->keyBy(fn ($u) => strtolower(trim($u->username)));
 
-        $projectTags = TrProjectTag::where('status', 'A')
-            ->whereIn('project_id', $projects->pluck('project_id'))
+        $projectTags = $onBoardIds->isEmpty() ? collect() : TrProjectTag::where('status', 'A')
+            ->whereIn('project_id', $onBoardIds)
             ->get()
             ->groupBy('project_id');
-        $tagMaster = MsTaskTag::whereIn('tag_id', $projectTags->flatten()->pluck('tag_id')->unique())
+        $tagLookupIds = $projectTags->flatten()->pluck('tag_id')->unique();
+        $tagMaster = $tagLookupIds->isEmpty() ? collect() : MsTaskTag::whereIn('tag_id', $tagLookupIds)
             ->get(['tag_id', 'tag_name', 'color'])
             ->keyBy('tag_id');
 
@@ -633,9 +651,23 @@ class PmProjectController extends Controller
                 }
             }
 
-            // Task-board statuses: none by default — this Project builds its
-            // own from scratch via the board's "+ Add status" (unlike the
-            // Project-lifecycle statuses above, which stay a shared master).
+            // The Project's own Task-board columns start from the same
+            // defaults a new Team gets (MsProjectTaskStatus::DEFAULTS), so a
+            // task added right after creating the Project always lands on a
+            // visible column. They are this Project's own rows: rename, add
+            // or delete them from the board afterwards.
+            foreach (\App\Models\MsProjectTaskStatus::DEFAULTS as [$id, $name, $color, $order]) {
+                \App\Models\MsProjectTaskStatus::create([
+                    'status_id' => $id,
+                    'project_id' => $projectId,
+                    'status_name' => $name,
+                    'color' => $color,
+                    'sort_order' => $order,
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'created_at' => $now,
+                ]);
+            }
 
             return $project;
         });

@@ -1239,7 +1239,16 @@ class CareerController extends Controller
                 ->where('step_order', '>', $targetStep->step_order)
                 ->update(['status' => 'P']);
 
-            /* Update status Career kembali Pending */
+            /* Update status Career kembali Pending, dan kembalikan posisi step-nya
+               (approve memajukan apply_step; tanpa ini daftar tetap menampilkan step lama). */
+            $prevStep = JobApplyStep::where('docid', $career->docid)
+                ->where('jobid', $career->jobid)
+                ->where('group_cpny_id', $career->group_cpny_id)
+                ->where('step_order', '<', $targetStep->step_order)
+                ->orderBy('step_order', 'DESC')
+                ->first();
+            $career->apply_step = $targetStep->step_id;
+            $career->prev_apply_step = $prevStep ? $prevStep->step_id : $targetStep->step_id;
             $career->status = 'P';
             $career->updated_user = $user->username;
             $career->updated_at = $now;

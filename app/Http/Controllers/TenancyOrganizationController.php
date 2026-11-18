@@ -8,7 +8,7 @@ class TenancyOrganizationController extends Controller
 {
     public function index()
     {
-        abort_unless((bool) Auth::user()?->hasRole('TRACCESS'), 403);
+        abort_unless((bool) Auth::user()?->isPrimaryAdmin(), 403);
 
         return view('pages.tenancy.organization');
     }

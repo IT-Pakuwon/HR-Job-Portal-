@@ -148,6 +148,128 @@ TABLE CELLS & ROWS (GLOBAL)
         white-space: nowrap;
     }
 
+    /* DataTables' CDN css loads after this file and uses a dark header/table border — override */
+    table.dataTable > thead > tr > th,
+    table.dataTable > thead > tr > td {
+        border-bottom: 1px solid #f3f4f6 !important;
+        background-color: rgba(249, 250, 251, .7);
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        padding: 12px 16px;
+    }
+
+    table.dataTable.no-footer {
+        border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    /* Blank header cells (checkbox / expand columns) get no sort icon */
+    table.dataTable > thead > tr > th.sorting:empty::after,
+    table.dataTable > thead > tr > th.sorting_asc:empty::after,
+    table.dataTable > thead > tr > th.sorting_desc:empty::after {
+        display: none !important;
+    }
+
+    /* scrollX/scrollY: DataTables keeps a hidden sizing copy of the header inside the body table — keep it collapsed */
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > td {
+        height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border: 0 !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        overflow: hidden;
+    }
+
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting::before,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting_asc::before,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting_desc::before,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting::after,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting_asc::after,
+    .dataTables_wrapper .dataTables_scrollBody table.dataTable > thead > tr > th.sorting_desc::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    .dark table.dataTable > thead > tr > th,
+    .dark table.dataTable > thead > tr > td {
+        background-color: rgba(255, 255, 255, .02);
+        color: #9ca3af;
+        border-bottom-color: rgba(255, 255, 255, .06) !important;
+    }
+
+    .dark table.dataTable.no-footer {
+        border-bottom-color: rgba(255, 255, 255, .06) !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_info {
+        color: #9ca3af;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        font-size: 12px;
+        color: #6b7280;
+        padding-top: 14px;
+    }
+
+    /* Sort icons: match SIK header (inline icon after label, grey idle / indigo active).
+       Selectors mirror DataTables' own (thead > tr > th) so they win on specificity. */
+    table.dataTable thead > tr > th.sorting,
+    table.dataTable thead > tr > th.sorting_asc,
+    table.dataTable thead > tr > th.sorting_desc,
+    table.dataTable thead > tr > th.sorting_asc_disabled,
+    table.dataTable thead > tr > th.sorting_desc_disabled {
+        background-image: none !important;
+        padding-right: 16px !important;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    table.dataTable thead > tr > th.sorting:hover,
+    table.dataTable thead > tr > th.sorting_asc:hover,
+    table.dataTable thead > tr > th.sorting_desc:hover {
+        color: #4f46e5;
+    }
+
+    table.dataTable thead > tr > th.sorting::before,
+    table.dataTable thead > tr > th.sorting_asc::before,
+    table.dataTable thead > tr > th.sorting_desc::before,
+    table.dataTable thead > tr > th.sorting_asc_disabled::before,
+    table.dataTable thead > tr > th.sorting_desc_disabled::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    table.dataTable thead > tr > th.sorting::after,
+    table.dataTable thead > tr > th.sorting_asc::after,
+    table.dataTable thead > tr > th.sorting_desc::after {
+        font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
+        font-weight: 900 !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        margin-left: 6px;
+        position: static !important;
+        display: inline-block !important;
+        right: auto !important;
+        bottom: auto !important;
+        opacity: 1 !important;
+        content: "\f0dc" !important;
+        color: #d1d5db;
+    }
+
+    table.dataTable thead > tr > th.sorting_asc::after {
+        content: "\f0de" !important;
+        color: #4f46e5;
+    }
+
+    table.dataTable thead > tr > th.sorting_desc::after {
+        content: "\f0dd" !important;
+        color: #4f46e5;
+    }
+
     table.dataTable tbody tr td {
         padding: 8px;
         line-height: 2;
@@ -484,6 +606,92 @@ ROWGROUP (COMPANY GROUPING) – KEEP
 
         border-radius:8px !important;
     } */
+
+    /* =====================================================
+FOOTER: info + pagination (SIK style)
+===================================================== */
+    .dataTables_wrapper.no-footer .dataTables_scrollBody {
+        border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        font-size: 14px !important;
+        color: #6b7280 !important;
+        padding: 12px 20px !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        padding: 8px 20px !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        float: right;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        min-width: 36px;
+        margin: 0 !important;
+        padding: 0 16px !important;
+        font-size: 14px !important;
+        color: #6b7280 !important;
+        background: transparent !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        cursor: pointer;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #f9fafb !important;
+        color: #4f46e5 !important;
+        border-color: #e5e7eb !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: #eef2ff !important;
+        color: #4f46e5 !important;
+        border-color: #c7d2fe !important;
+        font-weight: 600;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+        opacity: .4;
+        cursor: default;
+        background: transparent !important;
+        color: #6b7280 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .ellipsis {
+        padding: 0 4px;
+        color: #9ca3af;
+    }
+
+    .dark .dataTables_wrapper .dataTables_info {
+        color: #9ca3af !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_paginate .paginate_button {
+        color: #9ca3af !important;
+        border-color: rgba(255, 255, 255, .1) !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: rgba(255, 255, 255, .05) !important;
+        color: #a5b4fc !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: rgba(99, 102, 241, .15) !important;
+        color: #a5b4fc !important;
+        border-color: rgba(99, 102, 241, .4) !important;
+    }
 
     /* =====================================================
 MISC
@@ -1400,4 +1608,35 @@ Approval / Attachment / Comments tables
         white-space: normal !important;
         word-break: break-word;
     }
+
+    /* Side gap like SIK (p-2 around table): added by the script below only when the table's container has no padding */
+    .dataTables_wrapper.dt-inset > table.dataTable,
+    .dataTables_wrapper.dt-inset > .dataTables_scroll,
+    .dataTables_wrapper.dt-inset > .dtfc-scroll {
+        margin-left: 8px !important;
+        margin-right: 8px !important;
+        margin-top: 8px !important;
+        width: calc(100% - 16px) !important;
+    }
 </style>
+<script>
+    // Give DataTables tables the same edge gap as SIK when their container has none.
+    (function() {
+        function inset(w) {
+            if (w.dataset.dtInsetChecked) return;
+            w.dataset.dtInsetChecked = '1';
+            var p = w.parentElement;
+            if (!p) return;
+            var cs = getComputedStyle(p);
+            if (parseFloat(cs.paddingLeft) < 4 && parseFloat(cs.paddingRight) < 4) w.classList.add('dt-inset');
+        }
+        function scan(root) {
+            if (root.nodeType !== 1) return;
+            if (root.classList.contains('dataTables_wrapper')) inset(root);
+            root.querySelectorAll && root.querySelectorAll('.dataTables_wrapper').forEach(inset);
+        }
+        new MutationObserver(function(ms) {
+            ms.forEach(function(m) { m.addedNodes.forEach(scan); });
+        }).observe(document.documentElement, { childList: true, subtree: true });
+    })();
+</script>
