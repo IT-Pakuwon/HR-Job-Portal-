@@ -85,9 +85,14 @@ class User extends Authenticatable
             ->pluck('role_id');
     }
 
+    // hasRole() is asked many times per request (every access check, menu,
+    // lock test…) and each call used to be its own sys_user_role query. Keep
+    // the answer on this instance, i.e. for the rest of the request.
+    private ?\Illuminate\Support\Collection $roleIdsMemo = null;
+
     public function hasRole($roleId)
     {
-        return $this->roleIds()->contains($roleId);
+        return ($this->roleIdsMemo ??= $this->roleIds())->contains($roleId);
     }
 
     public function isIT()
@@ -213,6 +218,22 @@ class User extends Authenticatable
     protected function profilePhotoUrl(): Attribute
     {
         return Attribute::get(function (): string {
+            // One lookup + one signed URL per user per request: boards list the
+            // same few people on dozens of cards, and each call used to cost a
+            // tr_attachment query plus a GCS signing round.
+            $memoKey = strtolower(trim((string) $this->username));
+
+            return self::$photoUrlMemo[$memoKey] ??= $this->resolveProfilePhotoUrl();
+        });
+    }
+
+    // Per-request memo for profilePhotoUrl (a closure's own `static` would be
+    // a separate copy per model instance, so it has to live on the class).
+    private static array $photoUrlMemo = [];
+
+    private function resolveProfilePhotoUrl(): string
+    {
+        {
             $attachment = TrAttachment::where('refnbr', $this->username)
                 ->where('doctype', 'AVATAR')
                 ->where('status', 'A')
@@ -244,6 +265,6 @@ class User extends Authenticatable
             } catch (\Throwable $e) {
                 return $this->defaultProfilePhotoUrl();
             }
-        });
+        }
     }
 }

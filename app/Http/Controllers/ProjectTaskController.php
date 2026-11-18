@@ -23,6 +23,17 @@ use App\Models\User;
 use Mail;
 
 
+/**
+ * LEGACY "Task" document (/tasks, /showtasks, /task/{id}/approve|reject|revise).
+ * A standalone approval-flow document on the old task_trx_task table. It is NOT
+ * the Team / Project task boards: those live in PmTaskController (Project tasks),
+ * TeamTaskController (Team tasks) and PmProjectController. Still live: the
+ * calendar widget, the agenda edit page, global search and My Activity link into
+ * it, so don't delete it as dead code. New work belongs in the Pm* controllers.
+ * Caveat: POST /tasks and PUT /tasks/{id} are also registered for TaskController
+ * (later in routes/web.php, which wins), so storeTask()/updateTask() below are
+ * shadowed — see the note on TaskController.
+ */
 class ProjectTaskController extends Controller
 {
     public function index()

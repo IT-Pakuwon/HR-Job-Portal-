@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\BuildsTaskTree;
+use App\Http\Controllers\Traits\ChecklistItems;
 use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\RequiresTaskAccess;
@@ -34,6 +35,19 @@ class TeamTaskController extends Controller
     use ManagesTaskCover;
     use AddsTaskAssignees;
     use TagsCompleteTasks;
+    use ChecklistItems;
+
+    // Task → Subtask → Checklist item (see ChecklistItems): this Team's
+    // task_id => parent_task_id map, and the Subtask progress roll-up.
+    private function parentMap(string $teamId): \Illuminate\Support\Collection
+    {
+        return $this->checklistParentMap(TrTeamTask::class, 'team_id', $teamId);
+    }
+
+    private function rollupSubtask(string $teamId, ?string $subtaskId): void
+    {
+        $this->rollupChecklistProgress(TrTeamTask::class, 'team_id', $teamId, $subtaskId);
+    }
 
     private function team(string $teamId): MsTeam
     {
@@ -141,7 +155,14 @@ class TeamTaskController extends Controller
 
     private function noun(TrTeamTask $task): string
     {
-        return $task->parent_task_id ? 'subtask' : 'task';
+        if (!$task->parent_task_id) {
+            return 'task';
+        }
+
+        // A Subtask whose own parent has a parent is a checklist item.
+        $grandparent = TrTeamTask::where('task_id', $task->parent_task_id)->value('parent_task_id');
+
+        return $grandparent ? 'checklist item' : 'subtask';
     }
 
     // Same wording rules as PmTaskController::logTaskUpdate().
@@ -212,7 +233,7 @@ class TeamTaskController extends Controller
     private function refreshCompleteTags(string $teamId, ?Collection $tasks = null): void
     {
         $this->syncCompleteTags(
-            $tasks ?? TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get(),
+            $this->withoutChecklistItems($tasks ?? TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get()),
             TrTeamTaskTag::class,
             fn ($task, $added) => $this->logTask($task, 'tags', $added
                 ? "tagged the {$this->noun($task)} Complete automatically (it reached 100%)"
@@ -366,6 +387,15 @@ class TeamTaskController extends Controller
                 422,
                 'Parent task must belong to the same team.'
             );
+
+            // Task → Subtask → Checklist item: nothing nests below level 3.
+            $parents = $this->parentMap($teamId);
+            $this->assertCanNestUnder($parents, $request->parent_task_id);
+
+            // A new level-3 item is just a name + checkbox — drop anything else.
+            if ($this->taskDepthIn($parents, $request->parent_task_id) === self::MAX_TASK_DEPTH - 1) {
+                $request->merge(['task_description' => null, 'start_date' => null, 'end_date' => null, 'assignees' => [], 'tags' => []]);
+            }
         }
 
         // A Team Task's assignees must already be signed members of that Team.
@@ -382,8 +412,9 @@ class TeamTaskController extends Controller
         $auto = $this->nextAutonbr('TTK', (int) $now->year, $now->format('m'), $username, 'Team Task');
         $taskId = 'TTK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
+        $activeStatuses = MsTeamTaskStatus::where('team_id', $teamId)->where('status', 'A')->orderBy('sort_order');
         $defaultStatus = $request->status_id
-            ?? (MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null);
+            ?? (clone $activeStatuses)->value('status_id');
 
         DB::connection('pgsql5')->transaction(function () use ($request, $teamId, $taskId, $username, $now, $defaultStatus) {
             TrTeamTask::create([
@@ -415,9 +446,11 @@ class TeamTaskController extends Controller
         });
 
         $task = TrTeamTask::where('task_id', $taskId)->first();
-        $this->logTask($task, 'created', $task->parent_task_id ? 'added the subtask' : 'created the task',
+        $this->logTask($task, 'created', $task->parent_task_id ? 'added the ' . $this->noun($task) : 'created the task',
             PmActivityLogger::diff([], $this->taskSnapshot($task), array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
 
+        // A new checklist item (0%) changes its Subtask's roll-up.
+        $this->rollupSubtask($teamId, $task->parent_task_id);
         // A new 0% subtask un-completes its parent.
         $this->refreshCompleteTags($teamId);
 
@@ -429,6 +462,31 @@ class TeamTaskController extends Controller
         $this->assertCanEditTasks();
         $team = $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
+
+        // Checklist item (level 3): only its name and checkbox can change.
+        if ($this->isChecklistItemIn($this->parentMap($teamId), $taskId)) {
+            $request->validate([
+                'task_name' => ['required', 'string', 'max:255'],
+                'progress_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            ]);
+
+            $before = $this->taskSnapshot($task);
+            $task->update([
+                'task_name' => $request->task_name,
+                // A checkbox: anything below 100 is "not done".
+                'progress_percent' => $request->filled('progress_percent')
+                    ? ((float) $request->progress_percent >= 100 ? 100 : 0)
+                    : $task->progress_percent,
+                'updated_by' => Auth::user()->username,
+                'updated_at' => now(),
+            ]);
+            $this->logTaskUpdate($task, $before);
+
+            $this->rollupSubtask($teamId, $task->parent_task_id);
+            $this->refreshCompleteTags($teamId);
+
+            return response()->json(['success' => true, 'message' => 'Checklist item updated']);
+        }
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
@@ -514,6 +572,7 @@ class TeamTaskController extends Controller
         $this->team($teamId);
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
+        $this->abortIfChecklistItem($this->parentMap($teamId), $taskId, 'board status');
         $request->validate(['status_id' => ['required', 'string']]);
 
         $before = $this->taskSnapshot($task);
@@ -541,6 +600,10 @@ class TeamTaskController extends Controller
         $parent = $parentId ? $this->liveTask($teamId, $parentId) : null;
         abort_if($parent && $this->subtreeTaskIds($teamId, $taskId)->contains($parentId), 422, 'A task cannot be moved under itself or one of its own subtasks.');
 
+        // Task → Subtask → Checklist item: the moved branch must still fit in three levels.
+        $this->assertCanMoveUnder($this->parentMap($teamId), $taskId, $parentId);
+        $oldParentId = $task->parent_task_id;
+
         $values = ['parent_task_id' => $parentId];
         if (!$parentId && $request->filled('status_id')) {
             abort_unless(MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $request->status_id)->where('status', 'A')->exists(), 422, 'Unknown status.');
@@ -561,6 +624,8 @@ class TeamTaskController extends Controller
         $this->logTask($task, 'moved', $parent ? "moved the {$noun} under \"{$parent->task_name}\"" : "moved the {$noun} to the top level", $changes);
 
         // Both the old and the new parent's completion% can shift.
+        $this->rollupSubtask($teamId, $oldParentId);
+        $this->rollupSubtask($teamId, $parentId);
         $this->refreshCompleteTags($teamId);
 
         return response()->json(['success' => true, 'changed' => true]);
@@ -574,9 +639,10 @@ class TeamTaskController extends Controller
         $team = $this->team($teamId);
         $task = $this->liveTask($teamId, $taskId);
 
+        $this->abortIfChecklistItem($this->parentMap($teamId), $taskId, 'assignees');
         $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
 
-        $members = $team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+        $members =$team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
         $usernames = collect($request->input('usernames'))->map(fn ($u) => trim($u))->filter()->unique();
         abort_unless($usernames->every(fn ($u) => $members->contains(strtolower($u))), 422, 'Assignee must be a member of the Team.');
 
@@ -592,6 +658,7 @@ class TeamTaskController extends Controller
     {
         $this->assertCanEditTasks();
         $this->team($teamId);
+        $this->abortIfChecklistItem($this->parentMap($teamId), $taskId, 'cover');
 
         return $this->saveCover($request, $this->liveTask($teamId, $taskId), 'TTKCOVER');
     }
@@ -622,6 +689,8 @@ class TeamTaskController extends Controller
         $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
 
         abort_if($task->status === 'X', 404);
+        // Checklist items are checked or archived, never cancelled.
+        $this->abortIfChecklistItem($this->parentMap($teamId), $taskId, 'cancel option');
 
         $task->update([
             'status' => $task->status === 'C' ? 'A' : 'C',
@@ -662,6 +731,8 @@ class TeamTaskController extends Controller
         $nested = $ids->count() - 1;
         $this->logTask($task, 'archived', "archived the {$this->noun($task)}" . ($nested ? " (and {$nested} subtask" . ($nested > 1 ? 's' : '') . ')' : ''));
 
+        // Archiving a checklist item changes its Subtask's roll-up.
+        $this->rollupSubtask($teamId, $task->parent_task_id);
         // Archiving a Subtask drops it out of its parent's completion math
         // (boardData() only ever sees 'A'/'C' rows) — same as cancelling
         // one, that alone can complete the parent.

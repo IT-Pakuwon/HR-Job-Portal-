@@ -121,6 +121,7 @@
 
                         $addSearchItem('project-archive', 'Project Archive', 'Project Setup');
                         $addSearchItem('task-archive', 'Task Archive', 'Project Setup');
+                        $addSearchItem('project-status.index', 'Status Master', 'Project Setup');
                         $addSearchItem('evaluasivendor', 'Penilaian Vendor', 'Vendor');
 
                         $addSearchItem('dashboard-setup', 'Dashboard Setup', 'Dashboard Setup');
@@ -134,7 +135,8 @@
                         $addSearchItem('vms-setup.users', 'Users', 'VMS Setup');
 
                         $addSearchItem('tenancy.user.index', 'User', 'Tenancy Setup');
-                        $addSearchItem('tenancy.organization.index', 'Organization', 'Tenancy Setup');
+                        $addSearchItem('tenancy.organization.index', 'Master Data', 'Tenancy Setup');
+                        $addSearchItem('tenancy.settings.index', 'Settings', 'Tenancy Setup');
                         $addSearchItem('tenancy.approval.index', 'Approval', 'Tenancy Setup');
                     } elseif (\App\Models\SysUserRole::where('username', auth()->user()->username ?? '')
                             ->whereIn('role_id', ['COSTCTRLACCESS', 'APFINACCESS'])
@@ -468,6 +470,7 @@
                                 'showevaluasivendor',
                                 'editevaluasivendor',
                                 'task-archive',
+                                'project-status',
                                 'tenancy',
                             ];
                         @endphp
@@ -742,11 +745,14 @@
                                         <li><a href="{{ route('tenancy.user.index') }}"
                                                 class="{{ Request::segment(2) === 'user' ? 'text-indigo-600' : '' }} sidebar-link text-sm">User</a>
                                         </li>
-                                        <li><a href="{{ route('tenancy.organization.index') }}"
-                                                class="{{ Request::segment(2) === 'organization' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Organization</a>
+                                        <li><a href="{{ route('tenancy.settings.index') }}"
+                                                class="{{ Request::segment(2) === 'settings' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Settings</a>
                                         </li>
                                         <li><a href="{{ route('tenancy.approval.index') }}"
                                                 class="{{ Request::segment(2) === 'approval' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approval</a>
+                                        </li>
+                                        <li><a href="{{ route('tenancy.organization.index') }}"
+                                                class="{{ Request::segment(2) === 'organization' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Master Data</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -791,7 +797,7 @@
                                 <!-- ================================================= -->
                                 <!-- PROJECT SETUP -->
                                 <!-- ================================================= -->
-                                @php $projectSetup = ['project-archive', 'task-archive']; @endphp
+                                @php $projectSetup = ['project-archive', 'task-archive', 'project-status']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $projectSetup) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -818,19 +824,10 @@
                                                 class="{{ Request::segment(1) === 'task-archive' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Task
                                                 Archive</a>
                                         </li>
-                                    </ul>
-                                </li>
-                                <li x-data="{ open: {{ request()->routeIs('evaluasivendor*', 'showevaluasivendor', 'editevaluasivendor') ? 'true' : 'false' }} }">
-                                    <button type="button" @click="open = !open"
-                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40">
-                                        <span class="flex flex-1 items-center gap-2 text-left">
-                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 8l2 2 3-3" /></svg>
-                                            <span>Vendor</span>
-                                        </span>
-                                        <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6" /></svg>
-                                    </button>
-                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
-                                        <li><a href="{{ route('evaluasivendor') }}" class="{{ request()->routeIs('evaluasivendor*', 'showevaluasivendor', 'editevaluasivendor') ? 'text-indigo-600' : '' }} sidebar-link text-sm">Penilaian Vendor</a></li>
+                                        <li><a href="{{ route('project-status.index') }}"
+                                                class="{{ Request::segment(1) === 'project-status' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Status
+                                                Master</a>
+                                        </li>
                                     </ul>
                                 </li>
                             </ul>

@@ -78,15 +78,18 @@ class TrProjectTask extends Model
     // task_id => lowercase usernames who count as assigned: the task's
     // direct people plus every current member of its assigned Teams.
     // Bulk so the board can resolve a whole project in three queries.
-    public static function effectiveAssigneeMap($taskIds)
+    // A caller that already loaded the task's assignee / Team rows (grouped
+    // by task_id) can pass them in to skip the duplicate queries.
+    public static function effectiveAssigneeMap($taskIds, $direct = null, $teams = null)
     {
         $taskIds = collect($taskIds)->values();
 
-        $direct = TrProjectTaskAssignee::whereIn('task_id', $taskIds)->where('status', 'A')
+        $direct ??= $taskIds->isEmpty() ? collect() : TrProjectTaskAssignee::whereIn('task_id', $taskIds)->where('status', 'A')
             ->get(['task_id', 'username'])->groupBy('task_id');
-        $teams = TrProjectTaskTeam::whereIn('task_id', $taskIds)->where('status', 'A')
+        $teams ??= $taskIds->isEmpty() ? collect() : TrProjectTaskTeam::whereIn('task_id', $taskIds)->where('status', 'A')
             ->get(['task_id', 'team_id'])->groupBy('task_id');
-        $members = TrTeamMember::whereIn('team_id', $teams->flatten()->pluck('team_id')->unique())
+        $teamIds = $teams->flatten()->pluck('team_id')->unique();
+        $members = $teamIds->isEmpty() ? collect() : TrTeamMember::whereIn('team_id', $teamIds)
             ->where('status', 'A')->get(['team_id', 'username'])->groupBy('team_id');
 
         return $taskIds->mapWithKeys(fn ($id) => [$id => collect()

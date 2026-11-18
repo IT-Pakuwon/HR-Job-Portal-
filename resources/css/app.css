@@ -418,6 +418,12 @@
             appearance: base-select;
         }
 
+        /* base-select draws its own ::picker-icon; drop the Tailwind-forms
+           background-image chevron so there is only one arrow. */
+        select:not([multiple]):not([size]) {
+            background-image: none;
+        }
+
         select:not([multiple]):not([size]) {
             cursor: pointer;
             transition: border-color .15s, box-shadow .15s;

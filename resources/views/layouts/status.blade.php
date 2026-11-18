@@ -1471,4 +1471,117 @@ TABLE WRAP FIX
 
         @apply dark:bg-white dark:text-black;
     }
+
+    /* =====================================================
+STATUS CARD COLOURS — unified with SIK (Tenant Support)
+Overrides the per-status colours above so every module's cards match.
+===================================================== */
+    .status-filter[data-status=""] .status-card,
+    .status-filter[data-status="ALL"] .status-card {
+        background: rgba(226, 232, 240, .20) !important; border-color: #94a3b8 !important; color: #475569 !important;
+    }
+    .status-filter[data-status=""]:hover .status-card,
+    .status-filter[data-status="ALL"]:hover .status-card { background: #f1f5f9 !important; }
+
+    .status-filter[data-status="P"] .status-card {
+        background: rgba(254, 249, 195, .30) !important; border-color: #eab308 !important; color: #ca8a04 !important;
+    }
+    .status-filter[data-status="P"]:hover .status-card { background: #fef9c3 !important; }
+
+    .status-filter[data-status="C"] .status-card {
+        background: rgba(187, 247, 208, .20) !important; border-color: #16a34a !important; color: #16a34a !important;
+    }
+    .status-filter[data-status="C"]:hover .status-card { background: #dcfce7 !important; }
+
+    .status-filter[data-status="H"] .status-card {
+        background: rgba(251, 207, 232, .30) !important; border-color: #ec4899 !important; color: #db2777 !important;
+    }
+    .status-filter[data-status="H"]:hover .status-card { background: #fce7f3 !important; }
+
+    .status-filter[data-status="D"] .status-card,
+    .status-filter[data-status="H,D"] .status-card {
+        background: rgba(219, 234, 254, .30) !important; border-color: #3b82f6 !important; color: #2563eb !important;
+    }
+    .status-filter[data-status="D"]:hover .status-card,
+    .status-filter[data-status="H,D"]:hover .status-card { background: #dbeafe !important; }
+
+    .status-filter[data-status="R"] .status-card {
+        background: rgba(254, 202, 202, .20) !important; border-color: #dc2626 !important; color: #dc2626 !important;
+    }
+    .status-filter[data-status="R"]:hover .status-card { background: #fee2e2 !important; }
+
+    .status-filter[data-status="X"] .status-card {
+        background: rgba(226, 232, 240, .20) !important; border-color: #64748b !important; color: #64748b !important;
+    }
+    .status-filter[data-status="X"]:hover .status-card { background: #f1f5f9 !important; }
+
+    /* size: same as SIK (p-3, rounded-lg) — the base .status-card rule above forces smaller padding */
+    .status-filter .status-card {
+        padding: .75rem !important;
+        border-radius: .5rem !important;
+        font-size: .875rem;
+        font-weight: 400;
+    }
+
+    /* selected card: SIK's indigo outline, no extra tint/scale */
+    .status-filter.active .status-card,
+    .status-filter.active-card .status-card {
+        box-shadow: 0 0 0 2px #6366f1 !important;
+        transform: none;
+    }
+
+    /* dark mode */
+    .dark .status-filter[data-status=""] .status-card,
+    .dark .status-filter[data-status="ALL"] .status-card { border-color: #64748b !important; color: #cbd5e1 !important; }
+    .dark .status-filter[data-status=""]:hover .status-card,
+    .dark .status-filter[data-status="ALL"]:hover .status-card { background: rgba(51, 65, 85, .30) !important; }
+
+    .dark .status-filter[data-status="P"] .status-card { border-color: #eab308 !important; color: #facc15 !important; }
+    .dark .status-filter[data-status="P"]:hover .status-card { background: rgba(234, 179, 8, .20) !important; }
+
+    .dark .status-filter[data-status="C"] .status-card { border-color: #22c55e !important; color: #4ade80 !important; }
+    .dark .status-filter[data-status="C"]:hover .status-card { background: rgba(34, 197, 94, .20) !important; }
+
+    .dark .status-filter[data-status="H"] .status-card { border-color: #ec4899 !important; color: #f472b6 !important; }
+    .dark .status-filter[data-status="H"]:hover .status-card { background: rgba(236, 72, 153, .20) !important; }
+
+    .dark .status-filter[data-status="D"] .status-card,
+    .dark .status-filter[data-status="H,D"] .status-card { border-color: #3b82f6 !important; color: #60a5fa !important; }
+    .dark .status-filter[data-status="D"]:hover .status-card,
+    .dark .status-filter[data-status="H,D"]:hover .status-card { background: rgba(59, 130, 246, .20) !important; }
+
+    .dark .status-filter[data-status="R"] .status-card { border-color: #ef4444 !important; color: #f87171 !important; }
+    .dark .status-filter[data-status="R"]:hover .status-card { background: rgba(239, 68, 68, .20) !important; }
+
+    .dark .status-filter[data-status="X"] .status-card { border-color: #94a3b8 !important; color: #94a3b8 !important; }
+    .dark .status-filter[data-status="X"]:hover .status-card { background: rgba(51, 65, 85, .30) !important; }
+
+    /* =====================================================
+    TABLE STATUS BADGES — unified with SIK (small tinted pill)
+    Restyles the copy-pasted "w-32 … border-X-600/40" badges in every list page.
+    orange = On Progress, green = Completed, amber = Revise, slate = Draft,
+    red = Rejected/Cancel, gray = other
+    ===================================================== */
+    span[class*="pointer-events-none"][class*="border-orange-600/40"],
+    span[class*="pointer-events-none"][class*="border-green-600/40"],
+    span[class*="pointer-events-none"][class*="border-amber-600/40"],
+    span[class*="pointer-events-none"][class*="border-slate-600/40"],
+    span[class*="pointer-events-none"][class*="border-red-600/40"],
+    span[class*="pointer-events-none"][class*="border-gray-500/40"] {
+        /* shape = the original list badge: fixed-width box with a coloured border */
+        /* own block (flex): no extra line-box space under it, so row height = badge + cell padding, like SPPB */
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 8rem !important;
+        line-height: 1.25rem !important;
+        padding: .5rem 1rem !important;
+        border-width: 1px !important;
+        border-style: solid !important;
+        border-radius: .25rem !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        white-space: nowrap;
+    }
+    /* colours: not overridden here — each badge keeps its own classes (orange / green / amber / red), same as the other lists */
 </style>

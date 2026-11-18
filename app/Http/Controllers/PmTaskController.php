@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\BuildsTaskTree;
+use App\Http\Controllers\Traits\ChecklistItems;
 use App\Http\Controllers\Traits\AddsTaskAssignees;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Http\Controllers\Traits\RequiresTaskAccess;
@@ -32,21 +33,52 @@ class PmTaskController extends Controller
     use ManagesTaskCover;
     use AddsTaskAssignees;
     use TagsCompleteTasks;
+    use ChecklistItems;
+
+    // Task → Subtask → Checklist item (see ChecklistItems): this Project's
+    // task_id => parent_task_id map, and the Subtask progress roll-up.
+    private function parentMap(string $projectId): Collection
+    {
+        return $this->checklistParentMap(TrProjectTask::class, 'project_id', $projectId);
+    }
+
+    private function rollupSubtask(string $projectId, ?string $subtaskId): void
+    {
+        $this->rollupChecklistProgress(TrProjectTask::class, 'project_id', $projectId, $subtaskId);
+    }
 
     private function project(string $projectId): MsProject
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
 
-        $eligible = $this->eligibleUsernames($project);
-
-        abort_unless(
-            $eligible->contains(strtolower(Auth::user()->username))
-                || Auth::user()->isPrimaryAdmin()
-                || Auth::user()->hasRole('PROADMINACCESS'),
-            403
-        );
+        abort_unless($this->canAccessProject($project), 403);
 
         return $project;
+    }
+
+    // Same rule as eligibleUsernames() (creator, a picked PIC person, or a
+    // member of a linked Team) but answered with at most two EXISTS queries
+    // instead of loading every Team and member just to test one username —
+    // this guard runs on every task endpoint. Admins skip the lookup.
+    private function canAccessProject(MsProject $project): bool
+    {
+        $user = Auth::user();
+        $me = strtolower(trim((string) $user->username));
+
+        if ($user->isPrimaryAdmin()
+            || strtolower(trim((string) $project->created_by)) === $me
+            || $user->hasRole('PROADMINACCESS')) {
+            return true;
+        }
+
+        return \App\Models\TrProjectPic::where('project_id', $project->project_id)
+                ->where('status', 'A')->where('pic_type', 'USER')
+                ->whereRaw('lower(trim(ref_id)) = ?', [$me])->exists()
+            || \App\Models\TrTeamMember::where('status', 'A')
+                ->whereRaw('lower(trim(username)) = ?', [$me])
+                ->whereIn('team_id', \App\Models\TrProjectTeam::where('project_id', $project->project_id)
+                    ->where('status', 'A')->select('team_id'))
+                ->exists();
     }
 
     // A Task of this Project that the current user is allowed into — a
@@ -216,7 +248,7 @@ class PmTaskController extends Controller
     private function refreshCompleteTags(string $projectId, ?Collection $tasks = null): void
     {
         $this->syncCompleteTags(
-            $tasks ?? TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(),
+            $this->withoutChecklistItems($tasks ?? TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get()),
             TrProjectTaskTag::class,
             fn ($task, $added) => $this->logTask($task, 'tags', $added
                 ? "tagged the {$this->noun($task)} Complete automatically (it reached 100%)"
@@ -251,7 +283,14 @@ class PmTaskController extends Controller
 
     private function noun(TrProjectTask $task): string
     {
-        return $task->parent_task_id ? 'subtask' : 'task';
+        if (!$task->parent_task_id) {
+            return 'task';
+        }
+
+        // A Subtask whose own parent has a parent is a checklist item.
+        $grandparent = TrProjectTask::where('task_id', $task->parent_task_id)->value('parent_task_id');
+
+        return $grandparent ? 'checklist item' : 'subtask';
     }
 
     // Task Detail → Activity tab: this task and everything under it,
@@ -324,12 +363,14 @@ class PmTaskController extends Controller
             ->whereIn('task_id', $tasks->pluck('task_id'))
             ->get()
             ->groupBy('task_id');
-        $tagMaster = MsTaskTag::whereIn('tag_id', $taskTags->flatten()->pluck('tag_id')->unique())
+        $tagIds = $taskTags->flatten()->pluck('tag_id')->unique();
+        $tagMaster = $tagIds->isEmpty() ? collect() : MsTaskTag::whereIn('tag_id', $tagIds)
             ->get(['tag_id', 'tag_name', 'color'])
             ->keyBy('tag_id');
 
+        // Empty IN () lists still cost a database round trip — skip them.
         $assigneeUsernames = $assignees->flatten()->pluck('username')->map(fn ($u) => strtolower(trim($u)))->unique();
-        $assigneeUsers = User::whereIn(DB::raw('lower(username)'), $assigneeUsernames->all())
+        $assigneeUsers = $assigneeUsernames->isEmpty() ? collect() : User::whereIn(DB::raw('lower(username)'), $assigneeUsernames->all())
             ->get(['username', 'name'])
             ->keyBy(fn ($u) => strtolower(trim($u->username)));
 
@@ -350,13 +391,17 @@ class PmTaskController extends Controller
         // non-assignees, and everything beneath it is dropped entirely.
         // "Assigned" = direct PIC people + members of PIC Teams.
         $me = strtolower(trim(Auth::user()->username));
-        $effective = TrProjectTask::effectiveAssigneeMap($tasks->pluck('task_id'));
+        // Assignee / Team rows are loaded once here and reused below and by
+        // effectiveAssigneeMap() instead of being fetched a second time.
+        $allTaskTeams = TrProjectTaskTeam::whereIn('task_id', $tasks->pluck('task_id'))->where('status', 'A')->get()->groupBy('task_id');
+        $effective = TrProjectTask::effectiveAssigneeMap($tasks->pluck('task_id'), $assignees, $allTaskTeams);
         $canOpen = TrProjectTask::accessMap($tasks, Auth::user());
         $resolve = fn ($taskId) => $canOpen[$taskId];
         $tasks = $tasks->filter(fn ($t) => !$t->parent_task_id || !isset($canOpen[$t->parent_task_id]) || $canOpen[$t->parent_task_id]);
 
-        $taskTeams = TrProjectTaskTeam::whereIn('task_id', $tasks->pluck('task_id'))->where('status', 'A')->get()->groupBy('task_id');
-        $teamNames = MsTeam::whereIn('team_id', $taskTeams->flatten()->pluck('team_id')->unique())->pluck('team_name', 'team_id');
+        $taskTeams = $allTaskTeams->only($tasks->pluck('task_id')->all());
+        $teamIdsOnBoard = $taskTeams->flatten()->pluck('team_id')->unique();
+        $teamNames = $teamIdsOnBoard->isEmpty() ? collect() : MsTeam::whereIn('team_id', $teamIdsOnBoard)->pluck('team_name', 'team_id');
 
         [$fileCounts, $commentCounts] = $this->taskCardCounts('TSK', $tasks->pluck('task_id'));
 
@@ -418,6 +463,7 @@ class PmTaskController extends Controller
             'team_ids.*' => ['string'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string'],
+            'status_id' => ['nullable', 'string'],
         ]);
 
         // A parent (if given) must belong to this same Project — a task
@@ -429,6 +475,15 @@ class PmTaskController extends Controller
                 'Parent task must belong to the same project.'
             );
             $this->accessibleTask($projectId, $request->parent_task_id);
+
+            // Task → Subtask → Checklist item: nothing nests below level 3.
+            $parents = $this->parentMap($projectId);
+            $this->assertCanNestUnder($parents, $request->parent_task_id);
+
+            // A new level-3 item is just a name + checkbox — drop anything else.
+            if ($this->taskDepthIn($parents, $request->parent_task_id) === self::MAX_TASK_DEPTH - 1) {
+                $request->merge(['task_description' => null, 'start_date' => null, 'end_date' => null, 'assignees' => [], 'team_ids' => [], 'tags' => []]);
+            }
         }
 
         $username = Auth::user()->username;
@@ -437,7 +492,13 @@ class PmTaskController extends Controller
         $auto = $this->nextAutonbr('TSK', (int) $now->year, $now->format('m'), $username, 'Project Task');
         $taskId = 'TSK' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
-        $defaultStatus = MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', 'TODO')->where('status', 'A')->exists() ? 'TODO' : null;
+        // The column the card was added to; else the Project's own first
+        // column (by sort order) — whatever columns this Project has, never
+        // a hardcoded id, so a task always lands on a visible column.
+        $activeStatuses = MsProjectTaskStatus::where('project_id', $projectId)->where('status', 'A')->orderBy('sort_order');
+        $defaultStatus = $request->filled('status_id') && (clone $activeStatuses)->where('status_id', $request->status_id)->exists()
+            ? $request->status_id
+            : (clone $activeStatuses)->value('status_id');
 
         DB::connection('pgsql5')->transaction(function () use ($request, $project, $projectId, $taskId, $username, $now, $defaultStatus) {
             TrProjectTask::create([
@@ -471,9 +532,11 @@ class PmTaskController extends Controller
 
         $task = TrProjectTask::where('task_id', $taskId)->first();
         $snapshot = $this->taskSnapshot($task);
-        $this->logTask($task, 'created', $task->parent_task_id ? 'added the subtask' : 'created the task',
+        $this->logTask($task, 'created', $task->parent_task_id ? 'added the ' . $this->noun($task) : 'created the task',
             PmActivityLogger::diff([], $snapshot, array_diff_key(self::TASK_LABELS, array_flip(['task_name', 'task_description', 'progress'])), ['task_description']));
 
+        // A new checklist item (0%) changes its Subtask's roll-up.
+        $this->rollupSubtask($projectId, $task->parent_task_id);
         $this->recalcProjectProgress($projectId);
         // A new 0% subtask un-completes its parent.
         $this->refreshCompleteTags($projectId);
@@ -486,6 +549,31 @@ class PmTaskController extends Controller
         $this->assertCanEditTasks();
         $project = $this->project($projectId);
         $task = $this->accessibleTask($projectId, $taskId);
+
+        // Checklist item (level 3): only its name and checkbox can change.
+        if ($this->isChecklistItemIn($this->parentMap($projectId), $taskId)) {
+            $request->validate([
+                'task_name' => ['required', 'string', 'max:255'],
+                'progress_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            ]);
+
+            $before = $this->taskSnapshot($task);
+            $task->update([
+                'task_name' => $request->task_name,
+                // A checkbox: anything below 100 is "not done".
+                'progress_percent' => $request->filled('progress_percent')
+                    ? ((float) $request->progress_percent >= 100 ? 100 : 0)
+                    : $task->progress_percent,
+                'updated_by' => Auth::user()->username,
+                'updated_at' => now(),
+            ]);
+            $this->logTaskUpdate($task, $before);
+
+            $this->rollupSubtask($projectId, $task->parent_task_id);
+            $this->refreshCompleteTags($projectId);
+
+            return response()->json(['success' => true, 'message' => 'Checklist item updated']);
+        }
 
         $request->validate([
             'task_name' => ['required', 'string', 'max:255'],
@@ -581,6 +669,7 @@ class PmTaskController extends Controller
         $this->project($projectId);
         $task = $this->accessibleTask($projectId, $taskId);
 
+        $this->abortIfChecklistItem($this->parentMap($projectId), $taskId, 'privacy setting');
         $request->validate(['locked' => ['required', 'boolean']]);
 
         $me = strtolower(trim(Auth::user()->username));
@@ -617,6 +706,7 @@ class PmTaskController extends Controller
         $project = $this->project($projectId);
         $task = $this->accessibleTask($projectId, $taskId);
 
+        $this->abortIfChecklistItem($this->parentMap($projectId), $taskId, 'assignees');
         $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
 
         $eligible = $this->eligibleUsernames($project);
@@ -635,6 +725,7 @@ class PmTaskController extends Controller
     {
         $this->assertCanEditTasks();
         $this->project($projectId);
+        $this->abortIfChecklistItem($this->parentMap($projectId), $taskId, 'cover');
 
         return $this->saveCover($request, $this->accessibleTask($projectId, $taskId), 'TSKCOVER');
     }
@@ -654,6 +745,7 @@ class PmTaskController extends Controller
         $this->project($projectId);
         $task = $this->accessibleTask($projectId, $taskId);
 
+        $this->abortIfChecklistItem($this->parentMap($projectId), $taskId, 'board status');
         $request->validate(['status_id' => ['required', 'string']]);
 
         $before = $this->taskSnapshot($task);
@@ -683,6 +775,11 @@ class PmTaskController extends Controller
         abort_if($parent && $parent->status !== 'A', 404);
         abort_if($parent && $this->subtreeTaskIds($projectId, $taskId)->contains($parentId), 422, 'A task cannot be moved under itself or one of its own subtasks.');
 
+        // Task → Subtask → Checklist item: the moved branch must still fit in three levels.
+        $parents = $this->parentMap($projectId);
+        $this->assertCanMoveUnder($parents, $taskId, $parentId);
+        $oldParentId = $task->parent_task_id;
+
         $values = ['parent_task_id' => $parentId];
         if (!$parentId && $request->filled('status_id')) {
             abort_unless(MsProjectTaskStatus::where('project_id', $projectId)->where('status_id', $request->status_id)->where('status', 'A')->exists(), 422, 'Unknown status.');
@@ -704,6 +801,8 @@ class PmTaskController extends Controller
 
         // The Project rollup only averages top-level Tasks, and both the
         // old and the new parent's completion% can shift.
+        $this->rollupSubtask($projectId, $oldParentId);
+        $this->rollupSubtask($projectId, $parentId);
         $this->recalcProjectProgress($projectId);
         $this->refreshCompleteTags($projectId);
 
@@ -732,6 +831,8 @@ class PmTaskController extends Controller
         $nested = $ids->count() - 1;
         $this->logTask($task, 'archived', "archived the {$this->noun($task)}" . ($nested ? " (and {$nested} subtask" . ($nested > 1 ? 's' : '') . ')' : ''));
 
+        // Archiving a checklist item changes its Subtask's roll-up.
+        $this->rollupSubtask($projectId, $task->parent_task_id);
         $this->recalcProjectProgress($projectId);
         // Archiving a Subtask drops it out of its parent's completion math.
         $this->refreshCompleteTags($projectId);

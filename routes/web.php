@@ -122,6 +122,7 @@ use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectArchiveController;
+use App\Http\Controllers\ProjectStatusMasterController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\ReceiptController;
@@ -167,6 +168,7 @@ use App\Http\Controllers\Tenancy\TsCompanyController;
 use App\Http\Controllers\Tenancy\TsDepartmentController;
 use App\Http\Controllers\Tenancy\TsFloorController;
 use App\Http\Controllers\Tenancy\TsLocationController;
+use App\Http\Controllers\Tenancy\TsSettingController;
 use App\Http\Controllers\Tenancy\TsSiteController;
 use App\Http\Controllers\Tenancy\TsTenantCompanyController;
 use App\Http\Controllers\Tenancy\TsTenantController;
@@ -176,6 +178,8 @@ use App\Http\Controllers\TenancyApprovalController;
 use App\Http\Controllers\TenancyMasterController;
 use App\Http\Controllers\TenancyOrganizationController;
 use App\Http\Controllers\TenancyUserController;
+use App\Http\Controllers\TenantSupportController;
+use App\Http\Controllers\TenantSupportSimkbController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
@@ -237,6 +241,8 @@ Route::get('/my-page', [App\Http\Controllers\MyPageController::class, 'index'])-
 Route::post('/my-page/login', [App\Http\Controllers\MyPageController::class, 'login'])->middleware('throttle:10,1')->name('my-page.login.submit');
 Route::get('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'forgotForm'])->name('my-page.forgot');
 Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
+// Public (signed) page behind the QR code printed on a SIK permit; no login so the security gate can scan it.
+Route::get('/verify/tenant-sik/{eid}', [App\Http\Controllers\TenantSupportController::class, 'sikVerify'])->middleware('signed')->name('tenantsupport.sik.verify');
 Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
 Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
 Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
@@ -350,6 +356,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/jobposting/toggle-status', [PersonnelController::class, 'toggleJobPostingStatus']);
     });
 
+    // TODO(retire): LEGACY "Task" approval document — NOT the Team/Project task
+    // boards (those are /projects/{id}/tasks and /all-team/{id}/tasks).
+    // Checked 2026-11-17 on the dev DB: task_trx_task (legacy MySQL) holds 6
+    // rows, last one created 2025-03-16; no sys_menu entry points here;
+    // pgsql2.tr_task (Google Calendar tasks, TaskController) holds 0 rows.
+    // Production NOT yet checked. If production agrees, retire in one change:
+    //   1. remove these routes (and the duplicate "Tasks" block near the end
+    //      of this file that registers POST /tasks, PUT /tasks/{id}, move, destroy),
+    //   2. delete ProjectTaskController + resources/views/pages/tasks*,
+    //   3. remove the links that still point here: partials/calendar-widget
+    //      (fetch '/tasks'), pages/agendas/editagendas (route 'tasks.update',
+    //      '/tasks'), and the '/showtasks' entries in GlobalSearchController
+    //      and MyActivityController.
+    // Caveat until then: POST /tasks and PUT /tasks/{id} are registered twice;
+    // the later registration (TaskController) wins, so storeTask/updateTask
+    // below are shadowed.
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
     Route::get('/createtasks', [ProjectTaskController::class, 'createTask']);
@@ -1668,6 +1690,31 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{eid}', 'show')->name('show');
         });
 
+        Route::get('/tenant-support/master', [TenantSupportController::class, 'master'])->name('tenantsupport.master');
+        Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
+        Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
+        Route::get('/tenant-support/sik/export', [TenantSupportController::class, 'sikExport'])->name('tenantsupport.sik.export');
+        Route::get('/tenant-support/sik/attachment/{aeid}', [TenantSupportController::class, 'sikAttachment'])->name('tenantsupport.sik.attachment');
+        Route::get('/tenant-support/sik/{eid}/permit', [TenantSupportController::class, 'sikPermit'])->name('tenantsupport.sik.permit');
+        Route::get('/tenant-support/sik/{eid}/print',[TenantSupportController::class, 'sikPrint'])->name('tenantsupport.sik.print');
+        Route::post('/tenant-support/sik/{eid}/action', [TenantSupportController::class, 'sikAction'])->name('tenantsupport.sik.action');
+        Route::get('/tenant-support/sik/{eid}/approver-options', [TenantSupportController::class, 'sikApproverOptions'])->name('tenantsupport.sik.approver-options');
+        Route::post('/tenant-support/sik/{eid}/approver', [TenantSupportController::class, 'sikAddApprover'])->name('tenantsupport.sik.approver');
+        Route::post('/tenant-support/sik/{eid}/message', [TenantSupportController::class, 'sikMessage'])->name('tenantsupport.sik.message');
+        Route::post('/tenant-support/sik/{eid}/upload', [TenantSupportController::class, 'sikUpload'])->name('tenantsupport.sik.upload');
+        Route::get('/tenant-support/sik/{eid}', [TenantSupportController::class, 'sikPage'])->name('tenantsupport.sik.show');
+        Route::get('/tenant-support/simkb', [TenantSupportSimkbController::class, 'simkb'])->name('tenantsupport.sikmb');
+        Route::get('/tenant-support/simkb/data', [TenantSupportSimkbController::class, 'simkbJson'])->name('tenantsupport.simkb.data');
+        Route::get('/tenant-support/simkb/export', [TenantSupportSimkbController::class, 'simkbExport'])->name('tenantsupport.simkb.export');
+        Route::get('/tenant-support/simkb/attachment/{aeid}', [TenantSupportSimkbController::class, 'simkbAttachment'])->name('tenantsupport.simkb.attachment');
+        Route::get('/tenant-support/simkb/{eid}/print',[TenantSupportSimkbController::class, 'simkbPrint'])->name('tenantsupport.simkb.print');
+        Route::post('/tenant-support/simkb/{eid}/action', [TenantSupportSimkbController::class, 'simkbAction'])->name('tenantsupport.simkb.action');
+        Route::get('/tenant-support/simkb/{eid}/approver-options', [TenantSupportSimkbController::class, 'simkbApproverOptions'])->name('tenantsupport.simkb.approver-options');
+        Route::post('/tenant-support/simkb/{eid}/approver', [TenantSupportSimkbController::class, 'simkbAddApprover'])->name('tenantsupport.simkb.approver');
+        Route::post('/tenant-support/simkb/{eid}/message', [TenantSupportSimkbController::class, 'simkbMessage'])->name('tenantsupport.simkb.message');
+        Route::post('/tenant-support/simkb/{eid}/upload', [TenantSupportSimkbController::class, 'simkbUpload'])->name('tenantsupport.simkb.upload');
+        Route::get('/tenant-support/simkb/{eid}', [TenantSupportSimkbController::class, 'simkbPage'])->name('tenantsupport.simkb.show');
+
         Route::controller(TenancyMasterController::class)->prefix('tenancy')->name('tenancy.')->group(function () {
             Route::get('/master', 'index')->name('master');
         });
@@ -1718,24 +1765,26 @@ Route::middleware(['auth'])->group(function () {
             });
         });
 
-        Route::controller(TenancyUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+        Route::controller(TenancyUserController::class)->middleware('admin')->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
             Route::get('/', 'index')->name('index');
         });
 
-        Route::controller(TsUserController::class)->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
+        Route::controller(TsUserController::class)->middleware('admin')->prefix('tenancy/user')->name('tenancy.user.')->group(function () {
             Route::get('/json', 'json')->name('json');
             Route::post('/', 'store')->name('store');
             Route::get('/{id}/edit', 'edit')->name('edit');
             Route::put('/{id}', 'update')->name('update');
             Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
             Route::put('/{id}/reset-password', 'resetPassword')->name('reset-password');
+            Route::get('/ms-users', 'msUsers')->name('ms-users');
+            Route::post('/copy-from-ms-user', 'copyFromMsUser')->name('copy-from-ms-user');
         });
 
-        Route::controller(TenancyOrganizationController::class)->prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+        Route::controller(TenancyOrganizationController::class)->middleware('admin')->prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
             Route::get('/', 'index')->name('index');
         });
 
-        Route::prefix('tenancy/organization')->name('tenancy.organization.')->group(function () {
+        Route::prefix('tenancy/organization')->middleware('admin')->name('tenancy.organization.')->group(function () {
             Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
                 Route::get('/json', 'json')->name('json');
                 Route::post('/', 'store')->name('store');
@@ -1747,6 +1796,14 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(TsCompanyController::class)->prefix('companies')->name('companies.')->group(function () {
                 Route::get('/json', 'json')->name('json');
                 Route::get('/options', 'options')->name('options');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsTenantCompanyController::class)->prefix('tenant-companies')->name('tenant-companies.')->group(function () {
+                Route::get('/json', 'json')->name('json');
                 Route::post('/', 'store')->name('store');
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');
@@ -1765,13 +1822,24 @@ Route::middleware(['auth'])->group(function () {
             });
         });
 
-        Route::controller(TenancyApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+        Route::controller(TsSettingController::class)->middleware('admin')->prefix('tenancy/settings')->name('tenancy.settings.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/lookups', 'lookups')->name('lookups');
+            Route::get('/{key}/json', 'json')->name('json');
+            Route::post('/{key}', 'store')->name('store');
+            Route::get('/{key}/{id}/edit', 'edit')->name('edit');
+            Route::put('/{key}/{id}', 'update')->name('update');
+            Route::put('/{key}/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+        });
+
+        Route::controller(TenancyApprovalController::class)->middleware('admin')->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
             Route::get('/', 'index')->name('index');
         });
 
-        Route::controller(TsApprovalController::class)->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
+        Route::controller(TsApprovalController::class)->middleware('admin')->prefix('tenancy/approval')->name('tenancy.approval.')->group(function () {
             Route::get('/json', 'json')->name('json');
             Route::get('/doctypes', 'doctypes')->name('doctypes');
+            Route::get('/approvers', 'approvers')->name('approvers');
             Route::post('/', 'store')->name('store');
             Route::get('/{id}/edit', 'edit')->name('edit');
             Route::put('/{id}', 'update')->name('update');
@@ -3145,24 +3213,18 @@ Route::middleware(['auth'])->group(function () {
     // Self-service: any authenticated user may change their own password (not admin-only).
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
+    Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
+        Route::get('/', [EvaluasiVendorController::class, 'index'])->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');
+        Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update')->middleware('access:EVALVENDOR,EDIT');
+        Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status')->middleware('access:EVALVENDOR,EDIT');
+    });
+
     Route::middleware('admin')->group(function () {
-        Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor');
-        Route::get('/editevaluasivendor/{hash}', [EvaluasiVendorController::class, 'editHashEvaluasi'])->name('editevaluasivendor');
-        Route::get('/pdf_evaluasivendor/{hash}', [EvaluasiVendorController::class, 'printEvaluasi'])->name('evaluasivendor.print');
-        Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
-            Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi']);
-            Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json');
-            Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create');
-            Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template');
-            Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store');
-            Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit');
-            Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show');
-            Route::post('/{hash}/approval/{action}', [EvaluasiVendorController::class, 'approvalEvaluasi'])->whereIn('action', ['approve', 'revise', 'reject'])->name('.approval');
-            Route::get('/{hash}/comments', [EvaluasiVendorController::class, 'commentsEvaluasi'])->name('.comments');
-            Route::post('/{hash}/comments', [EvaluasiVendorController::class, 'storeCommentEvaluasi'])->name('.comments.store');
-            Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update');
-            Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status');
-        });
         // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
         // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
 
@@ -3516,6 +3578,26 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/task-archive/json', 'tasksJson')->name('task-archive.json');
             Route::put('/task-archive/{source}/{taskId}/restore', 'restoreTask')->name('task-archive.restore');
         });
+
+        // Global Settings > Project Setup — Status Master (view/add/edit/delete
+        // the status masters behind the Team / Project / Task boards).
+        Route::controller(ProjectStatusMasterController::class)->prefix('project-status')->name('project-status.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/project-statuses', 'projectStatuses')->name('project.list');
+            Route::post('/project-statuses', 'storeProjectStatus')->name('project.store');
+            Route::put('/project-statuses/{statusId}', 'updateProjectStatus')->name('project.update');
+            Route::post('/project-statuses/{statusId}/toggle', 'toggleProjectStatus')->name('project.toggle');
+
+            Route::get('/teams', 'teams')->name('teams');
+            Route::get('/teams/{teamId}/statuses', 'teamStatuses')->name('team.statuses');
+            Route::put('/teams/{teamId}/statuses', 'syncTeamStatuses')->name('team.sync');
+
+            Route::get('/projects', 'projectsList')->name('projects');
+            Route::get('/task/{kind}/{ownerId}', 'taskStatuses')->name('task.list');
+            Route::post('/task/{kind}/{ownerId}', 'storeTaskStatus')->name('task.store');
+            Route::put('/task/{kind}/{ownerId}/{statusId}', 'updateTaskStatus')->name('task.update');
+            Route::post('/task/{kind}/{ownerId}/{statusId}/toggle', 'toggleTaskStatus')->name('task.toggle');
+        });
     }); // end admin middleware
 
     // ── Vendors: accessible to admin and PURCHACCESS (authorization enforced in VendorController) ──
@@ -3685,6 +3767,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/google/calendar/disconnect', [GoogleCalendarController::class, 'disconnect']);
 
         // 🔹 Tasks
+        // TODO(retire): Google Calendar personal tasks (pgsql2.tr_task, 0 rows on
+        // dev as of 2026-11-17). Overrides POST /tasks and PUT /tasks/{id} from
+        // the legacy block near the top of this file — see the note there.
         Route::post('/tasks', [TaskController::class, 'store']);
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
         Route::post('/tasks/{id}/move', [TaskController::class, 'move']);

@@ -23,6 +23,7 @@ class TsLocationController extends Controller
     public function options()
     {
         $locations = TsLocation::where('status', 'A')
+            ->when(\App\Support\TenantRelationScope::siteIds() !== null, fn ($q) => $q->whereIn('siteid', \App\Support\TenantRelationScope::siteIds()))
             ->orderBy('locationname')
             ->get(['id', 'locationname', 'siteid']);
 

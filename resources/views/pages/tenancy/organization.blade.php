@@ -1,30 +1,60 @@
 <x-app-layout>
+    @php $isAdminUser = (bool) auth()->user()?->isPrimaryAdmin(); @endphp
 
-    <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeTab: 'site' }">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <nav class="flex border-b border-gray-100 dark:border-white/[0.06]">
-                <button type="button" @click="activeTab = 'site'; $nextTick(() => tsAdjustTable('site'))"
-                    :class="activeTab === 'site' ?
-                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                    class="flex-1 px-4 py-3 text-center text-sm font-medium transition-colors duration-200">
-                    Site
-                </button>
+    <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeTab: 'company' }">
+        <nav class="mb-3 flex w-full gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-100/80 p-1 dark:border-white/[0.06] dark:bg-white/[0.04]">
                 <button type="button" @click="activeTab = 'company'; $nextTick(() => tsAdjustTable('company'))"
                     :class="activeTab === 'company' ?
-                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                    class="flex-1 px-4 py-3 text-center text-sm font-medium transition-colors duration-200">
-                    Company
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-building text-xs"></i> Company
+                </button>
+                <button type="button" @click="activeTab = 'site'; $nextTick(() => tsAdjustTable('site'))"
+                    :class="activeTab === 'site' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-city text-xs"></i> Site
                 </button>
                 <button type="button" @click="activeTab = 'department'; $nextTick(() => tsAdjustTable('department'))"
                     :class="activeTab === 'department' ?
-                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                    class="flex-1 px-4 py-3 text-center text-sm font-medium transition-colors duration-200">
-                    Department
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-sitemap text-xs"></i> Department
                 </button>
-            </nav>
+                <button type="button" @click="activeTab = 'location'; $nextTick(() => tsAdjustTable('location'))"
+                    :class="activeTab === 'location' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-map-marker-alt text-xs"></i> Location
+                </button>
+                <button type="button" @click="activeTab = 'floor'; $nextTick(() => tsAdjustTable('floor'))"
+                    :class="activeTab === 'floor' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-layer-group text-xs"></i> Floor
+                </button>
+                <button type="button" @click="activeTab = 'tenantcompany'; $nextTick(() => tsAdjustTable('tenantcompany'))"
+                    :class="activeTab === 'tenantcompany' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-id-badge text-xs"></i> Tenant Company
+                </button>
+                <button type="button" @click="activeTab = 'tenant'; $nextTick(() => tsAdjustTable('tenant'))"
+                    :class="activeTab === 'tenant' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-store text-xs"></i> Tenant
+                </button>
+        </nav>
+
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <!-- SITE PANEL -->
             <div x-show="activeTab === 'site'" x-cloak>
@@ -92,6 +122,31 @@
                                 <th class="px-4 py-3 text-left font-medium">Doctype</th>
                                 <th class="px-4 py-3 text-left font-medium">Site</th>
                                 <th class="px-4 py-3 text-left font-medium">Department</th>
+                                <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            @include('pages.tenancy.partials.master-panels')
+
+            <!-- TENANT COMPANY PANEL -->
+            <div x-show="activeTab === 'tenantcompany'" x-cloak>
+                <div class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏷️ Tenant Company List</h2>
+                    <button id="addTenantCompanyBtn"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Tenant Company
+                    </button>
+                </div>
+                <div class="relative overflow-hidden p-2">
+                    <table id="tenantCompaniesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Tenant Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Legal Entity</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -297,6 +352,57 @@
                             data-modal="departmentModal">Cancel</button>
                         <button type="submit" id="departmentSaveBtn"
                             class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @include('pages.tenancy.partials.master-modals')
+
+        <!-- TENANT COMPANY MODAL (Add / View / Edit) -->
+        <div id="tenantCompanyModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[92vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="relative flex items-center justify-between gap-4 overflow-hidden border-b border-gray-100 bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white dark:border-white/[0.06]">
+                    <div class="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10"></div>
+                    <div class="relative flex items-center gap-3.5">
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-lg ring-1 ring-white/30">
+                            <i class="fas fa-building"></i>
+                        </span>
+                        <div>
+                            <h2 id="tenantCompanyModalTitle" class="text-base font-semibold leading-tight">Add Tenant Company</h2>
+                            <p class="text-xs text-indigo-100">The company that owns one or more stores</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/80 transition hover:bg-white/15 hover:text-white"
+                        data-modal="tenantCompanyModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="tenantCompanyForm" class="flex flex-1 flex-col overflow-hidden" autocomplete="off">
+                    <input type="hidden" id="tc_id" name="id">
+                    <div class="flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-6 py-6">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Legal Entity</label>
+                            <div class="relative">
+                                <i class="fas fa-gavel pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                                <input type="text" id="tc_badanusaha" name="badanusaha" list="tc_badanusaha_list" placeholder="e.g. PT, CV, UD" class="ut-input">
+                                <datalist id="tc_badanusaha_list"><option value="PT"><option value="CV"><option value="UD"><option value="PD"><option value="Firma"></datalist>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Tenant Company Name <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <i class="fas fa-building pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                                <input type="text" id="tc_name" name="tenantcompanyname" placeholder="Company name" class="ut-input" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <p class="hidden text-xs text-gray-400 sm:block"><span class="text-red-500">*</span> Required</p>
+                        <div class="ml-auto flex gap-2">
+                            <button type="button" class="tsModalClose rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                                data-modal="tenantCompanyModal">Cancel</button>
+                            <button type="submit" id="tenantCompanySaveBtn"
+                                class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-4 focus:ring-indigo-500/30"><i class="fas fa-save"></i> Save</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -899,6 +1005,227 @@
                     success: function() { departmentTable.ajax.reload(null, false); }
                 });
             });
+
+            @include('pages.tenancy.partials.master-js')
+
+            /* =========================================================
+             * TENANT COMPANY
+             * ========================================================= */
+            let tenantCompanyTable = $('#tenantCompaniesTable').DataTable({
+                ajax: "{{ route('tenancy.organization.tenant-companies.json') }}",
+                processing: true,
+                serverSide: false,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                columns: [{
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `
+                                <div class="flex justify-center items-center space-x-2">
+                                    <label class="switch">
+                                        <input type="checkbox" class="toggleTenantCompanyStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <button type="button" class="viewTenantCompanyBtn bg-gray-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="editTenantCompanyBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-edit"></i></button>
+                                </div>
+                            `;
+                        }
+                    },
+                    { data: 'tenantcompanyname' },
+                    { data: 'badanusaha', render: d => d || '-' },
+                    { data: 'status', render: statusBadge },
+                ]
+            });
+            window.tsTables.tenantcompany = tenantCompanyTable;
+
+            function openTenantCompanyModal(mode, data) {
+                let readOnly = mode === 'view';
+                $('#tenantCompanyForm')[0].reset();
+                $('#tc_id').val('');
+                $('#tenantCompanyModalTitle').text(mode === 'add' ? 'Add Tenant Company' : (mode === 'view' ? 'View Tenant Company' : 'Edit Tenant Company'));
+                $('#tenantCompanyForm input').prop('disabled', readOnly);
+                $('#tenantCompanySaveBtn').toggle(!readOnly);
+
+                if (data) {
+                    $('#tc_id').val(data.id);
+                    $('#tc_name').val(data.tenantcompanyname);
+                    $('#tc_badanusaha').val(data.badanusaha);
+                }
+
+                tsOpenModal('tenantCompanyModal');
+            }
+
+            $('#addTenantCompanyBtn').click(function() {
+                openTenantCompanyModal('add', null);
+            });
+
+            $(document).on('click', '.viewTenantCompanyBtn, .editTenantCompanyBtn', function() {
+                let id = $(this).data('id');
+                let mode = $(this).hasClass('viewTenantCompanyBtn') ? 'view' : 'edit';
+
+                showLoading();
+                $.get(`/tenancy/organization/tenant-companies/${id}/edit`, function(d) {
+                    hideLoading();
+                    openTenantCompanyModal(mode, d);
+                }).fail(function(xhr) {
+                    hideLoading();
+                    toastError('Gagal mengambil data tenant company');
+                    console.error(xhr.responseText);
+                });
+            });
+
+            $('#tenantCompanyForm').submit(function(e) {
+                e.preventDefault();
+                let id = $('#tc_id').val();
+                let url = id ? `/tenancy/organization/tenant-companies/${id}` : "{{ route('tenancy.organization.tenant-companies.store') }}";
+                let formData = new FormData(document.getElementById('tenantCompanyForm'));
+                if (id) formData.append('_method', 'PUT');
+
+                showLoading();
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        tsCloseModal('tenantCompanyModal');
+                        tenantCompanyTable.ajax.reload(null, false);
+                        toastSuccess('Tenant company saved successfully');
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        toastError(xhr.responseJSON?.message || 'Gagal menyimpan tenant company');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $(document).on('change', '.toggleTenantCompanyStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+                $.ajax({
+                    url: `/tenancy/organization/tenant-companies/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { status: newStatus },
+                    success: function() { tenantCompanyTable.ajax.reload(null, false); }
+                });
+            });
+
+            // Site filter on the Tenant tab (admin only)
+            if ($('#filterTenantSite').length) {
+                $.get("{{ route('tenancy.master.sites.options') }}", function(res) {
+                    $('#filterTenantSite').append((res.data || []).map(s => `<option value="${$('<div>').text(s.siteid).html()}">${$('<div>').text(s.sitename).html()}</option>`).join(''));
+                });
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    if (settings.nTable.id !== 'tenantsTable') return true;
+                    let site = $('#filterTenantSite').val();
+                    if (!site) return true;
+                    return (tenantTable.row(dataIndex).data() || {}).siteid === site;
+                });
+                $('#filterTenantSite').on('change', function() { tenantTable.draw(); });
+            }
+
+
+            /* =========================================================
+             * FILTERS: Status on every tab; Company / Site where the data has them
+             * ========================================================= */
+            (function() {
+                const selCls = 'h-10 rounded-lg border border-gray-200 bg-white px-3 pr-8 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-200';
+                const escH = v => $('<div>').text(v == null ? '' : v).html();
+
+                let sites = [], companies = [], siteCompany = {};
+
+                // companyOf(siteid) -> company id, siteOf(row) -> site id
+                function build() {
+                    const specs = [
+                        { tab: 'company',       table: companyTable,       tableId: 'companiesTable',       status: true },
+                        { tab: 'site',          table: siteTable,          tableId: 'sitesTable',           status: true, company: r => r.companyid },
+                        { tab: 'department',    table: departmentTable,    tableId: 'departmentsTable',     status: true, site: r => r.siteid },
+                        { tab: 'location',      table: locationTable,      tableId: 'locationsTable',       status: true, site: r => r.siteid },
+                        { tab: 'floor',         table: floorTable,         tableId: 'floorsTable',          status: true },
+                        { tab: 'tenantcompany', table: tenantCompanyTable, tableId: 'tenantCompaniesTable', status: true },
+                        { tab: 'tenant',        table: tenantTable,        tableId: 'tenantsTable',         status: false, site: r => r.siteid },
+                    ];
+
+                    specs.forEach(function(sp) {
+                        let $panel = $(`[x-show="activeTab === '${sp.tab}'"]`).first();
+                        let $header = $panel.children().first();
+                        let $box = $header.find('.ml-auto').first();
+                        if (!$box.length) {
+                            $box = $('<div class="ml-auto flex flex-wrap items-center gap-2"></div>');
+                            $header.find('button').first().before($box);
+                        }
+
+                        // a table with a site also filters by that site's company
+                        let companyOf = sp.company || (sp.site ? (r => siteCompany[sp.site(r)]) : null);
+                        let hasSite = !!sp.site;
+                        let ids = {
+                            company: 'fCompany_' + sp.tab, site: 'fSite_' + sp.tab, status: 'fStatus_' + sp.tab,
+                        };
+
+                        let html = '';
+                        if (companyOf) {
+                            html += `<select id="${ids.company}" class="${selCls}" title="Filter by company"><option value="">All Companies</option>` +
+                                companies.map(c => `<option value="${escH(c.id)}">${escH(c.companyname)}</option>`).join('') + '</select>';
+                        }
+                        // tenant already ships its own admin Site filter (#filterTenantSite)
+                        if (hasSite && sp.tab !== 'tenant') {
+                            html += `<select id="${ids.site}" class="${selCls}" title="Filter by site"><option value="">All Sites</option></select>`;
+                        }
+                        if (sp.status) {
+                            html += `<select id="${ids.status}" class="${selCls}" title="Filter by status"><option value="">All Status</option><option value="A">Active</option><option value="X">Inactive</option></select>`;
+                        }
+                        $box.prepend(html);
+
+                        const siteSelId = sp.tab === 'tenant' ? '#filterTenantSite' : '#' + ids.site;
+
+                        function fillSites() {
+                            if (!hasSite) return;
+                            let comp = $('#' + ids.company).val(), cur = $(siteSelId).val();
+                            let list = sites.filter(s => !comp || String(s.companyid) === String(comp));
+                            $(siteSelId).html('<option value="">All Sites</option>' + list.map(s => `<option value="${escH(s.siteid)}">${escH(s.sitename)}</option>`).join(''))
+                                .val(list.some(s => s.siteid === cur) ? cur : '');
+                        }
+                        fillSites();
+
+                        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                            if (settings.nTable.id !== sp.tableId) return true;
+                            let row = sp.table.row(dataIndex).data() || {};
+                            let comp = $('#' + ids.company).val();
+                            if (comp && String(companyOf(row)) !== String(comp)) return false;
+                            if (hasSite) {
+                                let site = $(siteSelId).val();
+                                if (site && sp.site(row) !== site) return false;
+                            }
+                            let st = $('#' + ids.status).val();
+                            if (st && row.status !== st) return false;
+                            return true;
+                        });
+
+                        $box.on('change', 'select', function() {
+                            if (this.id === ids.company) fillSites();
+                            sp.table.draw();
+                        });
+                    });
+                }
+
+                $.when(
+                    $.get("{{ route('tenancy.organization.sites.json') }}"),
+                    $.get("{{ route('tenancy.organization.companies.json') }}")
+                ).done(function(s, c) {
+                    sites = (s[0].data || []).map(x => ({ siteid: x.siteid, sitename: x.sitename, companyid: x.companyid }));
+                    companies = (c[0].data || []).map(x => ({ id: x.id, companyname: x.companyname }));
+                    sites.forEach(x => siteCompany[x.siteid] = x.companyid);
+                    build();
+                });
+            })();
 
         });
     </script>

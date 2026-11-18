@@ -1086,7 +1086,8 @@
                     [10, 25, 50, 100, 250, 'All']
                 ],
 
-                scrollX: true, // ✅ supaya tabel bisa scroll horizontal
+                // scrollX dimatikan: bentrok dengan responsive (menimbulkan baris header kedua)
+                // scrollX: true,
                 // responsive: false, // ✅ disable responsive
 
                 responsive: {
