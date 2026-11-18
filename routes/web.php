@@ -241,6 +241,7 @@ Route::get('/my-page/forgot-password', [App\Http\Controllers\MyPageController::c
 Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
 // Public (signed) page behind the QR code printed on a SIK permit; no login so the security gate can scan it.
 Route::get('/verify/tenant-sik/{eid}', [App\Http\Controllers\TenantSupportController::class, 'sikVerify'])->middleware('signed')->name('tenantsupport.sik.verify');
+Route::get('/verify/tenant-simkb/{eid}', [App\Http\Controllers\TenantSupportSimkbController::class, 'simkbVerify'])->middleware('signed')->name('tenantsupport.simkb.verify');
 Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
 Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
 Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
@@ -1689,6 +1690,10 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/tenant-support/master', [TenantSupportController::class, 'master'])->name('tenantsupport.master');
+        Route::get('/tenant-support/checker', [App\Http\Controllers\TenantSupportCheckerController::class, 'index'])->name('tenantsupport.checker');
+        Route::get('/tenant-support/checker/list', [App\Http\Controllers\TenantSupportCheckerController::class, 'listing'])->name('tenantsupport.checker.list');
+        Route::post('/tenant-support/checker/lookup', [App\Http\Controllers\TenantSupportCheckerController::class, 'lookup'])->name('tenantsupport.checker.lookup');
+        Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
         Route::get('/tenant-support/sik/export', [TenantSupportController::class, 'sikExport'])->name('tenantsupport.sik.export');
@@ -1705,6 +1710,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tenant-support/simkb/data', [TenantSupportSimkbController::class, 'simkbJson'])->name('tenantsupport.simkb.data');
         Route::get('/tenant-support/simkb/export', [TenantSupportSimkbController::class, 'simkbExport'])->name('tenantsupport.simkb.export');
         Route::get('/tenant-support/simkb/attachment/{aeid}', [TenantSupportSimkbController::class, 'simkbAttachment'])->name('tenantsupport.simkb.attachment');
+        Route::get('/tenant-support/simkb/{eid}/permit', [TenantSupportSimkbController::class, 'simkbPermit'])->name('tenantsupport.simkb.permit');
         Route::get('/tenant-support/simkb/{eid}/print',[TenantSupportSimkbController::class, 'simkbPrint'])->name('tenantsupport.simkb.print');
         Route::post('/tenant-support/simkb/{eid}/action', [TenantSupportSimkbController::class, 'simkbAction'])->name('tenantsupport.simkb.action');
         Route::get('/tenant-support/simkb/{eid}/approver-options', [TenantSupportSimkbController::class, 'simkbApproverOptions'])->name('tenantsupport.simkb.approver-options');

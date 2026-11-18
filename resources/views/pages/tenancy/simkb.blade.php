@@ -82,13 +82,17 @@
                                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">SIMKB information &amp; approval workflow.</p>
                             </div>
                             <div class="flex items-center gap-2">
-                                {{-- Two PDFs per SIMKB: the document detail --}}
+                                {{-- Two PDFs per SIMKB: the permit (Surat Ijin Masuk Barang) and the document detail --}}
                                 <div class="relative" x-data="{ pdfMenu: false }" @click.outside="pdfMenu = false" @keydown.escape.stop="pdfMenu = false">
                                     <button type="button" @click="pdfMenu = !pdfMenu" title="Print PDF"
                                         class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                                         <i class="fa-solid fa-print text-base"></i><i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </button>
                                     <div x-show="pdfMenu" x-cloak x-transition class="absolute right-0 top-12 z-40 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#0f172a]">
+                                        <a :href="permitUrl()" target="_blank" @click="pdfMenu = false" class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5">
+                                            <i class="fa-solid fa-file-signature mt-0.5 text-indigo-500"></i>
+                                            <span><span class="block text-sm font-semibold text-slate-700 dark:text-slate-200">SIMKB Permit</span><span class="block text-xs text-slate-400">Surat Ijin Masuk Barang with signatures &amp; QR</span></span>
+                                        </a>
                                         <a :href="printUrl()" target="_blank" @click="pdfMenu = false" class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5">
                                             <i class="fa-solid fa-file-lines mt-0.5 text-slate-500"></i>
                                             <span><span class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Document Detail</span><span class="block text-xs text-slate-400">Full record, approvals &amp; attachments</span></span>
@@ -336,6 +340,7 @@
                 R: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
                 X: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
                 H: 'bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 border-amber-600/40',
+                E: 'bg-sky-200/60 text-sky-800 dark:bg-sky-300/40 dark:text-sky-900 border-sky-600/40',
             };
             const cols = ['simkbnbr', 'simkbdate', 'sitename', 'storename', 'requestname', 'startdate', 'created_user', 'status'];
             let dt = null;
@@ -430,6 +435,7 @@
                     catch (e) { window.prompt('Copy this link:', `${this.listUrl}/${this.eid}`); }
                 },
                 printUrl() { return `{{ url('/tenant-support/simkb') }}/${this.eid}/print`; },
+                permitUrl() { return `{{ url('/tenant-support/simkb') }}/${this.eid}/permit`; },
                 async post(path, body) {
                     const isForm = body instanceof FormData;
                     const r = await fetch(`{{ url('/tenant-support/simkb') }}/${this.eid}/${path}`, {
@@ -453,7 +459,7 @@
                         confirmButtonColor: cfg.color, cancelButtonColor: '#94a3b8', reverseButtons: true,
                         showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
                         preConfirm: async (val) => {
-                            try { return await this.post('action', { action: mode, notes: (val || '').trim() }); }
+                            try { return await this.post('action', { action: mode, notes: typeof val === 'string' ? val.trim() : '' }); }
                             catch (e) { Swal.showValidationMessage(e.message); return false; }
                         },
                     };
@@ -638,7 +644,7 @@
                 badge(s) { return badgeCls[s] || 'bg-gray-100 text-gray-600'; },
                 // same tint as the VPL view modal's status badge
                 modalBadge(s) {
-                    return { P: 'bg-yellow-300/30 text-yellow-600', C: 'bg-green-300/30 text-green-600', R: 'bg-red-300/30 text-red-600', X: 'bg-red-300/30 text-red-600', H: 'bg-blue-300/30 text-blue-600' }[s] || 'bg-slate-300/30 text-slate-600';
+                    return { P: 'bg-yellow-300/30 text-yellow-600', C: 'bg-green-300/30 text-green-600', R: 'bg-red-300/30 text-red-600', X: 'bg-red-300/30 text-red-600', H: 'bg-blue-300/30 text-blue-600', E: 'bg-sky-300/30 text-sky-600' }[s] || 'bg-slate-300/30 text-slate-600';
                 },
                 // grouped facts, each [label, value, icon]
                 infoGroups(d) {

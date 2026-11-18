@@ -59,3 +59,30 @@ WHERE NOT EXISTS (SELECT 1 FROM sys_user_role x WHERE x.username='bedriamaail' A
 -- Existing rows: make children visible in the sidebar
 UPDATE sys_menu SET menu_route = CASE menu_id WHEN 'TSMASTERDATA' THEN 'tenantsupport.master' WHEN 'TSSIKREQUEST' THEN 'tenantsupport.sik' WHEN 'TSSIKMBREQUEST' THEN 'tenantsupport.sikmb' END
 WHERE application_id='TENANTSUPPORTAPP' AND menu_id IN ('TSMASTERDATA','TSSIKREQUEST','TSSIKMBREQUEST') AND menu_route IS NULL;
+
+-- Checker TS: role ACCESSCHECKERTS (Access Checker TR), menu TSCHECKER under Tenancy Support, assigned to bedriamaail
+INSERT INTO sys_role (role_id, role_name, status, created_by, created_at)
+SELECT 'ACCESSCHECKERTS', 'Access Checker TR', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_role WHERE role_id = 'ACCESSCHECKERTS');
+
+INSERT INTO sys_screen (screen_id, screen_name, application_id, status, created_by, created_at)
+SELECT 'TSCHECKER', 'Tenancy Support - Checker TS', 'TENANTSUPPORTAPP', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_screen WHERE screen_id = 'TSCHECKER' AND application_id = 'TENANTSUPPORTAPP');
+
+INSERT INTO sys_menu (menu_id, parent_menu_id, menu_name, menu_route, menu_icon, menu_sort_order, screen_id, application_id, status, created_by, created_at)
+SELECT 'TSCHECKER', 'TENANTSUPPORT', 'Checker TS', 'tenantsupport.checker',
+       'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 4, 'TSCHECKER', 'TENANTSUPPORTAPP', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_menu WHERE menu_id = 'TSCHECKER' AND application_id = 'TENANTSUPPORTAPP');
+
+INSERT INTO sys_role_menu (role_id, menu_id, parent_menu_id, status, created_by, created_at)
+SELECT 'ACCESSCHECKERTS', 'TSCHECKER', 'TENANTSUPPORT', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_role_menu WHERE role_id = 'ACCESSCHECKERTS' AND menu_id = 'TSCHECKER');
+
+INSERT INTO sys_access_right (role_id, screen_id, application_id, access_name, access_right, status, created_by, created_at)
+SELECT 'ACCESSCHECKERTS', 'TSCHECKER', 'TENANTSUPPORTAPP', a.access_name, true, 'A', 'system', now()
+FROM (VALUES ('VIEW'),('CREATE'),('EDIT'),('DELETE')) AS a(access_name)
+WHERE NOT EXISTS (SELECT 1 FROM sys_access_right x WHERE x.role_id='ACCESSCHECKERTS' AND x.screen_id='TSCHECKER' AND x.access_name=a.access_name);
+
+INSERT INTO sys_user_role (username, role_id, status, created_by, created_at)
+SELECT 'bedriamaail', 'ACCESSCHECKERTS', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_user_role WHERE username='bedriamaail' AND role_id='ACCESSCHECKERTS');

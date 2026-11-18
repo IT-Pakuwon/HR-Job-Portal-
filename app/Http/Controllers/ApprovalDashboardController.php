@@ -112,6 +112,107 @@ class ApprovalDashboardController extends Controller
      */
     private function getApprovalCollection(Request $request, string $status): Collection
     {
+        // tr_approval (pgsql2) + the Tenant Support SIK/SIMKB lines in trapproval (mysql5 / db_tenancy)
+        return $this->getPgApprovalCollection($request, $status)
+            ->concat($this->getTenancyApprovals($request, $status))
+            ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
+            ->values();
+    }
+
+    /**
+     * SIK / SIMKB approvals live in the Tenancy schema (connection mysql5, table trapproval), not in tr_approval.
+     * Same rules the Tenant Support screens use: a pending step is accesstype=Approve, progressapproval=1,
+     * aprvresult=P on an active (status A) line; an approved step is progressapproval=2, aprvresult=A.
+     * The username column can hold a comma-separated list, hence FIND_IN_SET.
+     */
+    private function getTenancyApprovals(Request $request, string $status): Collection
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return collect();
+        }
+
+        $doctype = strtoupper(trim((string) $request->get('doctype', '')));
+
+        if ($doctype === 'ALL') {
+            $doctype = '';
+        }
+
+        $username = strtolower(trim((string) $user->username));
+        $out = collect();
+
+        $sources = [
+            'SIK' => ['trsik', 'siknbr', '/tenant-support/sik'],
+            'SIMKB' => ['trsimkb', 'simkbnbr', '/tenant-support/simkb'],
+        ];
+
+        // msdepartment has one row per doctype/site; collapse to one name per department+site
+        $deptNames = DB::connection('mysql5')->table('msdepartment')
+            ->selectRaw('departmentid, siteid, min(departmentname) as departmentname')
+            ->groupBy('departmentid', 'siteid');
+
+        foreach ($sources as $type => [$docTable, $nbrCol, $url]) {
+            if ($doctype !== '' && $doctype !== $type) {
+                continue;
+            }
+
+            try {
+                $q = DB::connection('mysql5')
+                    ->table('trapproval as t')
+                    ->join("{$docTable} as d", function ($j) use ($nbrCol) {
+                        $j->on("d.{$nbrCol}", '=', 't.refnbr')->on('d.siteid', '=', 't.siteid');
+                    })
+                    ->leftJoin('mscompany as c', 'c.id', '=', 'd.companyid')
+                    ->leftJoin('mstenant as tn', 'tn.id', '=', 'd.tenantid')
+                    ->leftJoinSub($deptNames, 'dp', function ($j) {
+                        $j->on('dp.departmentid', '=', 'd.departmentid')->on('dp.siteid', '=', 'd.siteid');
+                    })
+                    ->where('t.doctype', $type)
+                    ->where('t.accesstype', 'Approve')
+                    ->where('t.status', 'A')
+                    ->whereRaw("FIND_IN_SET(?, REPLACE(t.username, ' ', '')) > 0", [$username]);
+
+                if ($status === 'P') {
+                    $q->where('t.progressapproval', 1)->where('t.aprvresult', 'P');
+                } else {
+                    $q->where('t.progressapproval', 2)->where('t.aprvresult', 'A');
+                }
+
+                $rows = $q->select([
+                    'd.id', "d.{$nbrCol} as docid", 'd.companyid', 'c.companyname', 'd.departmentid', 'dp.departmentname', 'tn.storename',
+                    'd.requestname', 'd.workdescription', 't.aprvdatebefore', 't.aprvdateafter',
+                ])->get();
+            } catch (\Throwable $e) {
+                Log::warning('approvalDashboard tenancy fetch failed', ['type' => $type, 'err' => $e->getMessage()]);
+
+                continue;
+            }
+
+            foreach ($rows as $r) {
+                $info = trim((string) $r->requestname);
+                $desc = trim(preg_replace('/\s+/', ' ', (string) $r->workdescription));
+
+                $out->push([
+                    'hid' => Hashids::encode($r->id),
+                    'docid' => $r->docid,
+                    'docdate' => $status === 'P' ? $r->aprvdatebefore : $r->aprvdateafter,
+                    'cpnyid' => trim((string) ($r->companyname ?: $r->companyid)),
+                    'departementid' => trim((($r->departmentname ?: $r->departmentid).' - '.trim((string) $r->storename)), ' -'),
+                    'infohd' => trim($info.($desc !== '' ? ' - '.mb_strimwidth($desc, 0, 120, '…') : ''), ' -'),
+                    'url' => $url,
+                    'query' => null,
+                    'status' => $status,
+                ]);
+            }
+        }
+
+        // one document may match several lines of the same user (e.g. extra approver levels)
+        return $out->unique(fn ($r) => $r['docid'])->values();
+    }
+
+    private function getPgApprovalCollection(Request $request, string $status): Collection
+    {
         $user = $request->user();
 
         if (!$user) {

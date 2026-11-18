@@ -30,7 +30,7 @@ class TenantSupportController extends Controller
     }
 
     /** SIK status letters in trsik.status */
-    private const SIK_STATUS = ['P' => 'On Progress', 'C' => 'Completed', 'H' => 'Hold / Revise', 'R' => 'Rejected', 'X' => 'Cancelled'];
+    private const SIK_STATUS = ['P' => 'On Progress', 'C' => 'Completed', 'H' => 'Hold / Revise', 'E' => 'Extend Pending', 'R' => 'Rejected', 'X' => 'Cancelled'];
 
     private function authorizeSik(): void
     {
@@ -365,6 +365,7 @@ class TenantSupportController extends Controller
             'floorUnit'       => collect([$sik->storename, $sik->floor, $sik->unit])->filter()->implode(' / '),
             'verifyUrl'       => $verifyUrl,
             'qrSvg'           => $qrSvg,
+            'checkLog'        => TenantSupportCheckerController::permitLog('SIK', $sik->id),
         ])->setPaper('a4')->stream("SIK-{$sik->siknbr}.pdf");
     }
 

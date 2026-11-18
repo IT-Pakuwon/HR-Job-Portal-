@@ -268,7 +268,11 @@
             </tr>
         </table>
 
-        <div class="checkbox">Check In / Out Posko FCC :</div>
+        <div class="checkbox">Check In / Out Posko FCC :
+            @foreach (($checkLog ?? []) as $cl)
+                <span style="font-weight: normal; margin-left: 10px;">{{ $cl->action === 'IN' ? 'In' : 'Out' }} {{ \Illuminate\Support\Carbon::parse($cl->checked_at)->format('d/m/Y H:i') }} ({{ $cl->checked_by }})</span>
+            @endforeach
+        </div>
     </div>
 </body>
 </html>

@@ -340,6 +340,7 @@
                 R: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
                 X: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
                 H: 'bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 border-amber-600/40',
+                E: 'bg-sky-200/60 text-sky-800 dark:bg-sky-300/40 dark:text-sky-900 border-sky-600/40',
             };
             const cols = ['siknbr', 'sikdate', 'sitename', 'storename', 'requestname', 'startdate', 'created_user', 'status'];
             let dt = null;
@@ -458,7 +459,7 @@
                         confirmButtonColor: cfg.color, cancelButtonColor: '#94a3b8', reverseButtons: true,
                         showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
                         preConfirm: async (val) => {
-                            try { return await this.post('action', { action: mode, notes: (val || '').trim() }); }
+                            try { return await this.post('action', { action: mode, notes: typeof val === 'string' ? val.trim() : '' }); }
                             catch (e) { Swal.showValidationMessage(e.message); return false; }
                         },
                     };
@@ -643,7 +644,7 @@
                 badge(s) { return badgeCls[s] || 'bg-gray-100 text-gray-600'; },
                 // same tint as the VPL view modal's status badge
                 modalBadge(s) {
-                    return { P: 'bg-yellow-300/30 text-yellow-600', C: 'bg-green-300/30 text-green-600', R: 'bg-red-300/30 text-red-600', X: 'bg-red-300/30 text-red-600', H: 'bg-blue-300/30 text-blue-600' }[s] || 'bg-slate-300/30 text-slate-600';
+                    return { P: 'bg-yellow-300/30 text-yellow-600', C: 'bg-green-300/30 text-green-600', R: 'bg-red-300/30 text-red-600', X: 'bg-red-300/30 text-red-600', H: 'bg-blue-300/30 text-blue-600', E: 'bg-sky-300/30 text-sky-600' }[s] || 'bg-slate-300/30 text-slate-600';
                 },
                 // grouped facts, each [label, value, icon]
                 infoGroups(d) {

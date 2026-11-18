@@ -18,7 +18,7 @@ class TenantSupportSimkbController extends Controller
     use UploadsToGcs;
 
     /** SIMKB status letters in trsimkb.status */
-    private const SIMKB_STATUS = ['P' => 'On Progress', 'C' => 'Completed', 'H' => 'Hold / Revise', 'R' => 'Rejected', 'X' => 'Cancelled'];
+    private const SIMKB_STATUS = ['P' => 'On Progress', 'C' => 'Completed', 'H' => 'Hold / Revise', 'E' => 'Extend Pending', 'R' => 'Rejected', 'X' => 'Cancelled'];
 
     private function authorizeSimkb(): void
     {
@@ -304,6 +304,61 @@ class TenantSupportSimkbController extends Controller
         $simkb->status_label = self::SIMKB_STATUS[$simkb->status] ?? $simkb->status;
 
         return response()->json(['data' => $simkb, 'can' => $can] + $payload);
+    }
+
+    /** SIMKB Permit (Surat Ijin Masuk Barang) with signatures and a QR to the public verify page; ported from WPS SimkbController::print. */
+    public function simkbPermit(string $eid)
+    {
+        $this->authorizeSimkb();
+        $simkb = $this->simkbFindOrFail($eid);
+        $db    = $this->simkbDb();
+
+        // the view has no workdescription_keluar column
+        $simkb->workdescription_keluar = $db->table('trsimkb')->where('id', $simkb->id)->value('workdescription_keluar');
+
+        // Live approval steps only (cancelled "L" rows and rounds voided by a revise are left out).
+        $trail = $db->table('trapproval')->where('doctype', 'SIMKB')->where('refnbr', $simkb->simkbnbr)->where('siteid', $simkb->siteid)
+            ->where('status', 'A')->where('progressapproval', '!=', 3)->orderBy('nomor')->get();
+
+        $verifyUrl = URL::signedRoute('tenantsupport.simkb.verify', ['eid' => $eid]);
+        $qrSvg = (new \BaconQrCode\Writer(new \BaconQrCode\Renderer\ImageRenderer(
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(120, 0), new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        )))->writeString($verifyUrl);
+
+        $notes = $db->table('msprintnote')->where('doctype', 'SIMKB')->where('siteid', $simkb->siteid)
+            ->whereIn('departmentid', ['ALL', $simkb->departmentid])->where('status', 'A')->orderBy('nomor')->get();
+
+        $usernames = $trail->pluck('username')->flatMap(fn ($u) => explode(',', (string) $u))
+            ->merge($trail->pluck('lastupdate_user'))->push($simkb->created_user)
+            ->map(fn ($u) => trim((string) $u))->filter()->unique()->values()->all();
+
+        $gateName = $db->table('msentranceexitgate')->where('doctype', 'SIMKB')->where('siteid', $simkb->siteid)
+            ->where('entranceexitgateid', $simkb->gateid)->value('entranceexitgate');
+
+        return Pdf::loadView('pages.tenancy.pdf.simkb-permit', [
+            'simkb'           => $simkb,
+            'trail'           => $trail,
+            'site'            => $db->table('mssite')->where('siteid', $simkb->siteid)->first(),
+            'notes'           => $notes,
+            'workHourNote'    => $db->table('msworkhour')->where('doctype', 'SIMKB')->where('siteid', $simkb->siteid)->where('workhour', $simkb->workhour)->value('workhournote'),
+            'gateName'        => $gateName ?: ($simkb->entranceexitgate ?: $simkb->gateid),
+            'users'           => $db->table('user')->whereIn('username', $usernames)->get(['username', 'name', 'departmentid'])->keyBy('username'),
+            'departmentNames' => $db->table('msdepartment')->where('siteid', $simkb->siteid)->pluck('departmentname', 'departmentid'),
+            'floorUnit'       => collect([$simkb->storename, $simkb->floor, $simkb->unit])->filter()->implode(' / '),
+            'verifyUrl'       => $verifyUrl,
+            'qrSvg'           => $qrSvg,
+            'checkLog'        => TenantSupportCheckerController::permitLog('SIMKB', $simkb->id),
+        ])->setPaper('a4')->stream("SIMKB-{$simkb->simkbnbr}.pdf");
+    }
+
+    /** Public page behind the permit's QR code (signed link, no login). */
+    public function simkbVerify(string $eid)
+    {
+        $id    = Hashids::decode($eid)[0] ?? null;
+        $simkb = $id ? $this->simkbQuery()->where('s.id', $id)->first() : null;
+        abort_unless($simkb, 404);
+
+        return view('pages.tenancy.verify-simkb', ['simkb' => $simkb, 'statusLabel' => self::SIMKB_STATUS[$simkb->status] ?? $simkb->status]);
     }
 
     /** PDF of one SIMKB (same data as the detail popup). */
