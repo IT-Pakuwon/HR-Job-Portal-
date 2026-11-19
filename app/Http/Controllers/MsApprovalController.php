@@ -70,7 +70,9 @@ class MsApprovalController extends Controller
             ->orderBy('department_id')
             ->get();
 
-        $users = User::select('username', 'name')
+        // Inactive users are still returned so existing lines keep showing them;
+        // the view drops them from the picker unless already selected on that line.
+        $users = User::select('username', 'name', 'status')
             ->when($this->isRestrictedAdmin(), fn($q) => $q->where('group_cpny_id', 'SBY'))
             ->orderBy('username')
             ->get();

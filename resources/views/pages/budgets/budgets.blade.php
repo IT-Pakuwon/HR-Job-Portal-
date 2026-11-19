@@ -148,7 +148,7 @@
 
             </div>
 
-            <div class="relative overflow-x-auto">
+            <div class="relative overflow-x-hidden">
                 <table id="budgetsTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm rtl:text-right">
                     <thead>
                         <tr
