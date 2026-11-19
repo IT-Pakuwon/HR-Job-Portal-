@@ -679,7 +679,7 @@
     <select id="usernameOptionsTemplate" class="hidden">
         <option value="">choose </option>
         @foreach ($users as $u)
-            <option value="{{ $u->username }}">{{ $u->name }}</option>
+            <option value="{{ $u->username }}" @if ($u->status !== 'A') data-inactive="1" @endif>{{ $u->name }}</option>
         @endforeach
     </select>
 
@@ -1488,6 +1488,15 @@
                     const optionsHtml = $('#usernameOptionsTemplate').html();
                     const $usernameSelect = $row.find('.sel-username');
                     $usernameSelect.html(optionsHtml);
+
+                    // Only ACTIVE users are selectable; keep an inactive one only if already on this line
+                    let keepUsers = (data && data.aprv_username) ? data.aprv_username : [];
+                    if (typeof keepUsers === 'string') {
+                        keepUsers = keepUsers.split(',').map(s => s.trim()).filter(Boolean);
+                    }
+                    $usernameSelect.find('option[data-inactive]').filter(function() {
+                        return !keepUsers.includes(this.value);
+                    }).remove();
 
                     const select2Opts = {
                         width: '100%'
@@ -2401,6 +2410,14 @@
                 const $usernameSelect = $row.find('.sel-username');
 
                 $usernameSelect.html(optionsHtml);
+
+                let gbKeepUsers = (data && data.aprv_username) ? data.aprv_username : [];
+                if (typeof gbKeepUsers === 'string') {
+                    gbKeepUsers = gbKeepUsers.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                $usernameSelect.find('option[data-inactive]').filter(function() {
+                    return !gbKeepUsers.includes(this.value);
+                }).remove();
 
                 $usernameSelect.select2({
                     width: '100%',

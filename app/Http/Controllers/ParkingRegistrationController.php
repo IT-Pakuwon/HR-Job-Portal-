@@ -3295,11 +3295,11 @@ class ParkingRegistrationController extends Controller
             ], 403);
         }
 
-        // Optional: hanya status D/P yang boleh dicancel
-        if (!in_array($parking->status, ['D', 'P'], true)) {
+        // Hanya status H (Draft) / D (Revise) / P (On Progress) yang boleh dicancel
+        if (!in_array($parking->status, ['H', 'D', 'P'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only Revise / On Progress document can be cancelled.',
+                'message' => 'Only Draft / Revise / On Progress document can be cancelled.',
             ], 403);
         }
 
