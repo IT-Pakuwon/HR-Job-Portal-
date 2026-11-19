@@ -113,7 +113,7 @@
 
             </div>
 
-            <div class="relative overflow-x-auto p-4">
+            <div class="relative overflow-x-hidden p-4">
                 <table id="carExpenseTable" class="w-full text-left text-sm">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">

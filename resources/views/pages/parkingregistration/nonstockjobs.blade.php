@@ -324,7 +324,7 @@
                     IRID: <span id="pick_irid" class="font-semibold text-gray-700 dark:text-white">-</span>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-hidden">
                     <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">

@@ -185,6 +185,11 @@ class UsersController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $talentaByNpk = $this->talentaStatusByNpk();
+        $users->each(function ($u) use ($talentaByNpk) {
+            $u->talenta_status = $u->npk ? ($talentaByNpk->get($u->npk)->status_talenta ?? null) : null;
+        });
+
         return response()->json(['data' => $users]);
     }
 
@@ -248,7 +253,10 @@ class UsersController extends Controller
             ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
             ->get();
 
-        $users = $users->map(function ($u) use ($emailKeys, $usernameKeys, $npkKeys) {
+        $talentaByNpk = $this->talentaStatusByNpk();
+
+        $users = $users->map(function ($u) use ($emailKeys, $usernameKeys, $npkKeys, $talentaByNpk) {
+            $u->talenta_status = $u->npk ? ($talentaByNpk->get($u->npk)->status_talenta ?? null) : null;
             $emailKey = $u->email ? mb_strtolower(trim($u->email)) : null;
             $usernameKey = $u->username ? mb_strtolower(trim($u->username)) : null;
 

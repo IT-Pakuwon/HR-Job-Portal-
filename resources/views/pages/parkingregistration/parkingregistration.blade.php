@@ -273,7 +273,7 @@
             </div>
 
 
-            <div class="relative mt-4 overflow-x-auto">
+            <div class="relative mt-4 overflow-x-hidden">
                 <table id="parkingRegistrationTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm">
                     <thead id="parkingRegistrationThead"
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">

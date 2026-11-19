@@ -310,7 +310,7 @@
         }
         function renderApprovalTable(steps) {
             return `
-            <div class="w-full overflow-x-auto">
+            <div class="w-full overflow-x-hidden">
                 <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden dark:border-gray-700">
                     <thead class="bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                         <tr>
