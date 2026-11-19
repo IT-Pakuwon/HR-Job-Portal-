@@ -3173,6 +3173,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
         Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
         Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/{hash}/attachment/{attachment}', [EvaluasiVendorController::class, 'attachmentEvaluasi'])->whereNumber('attachment')->name('.attachment')->middleware('access:EVALVENDOR,VIEW');
         Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
         Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit')->middleware('access:EVALVENDOR,EDIT');
         Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');

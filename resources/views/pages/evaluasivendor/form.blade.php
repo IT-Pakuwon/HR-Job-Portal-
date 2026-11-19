@@ -44,12 +44,13 @@
                         <colgroup>
                             <col style="width:17%">
                             <col style="width:5%">
-                            <col style="width:32%">
-                            <col style="width:12%">
+                            <col style="width:29%">
+                            <col style="width:10%">
                             <col style="width:8%">
-                            <col style="width:26%">
+                            <col style="width:23%">
+                            <col style="width:8%">
                         </colgroup>
-                        <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-800"><tr><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th></tr></thead>
+                        <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-800"><tr><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th><th class="p-3">Attachment</th></tr></thead>
                         <tbody id="rating-body"></tbody>
                     </table></div>
                     <div class="flex items-center justify-between gap-4 border-t bg-indigo-50 p-4 text-indigo-900">
@@ -78,6 +79,15 @@
         @endif
     </div>
     @include('pages.evaluasivendor.partials.score-guide')
+    <dialog id="kpi-attachment-dialog" aria-labelledby="kpi-attachment-title" class="w-full max-w-xl rounded-xl border-0 p-0 shadow-xl backdrop:bg-black/50">
+        <div class="space-y-4 p-5">
+            <div class="flex items-start justify-between gap-3"><div><h2 id="kpi-attachment-title" class="text-lg font-bold">Attachment KPI</h2><p id="kpi-attachment-aspect" class="mt-1 text-sm text-gray-500"></p></div><button type="button" id="kpi-attachment-close" aria-label="Tutup" class="text-xl text-gray-500">&times;</button></div>
+            <label class="block text-sm font-medium">Pilih file <input id="kpi-attachment-files" type="file" multiple class="mt-2 block w-full text-sm"></label>
+            <p class="text-xs text-gray-500">Maksimal 10 file baru per detail, masing-masing 10 MB. File disimpan saat submit.</p>
+            <ul id="kpi-attachment-list" class="max-h-64 space-y-2 overflow-y-auto text-sm"></ul>
+            <div class="flex justify-end"><button type="button" id="kpi-attachment-done" class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Selesai</button></div>
+        </div>
+    </dialog>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const editable = @json($editable);
@@ -86,6 +96,12 @@
             const oldNotes = @json(old('notes', []));
             const oldCriteria = @json(old('criteria', []));
             const recorded = @json($details);
+            const existingAttachments = @json($attachments ?? []);
+            const selectedFiles = new Map(), removedAttachments = new Set();
+            const attachmentDialog = document.getElementById('kpi-attachment-dialog');
+            const attachmentList = document.getElementById('kpi-attachment-list');
+            const attachmentInput = document.getElementById('kpi-attachment-files');
+            let activeAttachment = null;
             const escape = value => {const el = document.createElement('span'); el.textContent = value ?? ''; return el.innerHTML.replaceAll('"', '&quot;').replaceAll("'", '&#39;');};
             let scale = {}, requestNumber = 0;
             const body = document.getElementById('rating-body');
@@ -97,6 +113,11 @@
                 event.preventDefault();
                 if (submitting || !form.reportValidity() || !save || save.disabled) return;
                 const payload = new FormData(form);
+                const selectedTemplate = document.getElementById('template-select').value;
+                selectedFiles.forEach((files, key) => {
+                    if (key.startsWith(selectedTemplate + ':')) files.forEach(file => payload.append(`attachments[${key.slice(selectedTemplate.length + 1)}][]`, file));
+                });
+                removedAttachments.forEach(id => payload.append('remove_attachments[]', id));
                 submitting = true;
                 save.disabled = true;
                 const label = save.textContent;
@@ -155,7 +176,7 @@
                 details.forEach(detail => {
                     if (aspect !== detail.template_vpe_aspect_id) {
                         aspect = detail.template_vpe_aspect_id;
-                        body.insertAdjacentHTML('beforeend', `<tr class="bg-indigo-50 text-indigo-800"><th colspan="6" class="p-3">${escape(detail.template_vpe_aspect_descr)}</th></tr>`);
+                        body.insertAdjacentHTML('beforeend', `<tr class="bg-indigo-50 text-indigo-800"><th colspan="7" class="p-3">${escape(detail.template_vpe_aspect_descr)}</th></tr>`);
                     }
                     const id = detail.template_vpe_subaspect_id;
                     const selected = oldRatings[id] ?? detail.template_vpe_subaspect_score ?? '';
@@ -167,14 +188,55 @@
                         <td class="p-3"><textarea name="criteria[${escape(id)}]" rows="3" maxlength="10000" aria-label="Kriteria penilaian ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldCriteria[id] ?? detail.template_vpe_subaspect_kriteria)}</textarea></td>
                         <td class="p-3"><select class="rating-input rounded border-gray-300 text-sm dark:bg-gray-800" name="ratings[${escape(id)}]" data-aspect="${escape(detail.template_vpe_aspect_id)}" data-weight="${Number(detail.template_vpe_subaspect_bobot)}" required ${editable ? '' : 'disabled'}><option value="">—</option>${options}</select></td>
                         <td class="weighted-score p-3">${detail.template_vpe_subaspect_nilai ?? '—'}</td>
-                        <td class="p-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td></tr>`);
+                        <td class="p-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="w-full rounded border-gray-300 text-sm dark:bg-gray-800" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td>
+                        <td class="p-3"><button type="button" class="kpi-attachment-open rounded border border-indigo-200 px-3 py-2 text-indigo-700" data-subaspect="${escape(id)}" data-detail="${escape(detail.id ?? '')}" data-label="${escape(detail.template_vpe_subaspect_descr)}" aria-label="Attachment ${escape(detail.template_vpe_subaspect_descr)}">&#128206; <span class="kpi-attachment-count"></span></button></td></tr>`);
                 });
                 body.querySelectorAll('.rating-input').forEach(input => {
                     requiredMessage(input, 'Skor pada setiap subaspek wajib diisi.');
                     input.addEventListener('change', total);
                 });
+                updateAttachmentCounts();
                 if (editable) total();
             }
+            function updateAttachmentCounts() {
+                body.querySelectorAll('.kpi-attachment-open').forEach(button => {
+                    const key = document.getElementById('template-select').value + ':' + button.dataset.subaspect;
+                    const saved = (existingAttachments[button.dataset.detail] || []).filter(item => !removedAttachments.has(String(item.id))).length;
+                    button.querySelector('.kpi-attachment-count').textContent = saved + (selectedFiles.get(key) || []).length;
+                });
+            }
+            function renderAttachmentList() {
+                attachmentList.replaceChildren();
+                const saved = existingAttachments[activeAttachment.detail] || [];
+                const files = selectedFiles.get(activeAttachment.key) || [];
+                const addItem = (name, url, remove) => {
+                    const li = document.createElement('li'); li.className = 'flex items-center justify-between gap-3 rounded bg-gray-50 p-2';
+                    const label = document.createElement(url ? 'a' : 'span'); label.textContent = name; label.className = 'break-all';
+                    if (url) { label.href = url; label.target = '_blank'; label.rel = 'noopener noreferrer'; label.className += ' text-indigo-600'; }
+                    const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Hapus'; button.className = 'shrink-0 text-red-600';
+                    button.addEventListener('click', () => { remove(); renderAttachmentList(); updateAttachmentCounts(); });
+                    li.append(label, button); attachmentList.append(li);
+                };
+                saved.filter(item => !removedAttachments.has(String(item.id))).forEach(item => addItem(item.name, item.url, () => removedAttachments.add(String(item.id))));
+                files.forEach((file, index) => addItem(file.name, null, () => { files.splice(index, 1); selectedFiles.set(activeAttachment.key, files); }));
+                if (!attachmentList.children.length) { const empty = document.createElement('li'); empty.className = 'text-gray-500'; empty.textContent = 'Belum ada attachment.'; attachmentList.append(empty); }
+            }
+            body.addEventListener('click', event => {
+                const button = event.target.closest('.kpi-attachment-open'); if (!button) return;
+                activeAttachment = {key: document.getElementById('template-select').value + ':' + button.dataset.subaspect, detail: button.dataset.detail};
+                document.getElementById('kpi-attachment-aspect').textContent = button.dataset.label;
+                renderAttachmentList(); attachmentDialog.showModal();
+            });
+            attachmentInput.addEventListener('change', async () => {
+                const files = [...(selectedFiles.get(activeAttachment.key) || []), ...attachmentInput.files];
+                attachmentInput.value = '';
+                if (files.length > 10 || files.some(file => file.size > 10 * 1024 * 1024)) {
+                    await Swal.fire({icon: 'warning', text: 'Maksimal 10 file baru per detail, masing-masing 10 MB.'}); return;
+                }
+                selectedFiles.set(activeAttachment.key, files); renderAttachmentList(); updateAttachmentCounts();
+            });
+            document.getElementById('kpi-attachment-close').addEventListener('click', () => attachmentDialog.close());
+            document.getElementById('kpi-attachment-done').addEventListener('click', () => attachmentDialog.close());
             async function load(template, preserve) {
                 const current = ++requestNumber;
                 if (save) save.disabled = true;
