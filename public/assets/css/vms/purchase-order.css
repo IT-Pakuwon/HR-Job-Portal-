@@ -135,3 +135,33 @@
 #vms-order-modal.vms-invoice-modal .vms-order-summary dl>div:nth-child(7) dd,#vms-order-modal.vms-invoice-modal .vms-order-table a{color:var(--modal-accent)}
 #vms-order-modal.vms-invoice-modal .vms-vendor-card>header,#vms-order-modal.vms-invoice-modal .vms-order-table th{background:var(--modal-soft)}
 #vms-order-modal.vms-invoice-modal .vms-order-table th{color:var(--modal-accent)}
+
+/* Invoice document review buttons. */
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] .vms-invoice-actions button[data-invoice-action]{font-weight:600;transition:background-color .15s,border-color .15s,box-shadow .15s}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="approve"]{background:#e5f6ec;border-color:#a7ddbb;color:#17643a}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="approve"]:hover{background:#c9edd6;border-color:#6fc790}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="revise"]{background:#fff4db;border-color:#f2d08b;color:#805308}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="revise"]:hover{background:#ffe8b4;border-color:#dfb95c}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="reject"]{background:#ffebeb;border-color:#f2b4b4;color:#a52e37}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] button[data-invoice-action="reject"]:hover{background:#ffd5d5;border-color:#e58888}
+#vms-order-modal.vms-invoice-modal [data-invoice-panel="documents"] .vms-invoice-actions button[data-invoice-action]:focus-visible{outline:3px solid currentColor;outline-offset:2px}
+
+/* Invoice review status and confirmation. */
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;line-height:1.4;white-space:nowrap}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status--approved{background:#e5f6ec;color:#17643a}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status--waiting{background:#eaf1ff;color:#315eaa}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status--revised{background:#fff4db;color:#805308}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status--rejected{background:#ffebeb;color:#a52e37}
+#vms-order-modal.vms-invoice-modal .vms-invoice-review-status--unknown{background:#eef2f7;color:#536782}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.swal2-confirm,#vms-order-modal.vms-invoice-modal .swal2-actions button.swal2-cancel{color:#fff;border:0;font-weight:600}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.swal2-confirm:hover,#vms-order-modal.vms-invoice-modal .swal2-actions button.swal2-cancel:hover{filter:brightness(.9)}
+
+/* Ensure SweetAlert buttons contrast inside the invoice dialog. */
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm{background:#3967b2!important;color:#fff!important;border:0!important;opacity:1;font-weight:600}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--approve,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--final,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--receive,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--success{background:#187746!important}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--revise{background:#946000!important}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--reject,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--return,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm--error{background:#b8323d!important}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-cancel{background:#66758a!important;color:#fff!important;border:0!important;opacity:1;font-weight:600}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm:hover,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-cancel:hover{filter:brightness(.9)}
+#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-confirm:focus-visible,#vms-order-modal.vms-invoice-modal .swal2-actions button.vms-swal-cancel:focus-visible{outline:3px solid #8eade0;outline-offset:2px}
