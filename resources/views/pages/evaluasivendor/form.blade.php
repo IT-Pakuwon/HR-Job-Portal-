@@ -82,12 +82,22 @@
     <dialog id="kpi-attachment-dialog" aria-labelledby="kpi-attachment-title" class="w-full max-w-xl rounded-xl border-0 p-0 shadow-xl backdrop:bg-black/50">
         <div class="space-y-4 p-5">
             <div class="flex items-start justify-between gap-3"><div><h2 id="kpi-attachment-title" class="text-lg font-bold">Attachment KPI</h2><p id="kpi-attachment-aspect" class="mt-1 text-sm text-gray-500"></p></div><button type="button" id="kpi-attachment-close" aria-label="Tutup" class="text-xl text-gray-500">&times;</button></div>
-            <label class="block text-sm font-medium">Pilih file <input id="kpi-attachment-files" type="file" multiple class="mt-2 block w-full text-sm"></label>
+            <div><span class="block text-sm font-medium">Pilih file</span><label class="kpi-file-picker" for="kpi-attachment-files"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg> Pilih file<input id="kpi-attachment-files" type="file" multiple></label></div>
             <p class="text-xs text-gray-500">Maksimal 10 file baru per detail, masing-masing 10 MB. File disimpan saat submit.</p>
             <ul id="kpi-attachment-list" class="max-h-64 space-y-2 overflow-y-auto text-sm"></ul>
             <div class="flex justify-end"><button type="button" id="kpi-attachment-done" class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Selesai</button></div>
         </div>
     </dialog>
+    <style>
+        #kpi-attachment-dialog { position: fixed; inset: 0; margin: auto; width: min(36rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+        .kpi-file-picker { position: relative; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 9px 14px; border: 1px solid #4f46e5; border-radius: 8px; background: #eef2ff; color: #4338ca; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .kpi-file-picker:hover { background: #e0e7ff; }
+        .kpi-file-picker:focus-within { outline: 2px solid #6366f1; outline-offset: 2px; }
+        .kpi-file-picker input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+        .kpi-file-remove { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; border: 0; border-radius: 7px; background: #fef2f2; color: #dc2626; cursor: pointer; }
+        .kpi-file-remove:hover { background: #fee2e2; }
+        .kpi-file-remove:focus-visible { outline: 2px solid #dc2626; outline-offset: 2px; }
+    </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const editable = @json($editable);
@@ -213,7 +223,9 @@
                     const li = document.createElement('li'); li.className = 'flex items-center justify-between gap-3 rounded bg-gray-50 p-2';
                     const label = document.createElement(url ? 'a' : 'span'); label.textContent = name; label.className = 'break-all';
                     if (url) { label.href = url; label.target = '_blank'; label.rel = 'noopener noreferrer'; label.className += ' text-indigo-600'; }
-                    const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Hapus'; button.className = 'shrink-0 text-red-600';
+                    const button = document.createElement('button'); button.type = 'button'; button.className = 'kpi-file-remove';
+                    button.setAttribute('aria-label', 'Hapus ' + name); button.title = 'Hapus attachment';
+                    button.innerHTML = '<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v6m4-6v6"/></svg>';
                     button.addEventListener('click', () => { remove(); renderAttachmentList(); updateAttachmentCounts(); });
                     li.append(label, button); attachmentList.append(li);
                 };

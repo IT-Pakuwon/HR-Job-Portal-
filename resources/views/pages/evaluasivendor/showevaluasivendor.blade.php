@@ -151,7 +151,7 @@
                                         @php($detailAttachments = $attachments[$detail->id] ?? [])
                                         @if(count($detailAttachments))
                                             <button type="button" class="rounded border border-indigo-200 px-3 py-2 text-indigo-700" onclick="document.getElementById('kpi-files-{{ $detail->id }}').showModal()" aria-label="Lihat attachment">&#128206; {{ count($detailAttachments) }}</button>
-                                            <dialog id="kpi-files-{{ $detail->id }}" class="w-full max-w-lg rounded-xl border-0 p-5 shadow-xl backdrop:bg-black/50">
+                                            <dialog id="kpi-files-{{ $detail->id }}" class="vendor-attachment-dialog w-full max-w-lg rounded-xl border-0 p-5 shadow-xl backdrop:bg-black/50">
                                                 <h3 class="font-bold">Attachment KPI</h3><p class="mt-1 text-sm text-gray-500">{{ $detail->template_vpe_subaspect_descr }}</p>
                                                 <ul class="my-4 space-y-2">@foreach($detailAttachments as $attachment)<li><a class="break-all text-indigo-600 underline" href="{{ $attachment['url'] }}" target="_blank" rel="noopener noreferrer">{{ $attachment['name'] }}</a></li>@endforeach</ul>
                                                 <button type="button" class="rounded bg-indigo-600 px-4 py-2 text-white" onclick="this.closest('dialog').close()">Tutup</button>
@@ -170,6 +170,7 @@
     </div>
     @include('pages.evaluasivendor.partials.score-guide')
     <style>
+        .vendor-attachment-dialog { position: fixed; inset: 0; margin: auto; width: min(32rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
         .vendor-detail-score{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
         .vendor-detail-predicate{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:600;line-height:1.3}
         .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #6366f1;border-radius:8px;padding:14px 16px;background:#f8fafc}
