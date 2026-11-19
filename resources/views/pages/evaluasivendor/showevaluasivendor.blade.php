@@ -118,14 +118,14 @@
             </header>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm" style="table-layout:fixed;min-width:1100px;overflow-wrap:anywhere">
-                    <colgroup><col style="width:3%"><col style="width:16%"><col style="width:5%"><col style="width:29%"><col style="width:13%"><col style="width:8%"><col style="width:26%"></colgroup>
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700"><tr><th class="p-3">No</th><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th></tr></thead>
+                    <colgroup><col style="width:3%"><col style="width:16%"><col style="width:5%"><col style="width:26%"><col style="width:12%"><col style="width:8%"><col style="width:23%"><col style="width:7%"></colgroup>
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700"><tr><th class="p-3">No</th><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th><th class="p-3">Attachment</th></tr></thead>
                     <tbody>
                         @php
                             $number = 0;
                         @endphp
                         @forelse($details->groupBy('template_vpe_aspect_id') as $aspectDetails)
-                            <tr class="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"><th colspan="7" class="p-3">{{ $aspectDetails->first()->template_vpe_aspect_descr }}</th></tr>
+                            <tr class="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300"><th colspan="8" class="p-3">{{ $aspectDetails->first()->template_vpe_aspect_descr }}</th></tr>
                             @foreach($aspectDetails as $detail)
                                 <tr class="border-b border-gray-100 align-top dark:border-gray-700">
                                     <td class="p-3">{{ ++$number }}</td><td class="p-3">{{ $detail->template_vpe_subaspect_descr }}</td>
@@ -147,10 +147,21 @@
                                     </td>
                                     <td class="p-3 font-semibold">{{ number_format((float) $detail->template_vpe_subaspect_nilai, 2) }}</td>
                                     <td class="whitespace-pre-line p-3">{{ $detail->template_vpe_subaspect_note ?: '—' }}</td>
+                                    <td class="p-3">
+                                        @php($detailAttachments = $attachments[$detail->id] ?? [])
+                                        @if(count($detailAttachments))
+                                            <button type="button" class="rounded border border-indigo-200 px-3 py-2 text-indigo-700" onclick="document.getElementById('kpi-files-{{ $detail->id }}').showModal()" aria-label="Lihat attachment">&#128206; {{ count($detailAttachments) }}</button>
+                                            <dialog id="kpi-files-{{ $detail->id }}" class="w-full max-w-lg rounded-xl border-0 p-5 shadow-xl backdrop:bg-black/50">
+                                                <h3 class="font-bold">Attachment KPI</h3><p class="mt-1 text-sm text-gray-500">{{ $detail->template_vpe_subaspect_descr }}</p>
+                                                <ul class="my-4 space-y-2">@foreach($detailAttachments as $attachment)<li><a class="break-all text-indigo-600 underline" href="{{ $attachment['url'] }}" target="_blank" rel="noopener noreferrer">{{ $attachment['name'] }}</a></li>@endforeach</ul>
+                                                <button type="button" class="rounded bg-indigo-600 px-4 py-2 text-white" onclick="this.closest('dialog').close()">Tutup</button>
+                                            </dialog>
+                                        @else — @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         @empty
-                            <tr><td colspan="7" class="p-6 text-center text-gray-500">Belum ada detail penilaian.</td></tr>
+                            <tr><td colspan="8" class="p-6 text-center text-gray-500">Belum ada detail penilaian.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

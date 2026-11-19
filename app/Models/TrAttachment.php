@@ -13,6 +13,7 @@ class TrAttachment extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'refnbr',
+        'reference_id',
         'doctype',
         'attachment_date',
         'cpny_id',

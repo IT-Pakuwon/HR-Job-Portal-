@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Http\Controllers\Traits\UploadsToGcs;
 use App\Models\MsTemplateVendorPerfomance;
 use App\Models\MsTemplateVendorPerfomanceDetail;
 use App\Models\MsTemplateVendorPerfomanceScore;
 use App\Models\TrKontrak;
 use App\Models\TrPO;
 use App\Models\TrApproval;
+use App\Models\TrAttachment;
 use App\Models\TrVendorPerfomance;
 use App\Models\TrVendorPerfomanceDetail;
 use App\Models\User;
@@ -23,6 +25,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class EvaluasiVendorController extends Controller
 {
     use HasAutonbr;
+    use UploadsToGcs;
 
     private function showUrlEvaluasi(int $id): string
     {
@@ -236,6 +239,9 @@ class EvaluasiVendorController extends Controller
             'template_vpe_id' => 'required|string|max:50',
             'notes' => 'nullable|array', 'notes.*' => 'nullable|string|max:10000',
             'criteria' => 'nullable|array', 'criteria.*' => 'nullable|string|max:10000',
+            'attachments' => 'nullable|array', 'attachments.*' => 'array|max:10',
+            'attachments.*.*' => 'required|file|max:10240',
+            'remove_attachments' => 'nullable|array', 'remove_attachments.*' => 'integer|distinct',
         ], $creating ? ['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])],
             'source_id' => 'required|integer|min:1'] : []), [
             'template_vpe_id.required' => 'Jenis Pekerjaan wajib dipilih.',
@@ -258,8 +264,10 @@ class EvaluasiVendorController extends Controller
         $approvalCtl = app(ApprovalController::class);
 
         // Autonbr and TrApproval use pgsql2; keep its locks and writes transactional too.
-        $id = DB::connection('pgsql2')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl) {
-            return DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl) {
+        $uploadedPaths = [];
+        try {
+        $id = DB::connection('pgsql2')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl, &$uploadedPaths) {
+            return DB::connection('pgsql')->transaction(function () use ($data, $request, $scoring, $doctype, $username, $dt, $year, $month, $approvalCtl, &$uploadedPaths) {
                 $source = $this->source($data['source_type'], $data['source_id'], true);
                 $fields = $this->sourceFields($source, $data['source_type']);
                 $duplicate = $fields['vendor_perfomance_type'] === 'SPK' && TrVendorPerfomance::query()
@@ -289,6 +297,7 @@ class EvaluasiVendorController extends Controller
                 ]));
                 $evaluation->save();
                 $this->saveDetails($evaluation, $result['details'], $request->user()->username);
+                $this->saveAttachmentsEvaluasi($evaluation, $data['attachments'] ?? [], $username, $uploadedPaths);
                 $approvalCtl->generateForDocument(
                     $docid,
                     $doctype,
@@ -302,6 +311,10 @@ class EvaluasiVendorController extends Controller
                 return $evaluation->id;
             });
         });
+        } catch (\Throwable $e) {
+            foreach ($uploadedPaths as $path) $this->gcsDelete($path);
+            throw $e;
+        }
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Penilaian vendor berhasil diajukan untuk approval.',
                 'redirect' => $this->showUrlEvaluasi($id)]);
@@ -335,6 +348,55 @@ class EvaluasiVendorController extends Controller
         }
     }
 
+    private function attachmentsEvaluasi(TrVendorPerfomance $evaluation)
+    {
+        return TrAttachment::query()->where('refnbr', $evaluation->vendor_perfomance_id)
+            ->where('doctype', 'VE')->where('cpny_id', $evaluation->cpny_id)
+            ->where('department_id', $evaluation->department_id)->where('status', 'A')
+            ->whereNull('deleted_at');
+    }
+
+    private function attachmentListEvaluasi(TrVendorPerfomance $evaluation, $details): array
+    {
+        $hash = Hashids::encode($evaluation->id);
+        return $this->attachmentsEvaluasi($evaluation)->whereIn('reference_id', $details->pluck('id')->map(fn ($id) => (string) $id)->all())
+            ->get()->groupBy('reference_id')->map(fn ($items) => $items->map(fn ($item) => [
+                'id' => $item->id, 'name' => $item->attachment_name.($item->extention ? '.'.$item->extention : ''),
+                'url' => route('evaluasivendor.attachment', ['hash' => $hash, 'attachment' => $item->id]),
+            ])->values()->all())->all();
+    }
+
+    private function saveAttachmentsEvaluasi(TrVendorPerfomance $evaluation, array $attachments, string $username, array &$uploadedPaths): void
+    {
+        $details = $this->detailQuery($evaluation)->get()->keyBy('template_vpe_subaspect_id');
+        foreach ($attachments as $subaspect => $files) {
+            $detail = $details->get($subaspect);
+            if (!$detail) throw ValidationException::withMessages(['attachments' => 'Attachment tidak sesuai dengan detail penilaian.']);
+            foreach ($files as $file) {
+                $path = $this->gcsUpload($file, 'att-evaluasivendor/'.now()->year);
+                $uploadedPaths[] = $path;
+                $original = str_replace(['/', '\\'], '', $file->getClientOriginalName());
+                TrAttachment::create([
+                    'refnbr' => $evaluation->vendor_perfomance_id, 'reference_id' => (string) $detail->id,
+                    'doctype' => 'VE', 'attachment_date' => now(), 'cpny_id' => $evaluation->cpny_id,
+                    'department_id' => $evaluation->department_id, 'attachment_name' => pathinfo($original, PATHINFO_FILENAME),
+                    'folder' => dirname($path), 'filename' => basename($path), 'filesize' => $file->getSize(),
+                    'extention' => $file->getClientOriginalExtension(), 'status' => 'A', 'created_by' => $username,
+                ]);
+            }
+        }
+    }
+
+    public function attachmentEvaluasi(string $hash, int $attachment)
+    {
+        $evaluation = $this->commentDocumentEvaluasi($hash);
+        $item = $this->attachmentsEvaluasi($evaluation)->findOrFail($attachment);
+        abort_unless($this->detailQuery($evaluation)->where('id', $item->reference_id)->exists(), 404);
+        $url = $this->gcsSignedUrl(trim($item->folder, '/').'/'.$item->filename);
+        abort_unless($url, 503, 'Attachment belum dapat dibuka.');
+        return redirect()->away($url);
+    }
+
     public function legacyShowEvaluasi(int $id)
     {
         $this->evaluations()->findOrFail($id);
@@ -366,6 +428,7 @@ class EvaluasiVendorController extends Controller
             'evaluation' => $evaluation, 'details' => $details, 'approvals' => $approvals,
             'statuses' => self::STATUSES, 'isApprover' => $isApprover, 'hash' => $hash,
             'sourceUrl' => $sourceUrl, 'sourceLabel' => $isSpk ? 'ponbr' : 'Kontrak No',
+            'attachments' => $this->attachmentListEvaluasi($evaluation, $details),
         ]);
     }
 
@@ -385,7 +448,8 @@ class EvaluasiVendorController extends Controller
             ->whereNull('deleted_at')->where('status', 'A')->select('template_vpe_id', 'template_vpe_descr')
             ->distinct()->orderBy('template_vpe_descr')->get();
         return view('pages.evaluasivendor.editevaluasivendor', ['evaluation' => $evaluation, 'details' => $details,
-            'templates' => $templates, 'sourceId' => null, 'editable' => true, 'statuses' => self::STATUSES]);
+            'templates' => $templates, 'sourceId' => null, 'editable' => true, 'statuses' => self::STATUSES,
+            'attachments' => $this->attachmentListEvaluasi($evaluation, $details)]);
     }
 
     public function printEvaluasi(string $hash)
@@ -432,14 +496,25 @@ class EvaluasiVendorController extends Controller
         $dt = Carbon::now('Asia/Jakarta');
         /** @var ApprovalController $approvalCtl */
         $approvalCtl = app(ApprovalController::class);
-        DB::connection('pgsql2')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl) {
-            DB::connection('pgsql')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl) {
+        $uploadedPaths = [];
+        try {
+        DB::connection('pgsql2')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl, &$uploadedPaths) {
+            DB::connection('pgsql')->transaction(function () use ($id, $data, $scoring, $request, $doctype, $username, $dt, $approvalCtl, &$uploadedPaths) {
                 $evaluation = $this->evaluations()->lockForUpdate()->findOrFail($id);
                 abort_unless(in_array($evaluation->status, ['P', 'D']), 409, 'Penilaian sudah ditutup dan tidak dapat diubah.');
                 $approvalCtl->loadLines($doctype, $evaluation->cpny_id, $evaluation->department_id);
                 // Keep recorded criteria unless the user explicitly selects another template.
                 $details = $this->detailQuery($evaluation)->get();
                 $templateChanged = $data['template_vpe_id'] !== $evaluation->template_vpe_id;
+                $attachmentQuery = $this->attachmentsEvaluasi($evaluation)->whereIn('reference_id', $details->pluck('id')->map(fn ($id) => (string) $id)->all());
+                $removeIds = $data['remove_attachments'] ?? [];
+                if (count($removeIds) !== (clone $attachmentQuery)->whereIn('id', $removeIds)->count()) {
+                    throw ValidationException::withMessages(['attachments' => 'Attachment yang dipilih tidak ditemukan pada penilaian ini.']);
+                }
+                if ($templateChanged && (clone $attachmentQuery)->whereNotIn('id', $removeIds)->exists()) {
+                    throw ValidationException::withMessages(['template_vpe_id' => 'Hapus attachment detail lama terlebih dahulu sebelum mengganti template.']);
+                }
+                if ($removeIds) (clone $attachmentQuery)->whereIn('id', $removeIds)->update(['status' => 'X', 'updated_by' => $username, 'updated_at' => now()]);
                 $master = $this->master($data['template_vpe_id']);
                 $result = $scoring->calculate($templateChanged ? $master['details'] : $details->toArray(), $data['ratings'], $master['scale']);
                 $evaluation->fill(array_merge($this->inputFields($data), ['status' => 'P',
@@ -466,6 +541,7 @@ class EvaluasiVendorController extends Controller
                     ]);
                     }
                 }
+                $this->saveAttachmentsEvaluasi($evaluation, $data['attachments'] ?? [], $username, $uploadedPaths);
                 $approvalCtl->generateForDocument(
                     $evaluation->vendor_perfomance_id,
                     $doctype,
@@ -478,6 +554,10 @@ class EvaluasiVendorController extends Controller
                 $this->notifyApprovalEvaluasi($approvalCtl, $evaluation, $doctype, $dt);
             });
         });
+        } catch (\Throwable $e) {
+            foreach ($uploadedPaths as $path) $this->gcsDelete($path);
+            throw $e;
+        }
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Penilaian vendor berhasil diperbarui dan diajukan untuk approval.',
                 'redirect' => $this->showUrlEvaluasi($id)]);
