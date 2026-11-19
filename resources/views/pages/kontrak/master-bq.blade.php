@@ -1,4 +1,28 @@
 <x-app-layout>
+    <style>
+        #masterKontrakBq .master-bq-category-filter { width: min(240px, 100%); }
+        #masterKontrakBq .master-bq-type-filter { width: min(160px, 100%); }
+        #masterKontrakBq .master-bq-filter-select { width: 100%; height: 42px; }
+        #masterKontrakBq .select2-container--default .select2-selection--single {
+            height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+        }
+        #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 40px;
+            padding-left: 12px;
+        }
+        #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+        .dark #masterKontrakBq .select2-container--default .select2-selection--single {
+            background-color: #111827;
+            border-color: #4b5563;
+        }
+        .dark #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #f3f4f6;
+        }
+    </style>
     <div id="masterKontrakBq" class="mx-auto w-full space-y-4 p-2"
         data-json="{{ route('kontrak.master-bq.json') }}" data-store="{{ route('kontrak.master-bq.store') }}"
         data-categories="{{ route('kontrak.master-bq.categories') }}">
@@ -12,24 +36,26 @@
         </div>
         <section id="masterBqPanel" role="tabpanel" aria-labelledby="masterBqTab" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <header class="flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
-                <div class="flex flex-wrap items-end gap-3">
+                <div class="flex min-w-0 flex-1 flex-wrap items-end gap-3">
                     <h1 class="self-center text-base font-semibold text-gray-800 dark:text-gray-100">Master Kontrak BQ</h1>
-                    <label class="text-xs text-gray-500">Category
-                        <select id="masterBqCategoryFilter" class="mt-1 block max-w-full rounded-lg border-gray-300 text-sm dark:bg-gray-900 dark:text-gray-100">
+                    <div class="master-bq-category-filter">
+                        <label for="masterBqCategoryFilter" class="mb-1 block text-xs text-gray-500">Category</label>
+                        <select id="masterBqCategoryFilter" class="master-bq-filter-select block rounded-lg border-gray-300 text-sm dark:bg-gray-900 dark:text-gray-100">
                             <option value="">All Category</option>
                             @foreach ($categories as $category)
                                 <option value="{{ $category->kontrakcategory }}">{{ $category->kontrakcategory }} - {{ $category->kontrakcategory_descr }}</option>
                             @endforeach
                         </select>
-                    </label>
-                    <label class="text-xs text-gray-500">Type
-                        <select id="masterBqTypeFilter" class="mt-1 block rounded-lg border-gray-300 text-sm dark:bg-gray-900 dark:text-gray-100">
+                    </div>
+                    <div class="master-bq-type-filter">
+                        <label for="masterBqTypeFilter" class="mb-1 block text-xs text-gray-500">Type</label>
+                        <select id="masterBqTypeFilter" class="master-bq-filter-select block rounded-lg border-gray-300 text-sm dark:bg-gray-900 dark:text-gray-100">
                             <option value="">All Type</option>
                             @foreach ($types as $type)
                                 <option value="{{ $type }}">{{ $type }}</option>
                             @endforeach
                         </select>
-                    </label>
+                    </div>
                 </div>
                 <button id="masterBqAdd" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Add Kontrak Bq</button>
             </header>
