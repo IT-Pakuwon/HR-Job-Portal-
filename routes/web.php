@@ -243,6 +243,7 @@ Route::get('/my-page/forgot-password', [App\Http\Controllers\MyPageController::c
 Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('my-page.forgot.submit');
 // Public (signed) page behind the QR code printed on a SIK permit; no login so the security gate can scan it.
 Route::get('/verify/tenant-sik/{eid}', [App\Http\Controllers\TenantSupportController::class, 'sikVerify'])->middleware('signed')->name('tenantsupport.sik.verify');
+Route::get('/verify/tenant-simkb/{eid}', [App\Http\Controllers\TenantSupportSimkbController::class, 'simkbVerify'])->middleware('signed')->name('tenantsupport.simkb.verify');
 Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
 Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
 Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
@@ -1692,6 +1693,10 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/tenant-support/master', [TenantSupportController::class, 'master'])->name('tenantsupport.master');
+        Route::get('/tenant-support/checker', [App\Http\Controllers\TenantSupportCheckerController::class, 'index'])->name('tenantsupport.checker');
+        Route::get('/tenant-support/checker/list', [App\Http\Controllers\TenantSupportCheckerController::class, 'listing'])->name('tenantsupport.checker.list');
+        Route::post('/tenant-support/checker/lookup', [App\Http\Controllers\TenantSupportCheckerController::class, 'lookup'])->name('tenantsupport.checker.lookup');
+        Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
         Route::get('/tenant-support/sik/export', [TenantSupportController::class, 'sikExport'])->name('tenantsupport.sik.export');
@@ -1708,6 +1713,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tenant-support/simkb/data', [TenantSupportSimkbController::class, 'simkbJson'])->name('tenantsupport.simkb.data');
         Route::get('/tenant-support/simkb/export', [TenantSupportSimkbController::class, 'simkbExport'])->name('tenantsupport.simkb.export');
         Route::get('/tenant-support/simkb/attachment/{aeid}', [TenantSupportSimkbController::class, 'simkbAttachment'])->name('tenantsupport.simkb.attachment');
+        Route::get('/tenant-support/simkb/{eid}/permit', [TenantSupportSimkbController::class, 'simkbPermit'])->name('tenantsupport.simkb.permit');
         Route::get('/tenant-support/simkb/{eid}/print',[TenantSupportSimkbController::class, 'simkbPrint'])->name('tenantsupport.simkb.print');
         Route::post('/tenant-support/simkb/{eid}/action', [TenantSupportSimkbController::class, 'simkbAction'])->name('tenantsupport.simkb.action');
         Route::get('/tenant-support/simkb/{eid}/approver-options', [TenantSupportSimkbController::class, 'simkbApproverOptions'])->name('tenantsupport.simkb.approver-options');
@@ -3214,15 +3220,22 @@ Route::middleware(['auth'])->group(function () {
     // Self-service: any authenticated user may change their own password (not admin-only).
     Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
+    Route::get('/showevaluasivendor/{hash}', [EvaluasiVendorController::class, 'showEvaluasi'])->name('showevaluasivendor')->middleware('access:EVALVENDOR,VIEW');
+    Route::get('/editevaluasivendor/{hash}', [EvaluasiVendorController::class, 'editHashEvaluasi'])->name('editevaluasivendor')->middleware('access:EVALVENDOR,EDIT');
+    Route::get('/pdf_evaluasivendor/{hash}', [EvaluasiVendorController::class, 'printEvaluasi'])->name('evaluasivendor.print')->middleware('access:EVALVENDOR,VIEW');
     Route::prefix('evaluasivendor')->name('evaluasivendor')->group(function () {
-        Route::get('/', [EvaluasiVendorController::class, 'index'])->middleware('access:EVALVENDOR,VIEW');
-        Route::get('/json', [EvaluasiVendorController::class, 'json'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
-        Route::get('/create', [EvaluasiVendorController::class, 'create'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
-        Route::get('/templates/{template}', [EvaluasiVendorController::class, 'template'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
-        Route::post('/', [EvaluasiVendorController::class, 'store'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
-        Route::get('/{id}', [EvaluasiVendorController::class, 'show'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');
-        Route::put('/{id}', [EvaluasiVendorController::class, 'update'])->whereNumber('id')->name('.update')->middleware('access:EVALVENDOR,EDIT');
-        Route::post('/{id}/status', [EvaluasiVendorController::class, 'status'])->whereNumber('id')->name('.status')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/', [EvaluasiVendorController::class, 'indexEvaluasi'])->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/json', [EvaluasiVendorController::class, 'jsonEvaluasi'])->name('.json')->middleware('access:EVALVENDOR,VIEW');
+        Route::get('/create', [EvaluasiVendorController::class, 'createEvaluasi'])->name('.create')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/templates/{template}', [EvaluasiVendorController::class, 'templateEvaluasi'])->name('.template')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/', [EvaluasiVendorController::class, 'storeEvaluasi'])->name('.store')->middleware('access:EVALVENDOR,CREATE');
+        Route::get('/{id}/edit', [EvaluasiVendorController::class, 'editEvaluasi'])->whereNumber('id')->name('.edit')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/{id}', [EvaluasiVendorController::class, 'legacyShowEvaluasi'])->whereNumber('id')->name('.show')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/{hash}/approval/{action}', [EvaluasiVendorController::class, 'approvalEvaluasi'])->whereIn('action', ['approve', 'revise', 'reject'])->name('.approval')->middleware('access:EVALVENDOR,EDIT');
+        Route::get('/{hash}/comments', [EvaluasiVendorController::class, 'commentsEvaluasi'])->name('.comments')->middleware('access:EVALVENDOR,VIEW');
+        Route::post('/{hash}/comments', [EvaluasiVendorController::class, 'storeCommentEvaluasi'])->name('.comments.store')->middleware('access:EVALVENDOR,VIEW');
+        Route::put('/{id}', [EvaluasiVendorController::class, 'updateEvaluasi'])->whereNumber('id')->name('.update')->middleware('access:EVALVENDOR,EDIT');
+        Route::post('/{id}/status', [EvaluasiVendorController::class, 'statusEvaluasi'])->whereNumber('id')->name('.status')->middleware('access:EVALVENDOR,EDIT');
     });
 
     Route::middleware('admin')->group(function () {
