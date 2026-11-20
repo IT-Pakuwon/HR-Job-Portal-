@@ -1695,6 +1695,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tenant-support/checker/list', [App\Http\Controllers\TenantSupportCheckerController::class, 'listing'])->name('tenantsupport.checker.list');
         Route::post('/tenant-support/checker/lookup', [App\Http\Controllers\TenantSupportCheckerController::class, 'lookup'])->name('tenantsupport.checker.lookup');
         Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
+        Route::get('/tenant-support/complaint', [App\Http\Controllers\TenantSupportComplaintController::class, 'index'])->name('tenantsupport.complaint');
+        Route::get('/tenant-support/complaint/data', [App\Http\Controllers\TenantSupportComplaintController::class, 'data'])->name('tenantsupport.complaint.data');
+        Route::get('/tenant-support/complaint/{eid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'show'])->name('tenantsupport.complaint.show');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
         Route::get('/tenant-support/sik/export', [TenantSupportController::class, 'sikExport'])->name('tenantsupport.sik.export');
