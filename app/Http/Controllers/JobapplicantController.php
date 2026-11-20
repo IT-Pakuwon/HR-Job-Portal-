@@ -417,7 +417,8 @@ class JobapplicantController extends Controller
                 ->table('viewtrxcareer as vc')
                 ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
                     $join->on('vc.docid', '=', 'vs.docid')
-                        ->on('vc.docidposting', '=', 'vs.jobid');
+                        ->on('vc.docidposting', '=', 'vs.jobid')
+                        ->on('vc.applicant_id', '=', 'vs.applicant_id');
                 })
                 ->leftJoin('hr_trx_jobposting as jp', function ($join) {
                     $join->on('jp.docid', '=', 'vc.docidposting')
@@ -1056,7 +1057,8 @@ class JobapplicantController extends Controller
             ->table('viewtrxcareer as vc')
             ->leftJoin('viewtrxcareer_scoring as vs', function ($join) {
                 $join->on('vc.docid', '=', 'vs.docid')
-                    ->on('vc.docidposting', '=', 'vs.jobid');
+                    ->on('vc.docidposting', '=', 'vs.jobid')
+                    ->on('vc.applicant_id', '=', 'vs.applicant_id');
             })
             ->leftJoin('hr_trx_jobposting as jp', function ($join) {
                 $join->on('jp.docid', '=', 'vc.docidposting')

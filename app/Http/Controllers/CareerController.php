@@ -867,9 +867,28 @@ class CareerController extends Controller
                     && abs(Carbon::parse($s->aprvuserdate)->diffInSeconds(Carbon::parse($c->message_date), false)) <= 120);
         });
 
+        // Show the latest result per reviewer as part of the feed. Reading the result
+        // directly keeps edits in sync and avoids writing duplicate chat messages.
+        $activeCareer = Career::where('docid', $refnbr)
+            ->where('group_cpny_id', $group)
+            ->whereNotIn('status', ['T', 'X'])
+            ->orderByDesc('id')
+            ->first() ?? $career;
+        $assessmentComments = TrAssessmentResult::where('jobapply_id', $activeCareer->docid)
+            ->where('jobid', $activeCareer->jobid)
+            ->where('group_cpny_id', $group)
+            ->get()
+            ->map(fn ($result) => \App\Services\InterviewAssessmentComment::make($result))
+            ->filter();
+        $feed = collect($comments->all())
+            ->map(fn ($comment) => $comment->toArray())
+            ->concat($assessmentComments)
+            ->sortBy(fn ($comment) => Carbon::parse($comment['message_date'])->format('Y-m-d H:i:s.u'))
+            ->values();
+
         return response()->json([
             'status' => 'success',
-            'comments' => $comments,
+            'comments' => $feed,
         ]);
     }
 
