@@ -512,6 +512,7 @@
     $(document).ready(function() {
         let docid = "{{ $career->docid }}"; // Ambil docid ke JS
         loadComments(docid);
+        window.addEventListener('career-assessment-result-updated', () => loadComments(docid));
 
         // **Fungsi untuk Memuat Komentar**
         function loadComments(docid) {
@@ -566,13 +567,16 @@
                                     ? 'rounded-2xl rounded-br-md bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-md shadow-indigo-500/20'
                                     : 'rounded-2xl rounded-bl-md border border-gray-200 bg-white text-gray-800 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100');
                             const rejTag = rej ? '<p class="mb-1 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-red-600 dark:text-red-300">⛔ Reject reason</p>' : '';
+                            const assessmentLabel = comment.assessment_result
+                                ? `<p class="mb-1 text-[11px] font-bold uppercase tracking-wide ${comment.assessment_result === 'PASS' ? 'text-emerald-600 dark:text-emerald-300' : 'text-red-600 dark:text-red-300'}">Interview ${comment.assessment_type === 'hc' ? 'HC' : 'User'} · ${comment.assessment_result === 'PASS' ? 'Pass (Lanjut)' : 'Failed (Tidak lanjut)'}</p>`
+                                : '';
 
                             commentList.append(`
                                 <div class="drawer-card flex items-end gap-2 ${mine ? 'justify-end' : 'justify-start'} ${first ? 'mt-2' : ''}">
                                     ${avatar}
                                     <div class="max-w-[80%] ${mine ? 'items-end' : 'items-start'} flex flex-col">
                                         ${name}
-                                        <div class="${bubble} px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap">${rejTag}${esc(comment.message)}</div>
+                                        <div class="${bubble} px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap">${rejTag}${assessmentLabel}${esc(comment.message)}</div>
                                         <span class="mx-1 mt-0.5 text-[10px] text-gray-400" title="${m.format('D MMM YYYY HH:mm')}">${m.fromNow()}</span>
                                     </div>
                                 </div>

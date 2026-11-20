@@ -65,8 +65,16 @@ class VoucherTaxiController extends Controller
         $completed = (clone $q)->where('status', 'C')->count();
 
         // 🔹 Other data (unchanged)
-        $usercpny = Usercpny::where('username', $user->username)->get();
-        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        // Only companies in group JKT are selectable (Company & Company Expense)
+        $jktCpnyIds = MsCompany::where('group_cpny_id', 'JKT')
+            ->pluck('cpny_id')
+            ->map(fn($v) => trim($v))
+            ->all();
+
+        $usercpny = Usercpny::where('username', $user->username)
+            ->whereIn(DB::raw('TRIM(cpny_id)'), $jktCpnyIds)
+            ->get();
+        $usercpny2 = $usercpny->first();
 
         $userdept = Userdept::where('ms_user_dept.username', $user->username)
             ->leftJoin('ms_department', 'ms_user_dept.department_id', '=', 'ms_department.department_id')
@@ -75,6 +83,7 @@ class VoucherTaxiController extends Controller
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         $company = MsCompany::where('status', 'A')
+            ->where('group_cpny_id', 'JKT')
             ->select('cpny_id', 'cpny_name')
             ->get();
 

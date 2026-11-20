@@ -328,6 +328,7 @@
                     window['hasResult' + suffix] = true;
                     window['captureOriginalResult' + suffix]();
                     window['setEditModeResult' + suffix](false);
+                    window.dispatchEvent(new CustomEvent('career-assessment-result-updated'));
                 },
                 error: function(xhr) {
                     alert('Gagal menyimpan assessment result: ' + xhr.responseText);

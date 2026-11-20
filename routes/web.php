@@ -164,6 +164,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
 use App\Http\Controllers\Tenancy\TsApprovalController;
+use App\Http\Controllers\Tenancy\TsCategoryController;
 use App\Http\Controllers\Tenancy\TsCompanyController;
 use App\Http\Controllers\Tenancy\TsDepartmentController;
 use App\Http\Controllers\Tenancy\TsFloorController;
@@ -1697,6 +1698,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tenant-support/checker/list', [App\Http\Controllers\TenantSupportCheckerController::class, 'listing'])->name('tenantsupport.checker.list');
         Route::post('/tenant-support/checker/lookup', [App\Http\Controllers\TenantSupportCheckerController::class, 'lookup'])->name('tenantsupport.checker.lookup');
         Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
+        Route::get('/tenant-support/complaint', [App\Http\Controllers\TenantSupportComplaintController::class, 'index'])->name('tenantsupport.complaint');
+        Route::get('/tenant-support/complaint/data', [App\Http\Controllers\TenantSupportComplaintController::class, 'data'])->name('tenantsupport.complaint.data');
+        Route::get('/tenant-support/complaint/{eid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'show'])->name('tenantsupport.complaint.show');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
         Route::get('/tenant-support/sik/export', [TenantSupportController::class, 'sikExport'])->name('tenantsupport.sik.export');
@@ -1794,6 +1798,16 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('tenancy/organization')->middleware('admin')->name('tenancy.organization.')->group(function () {
             Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
                 Route::get('/json', 'json')->name('json');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsCategoryController::class)->prefix('categories')->name('categories.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::get('/types', 'types')->name('types');
                 Route::post('/', 'store')->name('store');
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');

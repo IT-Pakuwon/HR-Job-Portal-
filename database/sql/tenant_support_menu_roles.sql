@@ -86,3 +86,22 @@ WHERE NOT EXISTS (SELECT 1 FROM sys_access_right x WHERE x.role_id='ACCESSCHECKE
 INSERT INTO sys_user_role (username, role_id, status, created_by, created_at)
 SELECT 'bedriamaail', 'ACCESSCHECKERTS', 'A', 'system', now()
 WHERE NOT EXISTS (SELECT 1 FROM sys_user_role WHERE username='bedriamaail' AND role_id='ACCESSCHECKERTS');
+
+-- Complaint Log: menu TSCOMPLAINT under Tenancy Support for ACCESSTR (all tenant complaints, read-only list)
+INSERT INTO sys_screen (screen_id, screen_name, application_id, status, created_by, created_at)
+SELECT 'TSCOMPLAINT', 'Tenancy Support - Complaint Log', 'TENANTSUPPORTAPP', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_screen WHERE screen_id = 'TSCOMPLAINT' AND application_id = 'TENANTSUPPORTAPP');
+
+INSERT INTO sys_menu (menu_id, parent_menu_id, menu_name, menu_route, menu_icon, menu_sort_order, screen_id, application_id, status, created_by, created_at)
+SELECT 'TSCOMPLAINT', 'TENANTSUPPORT', 'Complaint Log', 'tenantsupport.complaint',
+       'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z', 5, 'TSCOMPLAINT', 'TENANTSUPPORTAPP', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_menu WHERE menu_id = 'TSCOMPLAINT' AND application_id = 'TENANTSUPPORTAPP');
+
+INSERT INTO sys_role_menu (role_id, menu_id, parent_menu_id, status, created_by, created_at)
+SELECT 'ACCESSTR', 'TSCOMPLAINT', 'TENANTSUPPORT', 'A', 'system', now()
+WHERE NOT EXISTS (SELECT 1 FROM sys_role_menu WHERE role_id = 'ACCESSTR' AND menu_id = 'TSCOMPLAINT');
+
+INSERT INTO sys_access_right (role_id, screen_id, application_id, access_name, access_right, status, created_by, created_at)
+SELECT 'ACCESSTR', 'TSCOMPLAINT', 'TENANTSUPPORTAPP', a.access_name, true, 'A', 'system', now()
+FROM (VALUES ('VIEW'),('CREATE'),('EDIT'),('DELETE')) AS a(access_name)
+WHERE NOT EXISTS (SELECT 1 FROM sys_access_right x WHERE x.role_id='ACCESSTR' AND x.screen_id='TSCOMPLAINT' AND x.access_name=a.access_name);
