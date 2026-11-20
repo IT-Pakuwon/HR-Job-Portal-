@@ -8,6 +8,22 @@
         const errors = $('#masterBqErrors');
         let editingId = null;
         let saving = false;
+        const categoryFilter = $('#masterBqCategoryFilter');
+        const formCategory = $(form.elements.kontrakcategory);
+        const searchableCategories = typeof $.fn.select2 === 'function';
+
+        if (searchableCategories) {
+            categoryFilter.select2({ width: '100%' });
+            $('#masterBqTypeFilter').select2({ width: '100%', minimumResultsForSearch: Infinity });
+            formCategory.select2({
+                width: '100%',
+                dropdownParent: $(dialog),
+                placeholder: 'Select Category'
+            });
+            // A hidden Select2 field cannot receive native validation focus.
+            formCategory.prop('required', false);
+            formCategory.next('.select2').find('.select2-selection').attr('aria-required', 'true');
+        }
         const text = $.fn.dataTable.render.text();
         const table = $('#masterBqTable').DataTable({
             processing: true,
@@ -55,6 +71,7 @@
                 form.elements.kontrak_duration_qty.value = '0';
             }
             form.elements.active.checked = !row || row.status === 'A';
+            if (searchableCategories) formCategory.trigger('change.select2');
             dialog.showModal();
         }
         $('#masterBqAdd').on('click', function () { openForm(null); });
@@ -68,6 +85,12 @@
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
             if (saving || !form.reportValidity()) return;
+            if (!form.elements.kontrakcategory.value) {
+                errors.text('Category wajib dipilih.').removeClass('hidden');
+                if (searchableCategories) formCategory.select2('open');
+                else form.elements.kontrakcategory.focus();
+                return;
+            }
             const data = Object.fromEntries(new FormData(form));
             data.status = form.elements.active.checked ? 'A' : 'I';
             delete data.active;
@@ -210,6 +233,7 @@
                         select.add(option);
                     }
                     option.text = saved.kontrakcategory + ' - ' + saved.kontrakcategory_descr;
+                    if (searchableCategories) $(select).trigger('change.select2');
                 });
                 categoryDialog.close();
                 $('#masterCategoryNotice').text(result.message).removeClass('hidden');
