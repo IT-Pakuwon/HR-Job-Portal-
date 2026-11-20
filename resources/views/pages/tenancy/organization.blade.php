@@ -10,6 +10,13 @@
                     class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
                     <i class="fas fa-building text-xs"></i> Company
                 </button>
+                <button type="button" @click="activeTab = 'category'; $nextTick(() => tsAdjustTable('category'))"
+                    :class="activeTab === 'category' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-tags text-xs"></i> Category
+                </button>
                 <button type="button" @click="activeTab = 'site'; $nextTick(() => tsAdjustTable('site'))"
                     :class="activeTab === 'site' ?
                         'bg-indigo-600 text-white shadow-sm' :
@@ -97,6 +104,30 @@
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
                                 <th class="px-4 py-3 text-left font-medium">Company Name</th>
                                 <th class="px-4 py-3 text-left font-medium">City</th>
+                                <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CATEGORY PANEL -->
+            <div x-show="activeTab === 'category'" x-cloak>
+                <div class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏷️ Category List</h2>
+                    <button id="addCategoryBtn"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Category
+                    </button>
+                </div>
+                <div class="relative overflow-hidden p-2">
+                    <table id="categoriesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Category Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Type</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
@@ -274,6 +305,47 @@
                         <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
                             data-modal="companyModal">Cancel</button>
                         <button type="submit" id="companySaveBtn"
+                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CATEGORY MODAL -->
+        <div id="categoryModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+            <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="flex items-center justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="fas fa-tags"></i>
+                        </span>
+                        <div>
+                            <h2 id="categoryModalTitle" class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Add Category</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">Category master</p>
+                        </div>
+                    </div>
+                    <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                        data-modal="categoryModal" aria-label="Close"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="categoryForm" class="flex flex-1 flex-col overflow-hidden" autocomplete="off">
+                    <input type="hidden" id="cat_id" name="id">
+                    <div class="grid flex-1 grid-cols-1 gap-4 overflow-y-auto px-6 py-5">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Category Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="cat_name" name="name" maxlength="100"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]" required>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">Type</label>
+                            <input type="text" id="cat_type" name="type" maxlength="50" list="categoryTypeList" placeholder="e.g. Complaint"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white dark:disabled:bg-white/[0.03]">
+                            <datalist id="categoryTypeList"></datalist>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <button type="button" class="tsModalClose rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                            data-modal="categoryModal">Cancel</button>
+                        <button type="submit" id="categorySaveBtn"
                             class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"><i class="fas fa-save"></i> Save</button>
                     </div>
                 </form>
@@ -661,6 +733,126 @@
                     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     data: { status: newStatus },
                     success: function() { companyTable.ajax.reload(null, false); }
+                });
+            });
+
+            /* =========================================================
+             * CATEGORY
+             * ========================================================= */
+            let categoryTable = $('#categoriesTable').DataTable({
+                ajax: "{{ route('tenancy.organization.categories.json') }}",
+                processing: true,
+                serverSide: false,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                columns: [{
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `
+                                <div class="flex justify-center items-center space-x-2">
+                                    <label class="switch">
+                                        <input type="checkbox" class="toggleCategoryStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <button type="button" class="viewCategoryBtn bg-gray-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="editCategoryBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-edit"></i></button>
+                                </div>
+                            `;
+                        }
+                    },
+                    { data: 'name' },
+                    { data: 'type', render: d => d ?? '-' },
+                    { data: 'status', render: statusBadge },
+                ]
+            });
+            window.tsTables.category = categoryTable;
+
+            function loadCategoryTypes() {
+                $.get("{{ route('tenancy.organization.categories.types') }}", function(res) {
+                    let $list = $('#categoryTypeList').empty();
+                    (res.data || []).forEach(function(t) {
+                        $list.append($('<option>').val(t));
+                    });
+                });
+            }
+
+            function openCategoryModal(mode, data) {
+                let readOnly = mode === 'view';
+                $('#categoryForm')[0].reset();
+                $('#cat_id').val('');
+                $('#categoryModalTitle').text(mode === 'add' ? 'Add Category' : (mode === 'view' ? 'View Category' : 'Edit Category'));
+                $('#categoryForm input').prop('disabled', readOnly);
+                $('#categorySaveBtn').toggle(!readOnly);
+
+                if (data) {
+                    $('#cat_id').val(data.id);
+                    $('#cat_name').val(data.name);
+                    $('#cat_type').val(data.type);
+                }
+
+                loadCategoryTypes();
+                tsOpenModal('categoryModal');
+            }
+
+            $('#addCategoryBtn').click(function() {
+                openCategoryModal('add', null);
+            });
+
+            $(document).on('click', '.viewCategoryBtn, .editCategoryBtn', function() {
+                let id = $(this).data('id');
+                let mode = $(this).hasClass('viewCategoryBtn') ? 'view' : 'edit';
+
+                showLoading();
+                $.get(`/tenancy/organization/categories/${id}/edit`, function(d) {
+                    hideLoading();
+                    openCategoryModal(mode, d);
+                }).fail(function(xhr) {
+                    hideLoading();
+                    toastError('Gagal mengambil data category');
+                    console.error(xhr.responseText);
+                });
+            });
+
+            $('#categoryForm').submit(function(e) {
+                e.preventDefault();
+                let id = $('#cat_id').val();
+                let url = id ? `/tenancy/organization/categories/${id}` : "{{ route('tenancy.organization.categories.store') }}";
+                let formData = new FormData(document.getElementById('categoryForm'));
+                if (id) formData.append('_method', 'PUT');
+
+                showLoading();
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        tsCloseModal('categoryModal');
+                        categoryTable.ajax.reload(null, false);
+                        toastSuccess('Category saved successfully');
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        toastError(xhr.responseJSON?.message || 'Gagal menyimpan category');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $(document).on('change', '.toggleCategoryStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+                $.ajax({
+                    url: `/tenancy/organization/categories/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: { status: newStatus },
+                    success: function() { categoryTable.ajax.reload(null, false); }
                 });
             });
 

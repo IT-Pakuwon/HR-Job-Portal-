@@ -162,6 +162,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamTaskController;
 use App\Http\Controllers\Tenancy\TsApprovalController;
+use App\Http\Controllers\Tenancy\TsCategoryController;
 use App\Http\Controllers\Tenancy\TsCompanyController;
 use App\Http\Controllers\Tenancy\TsDepartmentController;
 use App\Http\Controllers\Tenancy\TsFloorController;
@@ -1791,6 +1792,16 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('tenancy/organization')->middleware('admin')->name('tenancy.organization.')->group(function () {
             Route::controller(TsSiteController::class)->prefix('sites')->name('sites.')->group(function () {
                 Route::get('/json', 'json')->name('json');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->name('edit');
+                Route::put('/{id}', 'update')->name('update');
+                Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(TsCategoryController::class)->prefix('categories')->name('categories.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/options', 'options')->name('options');
+                Route::get('/types', 'types')->name('types');
                 Route::post('/', 'store')->name('store');
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');
