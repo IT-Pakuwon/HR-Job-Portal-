@@ -20,7 +20,7 @@
                         <p class="break-words text-sm font-medium">Purchase Receipt</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $receiptjobs }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $receiptjobs }}</p>
                 </div>
             </a>
 
@@ -35,7 +35,7 @@
                         <p class="break-words text-sm font-medium">Return STTB</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $returnjobs }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $returnjobs }}</p>
                 </div>
             </a>
 
@@ -50,7 +50,7 @@
                         <p class="break-words text-sm font-medium">On Progress</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
                 </div>
             </a>
 
@@ -65,7 +65,7 @@
                         <p class="break-words text-sm font-medium">Rejected</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $rejected }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $rejected }}</p>
                 </div>
             </a>
 
@@ -80,7 +80,7 @@
                         <p class="break-words text-sm font-medium">Revise</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $revise }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                 </div>
             </a>
 
@@ -95,7 +95,7 @@
                         <p class="break-words text-sm font-medium">Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
 
@@ -110,7 +110,7 @@
                         <p class="break-words text-sm font-medium">All</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-extrabold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </a>
 
@@ -126,7 +126,7 @@
                             <p class="break-words text-sm font-medium">Receipt All</p>
                         </div>
 
-                        <p class="shrink-0 text-base font-extrabold">{{ $receiptAll }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $receiptAll }}</p>
                     </div>
                 </a>
             @endif

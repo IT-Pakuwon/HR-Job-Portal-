@@ -1698,6 +1698,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
         Route::get('/tenant-support/complaint', [App\Http\Controllers\TenantSupportComplaintController::class, 'index'])->name('tenantsupport.complaint');
         Route::get('/tenant-support/complaint/data', [App\Http\Controllers\TenantSupportComplaintController::class, 'data'])->name('tenantsupport.complaint.data');
+        Route::post('/tenant-support/complaint/{eid}/action', [App\Http\Controllers\TenantSupportComplaintController::class, 'act'])->name('tenantsupport.complaint.action');
+        Route::get('/tenant-support/complaint/attachment/{aeid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'attachment'])->name('tenantsupport.complaint.attachment');
+        Route::post('/tenant-support/complaint/{eid}/message', [App\Http\Controllers\TenantSupportComplaintController::class, 'message'])->name('tenantsupport.complaint.message');
+        Route::post('/tenant-support/complaint/{eid}/upload', [App\Http\Controllers\TenantSupportComplaintController::class, 'upload'])->name('tenantsupport.complaint.upload');
         Route::get('/tenant-support/complaint/{eid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'show'])->name('tenantsupport.complaint.show');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');

@@ -1511,9 +1511,9 @@ Overrides the per-status colours above so every module's cards match.
     .status-filter[data-status="R"]:hover .status-card { background: #fee2e2 !important; }
 
     .status-filter[data-status="X"] .status-card {
-        background: rgba(226, 232, 240, .20) !important; border-color: #64748b !important; color: #64748b !important;
+        background: rgba(254, 202, 202, .20) !important; border-color: #dc2626 !important; color: #dc2626 !important;
     }
-    .status-filter[data-status="X"]:hover .status-card { background: #f1f5f9 !important; }
+    .status-filter[data-status="X"]:hover .status-card { background: #fee2e2 !important; }
 
     /* size: same as SIK (p-3, rounded-lg) — the base .status-card rule above forces smaller padding */
     .status-filter .status-card {
@@ -1523,12 +1523,41 @@ Overrides the per-status colours above so every module's cards match.
         font-weight: 400;
     }
 
-    /* selected card: SIK's indigo outline, no extra tint/scale */
+    /* selected card: own light tint, 2px darker border, bold text, soft same-colour glow + 1px lift */
     .status-filter.active .status-card,
     .status-filter.active-card .status-card {
-        box-shadow: 0 0 0 2px #6366f1 !important;
-        transform: none;
+        box-shadow: 0 4px 14px -4px rgba(var(--g, 71, 85, 105), .55) !important;
+        transform: translateY(-1px);
+        border-width: 2px !important;
+        padding: calc(.75rem - 1px) !important; /* keep card size: border grows 1px */
     }
+
+    .status-filter.active .status-card p,
+    .status-filter.active-card .status-card p { font-weight: 700 !important; }
+
+    .status-filter[data-status=""].active .status-card,
+    .status-filter[data-status="ALL"].active .status-card,
+    .status-filter[data-status=""].active-card .status-card,
+    .status-filter[data-status="ALL"].active-card .status-card { --g: 71,85,105; background: #f1f5f9 !important; border-color: #475569 !important; color: #334155 !important; }
+
+    .status-filter[data-status="P"].active .status-card,
+    .status-filter[data-status="P"].active-card .status-card { --g: 234,179,8; background: #fef9c3 !important; border-color: #ca8a04 !important; color: #a16207 !important; }
+
+    .status-filter[data-status="C"].active .status-card,
+    .status-filter[data-status="C"].active-card .status-card { --g: 22,163,74; background: #dcfce7 !important; border-color: #15803d !important; color: #15803d !important; }
+
+    .status-filter[data-status="H"].active .status-card,
+    .status-filter[data-status="H"].active-card .status-card { --g: 236,72,153; background: #fce7f3 !important; border-color: #be185d !important; color: #be185d !important; }
+
+    .status-filter[data-status="D"].active .status-card,
+    .status-filter[data-status="H,D"].active .status-card,
+    .status-filter[data-status="D"].active-card .status-card { --g: 59,130,246; background: #dbeafe !important; border-color: #1d4ed8 !important; color: #1d4ed8 !important; }
+
+    .status-filter[data-status="R"].active .status-card,
+    .status-filter[data-status="R"].active-card .status-card { --g: 220,38,38; background: #fee2e2 !important; border-color: #b91c1c !important; color: #b91c1c !important; }
+
+    .status-filter[data-status="X"].active .status-card,
+    .status-filter[data-status="X"].active-card .status-card { --g: 220,38,38; background: #fee2e2 !important; border-color: #b91c1c !important; color: #b91c1c !important; }
 
     /* dark mode */
     .dark .status-filter[data-status=""] .status-card,
@@ -1553,8 +1582,96 @@ Overrides the per-status colours above so every module's cards match.
     .dark .status-filter[data-status="R"] .status-card { border-color: #ef4444 !important; color: #f87171 !important; }
     .dark .status-filter[data-status="R"]:hover .status-card { background: rgba(239, 68, 68, .20) !important; }
 
-    .dark .status-filter[data-status="X"] .status-card { border-color: #94a3b8 !important; color: #94a3b8 !important; }
-    .dark .status-filter[data-status="X"]:hover .status-card { background: rgba(51, 65, 85, .30) !important; }
+    .dark .status-filter[data-status="X"] .status-card { border-color: #ef4444 !important; color: #f87171 !important; }
+    .dark .status-filter[data-status="X"]:hover .status-card { background: rgba(239, 68, 68, .20) !important; }
+
+    /* dark mode — selected card: deeper fill + brighter border */
+    .dark .status-filter[data-status=""].active .status-card,
+    .dark .status-filter[data-status="ALL"].active .status-card,
+    .dark .status-filter[data-status=""].active-card .status-card,
+    .dark .status-filter[data-status="ALL"].active-card .status-card { --g: 148,163,184; background: rgba(148, 163, 184, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #cbd5e1 !important; color: #f1f5f9 !important; }
+
+    .dark .status-filter[data-status="P"].active .status-card,
+    .dark .status-filter[data-status="P"].active-card .status-card { --g: 234,179,8; background: rgba(234, 179, 8, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #facc15 !important; color: #fde047 !important; }
+
+    .dark .status-filter[data-status="C"].active .status-card,
+    .dark .status-filter[data-status="C"].active-card .status-card { --g: 34,197,94; background: rgba(34, 197, 94, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #4ade80 !important; color: #86efac !important; }
+
+    .dark .status-filter[data-status="H"].active .status-card,
+    .dark .status-filter[data-status="H"].active-card .status-card { --g: 236,72,153; background: rgba(236, 72, 153, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #f472b6 !important; color: #f9a8d4 !important; }
+
+    .dark .status-filter[data-status="D"].active .status-card,
+    .dark .status-filter[data-status="H,D"].active .status-card,
+    .dark .status-filter[data-status="D"].active-card .status-card { --g: 59,130,246; background: rgba(59, 130, 246, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #60a5fa !important; color: #93c5fd !important; }
+
+    .dark .status-filter[data-status="R"].active .status-card,
+    .dark .status-filter[data-status="R"].active-card .status-card { --g: 239,68,68; background: rgba(239, 68, 68, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #f87171 !important; color: #fca5a5 !important; }
+
+    .dark .status-filter[data-status="X"].active .status-card,
+    .dark .status-filter[data-status="X"].active-card .status-card { --g: 239,68,68; background: rgba(239, 68, 68, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #f87171 !important; color: #fca5a5 !important; }
+
+    /* =====================================================
+    SCOPE CARDS (.scope-filter, data-scope) — same look as the status cards above
+    Tone via CSS variables; selected = own light tint, 2px darker border, bold, soft glow.
+    ===================================================== */
+    .scope-filter {
+        --bg: rgba(226, 232, 240, .20); --bd: #94a3b8; --fg: #475569; --hov: #f1f5f9;
+        --abg: #f1f5f9; --abd: #475569; --afg: #334155; --g: 71, 85, 105;
+        --dfg: #cbd5e1; --dbd: #64748b; --dafg: #f1f5f9; --dabd: #cbd5e1;
+    }
+    .scope-filter[data-scope="onprogress"], .scope-filter[data-scope="sppbprogress"], .scope-filter[data-scope="spbprogress"],
+    .scope-filter[data-scope="issueprogress"], .scope-filter[data-scope="woflow"], .scope-filter[data-scope="spbflow"], .scope-filter[data-scope="partial"] {
+        --bg: rgba(254, 249, 195, .30); --bd: #eab308; --fg: #ca8a04; --hov: #fef9c3;
+        --abg: #fef9c3; --abd: #ca8a04; --afg: #a16207; --g: 234, 179, 8;
+        --dfg: #facc15; --dbd: #eab308; --dafg: #fde047; --dabd: #facc15;
+    }
+    .scope-filter[data-scope="issuejobsnew"], .scope-filter[data-scope="issuejobs"], .scope-filter[data-scope="calrjobs"], .scope-filter[data-scope="bastjobs"],
+    .scope-filter[data-scope="receiptjobs"], .scope-filter[data-scope="rfcajobs"], .scope-filter[data-scope="calrfinance"], .scope-filter[data-scope="purchasingcalr"],
+    .scope-filter[data-scope="purchasingsubmit"], .scope-filter[data-scope="purchase"] {
+        --bg: rgba(219, 234, 254, .30); --bd: #3b82f6; --fg: #2563eb; --hov: #dbeafe;
+        --abg: #dbeafe; --abd: #1d4ed8; --afg: #1d4ed8; --g: 59, 130, 246;
+        --dfg: #60a5fa; --dbd: #3b82f6; --dafg: #93c5fd; --dabd: #60a5fa;
+    }
+    .scope-filter[data-scope="revise"], .scope-filter[data-scope="hold"] {
+        --bg: rgba(251, 207, 232, .30); --bd: #ec4899; --fg: #db2777; --hov: #fce7f3;
+        --abg: #fce7f3; --abd: #be185d; --afg: #be185d; --g: 236, 72, 153;
+        --dfg: #f472b6; --dbd: #ec4899; --dafg: #f9a8d4; --dabd: #f472b6;
+    }
+    .scope-filter[data-scope="rejected"], .scope-filter[data-scope="cancel"] {
+        --bg: rgba(254, 202, 202, .20); --bd: #dc2626; --fg: #dc2626; --hov: #fee2e2;
+        --abg: #fee2e2; --abd: #b91c1c; --afg: #b91c1c; --g: 220, 38, 38;
+        --dfg: #f87171; --dbd: #ef4444; --dafg: #fca5a5; --dabd: #f87171;
+    }
+    .scope-filter[data-scope="completed"], .scope-filter[data-scope="financereceived"], .scope-filter[data-scope="treasurypayment"] {
+        --bg: rgba(187, 247, 208, .20); --bd: #16a34a; --fg: #16a34a; --hov: #dcfce7;
+        --abg: #dcfce7; --abd: #15803d; --afg: #15803d; --g: 22, 163, 74;
+        --dfg: #4ade80; --dbd: #22c55e; --dafg: #86efac; --dabd: #4ade80;
+    }
+    .scope-filter[data-scope="returnjobs"], .scope-filter[data-scope="reuse"] {
+        --bg: rgba(237, 233, 254, .30); --bd: #8b5cf6; --fg: #7c3aed; --hov: #ede9fe;
+        --abg: #ede9fe; --abd: #6d28d9; --afg: #6d28d9; --g: 139, 92, 246;
+        --dfg: #a78bfa; --dbd: #8b5cf6; --dafg: #c4b5fd; --dabd: #a78bfa;
+    }
+
+    .scope-filter .scope-card {
+        background: var(--bg) !important; border: 1px solid var(--bd) !important; color: var(--fg) !important;
+        padding: .75rem !important; border-radius: .5rem !important; font-size: .875rem; font-weight: 400;
+        box-shadow: none !important; transform: none !important;
+    }
+    .scope-filter:hover .scope-card { background: var(--hov) !important; transform: translateY(-4px) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1) !important; }
+    .scope-filter.active .scope-card {
+        background: var(--abg) !important; border: 2px solid var(--abd) !important; color: var(--afg) !important;
+        padding: calc(.75rem - 1px) !important; transform: translateY(-1px) !important;
+        box-shadow: 0 4px 14px -4px rgba(var(--g), .55) !important;
+    }
+    .scope-filter.active .scope-card p { font-weight: 700 !important; }
+
+    .dark .scope-filter .scope-card { background: rgba(var(--g), .08) !important; border-color: var(--dbd) !important; color: var(--dfg) !important; }
+    .dark .scope-filter:hover .scope-card { background: rgba(var(--g), .20) !important; }
+    .dark .scope-filter.active .scope-card {
+        background: rgba(var(--g), .20) !important; border-color: var(--dabd) !important; color: var(--dafg) !important;
+        box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important;
+    }
 
     /* =====================================================
     TABLE STATUS BADGES — unified with SIK (small tinted pill)

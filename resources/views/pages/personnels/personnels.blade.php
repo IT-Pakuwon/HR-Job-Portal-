@@ -23,7 +23,7 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">All</p>
@@ -570,7 +570,7 @@
                             const showUrl = `/showpersonnels/${row.eid}`;
                             let mainUrl = showUrl;
                             let buttonClass =
-                                'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700';
+                                'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700';
                             const buttonText = row.docid;
 
                             const isReviseOwner = (row.status === 'D' || row.status === 'H') && row.created_user === currentUser;
@@ -578,7 +578,7 @@
                             if (isReviseOwner) {
                                 mainUrl = `/editpersonnels/${row.eid}`;
                                 buttonClass =
-                                    'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-yellow-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-yellow-700';
                             }
 
                             const canCopyTemplate = row.status === 'C' && row.group_cpny_id === 'SBY';

@@ -192,18 +192,7 @@
                 </table>
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-5 py-3 text-sm text-gray-500 dark:border-white/5">
-                <span x-text="total ? ((page - 1) * 10 + 1) + '–' + Math.min(page * 10, total) + ' of ' + total.toLocaleString() : '0 results'"></span>
-                <div class="flex items-center gap-1">
-                    <button type="button" :disabled="page <= 1" @click="load(page - 1)" class="rounded-lg border border-gray-200 px-3 py-1.5 transition hover:bg-gray-50 disabled:opacity-40 dark:border-white/10"><i class="fas fa-chevron-left text-xs"></i></button>
-                    <template x-for="n in pages()" :key="'p' + n">
-                        <button type="button" @click="typeof n === 'number' && load(n)" :disabled="n === '…'"
-                            :class="n === page ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-500/30' : 'border-gray-200 hover:bg-gray-50 dark:border-white/10'"
-                            class="min-w-[2rem] rounded-lg border px-2 py-1.5 font-medium transition" x-text="n"></button>
-                    </template>
-                    <button type="button" :disabled="page >= lastPage()" @click="load(page + 1)" class="rounded-lg border border-gray-200 px-3 py-1.5 transition hover:bg-gray-50 disabled:opacity-40 dark:border-white/10"><i class="fas fa-chevron-right text-xs"></i></button>
-                </div>
-            </div>
+            <x-pager page="page" per="10" total="total" go="load" />
         </section>
     </div>
 

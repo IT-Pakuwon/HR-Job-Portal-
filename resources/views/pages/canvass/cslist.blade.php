@@ -4,11 +4,6 @@
     @endphp
 
     <style>
-        .scope-filter.active .scope-card {
-            outline: 2px solid rgba(99, 102, 241, .6);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, .08);
-            transform: translateY(-2px);
-        }
 
         #csTable th.cs-compact,
         #csTable td.cs-compact {

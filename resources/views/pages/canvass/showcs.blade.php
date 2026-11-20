@@ -475,7 +475,7 @@
                                         <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
                                             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                                 @foreach ($csdetail as $row)
-                                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 [&>td]:border-b [&>td]:border-gray-200 dark:[&>td]:border-gray-600">
                                                         {{-- Inventory + Note (di bawahnya) --}}
                                                         <td class="w-64 px-3 py-2 align-top">
                                                             <div class="flex flex-col gap-1">

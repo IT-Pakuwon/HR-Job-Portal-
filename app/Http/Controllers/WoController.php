@@ -241,7 +241,9 @@ class WoController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
 
-        return view('pages.wos.createwos', compact('usercpny', 'usercpny2', 'userdept', 'userdept2'));
+        $complaint = \App\Http\Controllers\TenantSupportComplaintController::forWo((string) request('complaint'));
+
+        return view('pages.wos.createwos', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'complaint'));
     }
 
     public function storeWo(Request $request)
@@ -516,6 +518,15 @@ class WoController extends Controller
             );
 
             \DB::commit();
+
+            // Created from a Tenant Relation complaint: mark that complaint as transferred (never blocks the WO).
+            if ($request->filled('complaint_eid')) {
+                try {
+                    \App\Http\Controllers\TenantSupportComplaintController::markTransferred((string) $request->complaint_eid, $docid);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
 
             return response()->json([
                 'ok' => true,

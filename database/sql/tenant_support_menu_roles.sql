@@ -87,13 +87,13 @@ INSERT INTO sys_user_role (username, role_id, status, created_by, created_at)
 SELECT 'bedriamaail', 'ACCESSCHECKERTS', 'A', 'system', now()
 WHERE NOT EXISTS (SELECT 1 FROM sys_user_role WHERE username='bedriamaail' AND role_id='ACCESSCHECKERTS');
 
--- Complaint Log: menu TSCOMPLAINT under Tenancy Support for ACCESSTR (all tenant complaints, read-only list)
+-- Complaint Jobs: menu TSCOMPLAINT under Tenancy Support for ACCESSTR (all tenant complaints, read-only list)
 INSERT INTO sys_screen (screen_id, screen_name, application_id, status, created_by, created_at)
-SELECT 'TSCOMPLAINT', 'Tenancy Support - Complaint Log', 'TENANTSUPPORTAPP', 'A', 'system', now()
+SELECT 'TSCOMPLAINT', 'Tenancy Support - Complaint Jobs', 'TENANTSUPPORTAPP', 'A', 'system', now()
 WHERE NOT EXISTS (SELECT 1 FROM sys_screen WHERE screen_id = 'TSCOMPLAINT' AND application_id = 'TENANTSUPPORTAPP');
 
 INSERT INTO sys_menu (menu_id, parent_menu_id, menu_name, menu_route, menu_icon, menu_sort_order, screen_id, application_id, status, created_by, created_at)
-SELECT 'TSCOMPLAINT', 'TENANTSUPPORT', 'Complaint Log', 'tenantsupport.complaint',
+SELECT 'TSCOMPLAINT', 'TENANTSUPPORT', 'Complaint Jobs', 'tenantsupport.complaint',
        'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z', 5, 'TSCOMPLAINT', 'TENANTSUPPORTAPP', 'A', 'system', now()
 WHERE NOT EXISTS (SELECT 1 FROM sys_menu WHERE menu_id = 'TSCOMPLAINT' AND application_id = 'TENANTSUPPORTAPP');
 

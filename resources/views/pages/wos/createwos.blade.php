@@ -4,6 +4,12 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="woForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    @if (!empty($complaint))
+                        <input type="hidden" name="complaint_eid" value="{{ $complaint['eid'] }}">
+                        <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                            Creating a WO from complaint <b>{{ $complaint['nbr'] }}</b>. The complaint becomes "Transferred to WO" once this WO is saved.
+                        </div>
+                    @endif
                     <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-2 flex items-center justify-between border-b pb-3 dark:border-gray-700">
@@ -187,7 +193,7 @@
                         <div>
                             <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                             <textarea name="keperluan" id="keperluan" rows="3" required
-                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
+                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $complaint['text'] ?? '' }}</textarea>
                         </div>
                     </div>
 

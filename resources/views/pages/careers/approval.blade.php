@@ -365,7 +365,7 @@
                                 <svg x-show="!isOpen" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
                             </button>
                             <div x-show="isOpen" x-collapse.duration.200ms class="flex flex-1 flex-col border-t border-gray-100 dark:border-gray-700/40">
-                                <div id="commentList" class="flex flex-col gap-1 overscroll-contain bg-gradient-to-b from-gray-50 to-white px-4 py-4 dark:from-gray-900/40 dark:to-gray-800" style="flex:1 1 0;min-height:360px;overflow-y:auto;scroll-behavior:smooth;">
+                                <div id="commentList" class="flex flex-col gap-1 overscroll-contain bg-gray-50 px-4 py-4 dark:bg-gray-900/40" style="flex:1 1 0;min-height:360px;overflow-y:auto;scroll-behavior:smooth;">
                                     <p class="animate-pulse py-10 text-center text-sm italic text-gray-400">Loading...</p>
                                 </div>
                                 <div class="border-t border-gray-100 bg-white p-3 dark:border-gray-700/40 dark:bg-gray-800">
@@ -373,7 +373,7 @@
                                         <input id="commentInput" type="text" placeholder="Write a message…" autocomplete="off"
                                             class="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 dark:text-white">
                                         <button id="postCommentBtn" type="button" aria-label="Send"
-                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow transition hover:scale-105 hover:shadow-md active:scale-95 disabled:opacity-50">
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow transition hover:scale-105 hover:shadow-md active:scale-95 disabled:opacity-50">
                                             <svg class="h-4 w-4 -rotate-12" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2z"/></svg>
                                         </button>
                                     </div>
@@ -564,7 +564,7 @@
                             const bubble = rej
                                 ? `rounded-2xl ${mine ? 'rounded-br-md' : 'rounded-bl-md'} border border-red-300 bg-red-50 text-red-800 shadow-sm shadow-red-500/10 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200`
                                 : (mine
-                                    ? 'rounded-2xl rounded-br-md bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-md shadow-indigo-500/20'
+                                    ? 'rounded-2xl rounded-br-md bg-indigo-600 text-white shadow-sm'
                                     : 'rounded-2xl rounded-bl-md border border-gray-200 bg-white text-gray-800 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100');
                             const rejTag = rej ? '<p class="mb-1 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-red-600 dark:text-red-300">⛔ Reject reason</p>' : '';
                             const assessmentLabel = comment.assessment_result

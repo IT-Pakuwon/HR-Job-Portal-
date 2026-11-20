@@ -25,7 +25,7 @@
 
             <button type="button" class="w-full text-left">
                 <a href="#" class="new-agr-tab group block h-full" data-tab="draft">
-                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
+                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
                             📝
                         </div>
@@ -92,7 +92,7 @@
 
             <button type="button" class="w-full text-left">
                 <a href="#" class="new-agr-tab group block h-full" data-tab="cancelled">
-                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-rose-700 bg-rose-200/20 p-3 text-rose-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-rose-100 hover:shadow-md active:scale-95">
+                    <div class="agreement-status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
                             🚫
                         </div>
