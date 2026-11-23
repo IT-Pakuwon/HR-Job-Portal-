@@ -157,6 +157,20 @@
                                         <input type="text" id="tnt_unit" name="unit" placeholder="e.g. IU - L2 - 17" class="ut-input">
                                     </div>
                                 </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">PIC Name <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <i class="fas fa-user pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                                        <input type="text" id="tnt_picname" name="picname" maxlength="100" required placeholder="e.g. Budi Santoso" class="ut-input">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">PIC Phone Number <span class="text-red-500">*</span></label>
+                                    <div class="relative">
+                                        <i class="fas fa-phone pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                                        <input type="tel" id="tnt_picphone" name="picphone" maxlength="30" required placeholder="e.g. 0812 3456 7890" class="ut-input">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

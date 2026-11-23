@@ -18,7 +18,7 @@ class TenantSupportComplaintController extends Controller
     use \App\Http\Controllers\Traits\TenantAttachmentRules;
 
     /** Header (tr_complaint.status): C Created -> P On Progress -> D Completed, or X Cancelled. Transfer to WO keeps P; it shows as W in the activity log only. */
-    private const STATUS = ['C' => 'Created', 'P' => 'On Progress', 'D' => 'Completed', 'X' => 'Cancelled'];
+    private const STATUS = ['C' => 'Submitted', 'P' => 'On Progress', 'D' => 'Completed', 'X' => 'Cancelled'];
 
     /** action => [allowed current header statuses, new header status, note required, log label (activity type)]; activity status = header status */
     private const ACTIONS = [

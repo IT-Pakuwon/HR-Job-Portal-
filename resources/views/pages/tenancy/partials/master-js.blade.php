@@ -309,6 +309,8 @@
                     { data: 'tenant_company.tenantcompanyname', defaultContent: '-' },
                     { data: 'storename' },
                     { data: 'unit', render: d => d ?? '-' },
+                    { data: 'picname', render: d => d || '-' },
+                    { data: 'picphone', render: d => d || '-' },
                     { data: 'status', render: statusBadge },
                 ]
             });
@@ -381,6 +383,8 @@
                     $('#tnt_id').val(data.id);
                     $('#tnt_storename').val(data.storename);
                     $('#tnt_unit').val(data.unit);
+                    $('#tnt_picname').val(data.picname);
+                    $('#tnt_picphone').val(data.picphone);
                 }
 
                 tsOpenModal('tenantModal');

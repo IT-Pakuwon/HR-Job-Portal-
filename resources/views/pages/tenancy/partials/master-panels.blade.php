@@ -87,6 +87,8 @@
                                 <th class="px-4 py-3 text-left font-medium">Tenant Company</th>
                                 <th class="px-4 py-3 text-left font-medium">Store Name</th>
                                 <th class="px-4 py-3 text-left font-medium">Unit</th>
+                                <th class="px-4 py-3 text-left font-medium">PIC Name</th>
+                                <th class="px-4 py-3 text-left font-medium">PIC Phone</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>

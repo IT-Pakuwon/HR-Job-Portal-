@@ -6,9 +6,9 @@ use App\Models\Usercpny;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Site scoping for Tenant Relation (role ACCESSTR) users in the legacy tenancy data.
+ * Site scoping for Tenant Relation (role ACCESSTR) and Finance Tenant Support (role ACCESSFINTS) users in the legacy tenancy data.
  * A legacy site is visible when the user has access (ms_user_cpny) to the matching ms_company.
- * Admins and TRACCESS users are unrestricted, as are users without ACCESSTR (existing behaviour).
+ * Admins and TRACCESS users are unrestricted, as are users with neither ACCESSTR nor ACCESSFINTS (existing behaviour).
  */
 class TenantRelationScope
 {
@@ -24,7 +24,8 @@ class TenantRelationScope
     public static function siteIds(): ?array
     {
         $user = Auth::user();
-        if (! $user || $user->isPrimaryAdmin() || $user->hasRole('TRACCESS') || ! $user->hasRole('ACCESSTR')) {
+        if (! $user || $user->isPrimaryAdmin() || $user->hasRole('TRACCESS')
+            || (! $user->hasRole('ACCESSTR') && ! $user->hasRole('ACCESSFINTS'))) {
             return null;
         }
 

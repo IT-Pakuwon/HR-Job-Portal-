@@ -25,9 +25,12 @@ class TenantSupportController extends Controller
     public function master()
     {
         $user = Auth::user();
-        abort_unless($user && ($user->hasRole('ACCESSTR') || $user->isPrimaryAdmin()), 403);
+        abort_unless($user && ($user->hasRole('ACCESSTR') || $user->hasRole('ACCESSFINTS') || $user->isPrimaryAdmin()), 403);
 
-        return view('pages.tenancy.master', ['tenantRelation' => true]);
+        // ACCESSFINTS (without ACCESSTR) only gets the Warning tab.
+        $warningOnly = $user->hasRole('ACCESSFINTS') && ! $user->hasRole('ACCESSTR') && ! $user->isPrimaryAdmin();
+
+        return view('pages.tenancy.master', ['tenantRelation' => true, 'warningOnly' => $warningOnly]);
     }
 
     /** SIK status letters in trsik.status */
