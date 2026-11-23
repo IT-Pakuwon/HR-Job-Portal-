@@ -658,6 +658,7 @@ class SppbController extends Controller
 
                 // 4) Build context untuk ApprovalController
                 $ctx = [
+                    'spbid' => $header->spbid,
                     'is_urgent' => $isUrgent,
                     'first_inventory_category' => $firstCategory,
                     'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
@@ -1155,6 +1156,7 @@ class SppbController extends Controller
             // 4) Build context untuk ApprovalController
             if (!$isDraft) {
                 $ctx = [
+                    'spbid' => $header->spbid,
                     'is_urgent' => $isUrgent,
                     'first_inventory_category' => $firstCategory,
                     'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
