@@ -31,6 +31,7 @@ class MailboxAccount extends Model
     public static function isConnectedFor($user): bool
     {
         return $user
+            && $user->username
             && strtoupper(trim((string) $user->group_cpny_id)) === 'JKT'
             && static::where('username', $user->username)->where('status', true)->exists();
     }
@@ -45,13 +46,4 @@ class MailboxAccount extends Model
         'imap_password',
     ];
 
-    /** True when the user has an active connected mailbox account. */
-    public static function isConnectedFor($user): bool
-    {
-        if (!$user || !$user->username) {
-            return false;
-        }
-
-        return static::where('username', $user->username)->where('status', true)->exists();
-    }
 }

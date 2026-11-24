@@ -35,8 +35,8 @@
     }
 
     .status-filter.active .status-card {
-        outline: 2px solid rgba(99, 102, 241, .35);
-        box-shadow: 0 12px 30px rgba(99, 102, 241, .16);
+        outline: 2px solid rgba(86, 177, 243, .35);
+        box-shadow: 0 12px 30px rgba(86, 177, 243, .16);
     } */
 
     #createModal,

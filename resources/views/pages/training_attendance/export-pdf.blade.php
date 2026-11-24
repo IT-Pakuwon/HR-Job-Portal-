@@ -17,7 +17,7 @@ body {
 }
 
 .rpt-header {
-    background-color: #1e1b4b;
+    background-color: #0b324f;
     padding: 16px 20px 14px;
 }
 .rpt-header h1 {
@@ -28,16 +28,16 @@ body {
 }
 .rpt-header .meta {
     font-size: 8px;
-    color: #c7d2fe;
+    color: #b6e1ff;
     margin-top: 6px;
     padding-top: 6px;
-    border-top: 1px solid #4338ca;
+    border-top: 1px solid #1c71ae;
 }
 .rpt-header .meta span { margin-right: 20px; }
 
 .rpt-header-stripe {
     height: 4px;
-    background-color: #4f46e5;
+    background-color: #3193da;
 }
 
 .page-wrap {
@@ -46,8 +46,8 @@ body {
 
 .dt { width: 100%; border-collapse: collapse; }
 .dt thead th {
-    background-color: #1e1b4b;
-    color: #e0e7ff;
+    background-color: #0b324f;
+    color: #d1ecff;
     font-weight: bold;
     font-size: 8px;
     text-transform: uppercase;
@@ -66,7 +66,7 @@ body {
 .rpt-footer {
     display: table;
     width: 100%;
-    border-top: 2px solid #4f46e5;
+    border-top: 2px solid #3193da;
     padding-top: 7px;
     margin-top: 18px;
 }
@@ -75,7 +75,7 @@ body {
     text-align: left;
     font-size: 7px;
     font-weight: bold;
-    color: #4f46e5;
+    color: #3193da;
 }
 .rpt-footer .ft-r {
     display: table-cell;

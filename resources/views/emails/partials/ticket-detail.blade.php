@@ -57,7 +57,7 @@
                 if (str_contains($p, 'low')) {
                     $pBg = '#dcfce7'; $pBorder = '#86efac'; $pTxt = '#166534';
                 } elseif (str_contains($p, 'critical') || str_contains($p, 'urgent')) {
-                    $pBg = '#fdf4ff'; $pBorder = '#e879f9'; $pTxt = '#7e22ce';
+                    $pBg = '#fdf4ff'; $pBorder = '#e879f9'; $pTxt = '#1c71ae';
                 } elseif (str_contains($p, 'high')) {
                     $pBg = '#fee2e2'; $pBorder = '#fca5a5'; $pTxt = '#991b1b';
                 } else {

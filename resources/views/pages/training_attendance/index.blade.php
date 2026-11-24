@@ -956,7 +956,7 @@
             if (q.question_type === 'Rating') {
                 const dist = q.distribution || {};
                 const keys = Object.keys(dist).sort((a, b) => Number(a) - Number(b));
-                if (!keys.length) return feedbackNoResponseCardHtml(q, ['#8B5CF6', '#7C3AED']);
+                if (!keys.length) return feedbackNoResponseCardHtml(q, ['#56b1f3', '#3193da']);
 
                 return feedbackChartCardHtml(q, 'donut', {
                     series: keys.map((k) => dist[k]),
@@ -964,7 +964,7 @@
                     height: 220,
                     color: 'violet',
                     legendPosition: 'bottom',
-                }, ['#8B5CF6', '#7C3AED']);
+                }, ['#56b1f3', '#3193da']);
             }
 
             if (q.question_type === 'Single Choice') {

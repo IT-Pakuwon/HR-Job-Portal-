@@ -103,7 +103,7 @@
                 transition: border-color .2s ease, box-shadow .2s ease;
             }
             .meeting-input:focus {
-                border-color: #818cf8;
+                border-color: #7bc8ff;
                 outline: none;
                 box-shadow: 0 0 0 3px rgb(99 102 241 / .12);
             }
@@ -131,7 +131,7 @@
                         title: 'Approval Belum Tersedia',
                         text: @json(session('approval_error')),
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#4f46e5'
+                        confirmButtonColor: '#3193da'
                     });
                 @endif
 

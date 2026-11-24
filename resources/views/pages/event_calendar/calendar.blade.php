@@ -257,15 +257,15 @@
             margin: 0 6px 6px 0;
             padding: 3px 10px;
             border-radius: 9999px;
-            background: #eef2ff;
-            color: #4338ca;
+            background: #e3f3ff;
+            color: #1c71ae;
             font-size: 12px;
             font-weight: 600;
         }
 
         .dark .ecap-chip {
-            background: rgba(99, 102, 241, 0.18);
-            color: #c7d2fe;
+            background: rgba(86, 177, 243, 0.18);
+            color: #b6e1ff;
         }
     </style>
 

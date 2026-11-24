@@ -37,8 +37,8 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
         select.app-filter-field + .select2-container--open .select2-selection--single {
-            border-color: #818cf8 !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            border-color: #7bc8ff !important;
+            box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.12);
         }
         select.app-filter-field + .select2-container .select2-selection__rendered {
             padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
@@ -61,20 +61,20 @@
             padding: 0.375rem 0.5rem; font-size: 0.8rem; outline: none;
         }
         .jobapp-select2-dropdown .select2-search__field:focus {
-            border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            border-color: #56b1f3; box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.12);
         }
         .jobapp-select2-dropdown .select2-results__option { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
-        .jobapp-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
-        .jobapp-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+        .jobapp-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #1c71ae; }
+        .jobapp-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #124d79; font-weight: 600; }
 
         .dark .jobapp-select2-dropdown { background-color: #1e293b; border-color: #475569 !important; }
         .dark .jobapp-select2-dropdown .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
         .dark .jobapp-select2-dropdown .select2-results__option { color: #e2e8f0; }
-        .dark .jobapp-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
-        .dark .jobapp-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
+        .dark .jobapp-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #1c71ae; color: #fff; }
+        .dark .jobapp-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
         @keyframes drawerCardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
         .drawer-card { opacity: 0; animation: drawerCardIn .35s ease-out forwards; }
-        @keyframes drawerPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,.45); } 50% { box-shadow: 0 0 0 7px rgba(99,102,241,0); } }
+        @keyframes drawerPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(86, 177, 243,.45); } 50% { box-shadow: 0 0 0 7px rgba(86, 177, 243,0); } }
         .tl-dot-current { animation: drawerPulse 2s ease-in-out infinite; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
@@ -1360,7 +1360,7 @@
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Remap',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: '#3193da',
                 }).then(result => {
                     if (!result.isConfirmed) return;
                     $.post("{{ route('jobapplicant.remap') }}", {

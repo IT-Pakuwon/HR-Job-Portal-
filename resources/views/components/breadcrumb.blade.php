@@ -1,7 +1,14 @@
 @props(['items' => []])
 
-<div class="mb-3 flex flex-nowrap items-center justify-between gap-3">
-    <nav class="flex min-w-0 overflow-x-auto" aria-label="Breadcrumb">
+@php
+    // On large screens the trail is shown in the app header (see components/app/header_new),
+    // which reads it from here. Below lg the header has no room, so the page keeps its own.
+    app()->instance('page.breadcrumb', $items);
+    $hasSlot = trim($slot) !== '';
+@endphp
+
+<div class="{{ $hasSlot ? 'mb-3' : 'mb-3 lg:hidden' }} flex flex-nowrap items-center justify-between gap-3">
+    <nav class="flex min-w-0 overflow-x-auto lg:hidden" aria-label="Breadcrumb">
         <ol class="flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
             @foreach ($items as $index => $item)
                 @php $isLast = $index === count($items) - 1; @endphp
@@ -33,8 +40,8 @@
         </ol>
     </nav>
 
-    @if (trim($slot) !== '')
-        <div class="flex shrink-0 items-center">
+    @if ($hasSlot)
+        <div class="ml-auto flex shrink-0 items-center">
             {{ $slot }}
         </div>
     @endif

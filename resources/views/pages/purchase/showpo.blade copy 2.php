@@ -34,7 +34,7 @@
             height: 54px;
             border-radius: 50%;
             border: 4px solid transparent;
-            border-top-color: #6366f1;
+            border-top-color: #56b1f3;
             /* indigo-500 */
             animation: spin 1s linear infinite;
             position: relative;
@@ -46,7 +46,7 @@
             inset: 6px;
             border-radius: 50%;
             border: 4px solid transparent;
-            border-left-color: #a5b4fc;
+            border-left-color: #a0d7ff;
             /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         }

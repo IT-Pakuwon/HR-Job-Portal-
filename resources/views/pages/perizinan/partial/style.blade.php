@@ -108,7 +108,7 @@
     }
 
     .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #4f46e5;
+        background-color: #3193da;
         color: #ffffff;
     }
 

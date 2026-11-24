@@ -237,7 +237,7 @@ const VoucherTaxi = {
         const colors = {
             P: '#3B82F6',
             C: '#10B981',
-            F: '#6366F1',
+            F: '#56b1f3',
             D: '#F59E0B',
             R: '#EF4444',
             X: '#6B7280',

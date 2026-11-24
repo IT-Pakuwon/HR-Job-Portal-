@@ -118,7 +118,7 @@
 
             #weeklyMeetingTable_wrapper .dataTables_filter input:focus,
             #weeklyMeetingTable_wrapper .dt-search input:focus {
-                border-color: #818cf8;
+                border-color: #7bc8ff;
                 box-shadow: 0 0 0 3px rgb(99 102 241 / .12);
             }
 

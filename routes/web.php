@@ -3114,8 +3114,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('legal-lease-report.category-by-unit');
                 Route::get('/api/memo-loi', 'memoLoiJson')->name('legal-lease-report.memo-loi');
                 Route::get('/api/sent-letters', 'sentLettersJson')->name('legal-lease-report.sent-letters');
-                Route::get('/api/status-by-category', 'statusByCategoryJson')->name('legal-lease-report.status-by-category');
-                Route::get('/api/top-breakdown', 'topBreakdownJson')->name('legal-lease-report.top-breakdown');
+                Route::get('/api/delay', 'delayJson')->name('legal-lease-report.delay');
+                Route::get('/api/pic-workload', 'picWorkloadJson')->name('legal-lease-report.pic-workload');
                 Route::get('/api/table', 'tableJson')->name('legal-lease-report.table');
 
                 Route::get('/export/pdf', 'exportPdf')->name('legal-lease-report.export.pdf');

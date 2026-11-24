@@ -14,10 +14,10 @@
     /* Onboarding checklist cards — highlight follows the checkbox state */
     .ob-item { position: relative; display: flex; align-items: center; gap: .75rem; cursor: pointer; border: 1px solid #e5e7eb; border-radius: 1rem;
         background: #fff; padding: .75rem .875rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: all .18s ease; }
-    .ob-item:not(:has(input:disabled)):hover { transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgba(0,0,0,.18); border-color: #a5b4fc; }
+    .ob-item:not(:has(input:disabled)):hover { transform: translateY(-2px); box-shadow: 0 8px 18px -8px rgba(0,0,0,.18); border-color: #a0d7ff; }
     .ob-item:has(input:disabled) { cursor: default; }
     .ob-item:has(input:checked) { border-color: #6ee7b7; background: #f0fdf9; }
-    .ob-item:has(input:focus-visible) { outline: 2px solid #6366f1; outline-offset: 2px; }
+    .ob-item:has(input:focus-visible) { outline: 2px solid #56b1f3; outline-offset: 2px; }
 
     .ob-icon { display: flex; height: 2.5rem; width: 2.5rem; flex-shrink: 0; align-items: center; justify-content: center;
         border-radius: .75rem; background: #f3f4f6; color: #9ca3af; transition: all .18s ease; }

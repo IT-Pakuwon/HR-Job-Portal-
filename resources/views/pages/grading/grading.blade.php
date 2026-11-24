@@ -109,7 +109,7 @@
                     <div class="mb-3">
                         <label class="block text-gray-700 dark:text-white">Grade Color</label>
                         <input type="color" id="grade_color_code_field" name="grade_color_code"
-                            value="#6366f1" class="h-10 w-full rounded-lg border px-1 py-1 dark:bg-gray-700">
+                            value="#56b1f3" class="h-10 w-full rounded-lg border px-1 py-1 dark:bg-gray-700">
                     </div>
 
                     <div class="mb-3">
@@ -172,7 +172,7 @@
                     <div class="mb-3">
                         <label class="block text-gray-700 dark:text-white">Sub Grade Color</label>
                         <input type="color" id="subgrade_color_code_field" name="subgrade_color_code"
-                            value="#6366f1" class="h-10 w-full rounded-lg border px-1 py-1 dark:bg-gray-700">
+                            value="#56b1f3" class="h-10 w-full rounded-lg border px-1 py-1 dark:bg-gray-700">
                     </div>
 
                     <div class="mb-3">
@@ -388,7 +388,7 @@
                 $('#modalGradeTitle').text("Add Grade");
                 $('#gradeForm')[0].reset();
                 $('#grade_id_hidden').val('');
-                $('#grade_color_code_field').val('#6366f1');
+                $('#grade_color_code_field').val('#56b1f3');
                 $('#grade_group_cpny_id').val('').trigger('change');
                 $('#gradeModal').removeClass('hidden');
             });
@@ -405,7 +405,7 @@
                     $('#grade_id_hidden').val(c.id);
                     $('#grade_id_field').val(c.grade_id);
                     $('#grade_name_field').val(c.grade_name);
-                    $('#grade_color_code_field').val(c.grade_color_code || '#6366f1');
+                    $('#grade_color_code_field').val(c.grade_color_code || '#56b1f3');
                     $('#grade_group_cpny_id').val(c.group_cpny_id).trigger('change');
                     hideLoading();
                 }).fail(function(xhr) {
@@ -674,7 +674,7 @@
                 $('#modalSubGradeTitle').text("Add Sub Grade");
                 $('#subGradeForm')[0].reset();
                 $('#subgrade_id_hidden').val('');
-                $('#subgrade_color_code_field').val('#6366f1');
+                $('#subgrade_color_code_field').val('#56b1f3');
                 $('#subgrade_grade_id').val('').trigger('change');
                 $('#subgrade_group_cpny_id').val('').trigger('change');
                 $('#subGradeModal').removeClass('hidden');
@@ -694,7 +694,7 @@
                     $('#subgrade_name_field').val(c.subgrade_name);
                     $('#subgrade_grade_id').val(c.grade_id).trigger('change');
                     $('#subgrade_group_grade_field').val(c.group_grade);
-                    $('#subgrade_color_code_field').val(c.subgrade_color_code || '#6366f1');
+                    $('#subgrade_color_code_field').val(c.subgrade_color_code || '#56b1f3');
                     $('#subgrade_group_cpny_id').val(c.group_cpny_id).trigger('change');
                     hideLoading();
                 }).fail(function(xhr) {

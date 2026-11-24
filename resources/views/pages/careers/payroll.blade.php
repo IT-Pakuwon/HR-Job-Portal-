@@ -17,7 +17,7 @@
     }
     #signModal .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 40px; padding-left: .875rem; font-size: .875rem; color: #1f2937; }
     #signModal .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px; right: 8px; }
-    #signModal .select2-container--default.select2-container--open .select2-selection--single { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, .12); }
+    #signModal .select2-container--default.select2-container--open .select2-selection--single { border-color: #56b1f3; box-shadow: 0 0 0 4px rgba(86, 177, 243, .12); }
     .dark #signModal .select2-container--default .select2-selection--single { background-color: #374151; border-color: #4b5563; }
     .dark #signModal .select2-container--default .select2-selection--single .select2-selection__rendered { color: #f9fafb; }
 </style>

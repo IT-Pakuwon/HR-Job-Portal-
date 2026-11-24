@@ -10,7 +10,7 @@
 @section('content')
     <p style="margin:0 0 12px;">Dear <strong>{{ $name }}</strong>,</p>
 
-    <p style="margin:0 0 4px;">The candidate for the position you requested via PRF <strong style="color:#4338ca;">{{ $docid }}</strong> has been approved to <strong>Join</strong>:</p>
+    <p style="margin:0 0 4px;">The candidate for the position you requested via PRF <strong style="color:#1c71ae;">{{ $docid }}</strong> has been approved to <strong>Join</strong>:</p>
 
     @include('emails.partials.schedule-card', ['rows' => [
         ['icon' => '👤', 'label' => 'Candidate', 'value' => $candidate_name, 'sub' => $job_title],

@@ -7,7 +7,7 @@
 </head>
 <body style="margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2937">
     <div style="max-width:760px;margin:24px auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
-        <div style="padding:22px 26px;background:#4f46e5;color:#ffffff">
+        <div style="padding:22px 26px;background:#3193da;color:#ffffff">
             <h2 style="margin:0;font-size:20px">Permit Renewal Reminder</h2>
         </div>
         <div style="padding:26px">
@@ -38,7 +38,7 @@
             </table>
 
             <p style="margin:24px 0">
-                <a href="{{ $permitUrl }}" style="display:inline-block;padding:11px 18px;border-radius:8px;background:#4f46e5;color:#ffffff;text-decoration:none;font-weight:bold">Open Permit Monitoring</a>
+                <a href="{{ $permitUrl }}" style="display:inline-block;padding:11px 18px;border-radius:8px;background:#3193da;color:#ffffff;text-decoration:none;font-weight:bold">Open Permit Monitoring</a>
             </p>
             <p style="margin-bottom:0;color:#6b7280;font-size:12px">Further reminders will stop automatically after a renewal permit referencing the original Permit ID has been created.</p>
         </div>

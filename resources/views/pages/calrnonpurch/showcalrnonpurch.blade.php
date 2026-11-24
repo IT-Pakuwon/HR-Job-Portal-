@@ -521,7 +521,9 @@
                                             </thead>
                                             <tbody id="attachmentTbody"></tbody>
                                         </table>
+                                    </div>
 
+                                    <div class="shrink-0">
                                         @if ($canUpload)
                                             <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                                 <form id="attachmentUploadForm" enctype="multipart/form-data">

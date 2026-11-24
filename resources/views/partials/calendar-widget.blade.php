@@ -536,8 +536,8 @@
                                             location: e.location ?? '',
                                         },
 
-                                        backgroundColor: e.fromGoogle ? '#EEF2FF' : '#ECFDF5',
-                                        borderColor: e.fromGoogle ? '#6366F1' : '#10B981',
+                                        backgroundColor: e.fromGoogle ? '#e3f3ff' : '#ECFDF5',
+                                        borderColor: e.fromGoogle ? '#56b1f3' : '#10B981',
                                         textColor: e.fromGoogle ? '#1E3A8A' : '#065F46',
                                     }))
                                 )

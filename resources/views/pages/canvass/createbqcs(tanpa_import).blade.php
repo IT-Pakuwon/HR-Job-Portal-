@@ -424,7 +424,7 @@
                                 text: 'BQ ID: ' + res.bqid,
                                 icon: 'success',
                                 confirmButtonText: 'OK',
-                                confirmButtonColor: '#4F46E5',
+                                confirmButtonColor: '#3193da',
                                 allowOutsideClick: false,
                                 allowEscapeKey: false
                             }).then(() => {

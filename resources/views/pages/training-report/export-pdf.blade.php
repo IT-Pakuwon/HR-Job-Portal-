@@ -160,7 +160,7 @@ body {
             </td>
             <td>
                 <div class="s-lbl">Total Sessions</div>
-                <div class="s-val" style="color:#7c3aed">{{ $s['total_sessions'] }}</div>
+                <div class="s-val" style="color:#3193da">{{ $s['total_sessions'] }}</div>
             </td>
         </tr>
     </table>
@@ -176,7 +176,7 @@ body {
             </td>
             <td>
                 <div class="s-lbl">Registered</div>
-                <div class="s-val" style="color:#7c3aed">{{ $qf['registered'] }}</div>
+                <div class="s-val" style="color:#3193da">{{ $qf['registered'] }}</div>
             </td>
             <td>
                 <div class="s-lbl">Attended</div>

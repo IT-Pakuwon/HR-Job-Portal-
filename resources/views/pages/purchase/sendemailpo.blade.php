@@ -302,9 +302,9 @@
                                                             display:inline-flex;
                                                             align-items:center;
                                                             gap:6px;
-                                                            background:#eef2ff;
-                                                            border:1px solid #c7d2fe;
-                                                            color:#3730a3;
+                                                            background:#e3f3ff;
+                                                            border:1px solid #b6e1ff;
+                                                            color:#124d79;
                                                             border-radius:999px;
                                                             padding:3px 10px;
                                                             margin:3px 6px 0 0;

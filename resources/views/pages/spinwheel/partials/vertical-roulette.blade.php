@@ -10,8 +10,8 @@
         overflow: hidden;
         border-radius: 1rem;
         border: 2px solid rgba(255, 255, 255, .15);
-        background: linear-gradient(180deg, rgba(139, 92, 246, .15), rgba(236, 72, 153, .15));
-        box-shadow: 0 0 40px rgba(139, 92, 246, .35);
+        background: linear-gradient(180deg, rgba(86, 177, 243, .15), rgba(236, 72, 153, .15));
+        box-shadow: 0 0 40px rgba(86, 177, 243, .35);
     }
 
     .roulette-reel::before,

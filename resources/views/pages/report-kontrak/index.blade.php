@@ -1,7 +1,7 @@
 <x-app-layout>
     <style>
         #kontrakReportTable {
-            --kr-bg: #fff; --kr-head: #f8fafc; --kr-stripe: #fafbfd; --kr-hover: #eef2ff;
+            --kr-bg: #fff; --kr-head: #f8fafc; --kr-stripe: #fafbfd; --kr-hover: #e3f3ff;
             --kr-border: #eef0f4; --kr-muted: #64748b;
             border-collapse: separate; border-spacing: 0; font-size: 12.5px;
         }
@@ -59,9 +59,9 @@
         .dark #kontrakReportTable .kr-badge.bad { background: rgba(239,68,68,.18); color: #fca5a5; }
         #kontrakReportTable .kr-cpny {
             display: inline-block; padding: 1px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;
-            background: #eef2ff; color: #4338ca;
+            background: #e3f3ff; color: #1c71ae;
         }
-        .dark #kontrakReportTable .kr-cpny { background: rgba(99,102,241,.2); color: #a5b4fc; }
+        .dark #kontrakReportTable .kr-cpny { background: rgba(86, 177, 243,.2); color: #a0d7ff; }
         #kontrakReportTable .kr-empty { color: var(--kr-muted); opacity: .5; }
         #kontrakReportCard { border-radius: 12px; box-shadow: 0 1px 3px rgba(15,23,42,.08); overflow: hidden; }
         #kontrakReportCard .overflow-x-auto { overflow: visible; }
@@ -75,11 +75,11 @@
         #kontrakReportTable::-webkit-scrollbar-thumb {
             background: #cbd5e1; border-radius: 999px; border: 2px solid #f1f5f9; transition: background .15s;
         }
-        #kontrakReportTable::-webkit-scrollbar-thumb:hover { background: #818cf8; }
+        #kontrakReportTable::-webkit-scrollbar-thumb:hover { background: #7bc8ff; }
         #kontrakReportTable::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
         .dark #kontrakReportTable::-webkit-scrollbar-track { background: #111827; }
         .dark #kontrakReportTable::-webkit-scrollbar-thumb { background: #475569; border-color: #111827; }
-        .dark #kontrakReportTable::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+        .dark #kontrakReportTable::-webkit-scrollbar-thumb:hover { background: #56b1f3; }
         #kontrakReportTable {
             display: block; width: 100% !important; overflow-x: auto; overflow-y: hidden; padding-bottom: 6px;
         }
@@ -100,11 +100,11 @@
             background: transparent !important; color: #475569 !important; cursor: pointer; font-size: 13px;
         }
         #kontrakReportCard .dataTables_paginate .paginate_button:hover:not(.disabled):not(.current) {
-            background: #eef2ff !important; color: #4338ca !important; border-color: #c7d2fe !important;
+            background: #e3f3ff !important; color: #1c71ae !important; border-color: #b6e1ff !important;
         }
         #kontrakReportCard .dataTables_paginate .paginate_button.disabled { opacity: .4; cursor: default; }
         #kontrakReportCard .dataTables_paginate .paginate_button.current {
-            background: #4f46e5 !important; color: #fff !important; border-color: #4f46e5 !important; font-weight: 600;
+            background: #3193da !important; color: #fff !important; border-color: #3193da !important; font-weight: 600;
         }
         #kontrakReportCard .dataTables_paginate .ellipsis { padding: 0 6px; color: #94a3b8; }
         .dark #kontrakReportCard .dataTables_paginate .paginate_button { border-color: #374151 !important; color: #cbd5e1 !important; }

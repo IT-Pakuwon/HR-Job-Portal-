@@ -10,7 +10,7 @@
 .select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
-.status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+.status-filter.active-card .status-card { box-shadow: 0 0 0 2px #56b1f3; }
 
 /* Product Search modal — long product names wrap instead of ellipsis-truncating */
 #productSearchTable td:nth-child(2) { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; max-width: 260px; }
@@ -32,7 +32,7 @@
 .dark .select2-dropdown { background-color: #0f172a; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
 .dark .select2-search--dropdown .select2-search__field { background-color: #0b1220; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
 .dark .select2-results__option { color: #e2e8f0; }
-.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #4f46e5; color: #ffffff; }
+.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #3193da; color: #ffffff; }
 .dark .select2-container--default .select2-results__option[aria-selected=true] { background-color: #1e293b; color: #f8fafc; }
 
 /* "Doctype" filter — match the plain Type/Status filter selects beside it */

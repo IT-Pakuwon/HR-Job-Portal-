@@ -18,8 +18,8 @@
 
 <style>
     /* Plain CSS on purpose: no Vite build needed for these classes. Dark mode follows the app's .dark class. */
-    #myActivityRoot { --ma-g1: #0e7490; --ma-g2: #2563eb; --ma-line: #e2e8f0; --ma-soft: #f1f5f9; --ma-muted: #64748b; --ma-card: #fff; --ma-fg: #0f172a; }
-    .dark #myActivityRoot { --ma-g1: #22d3ee; --ma-g2: #818cf8; --ma-line: #334155; --ma-soft: #273449; --ma-muted: #94a3b8; --ma-card: #1e293b; --ma-fg: #f1f5f9; }
+    #myActivityRoot { --ma-g1: #0e7490; --ma-g2: #3193da; --ma-line: #e2e8f0; --ma-soft: #f1f5f9; --ma-muted: #64748b; --ma-card: #fff; --ma-fg: #0f172a; }
+    .dark #myActivityRoot { --ma-g1: #22d3ee; --ma-g2: #7bc8ff; --ma-line: #334155; --ma-soft: #273449; --ma-muted: #94a3b8; --ma-card: #1e293b; --ma-fg: #f1f5f9; }
 
     .ma-seg { display: flex; gap: .25rem; margin: 1rem 1rem 0; padding: .25rem; border-radius: .875rem; background: var(--ma-soft); }
     .ma-seg button { flex: 1 1 0; padding: .5rem .75rem; border-radius: .625rem; font-size: .75rem; font-weight: 600; color: var(--ma-muted); transition: background .15s, color .15s; touch-action: manipulation; }
@@ -50,7 +50,7 @@
     #myActivityRoot .ma-s2 .select2-selection--single { height: 34px; display: flex; align-items: center; border-radius: .5rem; border: 1px solid #cbd5e1;
         background: #fff; padding: 0 2rem 0 .75rem; font-size: .75rem; transition: border-color .15s, box-shadow .15s; }
     #myActivityRoot .ma-s2 .select2-selection--single:hover { border-color: #94a3b8; }
-    #myActivityRoot .ma-s2 .select2-container--open .select2-selection--single { border-color: #6366f1; box-shadow: 0 0 0 3px #6366f126; }
+    #myActivityRoot .ma-s2 .select2-container--open .select2-selection--single { border-color: #56b1f3; box-shadow: 0 0 0 3px #56b1f326; }
     #myActivityRoot .ma-s2 .select2-selection__rendered { padding: 0 !important; line-height: 32px !important; color: #334155 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #myActivityRoot .ma-s2 .select2-selection__arrow { height: 32px !important; right: 8px !important; }
     #myActivityRoot .ma-s2 .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent !important; }
@@ -58,15 +58,15 @@
         box-shadow: 0 12px 24px -8px #0f172a33; }
     #myActivityRoot .ma-s2 .select2-results__options { max-height: 15rem; }
     #myActivityRoot .ma-s2 .select2-results__option { font-size: .8125rem; padding: .5rem .75rem; }
-    #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #eef2ff; color: #4338ca; }
-    #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #e0e7ff; color: #4338ca; font-weight: 600; }
+    #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #e3f3ff; color: #1c71ae; }
+    #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #d1ecff; color: #1c71ae; font-weight: 600; }
     #myActivityRoot .ma-s2 .select2-search__field { border-radius: .375rem; border: 1px solid #cbd5e1; padding: .375rem .5rem; font-size: .75rem; outline: none; }
     .dark #myActivityRoot .ma-s2 .select2-selection--single { background: #334155; border-color: #475569; }
     .dark #myActivityRoot .ma-s2 .select2-selection__rendered { color: #e2e8f0 !important; }
     .dark #myActivityRoot .ma-s2 .select2-dropdown { background: #1e293b; border-color: #475569; }
     .dark #myActivityRoot .ma-s2 .select2-results__option { color: #e2e8f0; }
-    .dark #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #4338ca; color: #fff; }
-    .dark #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #3730a3; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option--highlighted[aria-selected] { background: #1c71ae; color: #fff; }
+    .dark #myActivityRoot .ma-s2 .select2-results__option[aria-selected="true"] { background: #124d79; color: #fff; }
     .dark #myActivityRoot .ma-s2 .select2-search__field { background: #334155; border-color: #475569; color: #e2e8f0; }
 
     .ma-sep { flex: none; width: 1px; align-self: stretch; margin: .25rem .375rem; background: var(--ma-line); }
@@ -77,8 +77,8 @@
     .ma-fsize { display: block; margin-top: .125rem; font-size: .6875rem; color: var(--ma-muted); }
     .ma-ftile { width: 2.125rem; height: 2.125rem; flex: none; border-radius: .5625rem; display: grid; place-items: center; font-size: .5625rem; font-weight: 800; letter-spacing: .04em; }
     .ma-ft-pdf { color: #dc2626; background: #dc262622; } .ma-ft-img { color: #2563eb; background: #2563eb22; }
-    .ma-ft-xls { color: #16a34a; background: #16a34a22; } .ma-ft-doc { color: #0369a1; background: #0369a122; } .ma-ft-oth { color: #7c3aed; background: #7c3aed22; }
-    .dark .ma-ft-pdf { color: #f87171; } .dark .ma-ft-img { color: #60a5fa; } .dark .ma-ft-xls { color: #4ade80; } .dark .ma-ft-doc { color: #38bdf8; } .dark .ma-ft-oth { color: #c4b5fd; }
+    .ma-ft-xls { color: #16a34a; background: #16a34a22; } .ma-ft-doc { color: #0369a1; background: #0369a122; } .ma-ft-oth { color: #3193da; background: #3193da22; }
+    .dark .ma-ft-pdf { color: #f87171; } .dark .ma-ft-img { color: #60a5fa; } .dark .ma-ft-xls { color: #4ade80; } .dark .ma-ft-doc { color: #38bdf8; } .dark .ma-ft-oth { color: #a0d7ff; }
     .ma-dead { display: inline-block; padding: .25rem .5rem; border-radius: .375rem; border: 1px dashed var(--ma-muted); font-size: .6875rem; font-weight: 600; color: var(--ma-muted); }
 </style>
 

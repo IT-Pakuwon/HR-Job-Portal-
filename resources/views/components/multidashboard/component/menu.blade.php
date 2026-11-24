@@ -68,7 +68,7 @@
                     ? 'Open this panel by default every time you visit this dashboard? Any other default panel will be switched off.'
                     : 'Stop opening this panel by default?';
                 const ok = window.Swal
-                    ? (await Swal.fire({ title: next ? 'Set as default?' : 'Remove default?', text, icon: 'question', showCancelButton: true, confirmButtonText: next ? 'Yes, set it' : 'Yes, remove it', cancelButtonText: 'Cancel', confirmButtonColor: '#4f46e5' })).isConfirmed
+                    ? (await Swal.fire({ title: next ? 'Set as default?' : 'Remove default?', text, icon: 'question', showCancelButton: true, confirmButtonText: next ? 'Yes, set it' : 'Yes, remove it', cancelButtonText: 'Cancel', confirmButtonColor: '#3193da' })).isConfirmed
                     : confirm(text);
                 if (!ok) return;
                 const before = { ...this.pins };

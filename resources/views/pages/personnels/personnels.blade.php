@@ -292,20 +292,20 @@
                     padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
                 }
                 .pill-filter-bar .select2-search__field:focus {
-                    border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+                    border-color: #56b1f3; box-shadow: 0 0 0 3px rgba(86, 177, 243,0.12);
                 }
                 .pill-filter-bar .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
-                .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
-                .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+                .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #1c71ae; }
+                .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #124d79; font-weight: 600; }
 
                 .dark .pill-filter-bar .select2-selection__rendered { color: #e2e8f0; }
                 .dark .pill-filter-bar .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
                 .dark .pill-filter-bar .select2-dropdown { background-color: #1e293b; border-color: #475569; }
                 .dark .pill-filter-bar .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
                 .dark .pill-filter-bar .select2-results__option { color: #e2e8f0; }
-                .dark .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
-                .dark .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
-                .dark .pill-filter-bar .select2-search__field:focus { border-color: #6366f1; }
+                .dark .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #1c71ae; color: #fff; }
+                .dark .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
+                .dark .pill-filter-bar .select2-search__field:focus { border-color: #56b1f3; }
             </style>
 
             <div class="relative overflow-hidden">

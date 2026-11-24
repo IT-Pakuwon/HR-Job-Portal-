@@ -36,7 +36,7 @@
             height: 54px;
             -radius: 50%;
             : 4px solid transparent;
-            -top-color: #6366f1;
+            -top-color: #56b1f3;
             /* indigo-500 */
             animation: spin 1s linear infinite;
             position: relative;
@@ -48,7 +48,7 @@
             inset: 6px;
             -radius: 50%;
             : 4px solid transparent;
-            -left-color: #a5b4fc;
+            -left-color: #a0d7ff;
             /* indigo-200 */
             animation: spinReverse .75s linear infinite;
         } */

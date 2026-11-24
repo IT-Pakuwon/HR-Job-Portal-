@@ -370,7 +370,7 @@
                             processData: false,
                             contentType: false
                         });
-                        await Swal.fire({icon: 'success', title: 'Updated', text: response.message, confirmButtonColor: '#4f46e5'});
+                        await Swal.fire({icon: 'success', title: 'Updated', text: response.message, confirmButtonColor: '#3193da'});
                         window.location.reload();
                     } catch (xhr) {
                         const errors = xhr.responseJSON?.errors;

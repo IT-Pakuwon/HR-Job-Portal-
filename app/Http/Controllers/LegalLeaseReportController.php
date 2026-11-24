@@ -12,6 +12,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Throwable;
 use Maatwebsite\Excel\Facades\Excel;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -227,13 +229,16 @@ class LegalLeaseReportController extends Controller
 
     // ── API: Summary stat cards + Key Highlights text ───────────────────────────
 
+    /** One Key Highlights point, in both languages. English is the default shown. */
+    protected function hl(string $key, string $tone, array $title, array $text): array
+    {
+        return ['key' => $key, 'tone' => $tone, 'title' => $title, 'text' => $text];
+    }
+
     public function summaryJson(Request $request)
     {
         $data = $this->gatherRows($request);
-        $rows = $data['rows'];
-
-        $cancelled = $rows->where('is_cancelled', true)->count();
-        $active = $rows->reject(fn ($r) => $r['is_cancelled']);
+        $active = $data['rows']->reject(fn ($r) => $r['is_cancelled']);
 
         $total = $active->count();
         $completed = $active->where('is_completed', true)->count();
@@ -241,59 +246,12 @@ class LegalLeaseReportController extends Controller
         $rate = $total > 0 ? round(($completed / $total) * 100) : 0;
         $incomplete = $active->where('is_incomplete_docs', true)->count();
 
-        $topCompany = $active->groupBy('business_unit')->map->count()->sortDesc();
-        $topType = $active->groupBy('category_name')->map->count()->sortDesc();
-        $topTenant = $active->reject(fn ($r) => $r['tenant'] === '-')->groupBy('tenant')->map->count()->sortDesc();
-        $topPic = $active->reject(fn ($r) => blank($r['pic']))->groupBy('pic')->map->count()->sortDesc();
-
-        $durations = $active
-            ->filter(fn ($r) => $r['is_completed'] && $r['created_at'] && $r['completed_at'])
-            ->map(fn ($r) => Carbon::parse($r['created_at'])->diffInMinutes(Carbon::parse($r['completed_at'])) / 60);
-
-        $periodLabel = Carbon::parse($data['dateFrom'])->format('M Y').' – '.Carbon::parse($data['dateTo'])->format('M Y');
-        $highlights = [];
-
-        if ($total > 0) {
-            $highlights[] = "A total of {$total} agreements were recorded for {$periodLabel}, with {$completed} completed ({$rate}%) and {$onProgress} still in progress.";
-
-            if ($topType->isNotEmpty()) {
-                $parts = $topType->take(3)->map(fn ($cnt, $name) => "{$name} with {$cnt}")->values();
-                $highlights[] = 'Type Highlights: '.$parts[0].' led the volume'
-                    .($parts->count() > 1 ? ', followed by '.$parts->slice(1)->implode(', ') : '').'.';
-            }
-
-            if ($topCompany->isNotEmpty()) {
-                $highlights[] = 'Company Highlights: '.$topCompany->take(2)->keys()->implode(' and ').' recorded the most agreements.';
-            }
-
-            if ($topTenant->isNotEmpty()) {
-                $highlights[] = 'Tenant Highlights: '.$topTenant->take(2)->keys()->implode(' and ')." had the most agreements ({$topTenant->first()} for the top tenant).";
-            }
-
-            if ($topPic->isNotEmpty()) {
-                $highlights[] = 'PIC Highlights: '.$topPic->take(2)->keys()->implode(' and ')." handled the most agreements, with {$topPic->first()} for the top PIC Legal.";
-            }
-
-            if ($incomplete > 0) {
-                $highlights[] = "{$incomplete} agreements are still missing at least one required tenant document.";
-            }
-
-            $hold = $active->where('status_bucket', 'hold')->count();
-            $escalated = $active->where('status_bucket', 'escalated')->count();
-            if ($hold + $escalated > 0) {
-                $highlights[] = "{$hold} on hold and {$escalated} escalated follow-ups need attention.";
-            }
-
-            if ($durations->isNotEmpty()) {
-                $highlights[] = 'Average time from creation to completion was '.$this->formatDuration($durations->avg())." across {$durations->count()} completed agreements.";
-            }
-
-            if ($cancelled > 0) {
-                $cancelRate = round(($cancelled / ($total + $cancelled)) * 100);
-                $highlights[] = "{$cancelled} agreements ({$cancelRate}%) were cancelled during this period.";
-            }
-        } else {
-            $highlights[] = "No agreements were recorded for {$periodLabel}.";
+        $items = $this->actionHighlights($request);
+        if (empty($items)) {
+            $items[] = $this->hl('clear', 'emerald', ['en' => 'All clear', 'id' => 'Aman'], [
+                'en' => 'Nothing needs attention right now.',
+                'id' => 'Tidak ada yang perlu perhatian saat ini.',
+            ]);
         }
 
         return response()->json([
@@ -304,22 +262,158 @@ class LegalLeaseReportController extends Controller
                 'on_progress' => $onProgress,
                 'completion_rate' => $rate,
                 'incomplete_docs' => $incomplete,
-                'highlights' => $highlights,
+                // English sentences only, kept for anything that still reads the old flat list.
+                'highlights' => collect($items)->map(fn ($i) => $i['text']['en'])->all(),
+                'highlight_items' => $items,
             ],
         ]);
     }
 
-    protected function formatDuration(float $hours): string
+    /**
+     * Key Highlights = what to act on first, not a recap of the stat cards. Up to five points,
+     * each naming the specific document and the number of days:
+     *   1. the most overdue follow-up (which letter is late)
+     *   2. the oldest open agreement and what is blocking it
+     *   3. the most loaded PIC Legal
+     *   4. open documents that have no PIC Legal
+     *   5. anything on hold / escalated — or, when none, the agreement missing the most documents
+     * It reuses the Delay Analysis and PIC Workload data, so it always matches those cards. These
+     * describe what is open right now (the period filter does not apply). A point that doesn't
+     * apply is simply left out, never padded.
+     */
+    protected function actionHighlights(Request $request): array
     {
-        if ($hours < 1) {
-            return round($hours * 60).'m';
+        $get = fn (string $method) => $this->{$method}($request)->getData(true)['data'] ?? [];
+        $delay = collect();
+        $pic = [];
+
+        try {
+            $delay = collect($get('delayJson'));
+        } catch (Throwable $e) {
+            report($e);
+        }
+        try {
+            $pic = $get('picWorkloadJson');
+        } catch (Throwable $e) {
+            report($e);
         }
 
-        if ($hours < 24) {
-            return round($hours, 1).'h';
+        $days = fn (int $n) => $n.' '.Str::plural('day', $n);
+        $who = fn (array $r) => "{$r['docid']} ({$r['tenant_name']})";
+        $followUps = $delay->where('group', 'FOLLOWUP');
+        $agreements = $delay->where('group', '!=', 'FOLLOWUP')->values();
+        $out = [];
+
+        // 1) most overdue follow-up (else the longest-waiting one)
+        $overdue = $followUps
+            ->filter(fn ($r) => ! empty($r['return']['next']) && ($r['return']['next_in_days'] ?? 0) < 0)
+            ->sortBy(fn ($r) => $r['return']['next_in_days'])->values();
+
+        if ($overdue->isNotEmpty()) {
+            $r = $overdue->first();
+            $late = abs($r['return']['next_in_days']);
+            $more = $overdue->count() - 1;
+            $letterId = ['Escalation' => 'Eskalasi'][$r['return']['next']] ?? $r['return']['next'];
+            $out[] = $this->hl('followup', 'rose', ['en' => 'Follow-Up', 'id' => 'Follow-Up'], [
+                'en' => "Most overdue follow-up: {$who($r)} — {$r['return']['next']} is {$days($late)} late ({$days($r['return']['days'])} since delivery)".($more > 0 ? "; +{$more} more overdue" : '').'.',
+                'id' => "Follow-up paling terlambat: {$who($r)} — {$letterId} terlambat {$late} hari ({$r['return']['days']} hari sejak pengiriman)".($more > 0 ? "; +{$more} lainnya terlambat" : '').'.',
+            ]);
+        } else {
+            $waiting = $followUps->where('cause', 'return')->sortByDesc(fn ($r) => $r['return']['days'])->values();
+            if ($waiting->isNotEmpty()) {
+                $r = $waiting->first();
+                $in = (int) ($r['return']['next_in_days'] ?? 0);
+                $letterId = ['Escalation' => 'Eskalasi'][$r['return']['next']] ?? $r['return']['next'];
+                $out[] = $this->hl('followup', 'amber', ['en' => 'Follow-Up', 'id' => 'Follow-Up'], [
+                    'en' => "Longest-waiting follow-up: {$who($r)} — {$days($r['return']['days'])} since delivery; next letter ({$r['return']['next']}) in {$days($in)}.",
+                    'id' => "Follow-up menunggu terlama: {$who($r)} — {$r['return']['days']} hari sejak pengiriman; surat berikutnya ({$letterId}) dalam {$in} hari.",
+                ]);
+            }
         }
 
-        return round($hours / 24, 1).'d';
+        // 2) oldest open agreement and what is blocking it
+        $oldest = $agreements->sortByDesc('age_days')->first();
+        if ($oldest) {
+            if ($oldest['hold']) {
+                $blockEn = 'on hold: '.$oldest['hold']['reason'];
+                $blockId = 'ditahan: '.$oldest['hold']['reason'];
+            } elseif ($oldest['tenant']) {
+                $c = $oldest['tenant']['count'];
+                $blockEn = "{$c} required ".Str::plural('document', $c).' missing'.($oldest['tenant']['days'] !== null ? " for {$days($oldest['tenant']['days'])}" : '');
+                $blockId = "{$c} dokumen wajib belum lengkap".($oldest['tenant']['days'] !== null ? " selama {$oldest['tenant']['days']} hari" : '');
+            } elseif ($oldest['step']) {
+                $blockEn = "stuck in step {$oldest['step']['name']} for {$days($oldest['step']['days'])}";
+                $blockId = "tertahan di tahap {$oldest['step']['name']} selama {$oldest['step']['days']} hari";
+            } else {
+                $blockEn = 'no activity recorded since it was created';
+                $blockId = 'belum ada aktivitas tercatat sejak dibuat';
+            }
+            $out[] = $this->hl('oldest', 'amber', ['en' => 'Oldest Agreement', 'id' => 'Perjanjian Tertua'], [
+                'en' => "Oldest open agreement: {$who($oldest)} — {$days($oldest['age_days'])} old; {$blockEn}.",
+                'id' => "Perjanjian terbuka tertua: {$who($oldest)} — berumur {$oldest['age_days']} hari; {$blockId}.",
+            ]);
+        }
+
+        // 3) most loaded PIC
+        $names = collect($pic['categories'] ?? []);
+        $series = collect($pic['series'] ?? []);
+        if ($names->isNotEmpty()) {
+            $totals = $names->mapWithKeys(fn ($name, $i) => [$name => $series->sum(fn ($sr) => $sr['data'][$i] ?? 0)]);
+            $assigned = $totals->except('No PIC assigned')->sortDesc();
+            if ($assigned->isNotEmpty()) {
+                $top = $assigned->keys()->first();
+                $i = $names->search($top);
+                $n = (int) $assigned->first();
+                $mix = $series->filter(fn ($sr) => ($sr['data'][$i] ?? 0) > 0)->map(fn ($sr) => "{$sr['name']} {$sr['data'][$i]}")->implode(', ');
+                $out[] = $this->hl('pic', 'violet', ['en' => 'PIC Workload', 'id' => 'Beban PIC'], [
+                    'en' => "Most loaded PIC: {$top} has {$n} open ".Str::plural('document', $n)." ({$mix}).",
+                    'id' => "PIC paling padat: {$top} memegang {$n} dokumen terbuka ({$mix}).",
+                ]);
+            }
+        }
+
+        // 4) open documents without a PIC Legal — named
+        $noPic = $delay->filter(fn ($r) => blank($r['pic']))->values();
+        if ($noPic->isNotEmpty()) {
+            $list = $noPic->take(3)->map(fn ($r) => $who($r))->implode(', ');
+            $rest = $noPic->count() - 3;
+            $out[] = $this->hl('nopic', 'amber', ['en' => 'No PIC', 'id' => 'Tanpa PIC'], [
+                'en' => 'No PIC Legal assigned: '.$list.($rest > 0 ? " (+{$rest} more)" : '').'.',
+                'id' => 'Belum ada PIC Legal: '.$list.($rest > 0 ? " (+{$rest} lainnya)" : '').'.',
+            ]);
+        }
+
+        // 5) on hold / escalated — or, when none, the agreement missing the most documents
+        $stuck = $delay->whereIn('cause', ['hold', 'escalated'])->sortByDesc('age_days')->values();
+        if ($stuck->isNotEmpty()) {
+            $r = $stuck->first();
+            $more = $stuck->count() - 1;
+            if ($r['cause'] === 'hold') {
+                $d = $r['hold']['days'];
+                $out[] = $this->hl('stuck', 'rose', ['en' => 'On Hold', 'id' => 'Ditahan'], [
+                    'en' => "On hold: {$who($r)} — {$r['hold']['reason']}".($d !== null ? " ({$days($d)})" : '').($more > 0 ? " (+{$more} more)" : '').'.',
+                    'id' => "Ditahan: {$who($r)} — {$r['hold']['reason']}".($d !== null ? " ({$d} hari)" : '').($more > 0 ? " (+{$more} lainnya)" : '').'.',
+                ]);
+            } else {
+                $d = (int) ($r['return']['days'] ?? $r['age_days']);
+                $out[] = $this->hl('stuck', 'rose', ['en' => 'Escalated', 'id' => 'Dieskalasi'], [
+                    'en' => "Escalated: {$who($r)} — {$days($d)} since delivery".($more > 0 ? " (+{$more} more)" : '').'.',
+                    'id' => "Dieskalasi: {$who($r)} — {$d} hari sejak pengiriman".($more > 0 ? " (+{$more} lainnya)" : '').'.',
+                ]);
+            }
+        } else {
+            $most = $agreements->filter(fn ($r) => $r['tenant'] && $r['docid'] !== ($oldest['docid'] ?? null))
+                ->sortByDesc(fn ($r) => $r['tenant']['count'])->first();
+            if ($most) {
+                $c = $most['tenant']['count'];
+                $out[] = $this->hl('missing', 'amber', ['en' => 'Missing Documents', 'id' => 'Dokumen Kurang'], [
+                    'en' => "Most documents missing: {$who($most)} — {$c} required ".Str::plural('document', $c).($most['tenant']['days'] !== null ? " ({$days($most['tenant']['days'])})" : '').'.',
+                    'id' => "Dokumen paling banyak kurang: {$who($most)} — {$c} dokumen wajib".($most['tenant']['days'] !== null ? " ({$most['tenant']['days']} hari)" : '').'.',
+                ]);
+            }
+        }
+
+        return $out;
     }
 
     // ── API: Agreement type by Company (stacked bar) ────────────────────────────
@@ -429,7 +523,8 @@ class LegalLeaseReportController extends Controller
             $q->where('agreement_type', array_search($type, $sourceByFu, true) ?: '__none__');
         }
 
-        $agreements = $q->get(['agreement_id', 'agreement_type', 'agreement_step_id', 'business_id', 'tenant_no', 'trade_name', 'business_name']);
+        $agreements = $q->get(['agreement_id', 'agreement_type', 'agreement_step_id', 'cpny_id', 'business_id', 'tenant_no', 'trade_name', 'business_name']);
+        $companyNames = MsCompany::query()->pluck('cpny_name', 'cpny_id');
 
         $activity = $agreements->isEmpty() ? collect() : TrAgreementActivity::query()
             ->whereIn('agreement_id', $agreements->pluck('agreement_id'))
@@ -465,53 +560,234 @@ class LegalLeaseReportController extends Controller
             ];
         };
 
-        $rows = collect($types)->map(function ($t) use ($agreements, $sourceByFu, $rowFor) {
+        $companies = $agreements->pluck('cpny_id')->unique()->filter()->sort()->values();
+
+        $rows = collect($types)->map(function ($t) use ($agreements, $sourceByFu, $rowFor, $companies, $companyNames) {
             $set = $agreements->filter(fn ($a) => ($sourceByFu[$a->agreement_type] ?? 'UNSPECIFIED') === $t['key']);
 
-            return ['key' => $t['key'], 'label' => $t['label']] + $rowFor($set);
+            return ['key' => $t['key'], 'label' => $t['label']] + $rowFor($set) + [
+                // Same four counts per company, for the stacked chart.
+                'by_company' => $companies->mapWithKeys(fn ($cpny) => [
+                    $companyNames->get($cpny, $cpny) => $rowFor($set->where('cpny_id', $cpny)),
+                ])->all(),
+            ];
         })->values();
 
         return response()->json([
             'success' => true,
-            'data' => ['rows' => $rows, 'total' => $rowFor($agreements)],
-        ]);
-    }
-
-    // ── API: Status by Type (Completed vs In Progress) ──────────────────────────
-
-    public function statusByCategoryJson(Request $request)
-    {
-        $rows = $this->gatherRows($request)['rows']->reject(fn ($r) => $r['is_cancelled']);
-
-        $categories = $rows->groupBy('category_name')->map->count()->sortDesc()->keys()->values();
-
-        return response()->json([
-            'success' => true,
             'data' => [
-                'categories' => $categories,
-                'series' => [
-                    ['name' => 'Completed', 'data' => $categories->map(fn ($c) => $rows->where('category_name', $c)->where('is_completed', true)->count())],
-                    ['name' => 'In Progress', 'data' => $categories->map(fn ($c) => $rows->where('category_name', $c)->where('is_completed', false)->count())],
-                ],
+                'rows' => $rows,
+                'total' => $rowFor($agreements),
+                'companies' => $companies->map(fn ($cpny) => $companyNames->get($cpny, $cpny))->values(),
             ],
         ]);
     }
 
-    // ── API: Top tenants ────────────────────────────────────────────────────────
+    // ── API: PIC Legal workload — open documents per PIC, by type ───────────────
+    // Open now (Active / Hold / Escalated), drafts excluded. An agreement with two
+    // PICs counts once for each of them. Company filter applies; the period filter
+    // doesn't — this is "what is on their desk now". It shows how loaded a PIC is,
+    // not which document they are actually working on.
 
-    public function topBreakdownJson(Request $request)
+    public function picWorkloadJson(Request $request)
     {
-        $rows = $this->gatherRows($request)['rows']->reject(fn ($r) => $r['is_cancelled'] || $r['tenant'] === '-');
+        ['cpnyId' => $cpnyId] = $this->parseFilters($request);
 
-        $top = $rows->groupBy('tenant')->map->count()->sortDesc()->take(10);
+        $open = $this->baseQuery()->get()
+            ->filter(fn (TrAgreement $a) => in_array(strtoupper((string) $a->agreement_step_id) ?: 'ACTIVE', self::DELAY_OPEN_STEPS, true)
+                && (! $cpnyId || $a->cpny_id === strtoupper(trim($cpnyId))));
+
+        $usernames = $open->flatMap(fn (TrAgreement $a) => $a->picLegalList())->unique()->values();
+        $names = $usernames->isEmpty() ? collect() : User::query()->whereIn('username', $usernames)->pluck('name', 'username')
+            ->mapWithKeys(fn ($name, $username) => [strtolower($username) => $name]);
+
+        // One row per (PIC, agreement).
+        $rows = $open->flatMap(function (TrAgreement $a) use ($names) {
+            $pics = $a->picLegalList();
+            $label = $this->workloadLabel($a);
+
+            return collect($pics ?: [null])->map(fn ($u) => [
+                'pic' => $u ? ($names->get(strtolower($u)) ?: $u) : 'No PIC assigned',
+                'type' => $label,
+            ]);
+        });
+
+        $types = ['PSM', 'OLA', 'Addendum', 'Others', 'Follow Up'];
+        $pics = $rows->groupBy('pic')->map->count()->sortDesc()->keys()->values();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'categories' => $top->keys()->values(),
-                'series' => [['name' => 'Agreements', 'data' => $top->values()->values()]],
+                'categories' => $pics,
+                'series' => collect($types)->map(fn ($t) => [
+                    'name' => $t,
+                    'data' => $pics->map(fn ($pic) => $rows->where('pic', $pic)->where('type', $t)->count())->values(),
+                ])->values(),
             ],
         ]);
+    }
+
+    // ── API: Delay analysis — why are open PSM / OLA agreements slow? ───────────
+    // Open = ACTIVE / HOLD / ESCALATED PSM or OLA (not follow-ups). The period
+    // filter is ignored on purpose: an old agreement that is still open is exactly
+    // what this list is for. Company filter applies.
+    //
+    // Cause, first match wins:
+    //   HOLD    — the agreement is on hold (reason = the hold note, days = since hold)
+    //   RETURN  — (follow-ups) delivered to the tenant, signed copy not back yet; days
+    //             counted from the PSM / Addendum delivery date, with the Surat 1 /
+    //             Surat 2 / Escalation progress (H+14 / H+14 / H+7)
+    //   ESCALATED — (follow-ups) already moved to Escalated
+    //   TENANT  — required tenant documents are still missing (days = since the
+    //             oldest missing line was created)
+    //   STEP    — a process step (Review, Route Tenant …) is started but not ended
+    //   OPEN    — nothing is blocking it that the module can see
+
+    protected const DELAY_OPEN_STEPS = ['ACTIVE', 'HOLD', 'ESCALATED'];
+
+    protected function workloadLabel(TrAgreement $a): string
+    {
+        return match (true) {
+            in_array($a->agreement_type, ['PSM', 'PEMBUATAN'], true) => 'PSM',
+            $a->agreement_type === 'OLA' => 'OLA',
+            $a->agreement_type === 'ADDENDUM' => 'Addendum',
+            $a->agreement_type === 'OTHERS' => 'Others',
+            default => 'Follow Up',
+        };
+    }
+
+    public function delayJson(Request $request)
+    {
+        ['cpnyId' => $cpnyId] = $this->parseFilters($request);
+        $now = Carbon::now();
+        $companyNames = MsCompany::query()->pluck('cpny_name', 'cpny_id');
+
+        $all = $this->baseQuery()->get();
+
+        // New agreements (PSM / OLA / Addendum / Others) still being worked on, plus
+        // follow-ups already delivered to the tenant.
+        $isFollowUp = fn (TrAgreement $a) => ! in_array($a->agreement_type, TrAgreement::NEW_AGREEMENT_TYPES, true);
+
+        $targets = $all->filter(fn (TrAgreement $a) => (
+                in_array($a->agreement_type, TrAgreement::NEW_AGREEMENT_TYPES, true)
+                || ($isFollowUp($a) && $a->psm_or_addendum_delivery_date)
+            )
+            && in_array(strtoupper((string) $a->agreement_step_id) ?: 'ACTIVE', self::DELAY_OPEN_STEPS, true)
+            && (! $cpnyId || $a->cpny_id === strtoupper(trim($cpnyId))));
+
+        if ($targets->isEmpty()) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $ids = $targets->pluck('agreement_id');
+
+        $activities = TrAgreementActivity::query()->whereIn('agreement_id', $ids)->orderBy('id')->get()->groupBy('agreement_id');
+        $missingDocs = TrAgreementDocument::query()
+            ->whereIn('agreement_id', $ids)->whereNull('deleted_at')
+            ->where('agreementdocument_required', true)->where('agreementdocument_received', false)
+            ->get(['agreement_id', 'agreementdocument_descr', 'created_at'])->groupBy('agreement_id');
+
+        $picUsernames = $targets->flatMap(fn (TrAgreement $a) => $a->picLegalList())->unique()->values();
+        $picNames = $picUsernames->isEmpty() ? collect() : User::query()->whereIn('username', $picUsernames)->pluck('name', 'username')
+            ->mapWithKeys(fn ($name, $username) => [strtolower($username) => $name]);
+
+        $rows = $targets->map(function (TrAgreement $a) use ($activities, $missingDocs, $picNames, $companyNames, $now, $isFollowUp) {
+            $followUp = $isFollowUp($a);
+            // A follow-up's clock starts when the agreement was delivered to the tenant.
+            $start = $followUp
+                ? Carbon::parse($a->psm_or_addendum_delivery_date)
+                : ($a->agreement_date ? Carbon::parse($a->agreement_date) : Carbon::parse($a->created_at));
+            $mine = $activities->get($a->agreement_id, collect());
+            $step = strtoupper((string) $a->agreement_step_id) ?: 'ACTIVE';
+
+            $hold = null;
+            if ($step === 'HOLD') {
+                $h = $mine->filter(fn ($x) => $x->agreement_step_id === 'HOLD')->last();
+                $hold = [
+                    'reason' => trim((string) ($h->response_descr ?? '')) ?: 'No reason recorded',
+                    'days' => $h?->response_date ? (int) Carbon::parse($h->response_date)->diffInDays($now) : null,
+                ];
+            }
+
+            $missing = $missingDocs->get($a->agreement_id, collect());
+            $tenant = $missing->isEmpty() ? null : [
+                'count' => $missing->count(),
+                'docs' => $missing->pluck('agreementdocument_descr')->filter()->values()->all(),
+                'days' => $missing->min('created_at') ? (int) Carbon::parse($missing->min('created_at'))->diffInDays($now) : null,
+            ];
+
+            $open = $mine->filter(fn ($x) => str_starts_with((string) $x->agreement_activity_type, 'PROCESS:')
+                && $x->working_start_date && ! $x->working_end_date)->last();
+            $stepInfo = $open ? [
+                'name' => $open->response_summary ?: str_replace('PROCESS:', '', $open->agreement_activity_type),
+                'days' => (int) Carbon::parse($open->working_start_date)->diffInDays($now),
+            ] : null;
+
+            $revisions = $mine->filter(fn ($x) => $x->agreement_activity_type === 'REOPEN_PEMBUATAN'
+                || str_starts_with((string) $x->response_summary, 'Revised'))->count();
+
+            // Follow-up: waiting for the tenant to send the signed copy back.
+            $return = null;
+            if ($followUp) {
+                $latest = fn (string $mark) => ($r = $mine->filter(fn ($x) => $x->status_pekerjaan === $mark)->last()) && $r->response_date
+                    ? Carbon::parse($r->response_date) : null;
+                $s1 = $latest('SURAT1_SENT');
+                $s2 = $latest('SURAT2_SENT');
+                $escalated = $step === 'ESCALATED' || $latest('ESCALATED') !== null;
+
+                // Next letter: Surat 1 at delivery +14d, Surat 2 at Surat 1 +14d, escalation at Surat 2 +7d.
+                [$nextLabel, $dueAt] = match (true) {
+                    $escalated => [null, null],
+                    $s2 !== null => ['Escalation', $s2->copy()->addDays(7)],
+                    $s1 !== null => ['Surat 2', $s1->copy()->addDays(14)],
+                    default => ['Surat 1', $start->copy()->addDays(14)],
+                };
+
+                $return = [
+                    'delivered' => $start->format('d M Y'),
+                    'days' => (int) $start->diffInDays($now),
+                    'surat1' => $s1?->format('d M Y'),
+                    'surat2' => $s2?->format('d M Y'),
+                    'escalated' => $escalated,
+                    'next' => $nextLabel,
+                    // negative = overdue by that many days
+                    'next_in_days' => $dueAt ? (int) $now->copy()->startOfDay()->diffInDays($dueAt->copy()->startOfDay(), false) : null,
+                ];
+            }
+
+            [$cause, $label] = match (true) {
+                $hold !== null => ['hold', 'On Hold'],
+                $return !== null && $return['escalated'] => ['escalated', 'Escalated'],
+                $return !== null => ['return', 'Waiting Return'],
+                $tenant !== null => ['tenant', 'Waiting Tenant'],
+                $stepInfo !== null => ['step', 'In Step'],
+                default => ['open', 'No Blocker'],
+            };
+
+            return [
+                'eid' => Hashids::encode($a->id),
+                'docid' => $a->agreement_id,
+                'no_psm' => $a->no_psm_or_addendum,
+                'type' => self::TYPE_LABELS[$a->agreement_type] ?? ($a->agreement_type ?: 'Follow Up'),
+                // Filter keys: group = PSM / OLA / ADDENDUM / OTHERS / FOLLOWUP; for a follow-up, fu_type = the document it follows.
+                'group' => $followUp ? 'FOLLOWUP' : ($a->agreement_type === 'PEMBUATAN' ? 'PSM' : $a->agreement_type),
+                'fu_type' => $followUp ? (TrAgreement::FU_SOURCE_BY_TYPE[$a->agreement_type] ?? 'UNSPECIFIED') : null,
+                'tenant_name' => $a->trade_name ?: ($a->business_name ?: '-'),
+                'company' => $companyNames->get($a->cpny_id, $a->cpny_id),
+                'pic' => collect($a->picLegalList())->map(fn ($u) => $picNames->get(strtolower($u)) ?: $u)->implode(', '),
+                'age_days' => (int) $start->diffInDays($now),
+                'cause' => $cause,
+                'cause_label' => $label,
+                'hold' => $hold,
+                'tenant' => $tenant,
+                'step' => $stepInfo,
+                'return' => $return,
+                'revisions' => $revisions,
+                'view_url' => $this->viewUrl($a),
+            ];
+        })->sortByDesc('age_days')->values();
+
+        return response()->json(['success' => true, 'data' => $rows]);
     }
 
     // ── API: Full table (client sorts/searches/paginates) ───────────────────────

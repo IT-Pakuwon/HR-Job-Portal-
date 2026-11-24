@@ -67,13 +67,13 @@ NEW JOBS / REQUEST
 
         background: rgba(168, 85, 247, .20);
         border-color: rgba(126, 34, 206, .45);
-        color: #7e22ce;
+        color: #1c71ae;
     }
 
     .scope-filter[data-scope="issuejobsnew"].active .scope-card,
     .scope-filter[data-scope="issuejobs"].active .scope-card {
 
-        background: #e9d5ff;
+        background: #b6e1ff;
     }
 
     /* =====================================================
@@ -228,14 +228,14 @@ FINANCE
 
     .scope-filter[data-scope="treasurypayment"] .scope-card {
 
-        background: rgba(99, 102, 241, .20);
-        border-color: rgba(67, 56, 202, .45);
-        color: #4338ca;
+        background: rgba(86, 177, 243, .20);
+        border-color: rgba(28, 113, 174, .45);
+        color: #1c71ae;
     }
 
     .scope-filter[data-scope="treasurypayment"].active .scope-card {
 
-        background: #c7d2fe;
+        background: #b6e1ff;
     }
 
     /* =====================================================
@@ -315,9 +315,9 @@ NEW JOBS
     .dark .scope-filter[data-scope="issuejobsnew"] .scope-card,
     .dark .scope-filter[data-scope="issuejobs"] .scope-card {
 
-        background: rgba(139, 92, 246, .12);
-        border-color: rgba(139, 92, 246, .35);
-        color: #c4b5fd;
+        background: rgba(86, 177, 243, .12);
+        border-color: rgba(86, 177, 243, .35);
+        color: #a0d7ff;
 
     }
 
@@ -453,9 +453,9 @@ FINANCE
 
     .dark .scope-filter[data-scope="treasurypayment"] .scope-card {
 
-        background: rgba(99, 102, 241, .10);
-        border-color: rgba(99, 102, 241, .35);
-        color: #a5b4fc;
+        background: rgba(86, 177, 243, .10);
+        border-color: rgba(86, 177, 243, .35);
+        color: #a0d7ff;
 
     }
 
@@ -620,7 +620,7 @@ TRACK
 
         background: rgba(168, 85, 247, .18);
         border-color: rgba(126, 34, 206, .35);
-        color: #7e22ce;
+        color: #1c71ae;
 
     }
 
@@ -629,7 +629,7 @@ TRACK
     }
 
     .status-filter[data-status="TRACK"].active .status-card {
-        background: #e9d5ff;
+        background: #b6e1ff;
     }
 
 
@@ -765,9 +765,9 @@ DARK MODE STATUS COLORS
     }
 
     .dark .status-filter[data-status="TRACK"] .status-card {
-        background: rgba(139, 92, 246, .10);
-        border-color: rgba(139, 92, 246, .35);
-        color: #c4b5fd;
+        background: rgba(86, 177, 243, .10);
+        border-color: rgba(86, 177, 243, .35);
+        color: #a0d7ff;
     }
 
     .dark .status-filter[data-status="X"] .status-card {
@@ -799,7 +799,7 @@ GLOBAL UI BASE
         --ui-muted: #6b7280;
         --ui-bg: #ffffff;
         --ui-hover: #f3f4f6;
-        --ui-focus: #6366f1;
+        --ui-focus: #56b1f3;
     }
 
     .dark {
@@ -842,8 +842,8 @@ BUTTON ACTIVE STATES
 
     #btn-mine.active {
 
-        background: #c7d2fe;
-        border-color: #4338ca;
+        background: #b6e1ff;
+        border-color: #1c71ae;
 
     }
 
@@ -880,9 +880,9 @@ BUTTON ACTIVE STATES
 
     .dark #btn-mine.active {
 
-        background: rgba(99, 102, 241, .25);
-        border-color: #6366f1;
-        color: #c7d2fe;
+        background: rgba(86, 177, 243, .25);
+        border-color: #56b1f3;
+        color: #b6e1ff;
 
     }
 
@@ -1006,7 +1006,7 @@ LOADING SPINNER SYSTEM
         border-radius: 50%;
 
         border: 4px solid transparent;
-        border-top-color: #6366f1;
+        border-top-color: #56b1f3;
 
         animation: spin 1s linear infinite;
 
@@ -1022,7 +1022,7 @@ LOADING SPINNER SYSTEM
 
         border-radius: 50%;
         border: 4px solid transparent;
-        border-left-color: #a5b4fc;
+        border-left-color: #a0d7ff;
 
         animation: spinReverse .75s linear infinite;
 
@@ -1130,8 +1130,8 @@ SELECT2
 
     .select2-container--default.select2-container--focus .select2-selection--single {
 
-        border-color: #6366f1;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, .15);
+        border-color: #56b1f3;
+        box-shadow: 0 0 0 2px rgba(86, 177, 243, .15);
 
     }
 
@@ -1144,8 +1144,8 @@ SELECT2
 
     .select2-results__option--highlighted {
 
-        background: #eef2ff !important;
-        color: #4338ca !important;
+        background: #e3f3ff !important;
+        color: #1c71ae !important;
 
     }
 
@@ -1171,7 +1171,7 @@ SELECT2
 
     .dark .select2-results__option--highlighted {
 
-        background: #3730a3 !important;
+        background: #124d79 !important;
         color: #fff !important;
 
     }
@@ -1215,8 +1215,8 @@ TRACK TAB UI
     .track-tab.active,
     .track-tab-sppb.active {
 
-        background: rgba(79, 70, 229, .12);
-        color: #4338ca;
+        background: rgba(49, 147, 218, .12);
+        color: #1c71ae;
 
     }
 
@@ -1233,8 +1233,8 @@ TRACK TAB UI
     .dark .track-tab.active,
     .dark .track-tab-sppb.active {
 
-        background: rgba(99, 102, 241, .25);
-        color: #c7d2fe;
+        background: rgba(86, 177, 243, .25);
+        color: #b6e1ff;
 
     }
 
@@ -1648,9 +1648,9 @@ Overrides the per-status colours above so every module's cards match.
         --dfg: #4ade80; --dbd: #22c55e; --dafg: #86efac; --dabd: #4ade80;
     }
     .scope-filter[data-scope="returnjobs"], .scope-filter[data-scope="reuse"] {
-        --bg: rgba(237, 233, 254, .30); --bd: #8b5cf6; --fg: #7c3aed; --hov: #ede9fe;
-        --abg: #ede9fe; --abd: #6d28d9; --afg: #6d28d9; --g: 139, 92, 246;
-        --dfg: #a78bfa; --dbd: #8b5cf6; --dafg: #c4b5fd; --dabd: #a78bfa;
+        --bg: rgba(209, 236, 255, .30); --bd: #56b1f3; --fg: #3193da; --hov: #d1ecff;
+        --abg: #d1ecff; --abd: #1c71ae; --afg: #1c71ae; --g: 139, 92, 246;
+        --dfg: #7bc8ff; --dbd: #56b1f3; --dafg: #a0d7ff; --dabd: #7bc8ff;
     }
 
     .scope-filter .scope-card {

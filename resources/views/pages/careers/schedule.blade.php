@@ -379,21 +379,21 @@
 
 <style>
     #agendaScheduleType .agenda-type-option span:hover {
-        border-color: #a5b4fc;
+        border-color: #a0d7ff;
     }
     #agendaScheduleType input:checked + span {
-        background: #4f46e5;
-        border-color: #4f46e5;
+        background: #3193da;
+        border-color: #3193da;
         color: #ffffff;
-        box-shadow: 0 4px 12px -2px rgba(79, 70, 229, .35);
+        box-shadow: 0 4px 12px -2px rgba(49, 147, 218, .35);
     }
     #agendaScheduleType input:focus-visible + span {
-        outline: 2px solid #6366f1;
+        outline: 2px solid #56b1f3;
         outline-offset: 2px;
     }
     .dark #agendaScheduleType input:checked + span {
-        background: #6366f1;
-        border-color: #6366f1;
+        background: #56b1f3;
+        border-color: #56b1f3;
         color: #ffffff;
     }
 
@@ -424,9 +424,9 @@
         padding: 3px 6px;
     }
     #agendaModal .select2-container--default .select2-selection--multiple .select2-selection__choice {
-        background: #eef2ff;
-        border: 1px solid #c7d2fe;
-        color: #4338ca;
+        background: #e3f3ff;
+        border: 1px solid #b6e1ff;
+        color: #1c71ae;
         border-radius: 9999px;
         padding: 1px 10px;
         font-size: 0.8125rem;
@@ -434,13 +434,13 @@
         margin-top: 4px;
     }
     #agendaModal .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-        color: #6366f1;
+        color: #56b1f3;
         margin-right: 6px;
     }
     #agendaModal .select2-container--default.select2-container--focus .select2-selection--multiple,
     #agendaModal .select2-container--default.select2-container--open .select2-selection--single {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, .12);
+        border-color: #56b1f3;
+        box-shadow: 0 0 0 4px rgba(86, 177, 243, .12);
     }
     .select2-dropdown {
         border-radius: 0.75rem;
@@ -449,7 +449,7 @@
         box-shadow: 0 12px 28px -8px rgba(0, 0, 0, .18);
     }
     .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #4f46e5;
+        background-color: #3193da;
     }
     .dark #agendaModal .select2-container--default .select2-selection--single,
     .dark #agendaModal .select2-container--default .select2-selection--multiple {
@@ -460,9 +460,9 @@
         color: #f9fafb;
     }
     .dark #agendaModal .select2-container--default .select2-selection--multiple .select2-selection__choice {
-        background: rgba(99, 102, 241, .2);
-        border-color: rgba(99, 102, 241, .4);
-        color: #e0e7ff;
+        background: rgba(86, 177, 243, .2);
+        border-color: rgba(86, 177, 243, .4);
+        color: #d1ecff;
     }
     /* ===== Select2 Dark Mode (Participant multi-select) ===== */
     .dark .select2-container--default .select2-selection--multiple {

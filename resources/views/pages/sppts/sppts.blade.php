@@ -296,8 +296,8 @@
 
         <style>
             .track-tab.active {
-                background: rgba(99, 102, 241, .12);
-                border-color: rgb(99, 102, 241);
+                background: rgba(86, 177, 243, .12);
+                border-color: rgba(86, 177, 243);
             }
         </style>
     </div>

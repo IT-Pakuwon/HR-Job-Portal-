@@ -7,7 +7,7 @@
 </head>
 <body style="margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#1f2937">
     <div style="max-width:680px;margin:24px auto;overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff">
-        <div style="padding:22px 26px;background:#4f46e5;color:#ffffff">
+        <div style="padding:22px 26px;background:#3193da;color:#ffffff">
             <h2 style="margin:0;font-size:20px">Permit {{ $isEdit ? 'Updated' : 'Created' }}</h2>
         </div>
         <div style="padding:26px">
@@ -24,7 +24,7 @@
             </table>
 
             <p style="margin:24px 0 0">
-                <a href="{{ $permitUrl }}" style="display:inline-block;border-radius:8px;background:#4f46e5;padding:11px 18px;color:#ffffff;text-decoration:none;font-weight:bold">Open Permit Details</a>
+                <a href="{{ $permitUrl }}" style="display:inline-block;border-radius:8px;background:#3193da;padding:11px 18px;color:#ffffff;text-decoration:none;font-weight:bold">Open Permit Details</a>
             </p>
         </div>
     </div>

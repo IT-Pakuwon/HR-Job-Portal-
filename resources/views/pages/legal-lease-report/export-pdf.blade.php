@@ -171,7 +171,7 @@ body {
             </td>
             <td>
                 <div class="s-lbl">Completion Rate</div>
-                <div class="s-val" style="color:#7c3aed">{{ $s['completion_rate'] }}%</div>
+                <div class="s-val" style="color:#3193da">{{ $s['completion_rate'] }}%</div>
             </td>
             <td>
                 <div class="s-lbl">Incomplete Documents</div>

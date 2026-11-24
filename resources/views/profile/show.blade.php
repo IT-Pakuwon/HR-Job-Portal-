@@ -522,7 +522,7 @@
 
         (function () {
             const s = document.createElement('style');
-            s.textContent = '#themeChoice .theme-opt.on{background:#fff;color:#4f46e5;box-shadow:0 1px 3px #0f172a26}'
+            s.textContent = '#themeChoice .theme-opt.on{background:#fff;color:#3193da;box-shadow:0 1px 3px #0f172a26}'
                 + '.dark #themeChoice .theme-opt.on{background:#0f172a;color:#67e8f9}';
             document.head.appendChild(s);
         })();

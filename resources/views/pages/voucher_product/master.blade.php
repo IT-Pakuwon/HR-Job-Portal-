@@ -18,7 +18,7 @@
             --vpl-muted: #cbd5e1;
         }
 
-        .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
+        .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #56b1f3; }
 
         /* required label asterisk */
         label.req::after {
@@ -56,8 +56,8 @@
 
         .vpl-input:focus,
         .vpl-textarea:focus {
-            border-color: #4f46e5 !important;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, .15);
+            border-color: #3193da !important;
+            box-shadow: 0 0 0 3px rgba(49, 147, 218, .15);
             outline: none;
         }
 
@@ -78,8 +78,8 @@
 
         .select2-container--default .select2-selection--single:focus-within,
         .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #4f46e5 !important;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, .15) !important;
+            border-color: #3193da !important;
+            box-shadow: 0 0 0 3px rgba(49, 147, 218, .15) !important;
         }
 
         .select2-selection__rendered {
@@ -108,13 +108,13 @@
         }
 
         .select2-results__option--highlighted {
-            background-color: #4f46e5 !important;
+            background-color: #3193da !important;
             color: #ffffff !important;
         }
 
         .select2-results__option[aria-selected="true"] {
-            background-color: #e0e7ff !important;
-            color: #3730a3 !important;
+            background-color: #d1ecff !important;
+            color: #124d79 !important;
         }
 
         /* Only the open floating dropdown list gets a high z-index */
@@ -179,8 +179,8 @@
         }
 
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+            border-color: #3193da;
+            box-shadow: 0 0 0 3px rgba(49, 147, 218, .12);
         }
 
         /* mobile: stack length + filter */

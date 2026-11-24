@@ -73,7 +73,7 @@
             icon: 'error',
             title: 'Error',
             text: message,
-            confirmButtonColor: '#a855f7',
+            confirmButtonColor: '#56b1f3',
             ...swalDarkTheme
         });
     }
@@ -133,7 +133,7 @@
                 popup: 'congrats-popup',
                 confirmButton: 'congrats-confirm-btn'
             },
-            background: 'linear-gradient(160deg, #1e1b4b 0%, #171532 55%, #2a1240 100%)',
+            background: 'linear-gradient(160deg, #0b324f 0%, #171532 55%, #2a1240 100%)',
             color: '#f1f5f9'
         });
 

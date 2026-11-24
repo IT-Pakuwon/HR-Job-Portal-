@@ -29,6 +29,6 @@
     <div style="overflow-wrap:anywhere;word-break:break-word;">@foreach($meetingDetailParts as $part)@php
         $partUrl = rtrim($part, '.,;)');
         $isMeetingLink = preg_match('~^https?://~i', $partUrl) && filter_var($partUrl, FILTER_VALIDATE_URL);
-    @endphp@if($isMeetingLink)<a href="{{ $partUrl }}" target="_blank" rel="noopener noreferrer" style="color:#4338ca;text-decoration:underline;">{{ $partUrl }}</a>{{ substr($part, strlen($partUrl)) }}@else{!! nl2br(e($part)) !!}@endif@endforeach</div>
+    @endphp@if($isMeetingLink)<a href="{{ $partUrl }}" target="_blank" rel="noopener noreferrer" style="color:#1c71ae;text-decoration:underline;">{{ $partUrl }}</a>{{ substr($part, strlen($partUrl)) }}@else{!! nl2br(e($part)) !!}@endif@endforeach</div>
     <p style="margin:26px 0 0;">Warm regards,<br><strong>Talent Acquisition Pakuwon Group</strong></p>
 @endsection

@@ -2,9 +2,9 @@
     /* Applicant profile â label/value tiles */
     .ap-dl { gap: .75rem !important; }
     .ap-dl > div:has(> dt) { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: .875rem; padding: .75rem .875rem; transition: border-color .15s ease, background .15s ease; }
-    .ap-dl > div:has(> dt):hover { border-color: #c7d2fe; background: #fff; }
+    .ap-dl > div:has(> dt):hover { border-color: #b6e1ff; background: #fff; }
     .dark .ap-dl > div:has(> dt) { background: rgba(55, 65, 81, .3); border-color: #374151; }
-    .dark .ap-dl > div:has(> dt):hover { border-color: #6366f1; background: rgba(55, 65, 81, .5); }
+    .dark .ap-dl > div:has(> dt):hover { border-color: #56b1f3; background: rgba(55, 65, 81, .5); }
 </style>
 @php
     $yn = fn($v) => in_array(strtolower((string) $v), ['y', 'yes', '1', 'true'], true) ? 'Yes' : 'No';

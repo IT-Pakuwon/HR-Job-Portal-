@@ -15,8 +15,8 @@
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
         <tr>
-            <td style="background:#f0f4ff;border-left:4px solid #4338ca;border-radius:6px;padding:14px 16px;">
-                <p style="margin:0;font-size:15px;font-weight:800;color:#4338ca;">{{ $job_title }}</p>
+            <td style="background:#f0f4ff;border-left:4px solid #1c71ae;border-radius:6px;padding:14px 16px;">
+                <p style="margin:0;font-size:15px;font-weight:800;color:#1c71ae;">{{ $job_title }}</p>
             </td>
         </tr>
     </table>

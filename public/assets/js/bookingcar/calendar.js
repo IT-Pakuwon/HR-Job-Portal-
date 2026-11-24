@@ -176,8 +176,8 @@ const BookingCarCalendar = {
                 text:   '#ffffff',
             },
             'F': {
-                bg:     '#6366f1',
-                border: '#4f46e5',
+                bg:     '#56b1f3',
+                border: '#3193da',
                 text:   '#ffffff',
             },
             'D': {

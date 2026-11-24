@@ -116,7 +116,7 @@
     }
 
     function barPalette() {
-        return ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#84CC16'];
+        return ['#3B82F6', '#56b1f3', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#84CC16'];
     }
 
     // ── Stat cards ───────────────────────────────────────────────────────────
@@ -143,7 +143,7 @@
         el.innerHTML = '';
 
         var dark = isDark();
-        var palette = ['#3B82F6', '#8B5CF6', '#F59E0B'];
+        var palette = ['#3B82F6', '#56b1f3', '#F59E0B'];
         var data = [
             { x: 'Quota', y: quota, fillColor: palette[0] },
             { x: 'Registered', y: registered, fillColor: palette[1] },
@@ -290,7 +290,7 @@
     function loadTopTrainings(params) {
         fetchJson(routes.topTrainings, params).then(function (res) {
             var d = res.data || {};
-            renderBarChart('top', 'trnrepTopTrainingsChart', d.categories || [], d.series || [], '#8B5CF6', d.breakdown || {});
+            renderBarChart('top', 'trnrepTopTrainingsChart', d.categories || [], d.series || [], '#56b1f3', d.breakdown || {});
         }).catch(function () {});
     }
 

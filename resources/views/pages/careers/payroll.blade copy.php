@@ -56,7 +56,7 @@
       {{-- <button id="addPayrollBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
         + Tambah
       </button> --}}
-      <button type="button" onclick="openAgendaModal()" style="margin-bottom: 10px; padding: 8px 16px; background-color: #6366f1; color: white; border: none; border-radius: 5px;">
+      <button type="button" onclick="openAgendaModal()" style="margin-bottom: 10px; padding: 8px 16px; background-color: #56b1f3; color: white; border: none; border-radius: 5px;">
         Create Schedule
       </button>
     </div>

@@ -2,25 +2,25 @@
     /* Interview assessment — option cards + criterion cards */
     .asm-opt { position: relative; display: flex; cursor: default; align-items: flex-start; gap: .625rem; border: 1px solid #e5e7eb; border-radius: .875rem;
         background: #fff; padding: .625rem .75rem; text-align: left; transition: all .15s ease; }
-    .asm-opt:hover { border-color: #a5b4fc; background: #f5f7ff; }
+    .asm-opt:hover { border-color: #a0d7ff; background: #f5f7ff; }
     .asm-opt .asm-chip { display: flex; height: 1.5rem; width: 1.5rem; flex-shrink: 0; align-items: center; justify-content: center; border-radius: .5rem;
         background: #f3f4f6; color: #6b7280; font-size: .75rem; font-weight: 700; transition: all .15s ease; }
     .asm-opt .opt-descr { font-size: .8125rem; line-height: 1.35; color: #6b7280; transition: color .15s ease; }
-    .asm-opt[data-selected="1"] { border-color: #6366f1; background: #eef2ff; box-shadow: 0 0 0 3px rgba(99, 102, 241, .15); }
-    .asm-opt[data-selected="1"] .asm-chip { background: #4f46e5; color: #fff; }
-    .asm-opt[data-selected="1"] .opt-descr { color: #3730a3; font-weight: 600; }
-    .asm-opt:has(input:focus-visible) { outline: 2px solid #6366f1; outline-offset: 2px; }
+    .asm-opt[data-selected="1"] { border-color: #56b1f3; background: #e3f3ff; box-shadow: 0 0 0 3px rgba(86, 177, 243, .15); }
+    .asm-opt[data-selected="1"] .asm-chip { background: #3193da; color: #fff; }
+    .asm-opt[data-selected="1"] .opt-descr { color: #124d79; font-weight: 600; }
+    .asm-opt:has(input:focus-visible) { outline: 2px solid #56b1f3; outline-offset: 2px; }
     .asm-card { transition: border-color .15s ease, box-shadow .15s ease; }
-    .asm-card:has(input:checked) { border-color: #c7d2fe; }
+    .asm-card:has(input:checked) { border-color: #b6e1ff; }
 
     .dark .asm-opt { background: rgba(17, 24, 39, .6); border-color: #374151; }
-    .dark .asm-opt:hover { border-color: #6366f1; background: rgba(99, 102, 241, .1); }
+    .dark .asm-opt:hover { border-color: #56b1f3; background: rgba(86, 177, 243, .1); }
     .dark .asm-opt .asm-chip { background: #374151; color: #9ca3af; }
     .dark .asm-opt .opt-descr { color: #9ca3af; }
-    .dark .asm-opt[data-selected="1"] { background: rgba(99, 102, 241, .18); border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99, 102, 241, .25); }
-    .dark .asm-opt[data-selected="1"] .asm-chip { background: #6366f1; color: #fff; }
-    .dark .asm-opt[data-selected="1"] .opt-descr { color: #e0e7ff; }
-    .dark .asm-card:has(input:checked) { border-color: rgba(99, 102, 241, .5); }
+    .dark .asm-opt[data-selected="1"] { background: rgba(86, 177, 243, .18); border-color: #7bc8ff; box-shadow: 0 0 0 3px rgba(86, 177, 243, .25); }
+    .dark .asm-opt[data-selected="1"] .asm-chip { background: #56b1f3; color: #fff; }
+    .dark .asm-opt[data-selected="1"] .opt-descr { color: #d1ecff; }
+    .dark .asm-card:has(input:checked) { border-color: rgba(86, 177, 243, .5); }
 </style>
 
 <form id="assessmentFormUSER" method="POST">

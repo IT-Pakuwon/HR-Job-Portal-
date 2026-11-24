@@ -2,6 +2,7 @@
     'title'            => '',
     'subtitle'         => '',
     'description'      => '',
+    'filtersId'        => null,   // optional container, top right of the header, filled by the page's JS (e.g. select2 filters)
     'color'            => 'blue',
     'gradient'         => null,
     'columns'          => [],
@@ -32,21 +33,29 @@
     <div class="absolute inset-x-0 top-0 h-0.75" style="background: {{ $grad }}"></div>
 
     {{-- Card Header --}}
-    <div class="flex items-center justify-between px-5 pb-3 pt-5">
-        <div>
+    <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 px-5 {{ $description ? 'pb-1' : 'pb-3' }} pt-5 sm:flex-nowrap">
+        <div class="min-w-0">
             @if($subtitle)
                 <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{{ $subtitle }}</p>
             @endif
             <h3 class="mt-0.5 text-sm font-bold text-slate-800 dark:text-white">{{ $title }}</h3>
-            @if($description)
-                <p class="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">{{ $description }}</p>
-            @endif
         </div>
-        @if($countBadgeId)
-            <span id="{{ $countBadgeId }}"
-                  class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400"></span>
+        @if($filtersId || $countBadgeId)
+            <div class="flex shrink-0 items-center justify-end gap-2">
+                @if($filtersId)
+                    <div id="{{ $filtersId }}" class="flex flex-nowrap items-center justify-end gap-2"></div>
+                @endif
+                @if($countBadgeId)
+                    <span id="{{ $countBadgeId }}"
+                          class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400"></span>
+                @endif
+            </div>
         @endif
     </div>
+
+    @if($description)
+        <p class="px-5 pb-3 text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">{{ $description }}</p>
+    @endif
 
     {{-- Table --}}
     <div class="overflow-x-auto">

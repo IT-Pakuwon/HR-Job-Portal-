@@ -68,13 +68,13 @@
 
     // ── Charts ───────────────────────────────────────────────────────────────
     function barPalette() {
-        return ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#84CC16'];
+        return ['#3B82F6', '#56b1f3', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#84CC16'];
     }
 
     var BUCKET_ROWS = [
         ['completed', 'Completed', '#10B981'],
         ['on_progress', 'On Progress', '#F59E0B'],
-        ['revised', 'Revised', '#8B5CF6'],
+        ['revised', 'Revised', '#56b1f3'],
         ['rejected', 'Rejected', '#EF4444'],
         ['cancelled', 'Cancelled', '#94A3B8'],
     ];

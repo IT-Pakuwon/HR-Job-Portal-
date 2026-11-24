@@ -20,11 +20,11 @@
 
                     {{-- Header --}}
                     <tr>
-                        <td style="background-color:#4338ca;background:linear-gradient(135deg,#312e81 0%,#4338ca 55%,#6366f1 100%);border-radius:14px 14px 0 0;padding:30px 36px 26px;">
+                        <td style="background-color:#1c71ae;background:linear-gradient(135deg,#124d79 0%,#1c71ae 55%,#56b1f3 100%);border-radius:14px 14px 0 0;padding:30px 36px 26px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td>
-                                        <p style="margin:0 0 14px;display:inline-block;background:rgba(255,255,255,0.15);border-radius:999px;padding:3px 12px;font-size:10px;font-weight:700;color:#c7d2fe;letter-spacing:0.12em;text-transform:uppercase;">
+                                        <p style="margin:0 0 14px;display:inline-block;background:rgba(255,255,255,0.15);border-radius:999px;padding:3px 12px;font-size:10px;font-weight:700;color:#b6e1ff;letter-spacing:0.12em;text-transform:uppercase;">
                                             {{ $systemLabel ?? 'Pakuwon Career' }}
                                         </p>
                                     </td>
@@ -41,7 +41,7 @@
                                                     <h1 style="margin:0 0 3px;font-size:21px;font-weight:800;color:#ffffff;line-height:1.25;letter-spacing:-0.01em;">
                                                         @yield('header')
                                                     </h1>
-                                                    <p style="margin:0;font-size:12.5px;color:#c7d2fe;line-height:1.5;">
+                                                    <p style="margin:0;font-size:12.5px;color:#b6e1ff;line-height:1.5;">
                                                         @yield('subtitle')
                                                     </p>
                                                 </td>

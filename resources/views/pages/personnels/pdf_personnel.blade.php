@@ -55,7 +55,7 @@
 
         .header-rule {
             border: none;
-            border-bottom: 2px solid #3730a3;
+            border-bottom: 2px solid #124d79;
             margin: 14px 0 20px 0;
         }
 
@@ -70,7 +70,7 @@
             text-transform: uppercase;
             letter-spacing: .5px;
             color: #1a1a1a;
-            border-left: 3px solid #3730a3;
+            border-left: 3px solid #124d79;
             border-bottom: 1px solid #eee;
             padding: 1px 0 5px 8px;
             margin-bottom: 12px;
@@ -140,7 +140,7 @@
             margin-top: 3px;
             font-size: 20px;
             font-weight: 700;
-            color: #3730a3;
+            color: #124d79;
         }
 
         /* ============ LISTS ============ */
@@ -212,7 +212,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: #3730a3;
+            background: #124d79;
         }
     </style>
 </head>

@@ -30,6 +30,6 @@
     <hr style="border:none;border-top:1px solid #e2e8f0;margin:22px 0 14px;">
     <p style="margin:0;font-size:12px;color:#64748b;">
         You can visit our career portal for future openings:
-        <a href="{{ $career_url }}" target="_blank" style="color:#4338ca;">{{ $career_url }}</a>
+        <a href="{{ $career_url }}" target="_blank" style="color:#1c71ae;">{{ $career_url }}</a>
     </p>
 @endsection

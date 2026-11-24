@@ -377,7 +377,7 @@
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
+                            <div x-show="activeTab === 'attachment'" class="flex flex-col flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-sm">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -392,7 +392,7 @@
                                 </table>
                                 {{-- Upload attachment (multi) --}}
                                 @if ($canUpload)
-                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <div class="mt-auto border-t border-gray-200 p-4 dark:border-gray-700">
                                         <form id="imbudgetAttachmentUploadForm" enctype="multipart/form-data">
                                             @csrf
                                             <div class="flex flex-col gap-3 md:flex-row md:items-center">

@@ -317,18 +317,18 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
             right: 10px !important;
         }
         .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #818cf8 transparent transparent transparent !important;
+            border-color: #7bc8ff transparent transparent transparent !important;
             border-width: 5px 4px 0 4px !important;
         }
         .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-            border-color: transparent transparent #818cf8 transparent !important;
+            border-color: transparent transparent #7bc8ff transparent !important;
             border-width: 0 4px 5px 4px !important;
         }
         .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--single,
         .ts-select2-container.select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #6366f1 !important;
+            border-color: #56b1f3 !important;
             background-color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.15);
         }
         .ts-select2-container.select2-container--default .select2-selection--single .select2-selection__placeholder {
             color: rgb(148 163 184);
@@ -340,7 +340,7 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
             box-shadow: none;
         }
         html.dark .ts-select2-container.select2-container--default .select2-selection--single:hover {
-            border-color: rgba(129, 140, 248, 0.4) !important;
+            border-color: rgba(123, 200, 255, 0.4) !important;
             background-color: rgba(255, 255, 255, 0.08) !important;
         }
         html.dark .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--single,
@@ -361,12 +361,12 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
             border-radius: 0.5rem !important;
         }
         .ts-select2-dropdown .select2-results__option--highlighted[aria-selected] {
-            background-color: #eef2ff !important;
-            color: #4338ca !important;
+            background-color: #e3f3ff !important;
+            color: #1c71ae !important;
         }
         .ts-select2-dropdown .select2-results__option[aria-selected="true"] {
-            background-color: #eef2ff !important;
-            color: #4338ca !important;
+            background-color: #e3f3ff !important;
+            color: #1c71ae !important;
             font-weight: 600;
         }
         html.dark .ts-select2-dropdown.select2-dropdown {
@@ -384,7 +384,7 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
         }
         html.dark .ts-select2-dropdown .select2-results__option--highlighted[aria-selected],
         html.dark .ts-select2-dropdown .select2-results__option[aria-selected="true"] {
-            background-color: #4f46e5 !important;
+            background-color: #3193da !important;
             color: #fff !important;
         }
         .ts-select2-container.select2-container--disabled .select2-selection--single {
@@ -912,7 +912,7 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
                     text: 'Password will be reset to the default password.',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, reset it',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: '#3193da',
                 }).then(function(result) {
                     if (!result.isConfirmed) return;
 

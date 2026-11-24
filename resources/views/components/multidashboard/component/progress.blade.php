@@ -127,7 +127,7 @@ function progressCard() {
     const key = 'dashProgressPeak3:' + location.pathname + ':' + day;
     const readPeaks = () => { try { const p = JSON.parse(localStorage.getItem(key) || '{}'); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; } };
     const writePeaks = o => { try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {} };
-    const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#ec4899'];
+    const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#56b1f3', '#ec4899'];
 
     const icons = {
         approval: 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z',

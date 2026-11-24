@@ -8,8 +8,8 @@
         --ticket-muted: #64748b;
         --ticket-muted-2: #94a3b8;
         --ticket-hover: #f8fafc;
-        --ticket-primary: #4f46e5;
-        --ticket-primary-soft: #4f46e51a;
+        --ticket-primary: #3193da;
+        --ticket-primary-soft: #3193da1a;
 
         --ticket-shadow:
             0 1px 2px rgba(15, 23, 42, .04),
@@ -25,8 +25,8 @@
         --ticket-muted: #cbd5e1;
         --ticket-muted-2: #64748b;
         --ticket-hover: #172033;
-        --ticket-primary: #6366f1;
-        --ticket-primary-soft: #6366f124;
+        --ticket-primary: #56b1f3;
+        --ticket-primary-soft: #56b1f324;
 
         --ticket-shadow:
             0 1px 2px rgba(0, 0, 0, .25),
@@ -216,7 +216,7 @@
     }
 
     .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
-        background-color: #4f46e5;
+        background-color: #3193da;
         color: #ffffff;
     }
 

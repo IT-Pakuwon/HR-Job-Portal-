@@ -414,7 +414,7 @@
 
     .btn-nav:focus {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6);
+        box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.6);
     }
 </style>
 

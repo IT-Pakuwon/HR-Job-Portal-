@@ -9,7 +9,7 @@
 @section('content')
     <p style="margin:0 0 12px;">Dear <strong>{{ $hod }}</strong>,</p>
 
-    <p style="margin:0 0 4px;">We kindly invite you to attend the following <strong style="color:#4338ca;">Candidate Interview</strong> session:</p>
+    <p style="margin:0 0 4px;">We kindly invite you to attend the following <strong style="color:#1c71ae;">Candidate Interview</strong> session:</p>
 
     @include('emails.partials.schedule-card', ['rows' => [
         ['icon' => '👤', 'label' => 'Candidate', 'value' => $full_name, 'sub' => $job_title],

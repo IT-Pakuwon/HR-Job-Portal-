@@ -577,6 +577,8 @@ class DocumentNotificationService
                     'model' => $extCfg['model'],
                     'idCol' => $extCfg['idCol'],
                     'url'   => $extCfg['url'],
+                    'approvalDoctype' => $extCfg['approvalDoctype'] ?? null,
+                    'creatorFields'   => $extCfg['creatorFields'] ?? [],
                     // All extended doctypes reach 'C' on final approval via ApprovalController's
                     // onComplete closures and stop needing comment notifications after that, except:
                     // RC (TrRfca), which has no reliable header-status terminal value yet, and TRN
@@ -633,12 +635,34 @@ class DocumentNotificationService
                     ->get()
                     ->keyBy($cfg['idCol']);
 
+                // Revise/Reject reasons are saved as ordinary tr_message rows (no type), so they're
+                // recognised by matching the approver's own Revise ('D') / Reject ('R') action on the
+                // approval line: same user, within a couple of minutes of the comment.
+                $actionsByDoc = collect();
+                if (!empty($cfg['approvalDoctype'])) {
+                    $actionsByDoc = TrApproval::where('aprv_doctype', $cfg['approvalDoctype'])
+                        ->whereIn('refnbr', $rows->pluck('refnbr')->filter()->unique()->values()->all())
+                        ->whereIn('status', ['D', 'R'])
+                        ->whereNotNull('aprv_dateafter')
+                        ->get(['refnbr', 'status', 'aprv_username', 'aprv_dateafter'])
+                        ->groupBy('refnbr');
+                }
+
                 foreach ($rows as $row) {
                     $key = 'CMT_' . $commentDoctype . '_' . $row->id;
 
                     $doc = $docsByKey->get($row->refnbr);
                     if (!$doc) {
                         continue;
+                    }
+
+                    $noteKind = null; // 'D' = Revised Note, 'R' = Rejected Note
+                    if ($actionsByDoc->has($row->refnbr)) {
+                        $commentAt = \Carbon\Carbon::parse($row->message_date);
+                        $action = $actionsByDoc->get($row->refnbr)->first(fn ($a) =>
+                            strtolower(trim((string) $a->aprv_username)) === strtolower(trim((string) $row->username))
+                            && abs($commentAt->diffInSeconds(\Carbon\Carbon::parse($a->aprv_dateafter), false)) <= 120);
+                        $noteKind = $action?->status;
                     }
                     if ($commentDoctype === 'JAP') {
                         // Match the career comment endpoint's legacy company/author-group scope.
@@ -653,7 +677,10 @@ class DocumentNotificationService
                     if (!empty($cfg['terminalStatuses'])) {
                         $statusCol = $cfg['statusCol'] ?? 'status';
                         $docStatus = strtoupper(trim((string) ($doc->{$statusCol} ?? '')));
-                        if (in_array($docStatus, $cfg['terminalStatuses'], true)) {
+                        // A Rejected Note is the whole point of a rejected doc being terminal, so it
+                        // must still reach the creator.
+                        $isRejectedNote = $noteKind === 'R' && $docStatus === 'R';
+                        if (in_array($docStatus, $cfg['terminalStatuses'], true) && !$isRejectedNote) {
                             continue;
                         }
                     }
@@ -728,6 +755,34 @@ class DocumentNotificationService
                             'status'     => 'MENTION',
                             'label'      => 'Mentioned',
                             'message'    => 'You are mentioned in this document, please check.',
+                            'comment'    => \Illuminate\Support\Str::limit(TrMessage::plainText($row->message), 500),
+                            'cpnyid'     => $row->cpny_id,
+                            'url'        => $cfg['url'],
+                            'by'         => $row->name,
+                            'updated_at' => $row->message_date,
+                        ]);
+                        continue;
+                    }
+
+                    // Revised / Rejected Note: only the document's creator is notified.
+                    if ($noteKind !== null) {
+                        $creators = collect($cfg['creatorFields'] ?? [])
+                            ->map(fn ($f) => strtolower(trim((string) ($doc->{$f} ?? ''))))
+                            ->filter();
+                        if (!$creators->contains($username)) {
+                            continue;
+                        }
+
+                        $isReject = $noteKind === 'R';
+                        $data->push([
+                            'key'        => $key,
+                            'hid'        => $hid,
+                            'docid'      => $row->refnbr,
+                            'status'     => $isReject ? 'COMMENT_REJECTED' : 'COMMENT_REVISED',
+                            'label'      => $isReject ? 'Rejected Note' : 'Revised Note',
+                            'message'    => $isReject
+                                ? 'Your document was rejected, please check the note.'
+                                : 'Your document needs revision, please check the note.',
                             'comment'    => \Illuminate\Support\Str::limit(TrMessage::plainText($row->message), 500),
                             'cpnyid'     => $row->cpny_id,
                             'url'        => $cfg['url'],

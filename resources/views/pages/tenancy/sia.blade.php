@@ -505,30 +505,30 @@
 
                     const r = await Swal.fire({
                         title: 'Extend Approval', width: 700, showCancelButton: true, confirmButtonText: 'Add Approver', cancelButtonText: 'Cancel',
-                        confirmButtonColor: '#8b5cf6', cancelButtonColor: '#94a3b8', reverseButtons: true, focusConfirm: false,
+                        confirmButtonColor: '#56b1f3', cancelButtonColor: '#94a3b8', reverseButtons: true, focusConfirm: false,
                         showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
                         html: `<style>
                                 .apv{text-align:left}.apv-hint{margin:0 0 12px;font-size:13px;line-height:1.5;color:#64748b;text-align:center}
-                                .apv-hint b{color:#7c3aed}
+                                .apv-hint b{color:#3193da}
                                 .apv-search{position:relative;margin-bottom:8px}.apv-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
                                 .apv-search input{width:100%;box-sizing:border-box;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px 10px 34px;font-size:14px;outline:none;color:#334155;background:#fff}
-                                .apv-search input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+                                .apv-search input:focus{border-color:#56b1f3;box-shadow:0 0 0 3px rgba(86, 177, 243,.15)}
                                 .apv-list{max-height:320px;overflow-y:auto;overflow-x:hidden;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;padding:4px}
                                 .apv-grp{position:sticky;top:-4px;z-index:1;background:#f1f5f9;border-radius:8px;margin:4px 0;padding:6px 10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;display:flex;justify-content:space-between;gap:8px}
-                                .apv-grp span{font-weight:600;letter-spacing:0;text-transform:none;color:#7c3aed}
+                                .apv-grp span{font-weight:600;letter-spacing:0;text-transform:none;color:#3193da}
                                 .apv-item{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;text-align:left;border:1px solid transparent;background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;transition:background .12s}
-                                .apv-item:hover{background:#fff;border-color:#e2e8f0}.apv-item.on{background:#f5f3ff;border-color:#c4b5fd}
-                                .apv-av{flex:none;width:34px;height:34px;border-radius:50%;background:#ede9fe;color:#6d28d9;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-                                .apv-item.on .apv-av{background:#7c3aed;color:#fff}
+                                .apv-item:hover{background:#fff;border-color:#e2e8f0}.apv-item.on{background:#e3f3ff;border-color:#a0d7ff}
+                                .apv-av{flex:none;width:34px;height:34px;border-radius:50%;background:#d1ecff;color:#1c71ae;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+                                .apv-item.on .apv-av{background:#3193da;color:#fff}
                                 .apv-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}.apv-tx b{font-size:14px;color:#1e293b;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
                                 .apv-tx small{font-size:12px;color:#94a3b8}
                                 .apv-dp{flex:none;max-width:200px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#e2e8f0;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
                                 .apv-dp.same{background:#dcfce7;color:#166534}
-                                .apv-ck{flex:none;color:#7c3aed;font-size:16px;display:none}.apv-item.on .apv-ck{display:inline-block}
+                                .apv-ck{flex:none;color:#3193da;font-size:16px;display:none}.apv-item.on .apv-ck{display:inline-block}
                                 .apv-none{padding:22px;text-align:center;font-size:13px;color:#94a3b8;display:none}
-                                .apv-chosen{margin:10px 0 8px;font-size:13px;color:#64748b;min-height:20px}.apv-chosen b{color:#6d28d9}
+                                .apv-chosen{margin:10px 0 8px;font-size:13px;color:#64748b;min-height:20px}.apv-chosen b{color:#1c71ae}
                                 .apv-notes{width:100%;box-sizing:border-box;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;min-height:72px;resize:vertical;outline:none;font-family:inherit;color:#334155;background:#fff}
-                                .apv-notes:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+                                .apv-notes:focus{border-color:#56b1f3;box-shadow:0 0 0 3px rgba(86, 177, 243,.15)}
                                </style>
                                <div class="apv">
                                  <p class="apv-hint">${next ? `The new approver becomes <b>Level ${esc(next)}</b>` : 'The new approver becomes a sub-level'}, right after your current level, and must approve before the next level.<br>Showing active users of <b>${esc(this.detail.data.sitename)}</b> only.</p>

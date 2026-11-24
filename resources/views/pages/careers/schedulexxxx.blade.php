@@ -147,7 +147,7 @@
             <tr>
                 {{-- <td>
                     <a href="{{ url('/showagendas/' . $p->id) }}" target="_blank"
-                        style="background-color: #6366f1; color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; text-decoration: none;">
+                        style="background-color: #56b1f3; color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; text-decoration: none;">
                         {{ $p->docid }}
                     </a>
                 </td> --}}

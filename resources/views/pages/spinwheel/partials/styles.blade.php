@@ -28,7 +28,7 @@
     }
 
     .spinwheel-dark .neon-title {
-        background: linear-gradient(90deg, #f472b6, #a855f7, #818cf8);
+        background: linear-gradient(90deg, #f472b6, #56b1f3, #7bc8ff);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -82,7 +82,7 @@
     }
 
     .sw-select2-dropdown .select2-results__option--highlighted {
-        background: linear-gradient(90deg, #ec4899, #8b5cf6) !important;
+        background: linear-gradient(90deg, #ec4899, #56b1f3) !important;
         color: #fff !important;
     }
 
@@ -143,7 +143,7 @@
     }
 
     .spinwheel-dark .dataTables_paginate .paginate_button.current {
-        background: linear-gradient(90deg, #ec4899, #8b5cf6) !important;
+        background: linear-gradient(90deg, #ec4899, #56b1f3) !important;
         border-color: transparent !important;
         color: #fff !important;
     }
@@ -188,7 +188,7 @@
     .congrats-title {
         font-size: 1.75rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #f472b6, #a855f7, #818cf8);
+        background: linear-gradient(90deg, #f472b6, #56b1f3, #7bc8ff);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -206,7 +206,7 @@
     }
 
     .congrats-confirm-btn {
-        background: linear-gradient(90deg, #ec4899, #a855f7) !important;
+        background: linear-gradient(90deg, #ec4899, #56b1f3) !important;
         color: #fff !important;
         font-weight: 700 !important;
         padding: .8rem 2.75rem !important;

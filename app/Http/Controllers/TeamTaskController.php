@@ -548,7 +548,7 @@ class TeamTaskController extends Controller
                 }
             }
 
-            if ($request->has('tags')) {
+            if ($request->has('tags') || $request->boolean('tags_submitted')) {
                 $this->syncTaskTags($task->task_id, $request->input('tags', []), $username, $now);
             }
         });

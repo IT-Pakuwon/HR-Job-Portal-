@@ -9,7 +9,7 @@
                     LEGAL LEASE REPORT
                 </h1>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    PSM / OLA, Addendum, Others &amp; Agreement FU — volume per company, status, top tenants and missing documents
+                    PSM / OLA, Addendum, Others &amp; Agreement FU — volume per company, Memo / LOI documents, follow-up letters and delays on open PSM / OLA
                 </p>
             </div>
 
@@ -80,17 +80,27 @@
             <x-card-chart.stat-card title="Incomplete Documents" subtitle="Missing tenant documents" value="0" color="red" valueId="llrepStatIncomplete" />
         </div>
 
-        {{-- ── Activity Overview: category-by-unit chart + Key Highlights ─────────── --}}
+        {{-- ── Overview row: type by company + tenants sent / letters + Key Highlights ── --}}
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
 
-            <x-card-chart.stacked-bar-card class="lg:col-span-2" subtitle="Agreement Overview"
+            <x-card-chart.stacked-bar-card subtitle="Agreement Overview"
                 title="Agreement Type by Company" titleId="llrepCategoryByUnitTitle"
                 gradient="linear-gradient(to right,#3B82F6,#8B5CF6,#EC4899)"
                 chartId="llrepCategoryByUnitChart" :minHeight="340" />
 
+            <x-card-chart.stacked-bar-card subtitle="Agreement FU" title="Follow-Up Letters by Type"
+                gradient="linear-gradient(to right,#06B6D4,#F59E0B,#EF4444)"
+                chartId="llrepSentLettersChart" :minHeight="340" />
+
             <x-card-chart.card-shell class="flex flex-col" subtitle="Summary" title="Key Highlights"
                 gradient="linear-gradient(to right,#8B5CF6,#06B6D4)">
-                <div id="llrepKeyHighlights" class="flex-1 space-y-3 px-5 pb-5 pt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                <x-slot:headerEnd>
+                    <div id="llrepHlLang" class="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5 text-[10px] font-bold dark:border-slate-700 dark:bg-slate-800">
+                        <button type="button" data-hl-lang="en" class="rounded-full px-2.5 py-0.5 transition">EN</button>
+                        <button type="button" data-hl-lang="id" class="rounded-full px-2.5 py-0.5 transition">ID</button>
+                    </div>
+                </x-slot:headerEnd>
+                <div id="llrepKeyHighlights" class="flex-1 space-y-3 px-5 pb-5 pt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                     <p class="text-slate-400 dark:text-slate-500">Loading…</p>
                 </div>
             </x-card-chart.card-shell>
@@ -108,23 +118,28 @@
                 chartId="llrepAddendumMemoChart" :minHeight="300" />
         </div>
 
-        {{-- ── Tenants sent their agreement + Surat 1 / Surat 2 / Escalation ───────── --}}
-        <x-card-chart.stacked-bar-card subtitle="Agreement FU" title="Tenants Sent, Surat 1, Surat 2 &amp; Escalation"
-            description="Number of tenants per document type. 'Sent' = the agreement has been delivered to the tenant; the letters follow the H+14 / H+14 / H+7 reminder cycle."
-            gradient="linear-gradient(to right,#06B6D4,#F59E0B,#EF4444)"
-            summaryId="llrepSentLettersSummary" chartId="llrepSentLettersChart" :minHeight="280" />
+        {{-- ── PIC workload + delay analysis, side by side (stack on narrower screens) ── --}}
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2" style="align-items:stretch">
+            {{-- ── PIC Legal workload: open documents per PIC, by type ─────────────────── --}}
+            <x-card-chart.stacked-bar-card subtitle="PIC Legal" title="PIC Workload"
+                description="Open documents (Active, Hold, Escalated) per PIC Legal, by type. Shows how loaded each PIC is — not which document they are working on."
+                gradient="linear-gradient(to right,#8B5CF6,#06B6D4)"
+                chartId="llrepPicWorkloadChart" :minHeight="240" />
 
-        {{-- ── Status by Category + Top Breakdown ──────────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
-
-            <x-card-chart.stacked-bar-card subtitle="Breakdown" title="Status by Agreement Type"
-                gradient="linear-gradient(to right,#10B981,#F59E0B)"
-                chartId="llrepStatusByCategoryChart" />
-
-            <x-card-chart.stacked-bar-card subtitle="Breakdown" title="Top Tenants" titleId="llrepTopBreakdownTitle"
-                gradient="linear-gradient(to right,#3B82F6,#06B6D4)"
-                chartId="llrepTopBreakdownChart" />
-
+            {{-- ── Delay analysis: why are open PSM / OLA agreements slow? ───────────────── --}}
+            <x-card-chart.dynamic-table-card subtitle="PSM / OLA / Addendum / Others & Follow Up" title="Delay Analysis"
+                description="Open agreements and follow-ups already delivered to the tenant, oldest first. Cause: On Hold (with reason), Waiting Return (follow-up: signed copy not back since the delivery date, with Surat 1 / Surat 2 / Escalation progress), Waiting Tenant (missing documents), In Step (a process step still running), No Blocker."
+                gradient="linear-gradient(to right,#F59E0B,#EF4444)"
+                tableBodyId="llrepDelayBody" countBadgeId="llrepDelayCount" paginationPrefix="llrepDelay"
+                filtersId="llrepDelayFilters"
+                :columns="[
+                    ['label' => 'Agreement', 'align' => 'left'],
+                    ['label' => 'Tenant', 'align' => 'left'],
+                    ['label' => 'PIC Legal', 'align' => 'left'],
+                    ['label' => 'Age', 'align' => 'center'],
+                    ['label' => 'Cause', 'align' => 'left'],
+                    ['label' => 'Detail', 'align' => 'left'],
+                ]" />
         </div>
 
         {{-- ── List Table ───────────────────────────────────────────────────────────── --}}
@@ -143,18 +158,6 @@
                         </svg>
                         <input id="llrepTableSearch" type="text" placeholder="Search…"
                             class="w-48 rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs outline-none focus:border-violet-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                    </div>
-                    <div class="relative">
-                        <select id="llrepTablePageSize"
-                            class="h-7.5 cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white py-1.5 pl-3 pr-7 text-xs outline-none focus:border-violet-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                            <option value="10">10 / page</option>
-                            <option value="25">25 / page</option>
-                            <option value="50">50 / page</option>
-                            <option value="100">100 / page</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
                     </div>
                 </div>
             </div>
@@ -197,6 +200,36 @@
 
     </div>
 
+    <style>
+        /* Select2 filters inside the Delay Analysis header (and their dropdown, which renders on <body>) */
+        #llrepDelayFilters .select2-container { min-width: 9rem; flex-shrink: 0; }
+        #llrepDelayFilters { flex-wrap: nowrap; }
+        #llrepDelayFilters .select2-selection--single {
+            height: 30px; border: 1px solid #e2e8f0; border-radius: 0.5rem; background: #fff;
+        }
+        #llrepDelayFilters .select2-selection__rendered {
+            line-height: 28px; font-size: 0.75rem; font-weight: 600; color: #334155; padding-left: 0.625rem;
+        }
+        #llrepDelayFilters .select2-selection__arrow { height: 28px; }
+        #llrepDelayFilters .select2-container--open .select2-selection--single,
+        #llrepDelayFilters .select2-container--focus .select2-selection--single { border-color: #56b1f3; }
+        .llrep-s2.select2-dropdown {
+            border-radius: 0.75rem; border: 1px solid #e2e8f0; overflow: hidden; margin-top: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+        }
+        .llrep-s2 .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; }
+        .llrep-s2 .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #3193da; }
+        .llrep-s2 .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #1c71ae; font-weight: 600; }
+
+        .dark #llrepDelayFilters .select2-selection--single { background: #0f172a; border-color: #334155; }
+        .dark #llrepDelayFilters .select2-selection__rendered { color: #e2e8f0; }
+        .dark #llrepDelayFilters .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
+        .dark .llrep-s2.select2-dropdown { background-color: #1e293b; border-color: #475569; }
+        .dark .llrep-s2 .select2-results__option { color: #e2e8f0; }
+        .dark .llrep-s2 .select2-results__option--highlighted[aria-selected] { background-color: #124d79; color: #fff; }
+        .dark .llrep-s2 .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
+    </style>
+
     <script>
         // gm-filter.js (shared company/date filter) reads window.gmRoutes —
         // this page has no department filter (:showDepartment="false"), so only
@@ -211,8 +244,8 @@
             categoryByUnit: "{{ route('legal-lease-report.category-by-unit') }}",
             memoLoi: "{{ route('legal-lease-report.memo-loi') }}",
             sentLetters: "{{ route('legal-lease-report.sent-letters') }}",
-            statusByCategory: "{{ route('legal-lease-report.status-by-category') }}",
-            topBreakdown: "{{ route('legal-lease-report.top-breakdown') }}",
+            delay: "{{ route('legal-lease-report.delay') }}",
+            picWorkload: "{{ route('legal-lease-report.pic-workload') }}",
             table: "{{ route('legal-lease-report.table') }}",
         };
     </script>

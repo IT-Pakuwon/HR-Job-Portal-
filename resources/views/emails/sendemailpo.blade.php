@@ -15,7 +15,7 @@
     .compose-card{max-width:960px;margin:24px auto;border-radius:14px;box-shadow:0 10px 30px rgba(17,24,39,.08)}
     .label{font-size:.8rem;color:#6b7280}
     .meta-grid{display:grid;grid-template-columns:110px 1fr 110px 1fr;gap:10px 12px;margin-bottom:12px}
-    .chip{display:inline-flex;align-items:center;gap:.35rem;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:.2rem .6rem;margin:.15rem .25rem 0 0}
+    .chip{display:inline-flex;align-items:center;gap:.35rem;background:#e3f3ff;border:1px solid #b6e1ff;color:#124d79;border-radius:999px;padding:.2rem .6rem;margin:.15rem .25rem 0 0}
     .chip .x{cursor:pointer;margin-left:.35rem}
     .toolbar-small .note-editable{min-height:260px}
   </style>

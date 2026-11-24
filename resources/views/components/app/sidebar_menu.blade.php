@@ -11,15 +11,15 @@
         x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
-        class="sidebar-scroll fixed left-0 top-0 z-50 h-[100dvh] w-72 max-w-[85vw] overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
+        class="sidebar-scroll sb-root fixed left-0 top-0 z-50 h-[100dvh] w-72 max-w-[85vw] overflow-y-auto shadow-xl">
 
 
         <!-- SIDEBAR HEADER -->
-        <div class="border-b border-gray-200 px-4 py-4 text-center dark:border-gray-700">
-            <div class="flex flex-row items-center justify-center gap-5">
-                <img src="{{ asset('images/Logo Pakuwon.png') }}" alt="Pakuwon Logo" class="h-8 w-auto opacity-90" />
+        <div class="sb-header">
+            <div class="flex flex-row items-center gap-3">
+                <img src="{{ asset('images/Logo Pakuwon.png') }}" alt="Pakuwon Logo" class="sb-logo" />
 
-                <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                <span class="sb-title">
                     {{ config('app.name', 'Pakuwon System') }}
                 </span>
             </div>
@@ -169,7 +169,7 @@
                     <input type="text" x-model="query" @input="open = query.length > 0"
                         @focus="open = query.length > 0" @keydown.escape="query = ''; open = false"
                         placeholder="Search menu..."
-                        class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-8 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900">
+                        class="sb-search">
 
                     <button type="button" x-show="query.length > 0" @click="query = ''; open = false"
                         class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -208,7 +208,7 @@
                 <li class="mt-0" x-data="sidebarFavourites('{{ route('menu-favourites.index') }}', '{{ route('menu-favourites.toggle') }}')" x-init="init()" x-show="items.length > 0" x-cloak>
 
                     <button @click="open = !open"
-                        class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-50 transition-all duration-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
+                        class="sb-group sb-group--fav">
                         <div class="flex items-center gap-2.5">
                             <svg class="h-4 w-4 shrink-0 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M10 2.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L10 14.9l-4.58 2.4.87-5.1-3.7-3.61 5.12-.74L10 2.5z" />
@@ -273,7 +273,7 @@
                         <li class="mt-4" x-data="{ open: true }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="sb-group">
                                 <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $rootMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $rootMenu->menu_name }}</span></div>
                                 <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -295,9 +295,7 @@
                             @if ($children->isEmpty() && $isDirectMenu)
 
                                 <li
-                                    class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
+                                    class="sb-item {{ Route::is([$menu->menu_route, $menu->menu_route . '.*']) ? 'is-active' : '' }}">
 
                                     @php $routeOk = Route::has($menu->menu_route); @endphp
                                     <a href="{{ $routeOk ? route($menu->menu_route) : '#' }}"
@@ -329,11 +327,8 @@
 
                                 <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
 
-                                    <button @click="open = !open"
-                                        class="{{ $isActive
-                                            ? 'bg-indigo-500/10 text-indigo-600'
-                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                        flex min-h-9 w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm">
+                                    <button @click="open = !open" :aria-expanded="open.toString()"
+                                        class="sb-item sb-item--btn {{ $isActive ? 'is-active' : '' }}">
 
                                         <div class="flex items-center gap-3">
 
@@ -365,19 +360,17 @@
 
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="mt-1 space-y-0.5 pl-9">
+                                    <ul x-show="open" x-collapse class="sb-sublist">
 
                                         @foreach ($children as $child)
 
-                                            <li class="flex items-center justify-between rounded-md">
+                                            @php $childActive = $child->menu_route && Route::is([$child->menu_route, $child->menu_route . '.*']); @endphp
+                                            <li class="sb-subrow {{ $childActive ? 'is-active' : '' }}">
 
                                                 @php $childOk = !$child->menu_route || Route::has($child->menu_route); @endphp
                                                 <a href="{{ $child->menu_route && $childOk ? route($child->menu_route) : '#' }}"
                                                     @unless ($childOk) onclick="return false" aria-disabled="true" title="Route '{{ $child->menu_route }}' is not defined" @endunless
-                                                    class="{{ $childOk ? '' : 'cursor-not-allowed opacity-50' }} {{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                        ? 'text-indigo-600'
-                                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                    flex min-h-8 min-w-0 flex-1 items-center truncate px-3 py-1 text-sm">
+                                                    class="{{ $childOk ? '' : 'cursor-not-allowed opacity-50' }} sb-sub">
 
                                                     {{ $child->menu_name }}
 
@@ -405,9 +398,7 @@
                          instead of an empty collapsible group (which would otherwise render nothing). --}}
                     @elseif (!empty($rootMenu->menu_route))
 
-                        <li class="mt-4 {{ Route::is([$rootMenu->menu_route, $rootMenu->menu_route . '.*'])
-                            ? 'bg-indigo-500/10 text-indigo-600'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
+                        <li class="sb-item {{ Route::is([$rootMenu->menu_route, $rootMenu->menu_route . '.*']) ? 'is-active' : '' }}">
 
                             @php $rootOk = Route::has($rootMenu->menu_route); @endphp
                             <a href="{{ $rootOk ? route($rootMenu->menu_route) : '#' }}"
@@ -481,7 +472,7 @@
                         <li class="mt-4" x-data="{ open: true }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="sb-group">
                                 <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg><span class="whitespace-normal wrap-break-word leading-snug">GLOBAL SETTINGS</span></div>
                                 <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -881,7 +872,7 @@
                             x-data="{ open: {{ Request::segment(1) === 'groupbiayanonpurch' ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="sb-group">
                                 <div class="flex items-center gap-2.5">
                                     <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg>
                                     <span class="whitespace-normal wrap-break-word leading-snug">GLOBAL SETTINGS</span>
@@ -910,7 +901,7 @@
                             x-data="{ open: {{ Request::segment(1) === 'vendors' ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="sb-group">
                                 <div class="flex items-center gap-2.5">
                                     <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 8ZM9 8V6a3 3 0 0 1 6 0v2" /></svg>
                                     <span class="whitespace-normal wrap-break-word leading-snug">SETTING</span>
@@ -939,7 +930,7 @@
                             x-data="{ open: {{ in_array(Request::segment(1), ['users-sby', 'approvals-sby']) ? 'true' : 'false' }} }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between min-h-11 rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                class="sb-group">
                                 <div class="flex items-center gap-2.5">
                                     <svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg>
                                     <span class="whitespace-normal wrap-break-word leading-snug">SETTING</span>
@@ -973,8 +964,8 @@
         </div>
 
         <!-- SIDEBAR FOOTER -->
-        <div class="border-t border-gray-200 px-4 py-3 text-center dark:border-gray-700">
-            <span class="text-xs text-gray-400 dark:text-gray-500">
+        <div class="sb-footer">
+            <span>
                 &copy; 2026, Pakuwon Group.
             </span>
         </div>

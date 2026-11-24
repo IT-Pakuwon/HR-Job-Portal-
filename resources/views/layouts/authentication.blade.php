@@ -31,11 +31,15 @@
     </script>
 </head>
 
-<body class="font-inter antialiased bg-[#07051a] sm:h-screen sm:overflow-hidden">
+<body class="font-inter antialiased bg-[#050b1a] sm:h-screen sm:overflow-hidden">
 
     <main
         class="relative min-h-screen sm:h-full"
-        style="background-color:#07051a; background-image:url('{{ asset('images/login/Background 2.png') }}'); background-size:cover; background-position:center;">
+        style="background-color:#050b1a;">
+
+        {{-- Background image, hue-shifted from indigo to the blue brand color --}}
+        <div class="pointer-events-none absolute inset-0"
+            style="background-image:url('{{ asset('images/login/Background 2.png') }}'); background-size:cover; background-position:center; filter:hue-rotate(-40deg) saturate(1.15);"></div>
 
         {{-- Dark vignette overlay (consistent with left hero panel) --}}
         <div class="pointer-events-none absolute inset-0"

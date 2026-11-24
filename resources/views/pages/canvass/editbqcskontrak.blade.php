@@ -633,7 +633,7 @@
                             text: 'BQ ID: ' + data.bqid,
                             icon: 'success',
                             confirmButtonText: 'OK',
-                            confirmButtonColor: '#4F46E5',
+                            confirmButtonColor: '#3193da',
                             allowOutsideClick: false,
                             allowEscapeKey: false
                         });
@@ -1042,7 +1042,7 @@
                     confirmButtonText: 'Replace All Details',
                     denyButtonText: 'Append Rows',
                     cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#7c3aed',
+                    confirmButtonColor: '#3193da',
                     denyButtonColor: '#059669',
                 });
 

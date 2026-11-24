@@ -280,8 +280,8 @@
 }
 
 .dark .fc-button-active {
-    background: #6366f1 !important;
-    border-color: #6366f1 !important;
+    background: #56b1f3 !important;
+    border-color: #56b1f3 !important;
     color: #fff !important;
 }
 
@@ -344,7 +344,7 @@
 
 /* dark mode */
 .dark .fc .fc-button.fc-button-active {
-    background: #6366f1 !important;
+    background: #56b1f3 !important;
     color: #ffffff !important;
 }
 

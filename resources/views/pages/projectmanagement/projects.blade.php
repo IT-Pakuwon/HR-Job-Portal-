@@ -4,6 +4,8 @@
         $pmPortfolioOpts = [
             'tab' => $initialTab,
             'openTeamId' => $openTeamId ?? null,
+            'guessTeamId' => $guessTeamId ?? null,
+            'guessProjectId' => $guessProjectId ?? null,
             'openProjectBoardId' => $openProjectBoardId ?? null,
             'openTaskEid' => $openTaskEid ?? null,
         ];
@@ -169,10 +171,11 @@
             </div>
 
             {{-- TABS --}}
-            <div x-show="teams.length || projects.length" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
+            {{-- Only a Team/Project board has views to switch between; the landing list has none. --}}
+            <div x-show="(teams.length || projects.length) && (teamId || projectId)" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
                 <button @click="tab = 'kanban'; renderTab()"
                     :class="tab === 'kanban' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
-                    class="rounded-t-lg px-4 py-2 text-sm font-medium">By Kanban</button>
+                    class="rounded-t-lg px-4 py-2 text-sm font-medium" x-text="(teamId || projectId) ? 'By Kanban' : 'List'">By Kanban</button>
                 <button @click="tab = 'calendar'; renderTab()"
                     :class="tab === 'calendar' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
                     class="rounded-t-lg px-4 py-2 text-sm font-medium">By Calendar</button>
@@ -189,7 +192,18 @@
             </div>
 
             <div x-show="teams.length || projects.length" class="flex-1 overflow-y-auto p-4">
-                <div id="kanbanPanel" class="overflow-x-auto"></div>
+                <div id="kanbanPanel" class="overflow-x-auto">
+                    {{-- Placeholder until the first board render replaces it. --}}
+                    <div class="flex gap-4 p-4 animate-pulse" aria-label="Loading board">
+                        @foreach (range(1, 4) as $i)
+                            <div class="w-72 shrink-0 space-y-3">
+                                <div class="h-5 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
+                                <div class="h-20 rounded-lg bg-slate-200/70 dark:bg-slate-700/60"></div>
+                                <div class="h-20 rounded-lg bg-slate-200/70 dark:bg-slate-700/60"></div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
                 <div id="calendarPanel" class="hidden h-full"></div>
                 <div id="spreadsheetPanel" class="hidden"></div>
 
@@ -582,7 +596,7 @@
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                <i class="fas fa-user text-[10px]"></i> PIC
+                                <i class="fas fa-user text-[10px]"></i> Assigned
                             </label>
                             <select id="qc_pic" class="select2 w-full" multiple data-placeholder="Select team(s) and/or person(s) in charge"></select>
                         </div>
@@ -770,7 +784,7 @@
                         </div>
                         <div>
                             <h2 id="taskModalTitle" class="text-lg font-semibold leading-tight text-gray-800 dark:text-gray-100">New Subtask</h2>
-                            <p class="text-xs text-gray-400">Break this task down into a smaller step</p>
+                            <p id="taskModalSubtitle" class="text-xs text-gray-400">Break this task down into a smaller step</p>
                         </div>
                     </div>
                     <button id="closeTaskModal" type="button" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-200"><i class="fas fa-times"></i></button>
@@ -781,7 +795,7 @@
 
                     <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
                         <div>
-                            <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-pen-to-square text-[10px] text-gray-300 dark:text-gray-500"></i> Sub Task Name</label>
+                            <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-pen-to-square text-[10px] text-gray-300 dark:text-gray-500"></i> <span id="taskNameLabel">Sub Task Name</span></label>
                             <input id="task_name" name="task_name" type="text" required placeholder="e.g. Draft Perjanjian Sewa Menyewa (PSM)"
                                 class="h-11 w-full rounded-lg border border-gray-200 px-3.5 text-sm text-gray-800 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:focus:ring-indigo-900/30">
                         </div>
@@ -803,9 +817,14 @@
                             </div>
                         </div>
                         <div>
-                            <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-user-group text-[10px] text-gray-300 dark:text-gray-500"></i> PIC</label>
+                            <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-user-group text-[10px] text-gray-300 dark:text-gray-500"></i> Assigned</label>
                             {{-- No name attr — #taskForm's submit splits TEAM:/USER: values into assignees[]/team_ids[] (splitTaskPicValues()). --}}
                             <select id="task_assignees" class="select2 w-full" multiple data-placeholder="Assign team(s) and/or person(s) in charge"></select>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-tag text-[10px] text-gray-300 dark:text-gray-500"></i> Tags</label>
+                            {{-- No name attr — #taskForm's submit sends tags[] itself (plus tags_submitted, so clearing every tag is saved). --}}
+                            <select id="task_tags" class="select2-tags w-full" multiple data-placeholder="Pick or type a tag"></select>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-paperclip text-[10px] text-gray-300 dark:text-gray-500"></i> Attachment</label>
@@ -834,7 +853,7 @@
                         </div>
                         <div class="ml-auto flex gap-3">
                             <button type="button" id="cancelTaskBtn" class="h-10 rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/5">Cancel</button>
-                            <button type="submit" class="flex h-10 items-center gap-1.5 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-500 hover:shadow-md hover:shadow-indigo-600/30"><i class="fas fa-check text-xs"></i> Save Subtask</button>
+                            <button type="submit" class="flex h-10 items-center gap-1.5 rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-500 hover:shadow-md hover:shadow-indigo-600/30"><i class="fas fa-check text-xs"></i> <span id="taskSaveLabel">Save Subtask</span></button>
                         </div>
                     </div>
                 </form>
@@ -1072,39 +1091,76 @@
             color: rgb(100 116 139);
         }
 
+        /* "Assigned" picker (#task_assignees, #qc_pic) — avatar chips and a
+           richer dropdown (see pmAssignSelect2Opts()). */
+        #select2-task_assignees-container .select2-selection__choice,
+        #select2-qc_pic-container .select2-selection__choice {
+            padding: 2px 8px 2px 3px !important;
+            background: #fff !important;
+            color: rgb(51 65 85) !important;
+            box-shadow: 0 0 0 1px rgb(226 232 240), 0 1px 2px rgb(0 0 0 / .04);
+            transition: box-shadow .15s ease, transform .15s ease;
+        }
+        #select2-task_assignees-container .select2-selection__choice:hover,
+        #select2-qc_pic-container .select2-selection__choice:hover {
+            box-shadow: 0 0 0 1px rgb(165 180 252), 0 2px 6px rgb(99 102 241 / .15);
+        }
+        .pm-chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+        .pm-chip .pm-chip-team { display: inline-flex; height: 20px; width: 20px; align-items: center; justify-content: center; border-radius: 9999px; background: rgb(224 231 255); color: rgb(79 70 229); font-size: 9px; }
+        .pm-assign-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid rgb(241 245 249); font-size: .75rem; }
+        .pm-assign-bar button { border-radius: 6px; padding: 3px 8px; font-weight: 600; color: rgb(79 70 229); transition: background .15s ease; }
+        .pm-assign-bar button:hover { background: rgb(238 242 255); }
+        .pm-assign-bar .pm-assign-clear { color: rgb(100 116 139); }
+        .pm-assign-bar .pm-assign-count { color: rgb(148 163 184); }
+        .dark .pm-assign-bar { border-color: rgb(255 255 255 / .08); }
+        .dark .pm-assign-bar button:hover { background: rgb(99 102 241 / .18); }
+        .pm-assign-dd .select2-results__option { padding: 6px 10px !important; margin: 1px 6px; }
+        .pm-assign-dd .select2-results__group { display: flex; align-items: center; gap: 6px; }
+        .pm-opt { display: flex; align-items: center; gap: 10px; }
+        .pm-opt .pm-opt-name { font-weight: 600; line-height: 1.2; }
+        .pm-opt .pm-opt-sub { font-size: .7rem; opacity: .6; line-height: 1.2; }
+        .pm-opt .pm-opt-team { display: inline-flex; height: 28px; width: 28px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; background: rgb(224 231 255); color: rgb(79 70 229); font-size: 12px; }
+        .pm-opt .pm-opt-check { margin-left: auto; font-size: .7rem; color: rgb(99 102 241); }
+        .dark #select2-task_assignees-container .select2-selection__choice,
+        .dark #select2-qc_pic-container .select2-selection__choice {
+            background: rgb(255 255 255 / .06) !important;
+            color: rgb(226 232 240) !important;
+            box-shadow: 0 0 0 1px rgb(255 255 255 / .1);
+        }
+        .dark .pm-chip .pm-chip-team, .dark .pm-opt .pm-opt-team { background: rgb(99 102 241 / .2); color: rgb(199 210 254); }
         /* Gantt chart theming (Frappe Gantt, Project Detail's hidden
            #taskGanttPanel only) — the library's built-in dark
            theme keys off html[data-theme="dark"], which this app never
            sets (dark mode toggles a `.dark` class on <html> instead), so
            its CSS custom properties are redefined here for both modes. */
         .gantt-container {
-            --g-bar-color: #E0E7FF;
-            --g-bar-border: #C7D2FE;
-            --g-progress-color: #6366F1;
-            --g-arrow-color: #A5B4FC;
+            --g-bar-color: #d1ecff;
+            --g-bar-border: #b6e1ff;
+            --g-progress-color: #56b1f3;
+            --g-arrow-color: #a0d7ff;
             --g-tick-color-thick: #E5E7EB;
             --g-tick-color: #F3F4F6;
-            --g-actions-background: #EEF2FF;
+            --g-actions-background: #e3f3ff;
             --g-border-color: #E5E7EB;
             --g-text-muted: #9CA3AF;
             --g-text-light: #fff;
             --g-text-dark: #374151;
-            --g-handle-color: #4338CA;
-            --g-weekend-label-color: #EEF2FF;
-            --g-expected-progress: #C7D2FE;
+            --g-handle-color: #1c71ae;
+            --g-weekend-label-color: #e3f3ff;
+            --g-expected-progress: #b6e1ff;
             --g-header-background: #fff;
             --g-row-color: #fff;
             --g-row-border-color: #F3F4F6;
-            --g-today-highlight: #6366F1;
-            --g-popup-actions: #EEF2FF;
+            --g-today-highlight: #56b1f3;
+            --g-popup-actions: #e3f3ff;
             --g-weekend-highlight-color: #FAFAFF;
             border: 1px solid #F3F4F6;
             height: 100% !important;
         }
         .dark .gantt-container {
-            --g-bar-color: #312E81;
-            --g-bar-border: #4338CA;
-            --g-progress-color: #818CF8;
+            --g-bar-color: #124d79;
+            --g-bar-border: #1c71ae;
+            --g-progress-color: #7bc8ff;
             --g-arrow-color: #4B5563;
             --g-tick-color-thick: rgb(255 255 255 / .08);
             --g-tick-color: rgb(255 255 255 / .04);
@@ -1113,13 +1169,13 @@
             --g-text-muted: #9CA3AF;
             --g-text-light: #fff;
             --g-text-dark: #E5E7EB;
-            --g-handle-color: #A5B4FC;
+            --g-handle-color: #a0d7ff;
             --g-weekend-label-color: rgb(255 255 255 / .06);
-            --g-expected-progress: #4338CA;
+            --g-expected-progress: #1c71ae;
             --g-header-background: #0f172a;
             --g-row-color: #0f172a;
             --g-row-border-color: rgb(255 255 255 / .06);
-            --g-today-highlight: #818CF8;
+            --g-today-highlight: #7bc8ff;
             --g-popup-actions: rgb(255 255 255 / .06);
             --g-weekend-highlight-color: rgb(255 255 255 / .02);
             border-color: rgb(255 255 255 / .06);
@@ -1187,7 +1243,7 @@
                 statuses: [],
                 availableStatuses: [],
                 newStatusName: '',
-                newStatusColor: '#6366F1',
+                newStatusColor: '#56b1f3',
                 editingStatusId: null,
                 quickAddStatusId: null,
                 // Set when the quick-add modal creates a Subtask (spreadsheet
@@ -1198,7 +1254,7 @@
                 isPrimaryAdmin: @json(auth()->user()->isPrimaryAdmin()),
                 statusPanelOpen: false,
                 statusRows: [],
-                newStatusRow: { status_id: '', status_name: '', color: '#6366F1', sort_order: '' },
+                newStatusRow: { status_id: '', status_name: '', color: '#56b1f3', sort_order: '' },
                 projects: [],
                 teamTaskStatuses: [],
                 teamTasks: [],
@@ -1229,6 +1285,7 @@
                 ],
 
                 defaultApplied: false,
+                prefetch: null,
 
                 get headerTitle() {
                     if (this.teamId) {
@@ -1270,16 +1327,41 @@
                 },
 
                 init() {
+                    // Start the landing Team's board request now, in parallel
+                    // with the sidebar one, instead of after it. A wrong guess
+                    // is simply ignored (see takePrefetch()).
+                    let kind = '', id = '';
+                    if (opts.openProjectBoardId) { kind = 'project'; id = opts.openProjectBoardId; }
+                    else if (opts.openTeamId) { kind = 'team'; id = opts.openTeamId; }
+                    else if (opts.guessTeamId) { kind = 'team'; id = opts.guessTeamId; }
+                    else if (opts.guessProjectId) { kind = 'project'; id = opts.guessProjectId; }
+                    if (id) {
+                        const base = kind === 'team' ? `{{ url('all-team') }}/${id}` : `{{ url('projects') }}/${id}`;
+                        const noop = () => {};
+                        this.prefetch = {
+                            kind, id,
+                            board: $.get(`${base}/tasks/board-data`).fail(noop),
+                            detail: $.get(`${base}/detail`, kind === 'project' ? { lite: 1 } : {}).fail(noop),
+                        };
+                    }
                     this.loadSidebar();
                 },
 
-                // Default landing scope: a favorited Team, else the
-                // unscoped Projects portfolio — a favorited Project no
-                // longer implies landing on a Team's Task board, since
-                // Projects aren't Team-scoped anymore.
-                defaultTeamId() {
-                    const firstFavTeam = this.teams.find(t => t.is_favorite);
-                    return firstFavTeam ? firstFavTeam.team_id : '';
+                // Hand back the prefetched requests when they are for the
+                // Team/Project now being opened; otherwise null. One-shot.
+                takePrefetch(kind, id) {
+                    const p = this.prefetch;
+                    this.prefetch = null;
+                    return p && p.kind === kind && p.id === id ? p : null;
+                },
+
+                // Default landing scope: the first item under My Favorite
+                // (starred Teams are listed before starred Projects), else
+                // the unscoped Projects portfolio.
+                applyDefaultScope() {
+                    const first = this.favoriteItems[0];
+                    this.teamId = first && first.type === 'team' ? first.id : '';
+                    this.projectId = first && first.type === 'project' ? first.id : '';
                 },
 
                 selectTeam(teamId) {
@@ -1366,7 +1448,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Archive this project?',
-                        html: `<b>${$('<div>').text(projectName || projectId).html()}</b> and all of its tasks and subtasks will be removed from the portfolio for everyone. An admin can restore it from Global Settings → Project Setup → Project Archive.`,
+                        html: `<b>${$('<div>').text(projectName || projectId).html()}</b> and all of its tasks and subtasks will be removed from the portfolio for everyone.`,
                         showCancelButton: true,
                         confirmButtonText: 'Archive',
                         confirmButtonColor: '#DC2626',
@@ -1407,8 +1489,10 @@
                             if (opts.openProjectBoardId) {
                                 this.teamId = '';
                                 this.projectId = opts.openProjectBoardId;
+                            } else if (opts.openTeamId) {
+                                this.teamId = opts.openTeamId;
                             } else {
-                                this.teamId = opts.openTeamId || this.defaultTeamId();
+                                this.applyDefaultScope();
                             }
                         }
 
@@ -1432,7 +1516,13 @@
                     currentTaskRefreshFn = (cb2) => this.loadTeamTaskBoard(cb2);
                     PM_CURRENT_TEAM_ID = this.teamId;
 
-                    $.get(`${currentTaskApiBase}/board-data`, (res) => {
+                    const pre = this.takePrefetch('team', this.teamId);
+                    const teamId = this.teamId;
+                    // Ignore a response that lands after the user switched scope.
+                    const stale = () => this.teamId !== teamId;
+
+                    (pre ? pre.board : $.get(`${currentTaskApiBase}/board-data`)).done((res) => {
+                        if (stale()) return;
                         this.teamTaskStatuses = res.statuses;
                         this.teamTasks = res.tasks;
                         currentTasksCache = res.tasks;
@@ -1456,9 +1546,15 @@
                         if (typeof cb === 'function') cb();
                     });
 
-                    $.get(`{{ url('all-team') }}/${this.teamId}/detail`, (res) => {
-                        window.PM_CURRENT_TEAM_MEMBERS = res.members || [];
-                    });
+                    // Members only change when the Team does — skip refetching them
+                    // on every save/archive/move reload of the same Team.
+                    if (pre || !pmDetailFresh('team:' + teamId)) {
+                        (pre ? pre.detail : $.get(`{{ url('all-team') }}/${this.teamId}/detail`)).done((res) => {
+                            if (stale()) return;
+                            window.PM_CURRENT_TEAM_MEMBERS = res.members || [];
+                            pmDetailMark('team:' + teamId);
+                        });
+                    }
                 },
 
                 // A Project's own recursive Task board — same shape as
@@ -1468,7 +1564,12 @@
                     currentTaskDoctype = 'TSK';
                     currentTaskRefreshFn = (cb2) => this.loadProjectTaskBoard(cb2);
 
-                    $.get(`${currentTaskApiBase}/board-data`, (res) => {
+                    const pre = this.takePrefetch('project', this.projectId);
+                    const projectId = this.projectId;
+                    const stale = () => this.projectId !== projectId;
+
+                    (pre ? pre.board : $.get(`${currentTaskApiBase}/board-data`)).done((res) => {
+                        if (stale()) return;
                         this.teamTaskStatuses = res.statuses;
                         this.teamTasks = res.tasks;
                         currentTasksCache = res.tasks;
@@ -1494,7 +1595,9 @@
                     // Overview tab loads — needed here too so a Task's
                     // assignee/mention picker (openTaskEntityDetail()) has
                     // people to offer without going through that modal first.
-                    $.get(`{{ url('projects') }}/${this.projectId}/detail`, (res) => {
+                    if (pre || !pmDetailFresh('project:' + projectId)) (pre ? pre.detail : $.get(`{{ url('projects') }}/${this.projectId}/detail`, { lite: 1 })).done((res) => {
+                        if (stale()) return;
+                        pmDetailMark('project:' + projectId);
                         Alpine.$data(document.getElementById('pmProjectShowRoot')).eligibleUsers = res.eligible_users || [];
                         Alpine.$data(document.getElementById('pmProjectShowRoot')).projectTeams = res.teams || [];
                     });
@@ -1511,6 +1614,8 @@
                 renderTab() {
                     $('#kanbanPanel, #calendarPanel, #spreadsheetPanel, #messagePanel').addClass('hidden');
                     const scoped = this.teamId || this.projectId;
+                    // The landing list (nothing selected) is a single view.
+                    if (!scoped) this.tab = 'kanban';
                     // Message is Team/Project-only — the Projects portfolio
                     // falls back to Kanban.
                     if (this.tab === 'message' && !scoped) this.tab = 'kanban';
@@ -1553,7 +1658,7 @@
                 openAddStatusModal() {
                     this.editingStatusId = null;
                     this.newStatusName = '';
-                    this.newStatusColor = '#6366F1';
+                    this.newStatusColor = '#56b1f3';
                     if (this.teamId || this.projectId) this.availableStatuses = [];
                     $('#addStatusModal').removeClass('hidden');
                     $('#new_status_name').focus();
@@ -1565,7 +1670,7 @@
                 openEditStatusModal(status) {
                     this.editingStatusId = status.status_id;
                     this.newStatusName = status.status_name;
-                    this.newStatusColor = status.color || '#6366F1';
+                    this.newStatusColor = status.color || '#56b1f3';
                     this.availableStatuses = [];
                     $('#addStatusModal').removeClass('hidden');
                     $('#new_status_name').focus();
@@ -1633,7 +1738,7 @@
                 openStatusPanel() {
                     if (!this.teamId && !this.projectId) return;
                     this.syncStatusRows();
-                    this.newStatusRow = { status_id: '', status_name: '', color: '#6366F1', sort_order: '' };
+                    this.newStatusRow = { status_id: '', status_name: '', color: '#56b1f3', sort_order: '' };
                     this.statusPanelOpen = true;
                 },
 
@@ -1643,7 +1748,7 @@
 
                 syncStatusRows() {
                     this.statusRows = this.teamTaskStatuses.map(s => {
-                        const row = { status_id: s.status_id, status_name: s.status_name, color: s.color || '#6366F1', sort_order: s.sort_order ?? 0 };
+                        const row = { status_id: s.status_id, status_name: s.status_name, color: s.color || '#56b1f3', sort_order: s.sort_order ?? 0 };
                         return { ...row, _orig: { ...row } };
                     });
                 },
@@ -1695,7 +1800,7 @@
                         sort_order: r.sort_order === '' ? '' : r.sort_order,
                         _token: '{{ csrf_token() }}',
                     }, () => {
-                        this.newStatusRow = { status_id: '', status_name: '', color: '#6366F1', sort_order: '' };
+                        this.newStatusRow = { status_id: '', status_name: '', color: '#56b1f3', sort_order: '' };
                         this.refreshTaskBoard(() => this.syncStatusRows());
                     }).fail((xhr) => this.statusPanelError(xhr));
                 },
@@ -1723,8 +1828,16 @@
                 // Trash icon on a Team/Project Task-board column header —
                 // blocked server-side (422) while a card still sits in it.
                 deleteStatusColumn(status) {
-                    if (!confirm(`Delete the "${status.status_name}" status?`)) return;
+                    pmConfirm({
+                        title: 'Delete this status?',
+                        name: status.status_name,
+                        text: 'The column is removed from this board. It is refused while a card is still in it.',
+                        confirmText: 'Delete',
+                        icon: 'fa-trash',
+                    }).then((ok) => { if (ok) this.doDeleteStatusColumn(status); });
+                },
 
+                doDeleteStatusColumn(status) {
                     $.ajax({
                         url: `${this.taskApiBase}/statuses/${status.status_id}`,
                         method: 'DELETE',
@@ -1808,69 +1921,75 @@
                     });
                 },
 
+                // Landing view (no Team/Project selected): a listing of Teams
+                // and Projects — each row opens that board. (Projects aren't
+                // tasks, so no status columns here; change a Project's status
+                // from its own edit form.)
                 renderKanban() {
                     const panel = $('#kanbanPanel').empty();
-                    const wrap = $('<div class="flex gap-4 min-w-max pb-2"></div>');
-
-                    this.statuses.forEach(status => {
-                        const items = this.projects.filter(p => p.status_id === status.status_id);
-                        const col = $(`
-                            <div class="w-72 shrink-0 rounded-lg" style="background:${hexToRgba(status.color, 0.08)}">
-                                <div class="flex items-center gap-2 px-3 py-2.5">
-                                    <span class="h-2.5 w-2.5 rounded-full" style="background:${status.color}"></span>
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">${status.status_name}</span>
-                                    <span class="text-xs text-gray-400">${items.length}</span>
-                                </div>
-                                <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
-                                <div class="px-2 pb-2">
-                                    <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 px-2 py-2 text-xs font-medium text-gray-400 transition hover:border-indigo-300 hover:bg-white/60 hover:text-indigo-500 dark:border-gray-700 dark:hover:border-indigo-500/60 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
-                                        <i class="fas fa-plus text-[10px]"></i> Add card
-                                    </button>
-                                </div>
+                    const esc = (s) => this.escapeHtml(s ?? '');
+                    const star = (on) => `<i class="${on ? 'fas text-amber-400' : 'far text-gray-300'} fa-star text-xs"></i>`;
+                    const section = (icon, title, count, body) => `
+                        <section class="mb-6">
+                            <div class="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                <i class="fas ${icon}"></i> ${title} <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500 dark:bg-white/10 dark:text-gray-300">${count}</span>
                             </div>
-                        `);
+                            ${body}
+                        </section>`;
 
-                        const list = col.find('.kanban-col');
-                        items.forEach(p => list.append(this.projectCard(p)));
+                    // ── Teams ──
+                    const teamRows = this.teams.map(t => {
+                        const linked = this.projects.filter(p => (p.teams || []).some(x => x.team_id === t.team_id)).length;
+                        const members = t.member_count ?? 0;
+                        return `
+                            <button type="button" data-team-id="${t.team_id}" class="landing-team-row flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition last:border-0 hover:bg-indigo-50/50 dark:border-white/[0.06] dark:hover:bg-white/5">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10"><i class="fas fa-users text-sm"></i></span>
+                                <span class="min-w-0 flex-1 truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${esc(t.team_name)}</span>
+                                <span class="hidden shrink-0 text-xs text-gray-400 sm:inline"><i class="fas fa-user text-[10px]"></i> ${members} member${members === 1 ? '' : 's'}</span>
+                                <span class="hidden shrink-0 text-xs text-gray-400 sm:inline"><i class="fas fa-folder text-[10px]"></i> ${linked} project${linked === 1 ? '' : 's'}</span>
+                                ${star(t.is_favorite)}
+                            </button>`;
+                    }).join('');
 
-                        // Creating/moving Projects and adding stages is
-                        // Project-admin (PROADMINACCESS) only.
-                        if (this.canCreateProject) {
-                            col.find('.add-card-btn').on('click', () => this.openQuickAddCard(status.status_id));
-                        } else {
-                            col.find('.add-card-btn').parent().remove();
-                        }
+                    // ── Projects ──
+                    const projectRows = this.projects.map(p => {
+                        const st = this.statuses.find(s => s.status_id === p.status_id);
+                        const color = st ? st.color : '#9CA3AF';
+                        const pics = (p.pics || []).slice(0, 4);
+                        const avatars = pics.map((pic, i) => pic.photo_url
+                            ? `<img src="${pic.photo_url}" title="${esc(pic.name)}" class="h-6 w-6 rounded-full object-cover ring-2 ring-white dark:ring-gray-800" style="margin-left:${i ? '-8px' : '0'}">`
+                            : `<span title="${esc(pic.name)}" style="margin-left:${i ? '-8px' : '0'}" class="inline-block rounded-full ring-2 ring-white dark:ring-gray-800">${initialsAvatar(pic.name, 24)}</span>`).join('');
+                        const teamChips = (p.teams || []).map(x => `<span class="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="fas fa-users text-[8px]"></i> ${esc(x.team_name)}</span>`).join('');
+                        const dates = (p.start_date || p.end_date) ? `${formatDate(p.start_date)} → ${formatDate(p.end_date)}` : 'No dates';
+                        const late = isLate(p.end_date, p.progress_percent, false);
+                        return `
+                            <button type="button" data-project-id="${p.project_id}" class="landing-project-row grid w-full grid-cols-12 items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition last:border-0 hover:bg-indigo-50/50 dark:border-white/[0.06] dark:hover:bg-white/5">
+                                <span class="col-span-12 flex min-w-0 items-center gap-3 md:col-span-4">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-500 dark:bg-amber-500/10"><i class="fas fa-folder text-sm"></i></span>
+                                    <span class="min-w-0">
+                                        <span class="flex items-center gap-1.5"><span class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${esc(p.project_name)}</span>${star(p.is_favorite)}${late ? '<span class="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-600 dark:bg-red-500/10 dark:text-red-400">Late</span>' : ''}</span>
+                                        ${teamChips ? `<span class="mt-1 flex flex-wrap gap-1">${teamChips}</span>` : ''}
+                                    </span>
+                                </span>
+                                <span class="col-span-6 md:col-span-2"><span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium" style="background:${hexToRgba(color, 0.12)};color:${color}"><span class="h-1.5 w-1.5 rounded-full" style="background:${color}"></span>${esc(st ? st.status_name : 'No status')}</span></span>
+                                <span class="col-span-6 flex items-center md:col-span-2">${avatars || '<span class="text-xs italic text-gray-300">Nobody assigned</span>'}</span>
+                                <span class="col-span-6 text-xs ${late ? 'font-semibold text-red-500' : 'text-gray-400'} md:col-span-2"><i class="far fa-calendar text-[10px]"></i> ${dates}</span>
+                                <span class="col-span-6 flex items-center gap-2 md:col-span-2">
+                                    <span class="h-1.5 flex-1 rounded-full bg-gray-100 dark:bg-gray-700"><span class="block h-1.5 rounded-full bg-indigo-500" style="width:${p.progress_percent}%"></span></span>
+                                    <span class="w-9 text-right text-xs font-semibold text-sky-600">${Math.round(p.progress_percent)}%</span>
+                                </span>
+                            </button>`;
+                    }).join('');
 
-                        wrap.append(col);
-                    });
+                    const box = (rows, empty) => `<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03]">${rows || `<p class="px-4 py-6 text-center text-sm text-gray-400">${empty}</p>`}</div>`;
 
-                    if (this.canCreateProject) {
-                        const addStatusBtn = $(`
-                            <div class="w-72 shrink-0">
-                                <button class="w-full rounded-lg border-2 border-dashed border-gray-200 px-3 py-2.5 text-sm text-gray-400 hover:border-indigo-300 hover:text-indigo-500 dark:border-gray-700">
-                                    + Add status
-                                </button>
-                            </div>
-                        `);
-                        addStatusBtn.find('button').on('click', () => this.openAddStatusModal());
-                        wrap.append(addStatusBtn);
-                    }
+                    panel.append(
+                        section('fa-users', 'Teams', this.teams.length, box(teamRows, 'You are not in any Team yet.')) +
+                        section('fa-folder', 'Projects', this.projects.length, box(projectRows, 'No projects yet.'))
+                    );
 
-                    panel.append(wrap);
-
-                    if (!this.canCreateProject) return;
-
-                    panel.find('.kanban-col').each((i, el) => {
-                        Sortable.create(el, {
-                            group: 'projects-kanban',
-                            animation: 150,
-                            onEnd: (evt) => {
-                                const projectId = evt.item.dataset.projectId;
-                                const statusId = evt.to.dataset.statusId;
-                                $.post(`{{ url('projects') }}/${projectId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' });
-                            }
-                        });
-                    });
+                    panel.find('.landing-team-row').on('click', (e) => this.selectTeam($(e.currentTarget).data('team-id')));
+                    panel.find('.landing-project-row').on('click', (e) => this.selectProject($(e.currentTarget).data('project-id')));
                 },
 
                 // A Team's own Task board — same column/card shape as the
@@ -1998,12 +2117,12 @@
                     }
 
                     // Left accent stripe: the card's state in one glance.
-                    const accent = cancelled ? '#9CA3AF' : done ? '#10B981' : late ? '#EF4444' : '#6366F1';
+                    const accent = cancelled ? '#9CA3AF' : done ? '#10B981' : late ? '#EF4444' : '#56b1f3';
 
                     const tagChips = [
                         ...(t.teams || []).map(tm => `<span class="inline-flex max-w-[8rem] items-center gap-1 truncate rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300" title="Team: ${esc(tm.team_name)}"><i class="fas fa-users text-[8px]"></i> ${esc(tm.team_name)}</span>`),
                         ...(t.tags || []).map(tag => {
-                            const c = tag.color || '#6366F1';
+                            const c = tag.color || '#56b1f3';
                             return `<span class="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold" style="background:${hexToRgba(c, 0.12)};color:${c}">${tag.tag_id === 'COMPLETE' ? '<i class="fas fa-check text-[8px]"></i>' : `<span class="h-1.5 w-1.5 rounded-full" style="background:${c}"></span>`}${esc(tag.tag_name)}</span>`;
                         }),
                     ].join('');
@@ -2070,7 +2189,11 @@
                         </div>
                     `);
 
-                    $card.on('click', () => {
+                    $card.on('click', (e) => {
+                        // Cancel/Archive are handled by delegated listeners on
+                        // document, which run after this one — so the card
+                        // has to skip them itself or the modal opens too.
+                        if ($(e.target).closest('.team-card-cancel-btn, .team-card-archive-btn').length) return;
                         currentTaskApiBase = this.taskApiBase;
                         currentTaskDoctype = this.taskDoctype;
                         currentTaskRefreshFn = (cb) => this.refreshTaskBoard(cb);
@@ -2105,7 +2228,7 @@
 
                     const tags = p.tags || [];
                     const tagBadges = tags.map(tag => `
-                        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium" style="border-color:${tag.color || '#6366F1'};color:${tag.color || '#6366F1'}">${this.escapeHtml(tag.tag_name)}</span>
+                        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium" style="border-color:${tag.color || '#56b1f3'};color:${tag.color || '#56b1f3'}">${this.escapeHtml(tag.tag_name)}</span>
                     `).join('');
 
                     const tooltip = `
@@ -2868,9 +2991,96 @@
 
         // Shared by the "Add Card" PIC picker (single Team context) — offers
         // that Team's actual members (all-team.detail), never an unrelated user.
+        // Rich "Assigned" picker: avatar + name chips, and a dropdown with
+        // avatar, name and @username (Teams get their own icon). Options keep
+        // the plain `Name (username)` text, so it is parsed back out here.
+        function pmAssignSelect2Opts($parent) {
+            const parse = (state) => {
+                const el = state.element;
+                const isTeam = !!state.id && String(state.id).startsWith('TEAM:');
+                const m = isTeam ? null : /^(.*?)\s*\(([^()]+)\)\s*$/.exec(state.text || '');
+                return { isTeam, name: m ? m[1] : (state.text || ''), username: m ? m[2] : '' };
+            };
+            return {
+                width: '100%',
+                closeOnSelect: false,
+                dropdownParent: $parent,
+                dropdownCssClass: 'pm-assign-dd',
+                placeholder: 'Search people or teams…',
+                templateResult: (state) => {
+                    if (!state.id) {
+                        const icon = /team/i.test(state.text) ? 'fa-users' : 'fa-user';
+                        return $('<span class="inline-flex items-center gap-1.5"></span>')
+                            .append($(`<i class="fas ${icon} text-[10px]"></i>`)).append(document.createTextNode(state.text));
+                    }
+                    const { isTeam, name, username } = parse(state);
+                    const $row = $('<div class="pm-opt"></div>');
+                    $row.append(isTeam
+                        ? '<span class="pm-opt-team"><i class="fas fa-users"></i></span>'
+                        : $(initialsAvatar(name || username, 28)));
+                    const $txt = $('<div class="min-w-0"></div>');
+                    $txt.append($('<div class="pm-opt-name"></div>').text(name));
+                    $txt.append($('<div class="pm-opt-sub"></div>').text(isTeam ? 'Team · all members' : (username ? '@' + username : '')));
+                    $row.append($txt);
+                    if (state.selected) $row.append('<i class="fas fa-check pm-opt-check"></i>');
+                    return $row;
+                },
+                templateSelection: (state) => {
+                    if (!state.id) return state.text;
+                    const { isTeam, name, username } = parse(state);
+                    const $chip = $('<span class="pm-chip"></span>');
+                    $chip.append(isTeam
+                        ? '<span class="pm-chip-team"><i class="fas fa-users"></i></span>'
+                        : $(initialsAvatar(name || username, 20)));
+                    $chip.append($('<span></span>').text(name));
+                    return $chip;
+                },
+            };
+        }
+        // Init the "Assigned" select2 and give its dropdown a Select all /
+        // Clear bar. Select all adds every option that matches the search box
+        // (so typing "app" then Select all picks just those).
+        function pmInitAssignSelect($select, $parent) {
+            $select.select2(pmAssignSelect2Opts($parent));
+
+            $select.on('select2:open', () => {
+                const $dd = $select.data('select2').$dropdown;
+                if ($dd.find('.pm-assign-bar').length) { $dd.find('.pm-assign-count').trigger('pm:refresh'); return; }
+
+                const $bar = $(`<div class="pm-assign-bar">
+                    <span class="pm-assign-count"></span>
+                    <span><button type="button" class="pm-assign-all"><i class="fas fa-check-double mr-1"></i>Select all</button><button type="button" class="pm-assign-clear">Clear</button></span>
+                </div>`);
+                const refresh = () => {
+                    const n = ($select.val() || []).length;
+                    $bar.find('.pm-assign-count').text(n ? `${n} selected` : '');
+                };
+                $bar.find('.pm-assign-count').on('pm:refresh', refresh);
+                $bar.on('mousedown', (e) => e.stopPropagation());
+
+                $bar.find('.pm-assign-all').on('click', () => {
+                    const term = ($dd.find('.select2-search__field').val() || '').trim().toLowerCase();
+                    const values = new Set($select.val() || []);
+                    $select.find('option').each(function () {
+                        if (!this.value || this.disabled) return;
+                        if (!term || this.text.toLowerCase().includes(term)) values.add(this.value);
+                    });
+                    $select.val([...values]).trigger('change');
+                    refresh();
+                });
+                $bar.find('.pm-assign-clear').on('click', () => {
+                    $select.val(null).trigger('change');
+                    refresh();
+                });
+
+                $dd.find('.select2-results').before($bar);
+                refresh();
+            });
+            $select.on('change', () => $select.data('select2')?.$dropdown?.find('.pm-assign-count').trigger('pm:refresh'));
+        }
         function initPicSelect($select, $dropdownParent) {
             if (!$select.hasClass('select2-hidden-accessible')) {
-                $select.select2({ width: '100%', closeOnSelect: false, dropdownParent: $dropdownParent });
+                pmInitAssignSelect($select, $dropdownParent);
             }
         }
 
@@ -3100,7 +3310,9 @@
 
                 openNewTask() {
                     resetTaskForm();
+                    loadTagOptions($('#task_tags'));
                     if (this.kind !== 'project') pendingSubtaskParentId = currentDetailTaskId;
+                    $('#taskModalTitle').text('New ' + setTaskModalNoun(this.kind !== 'project'));
                     $('#taskModal').removeClass('hidden');
                 },
 
@@ -3249,7 +3461,7 @@
                     const subDone = subtasks.filter(s => s.progress_percent >= 100).length;
                     const tags = t.tags || [];
                     const badges = tags.map(tag => `
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium text-white" style="background:${tag.color || '#6366F1'}">${tag.tag_name}</span>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>
                     `).join('');
 
                     const people = t.assignee_people || [];
@@ -3351,6 +3563,56 @@
             return null;
         }
 
+        // Remembers when a board's member/picker pool was last loaded so a
+        // plain reload of the same board (after a save, archive, move…) can
+        // skip that request. Only the most recent board is kept; 2 minutes.
+        let pmDetailLoaded = { key: '', at: 0 };
+        function pmDetailFresh(key) { return pmDetailLoaded.key === key && Date.now() - pmDetailLoaded.at < 120000; }
+        function pmDetailMark(key) { pmDetailLoaded = { key, at: Date.now() }; }
+
+        // Styled replacement for the browser's native confirm(). Resolves true
+        // only when the user presses the confirm button. `name` is escaped.
+        function pmConfirm({ title, name = '', text = '', confirmText = 'Confirm', icon = 'fa-box-archive', tone = 'red' }) {
+            const esc = (s) => $('<div>').text(s).html();
+            const tones = {
+                red: { bg: 'bg-red-50 text-red-500 dark:bg-red-500/10', btn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500/40' },
+                amber: { bg: 'bg-amber-50 text-amber-500 dark:bg-amber-500/10', btn: 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-500/40' },
+            }[tone] || {};
+            return Swal.fire({
+                width: 400,
+                buttonsStyling: false,
+                showCancelButton: true,
+                reverseButtons: true,
+                focusCancel: true,
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Cancel',
+                html: `
+                    <div class="flex flex-col items-center gap-3 pt-1 text-center">
+                        <span class="flex h-14 w-14 items-center justify-center rounded-full ${tones.bg}"><i class="fas ${icon} text-xl"></i></span>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">${esc(title)}</h3>
+                        ${name ? `<div class="max-w-full truncate rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 dark:bg-white/5 dark:text-slate-200">${esc(name)}</div>` : ''}
+                        ${text ? `<p class="text-sm leading-relaxed text-slate-500 dark:text-slate-400">${esc(text)}</p>` : ''}
+                    </div>`,
+                customClass: {
+                    popup: '!rounded-2xl !p-6 dark:!bg-slate-800',
+                    actions: '!mt-5 !w-full !gap-3 !flex-nowrap',
+                    confirmButton: `!m-0 flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 ${tones.btn}`,
+                    cancelButton: '!m-0 flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus:outline-none dark:border-slate-600 dark:bg-transparent dark:text-slate-300 dark:hover:bg-white/5',
+                },
+            }).then((r) => r.isConfirmed);
+        }
+
+        // Shared by the card, the edit modal and the sub-task list.
+        function pmConfirmArchiveTask(taskId) {
+            const t = findTaskInTree(taskId, currentTasksCache);
+            return pmConfirm({
+                title: 'Archive this task?',
+                name: t?.task_name || '',
+                text: 'It will be removed from the board, along with any subtasks.',
+                confirmText: 'Archive',
+            });
+        }
+
         function refreshTaskDetailContext(cb) {
             if (typeof currentTaskRefreshFn === 'function') currentTaskRefreshFn(cb);
             else if (typeof cb === 'function') cb();
@@ -3366,7 +3628,7 @@
         };
 
         function hexToRgba(hex, alpha) {
-            hex = (hex || '#6366F1').replace('#', '');
+            hex = (hex || '#56b1f3').replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
             const num = parseInt(hex, 16);
             const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
@@ -3378,7 +3640,7 @@
         function initialsAvatar(label, size = 28) {
             label = (label || '?').trim();
             const initials = label.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
-            const palette = ['#6366F1', '#0EA5A4', '#F59E0B', '#EF4444', '#8B5CF6', '#059669', '#EC4899', '#3B82F6'];
+            const palette = ['#56b1f3', '#0EA5A4', '#F59E0B', '#EF4444', '#56b1f3', '#059669', '#EC4899', '#3B82F6'];
             let hash = 0;
             for (let i = 0; i < label.length; i++) hash = label.charCodeAt(i) + ((hash << 5) - hash);
             const color = palette[Math.abs(hash) % palette.length];
@@ -3446,27 +3708,27 @@
         // task_name, is_subtask, changes[], message?, file?}.
         const ACTIVITY_ICONS = {
             created: ['fa-plus', '#059669'],
-            updated: ['fa-pen', '#6366F1'],
+            updated: ['fa-pen', '#56b1f3'],
             status: ['fa-arrow-right-arrow-left', '#3B82F6'],
             completed: ['fa-circle-check', '#059669'],
             reopened: ['fa-rotate-left', '#F59E0B'],
             locked: ['fa-lock', '#D97706'],
             unlocked: ['fa-lock-open', '#D97706'],
-            cover: ['fa-image', '#8B5CF6'],
+            cover: ['fa-image', '#56b1f3'],
             moved: ['fa-arrow-right-arrow-left', '#0EA5E9'],
             archived: ['fa-box-archive', '#DC2626'],
             cancelled: ['fa-ban', '#DC2626'],
             restored: ['fa-rotate-left', '#059669'],
             commented: ['fa-comment', '#0EA5E9'],
-            uploaded: ['fa-paperclip', '#8B5CF6'],
+            uploaded: ['fa-paperclip', '#56b1f3'],
             file_deleted: ['fa-trash', '#DC2626'],
-            file_renamed: ['fa-i-cursor', '#8B5CF6'],
-            linked: ['fa-link', '#6366F1'],
+            file_renamed: ['fa-i-cursor', '#56b1f3'],
+            linked: ['fa-link', '#56b1f3'],
             unlinked: ['fa-link-slash', '#6B7280'],
             status_column: ['fa-table-columns', '#6B7280'],
             meeting_room: ['fa-door-open', '#0284C7'],
-            meeting_zoom: ['fa-video', '#7C3AED'],
-            meeting_teams: ['fa-video', '#4F46E5'],
+            meeting_zoom: ['fa-video', '#3193da'],
+            meeting_teams: ['fa-video', '#3193da'],
         };
 
         function activityEsc(str) {
@@ -3735,7 +3997,7 @@
         // detail view instead of an edit form.
         function taskListRowHtml(t) {
             const done = t.progress_percent >= 100;
-            const tags = (t.tags || []).map(tag => `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium text-white" style="background:${tag.color || '#6366F1'}">${tag.tag_name}</span>`).join('');
+            const tags = (t.tags || []).map(tag => `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>`).join('');
             return `
                 <div class="task-list-row group flex cursor-pointer items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-3.5 py-3 transition hover:border-indigo-200 hover:bg-indigo-50/40 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-indigo-500/30 dark:hover:bg-indigo-900/10" data-task-id="${t.task_id}">
                     <button type="button" class="task-list-check mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition ${done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-gray-300 text-transparent hover:border-emerald-400 dark:border-white/20'}" title="Mark ${done ? 'incomplete' : 'complete'}">
@@ -4135,7 +4397,7 @@
                 $wrap.append('<p class="text-sm text-gray-400">This board has no status columns yet.</p>');
             }
             statuses.forEach(s => {
-                const color = s.color || '#6366F1';
+                const color = s.color || '#56b1f3';
                 const active = s.status_id === taskMoveStatusId;
                 $wrap.append(`
                     <button type="button" class="task-move-status rounded-full border px-3 py-1.5 text-xs font-semibold transition" data-status-id="${esc(s.status_id)}"
@@ -4324,7 +4586,7 @@
             const $statusPill = $('#detailProjectStatusPill');
             if (status) {
                 $statusPill.text(status.status_name)
-                    .css({ background: hexToRgba(status.color || '#6366F1', 0.15), color: status.color || '#6366F1' })
+                    .css({ background: hexToRgba(status.color || '#56b1f3', 0.15), color: status.color || '#56b1f3' })
                     .removeClass('hidden');
             } else {
                 $statusPill.addClass('hidden');
@@ -4367,7 +4629,7 @@
 
             const $tags = $('#detailProjectTags').empty();
             if (task.tags && task.tags.length) {
-                task.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#6366F1'}">${tag.tag_name}</span>`));
+                task.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>`));
             } else {
                 $tags.append('<span class="text-sm text-gray-400">No tags.</span>');
             }
@@ -4481,12 +4743,27 @@
         // never sends it.
         let pendingSubtaskParentId = null;
 
+        // The edit/create modal serves both top-level Tasks and Subtasks —
+        // word it for whichever one is open.
+        function setTaskModalNoun(isSub) {
+            const noun = isSub ? 'Subtask' : 'Task';
+            $('#taskNameLabel').text(isSub ? 'Sub Task Name' : 'Task Name');
+            $('#taskSaveLabel').text('Save ' + noun);
+            $('#taskModalSubtitle').text(isSub ? 'Break this task down into a smaller step' : 'What needs to get done');
+            $('#task_description_editor .ql-editor').attr('data-placeholder', isSub
+                ? 'What needs to happen for this subtask to be done?'
+                : 'What needs to happen for this task to be done?');
+            return noun;
+        }
+
         function resetTaskForm() {
             $('#taskForm')[0].reset();
             $('#task_id').val('');
             $('#task_assignees').val(null).trigger('change');
+            $('#task_tags').empty().trigger('change');
             $('#deleteTaskBtn, #toggleCancelTaskBtn').addClass('hidden');
             $('#taskModalTitle').text('New Subtask');
+            setTaskModalNoun(true);
             stagedSubtaskFiles = [];
             renderStagedSubtaskFiles();
             initTaskDescrEditor();
@@ -4513,6 +4790,7 @@
             const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
             fillTaskPicSelect($('#task_assignees'), currentTaskDoctype, eligible, root.projectTeams || [],
                 task.assignees || [], (task.teams || []).map(t => t.team_id));
+            loadTagOptions($('#task_tags'), (task.tags || []).map(t => t.tag_name));
 
             $('#deleteTaskBtn').removeClass('hidden');
             // Cancel/Restore only exists on the Team Task route today (see
@@ -4524,7 +4802,7 @@
                     .data('cancelled', cancelled)
                     .html(`<i class="fas ${cancelled ? 'fa-rotate-left' : 'fa-ban'} text-xs"></i> ${cancelled ? 'Restore Task' : 'Cancel Task'}`);
             }
-            $('#taskModalTitle').text('Edit Subtask — ' + task.task_name);
+            $('#taskModalTitle').text('Edit ' + setTaskModalNoun(!!task.parent_task_id) + ' — ' + task.task_name);
             $('#taskModal').removeClass('hidden');
         }
 
@@ -4583,7 +4861,7 @@
                 const $statusPill = $('#detailProjectStatusPill');
                 if (data.status) {
                     $statusPill.text(data.status.status_name)
-                        .css({ background: hexToRgba(data.status.color || '#6366F1', 0.15), color: data.status.color || '#6366F1' })
+                        .css({ background: hexToRgba(data.status.color || '#56b1f3', 0.15), color: data.status.color || '#56b1f3' })
                         .removeClass('hidden');
                 } else {
                     $statusPill.addClass('hidden');
@@ -4613,7 +4891,7 @@
 
                 const $tags = $('#detailProjectTags').empty();
                 if (data.tags && data.tags.length) {
-                    data.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#6366F1'}">${tag.tag_name}</span>`));
+                    data.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>`));
                 } else {
                     $tags.append('<span class="text-sm text-gray-400">No tags.</span>');
                 }
@@ -4713,9 +4991,9 @@
             const ext = (name.split('.').pop() || '').toUpperCase();
             const byExt = {
                 PDF: '#EF4444', DOC: '#3B82F6', DOCX: '#3B82F6', XLSX: '#059669', XLS: '#059669',
-                PNG: '#8B5CF6', JPG: '#8B5CF6', JPEG: '#8B5CF6',
+                PNG: '#56b1f3', JPG: '#56b1f3', JPEG: '#56b1f3',
             };
-            const color = byExt[ext] || '#6366F1';
+            const color = byExt[ext] || '#56b1f3';
             return { label: ext.slice(0, 4) || 'FILE', bg: hexToRgba(color, 0.15), color };
         }
 
@@ -5319,7 +5597,8 @@
             // #qc_pic and #project_tags/#qc_tags share the .select2(-tags)
             // classes but live in other modals and get their own init (with the right
             // dropdownParent) via initPicSelect()/initTagsSelect().
-            $('#task_assignees').select2({ width: '100%', allowClear: true, closeOnSelect: false, dropdownParent: $('#taskModal') });
+            pmInitAssignSelect($('#task_assignees'), $('#taskModal'));
+            initTagsSelect($('#task_tags'), $('#taskModal'));
 
             $('#task_attachments').on('change', function () {
                 stagedSubtaskFiles = stagedSubtaskFiles.concat(Array.from(this.files));
@@ -5426,15 +5705,20 @@
             $(document).on('click', '.delete-detail-subtask-btn', function (e) {
                 e.stopPropagation();
                 const subtaskId = $(this).data('subtask-id');
-                $.ajax({
-                    url: `${currentTaskApiBase}/${subtaskId}`,
-                    method: 'DELETE',
-                    data: { _token: '{{ csrf_token() }}' },
-                    success: function () {
-                        refreshTaskDetailContext(() => {
-                            Alpine.$data(document.getElementById('pmProjectShowRoot')).renderTaskTab();
-                        });
-                    }
+                pmConfirmArchiveTask(subtaskId).then((ok) => {
+                    if (!ok) return;
+                    $.ajax({
+                        url: `${currentTaskApiBase}/${subtaskId}`,
+                        method: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: function (res) {
+                            toastr.success(res?.message || 'Archived');
+                            refreshTaskDetailContext(() => {
+                                Alpine.$data(document.getElementById('pmProjectShowRoot')).renderTaskTab();
+                            });
+                        },
+                        error: function (xhr) { toastr.error(xhr.responseJSON?.message || 'Something went wrong.'); }
+                    });
                 });
             });
 
@@ -5477,13 +5761,25 @@
             $(document).on('click', '.team-card-archive-btn', function (e) {
                 e.stopPropagation();
                 const taskId = $(this).data('task-id');
-                if (!confirm('Archive this task?')) return;
-                $.ajax({
-                    url: `${currentTaskApiBase}/${taskId}`,
-                    method: 'DELETE',
-                    data: { _token: '{{ csrf_token() }}' },
-                    success: function () { refreshTaskDetailContext(); },
-                    error: function (xhr) { toastr.error(xhr.responseJSON?.message || 'Something went wrong.'); }
+                const $card = $(this).parent().closest('[data-task-id]');
+                pmConfirmArchiveTask(taskId).then((ok) => {
+                    if (!ok) return;
+                    // Dim the card straight away instead of waiting for the
+                    // request + board reload to make it vanish.
+                    $card.css({ opacity: '0.4', pointerEvents: 'none' });
+                    $.ajax({
+                        url: `${currentTaskApiBase}/${taskId}`,
+                        method: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: function (res) {
+                            toastr.success(res?.message || 'Task archived');
+                            refreshTaskDetailContext();
+                        },
+                        error: function (xhr) {
+                            $card.css({ opacity: '', pointerEvents: '' });
+                            toastr.error(xhr.responseJSON?.message || 'Something went wrong.');
+                        }
+                    });
                 });
             });
 
@@ -5503,7 +5799,9 @@
                 let serialized = $(this).serialize();
                 if (parentId) serialized += `&parent_task_id=${encodeURIComponent(parentId)}`;
                 const pics = splitTaskPicValues($('#task_assignees').val());
-                serialized += '&' + $.param({ assignees: pics.assignees, team_ids: pics.team_ids });
+                serialized += '&' + $.param({ assignees: pics.assignees, team_ids: pics.team_ids, tags: $('#task_tags').val() || [] });
+                // Lets the server tell "cleared every tag" apart from "didn't send tags".
+                serialized += '&tags_submitted=1';
                 // Lets the server tell "cleared every PIC" apart from "didn't send PICs".
                 if (currentTaskDoctype === 'TSK') serialized += '&pic_submitted=1';
 
@@ -5534,16 +5832,21 @@
 
             $('#deleteTaskBtn').on('click', function () {
                 const taskId = $('#task_id').val();
-                if (!taskId || !confirm('Archive this task?')) return;
-                $.ajax({
-                    url: `${currentTaskApiBase}/${taskId}`,
-                    method: 'DELETE',
-                    data: { _token: '{{ csrf_token() }}' },
-                    success: function () {
-                        $('#taskModal').addClass('hidden');
-                        closeProjectDetail('none');
-                        refreshTaskDetailContext();
-                    }
+                if (!taskId) return;
+                pmConfirmArchiveTask(taskId).then((ok) => {
+                    if (!ok) return;
+                    $.ajax({
+                        url: `${currentTaskApiBase}/${taskId}`,
+                        method: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: function (res) {
+                            $('#taskModal').addClass('hidden');
+                            closeProjectDetail('none');
+                            toastr.success(res?.message || 'Task archived');
+                            refreshTaskDetailContext();
+                        },
+                        error: function (xhr) { toastr.error(xhr.responseJSON?.message || 'Something went wrong.'); }
+                    });
                 });
             });
 
@@ -5576,7 +5879,7 @@
                     title: 'Add status column',
                     html: `
                         <div class="flex gap-2">
-                            <input id="swal_status_color" type="color" value="#6366F1" title="Column color"
+                            <input id="swal_status_color" type="color" value="#56b1f3" title="Column color"
                                 class="h-10 w-10 shrink-0 cursor-pointer rounded-lg border border-slate-300 p-1">
                             <input id="swal_status_name" type="text" placeholder="e.g. Blocked"
                                 class="swal2-input !m-0 !h-10 !w-full" style="width:100%">
@@ -5739,7 +6042,7 @@
                     inputValue: String($row.data('label') ?? ''),
                     showCancelButton: true,
                     confirmButtonText: 'Save',
-                    confirmButtonColor: '#4F46E5',
+                    confirmButtonColor: '#3193da',
                     inputValidator: v => (!v || !v.trim()) ? 'Name cannot be empty.' : undefined,
                 }).then(result => {
                     if (!result.isConfirmed) return;

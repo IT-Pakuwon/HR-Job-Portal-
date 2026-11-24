@@ -204,7 +204,7 @@
                 taskOwner: '',
                 owners: [],
                 taskRows: [],
-                form: { open: false, kind: '', editing: false, id: '', status_name: '', status_id: '', color: '#6366F1', sort_order: '', saving: false },
+                form: { open: false, kind: '', editing: false, id: '', status_name: '', status_id: '', color: '#56b1f3', sort_order: '', saving: false },
 
                 init() {
                     this.loadProject();
@@ -252,7 +252,7 @@
                     this.form = {
                         open: true, kind, editing: !!row, id: row ? row.status_id : '',
                         status_name: row ? row.status_name : '', status_id: '',
-                        color: row && row.color ? row.color : '#6366F1',
+                        color: row && row.color ? row.color : '#56b1f3',
                         sort_order: row ? row.sort_order : '', saving: false,
                     };
                 },

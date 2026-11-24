@@ -75,7 +75,7 @@
             border-radius: 1.125rem;
             font-size: 1.5rem;
             color: #fff;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6 60%, #6366f1);
+            background: linear-gradient(135deg, #06b6d4, #3b82f6 60%, #56b1f3);
             box-shadow: 0 10px 20px -8px #2563eb99;
         }
 

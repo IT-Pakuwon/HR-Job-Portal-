@@ -592,9 +592,9 @@ error: function(err) {
             //     // log response json & status code
             //     dt.on('xhr.dt', function(e, settings, json, xhr) {
             //         const code = xhr ? xhr.status : '(no xhr)';
-            //         console.log(`[%c${name}%c] xhr status:`, 'color:#7c3aed;font-weight:bold', 'color:inherit',
+            //         console.log(`[%c${name}%c] xhr status:`, 'color:#3193da;font-weight:bold', 'color:inherit',
             //             code);
-            //         console.log(`[%c${name}%c] response json:`, 'color:#7c3aed;font-weight:bold',
+            //         console.log(`[%c${name}%c] response json:`, 'color:#3193da;font-weight:bold',
             //             'color:inherit', json);
 
             //         // kalau JSON ada error key

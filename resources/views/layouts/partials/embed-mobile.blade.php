@@ -298,9 +298,9 @@
     }
 
     html.mp-frame .fixed.inset-0>div:has(> h2 + textarea)>textarea:focus {
-        border-color: #6366f1;
+        border-color: #56b1f3;
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, .2);
+        box-shadow: 0 0 0 3px rgba(86, 177, 243, .2);
     }
 
     html.mp-frame .fixed.inset-0>div:has(> h2 + textarea):has(button[id*="eject" i])>textarea:focus {
@@ -621,7 +621,7 @@
             padding: .875rem 1rem !important;
             border-bottom: 0 !important;
             border-radius: 0 0 1.25rem 1.25rem;
-            background: linear-gradient(135deg, #0e7490, #2563eb 60%, #6366f1) !important;
+            background: linear-gradient(135deg, #0e7490, #2563eb 60%, #56b1f3) !important;
             box-shadow: 0 8px 20px -12px #1e3a8a99;
         }
 
@@ -633,7 +633,7 @@
 
         html.mp-frame #ticketDetailModal #detail_issue_summary {
             margin-top: .375rem;
-            color: #e0e7ff !important;
+            color: #d1ecff !important;
             font-size: .8125rem;
             line-height: 1.4;
         }
@@ -1023,8 +1023,8 @@
             gap: 0;
             font-size: 0 !important;
             border-radius: 9999px;
-            background: rgba(99, 102, 241, .12) !important;
-            color: #4f46e5 !important;
+            background: rgba(86, 177, 243, .12) !important;
+            color: #3193da !important;
             box-shadow: none;
         }
 
@@ -1034,7 +1034,7 @@
         }
 
         html.mp-frame.dark main header.sticky>div button:not(:disabled) {
-            color: #a5b4fc !important;
+            color: #a0d7ff !important;
         }
 
         /* collapse / expand: same small round gradient button the tabs card already has ("−" open, "+" folded);
@@ -1052,8 +1052,8 @@
             padding: 0;
             border: 0;
             border-radius: 9999px;
-            background: linear-gradient(to bottom, #a5b4fc, #818cf8, #6366f1);
-            color: #1e1b4b;
+            background: linear-gradient(to bottom, #a0d7ff, #7bc8ff, #56b1f3);
+            color: #0b324f;
             font-size: 10px;
             font-weight: 700;
             line-height: 1;
@@ -1062,8 +1062,8 @@
         }
 
         html.mp-frame.dark main header.sticky>.mp-collapse-btn {
-            background: linear-gradient(to bottom, #818cf8, #6366f1, #4f46e5);
-            color: #eef2ff;
+            background: linear-gradient(to bottom, #7bc8ff, #56b1f3, #3193da);
+            color: #e3f3ff;
         }
 
         html.mp-frame main header.sticky>.mp-collapse-btn::after {

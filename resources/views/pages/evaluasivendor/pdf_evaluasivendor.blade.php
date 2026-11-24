@@ -12,8 +12,8 @@
         .meta{margin-bottom:10px}.meta td{padding:3px 4px}.label{width:22%;font-weight:bold}
         .kpi th,.kpi td,.guide th,.guide td,.approval th,.approval td{border:1px solid #222}
         .kpi thead{display:table-header-group}.kpi thead th{background:#eaeef4;text-align:center;font-size:8px}
-        .kpi tr,.approval tr{page-break-inside:avoid}.aspect{background:#eef2ff;font-weight:bold}
-        .number{text-align:center}.total{font-weight:bold;background:#eef2ff}.text{white-space:pre-line;word-wrap:break-word}
+        .kpi tr,.approval tr{page-break-inside:avoid}.aspect{background:#e3f3ff;font-weight:bold}
+        .number{text-align:center}.total{font-weight:bold;background:#e3f3ff}.text{white-space:pre-line;word-wrap:break-word}
         .notes{margin-top:10px}.notes td{border:1px solid #999;padding:6px}.notes strong{display:block;margin-bottom:3px}
         .guide{margin-top:10px;font-size:8px}.guide th{background:#f3f4f6;text-align:left}.guide tr{page-break-inside:avoid}
         .approval{margin-top:14px;font-size:8px}.approval th{text-align:left;background:#f7f7f7}.approval td{height:42px}

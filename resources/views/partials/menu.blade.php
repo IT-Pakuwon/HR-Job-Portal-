@@ -23,7 +23,7 @@
 
     .shortcut-item:hover {
         background: #f3f4f6;
-        border-color: #c7d2fe;
+        border-color: #b6e1ff;
     }
 
     .shortcut-actions {

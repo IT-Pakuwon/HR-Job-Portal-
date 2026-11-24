@@ -1411,7 +1411,7 @@
                 draft: 'border-2! p-[11px]! font-bold! bg-pink-100! border-pink-700! text-pink-700! shadow-[0_4px_14px_-4px_rgba(219,39,119,.55)]! -translate-y-px dark:bg-pink-500/20! dark:border-pink-400! dark:text-pink-200!',
                 active: 'border-2! p-[11px]! font-bold! bg-green-100! border-green-700! text-green-700! shadow-[0_4px_14px_-4px_rgba(22,163,74,.55)]! -translate-y-px dark:bg-green-500/20! dark:border-green-400! dark:text-green-200!',
                 completed: 'border-2! p-[11px]! font-bold! bg-blue-100! border-blue-700! text-blue-700! shadow-[0_4px_14px_-4px_rgba(59,130,246,.55)]! -translate-y-px dark:bg-blue-500/20! dark:border-blue-400! dark:text-blue-200!',
-                followup: 'border-2! p-[11px]! font-bold! bg-indigo-100! border-indigo-700! text-indigo-700! shadow-[0_4px_14px_-4px_rgba(79,70,229,.55)]! -translate-y-px dark:bg-indigo-500/20! dark:border-indigo-400! dark:text-indigo-200!',
+                followup: 'border-2! p-[11px]! font-bold! bg-indigo-100! border-indigo-700! text-indigo-700! shadow-[0_4px_14px_-4px_rgba(49, 147, 218,.55)]! -translate-y-px dark:bg-indigo-500/20! dark:border-indigo-400! dark:text-indigo-200!',
                 cancelled: 'border-2! p-[11px]! font-bold! bg-red-100! border-red-700! text-red-700! shadow-[0_4px_14px_-4px_rgba(220,38,38,.55)]! -translate-y-px dark:bg-red-500/20! dark:border-red-400! dark:text-red-200!',
             };
 

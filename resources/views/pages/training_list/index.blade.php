@@ -942,8 +942,8 @@
             color: #374151;
         }
         .ticketModal-participantBadge.you {
-            background: #ede9fe;
-            color: #6d28d9;
+            background: #d1ecff;
+            color: #1c71ae;
         }
         .ticketModal-participantEmpty {
             font-size: 11px;
@@ -1440,8 +1440,8 @@
             gap: 12px;
             padding: 12px 14px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #eef2ff, #f5f3ff);
-            border: 1px solid #e0e7ff;
+            background: linear-gradient(135deg, #e3f3ff, #e3f3ff);
+            border: 1px solid #d1ecff;
             margin-bottom: 12px;
         }
         .viewModal-avatar {
@@ -1449,7 +1449,7 @@
             height: 38px;
             border-radius: 50%;
             flex-shrink: 0;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: linear-gradient(135deg, #56b1f3, #56b1f3);
             color: #fff;
             font-size: 13px;
             font-weight: 700;
@@ -1470,7 +1470,7 @@
             font-weight: 700;
             letter-spacing: .04em;
             text-transform: uppercase;
-            color: #6366f1;
+            color: #56b1f3;
         }
         .viewModal-grid {
             display: grid;
@@ -1760,11 +1760,11 @@
             border-color: #4b5563;
         }
         html.dark .viewModal-participant {
-            background: linear-gradient(135deg, #312e81, #3730a3);
-            border-color: #4338ca;
+            background: linear-gradient(135deg, #124d79, #124d79);
+            border-color: #1c71ae;
         }
         html.dark .viewModal-participant-label {
-            color: #a5b4fc;
+            color: #a0d7ff;
         }
         html.dark .viewModal-offerBanner {
             background: linear-gradient(135deg, #451a03, #78350f);
@@ -1794,8 +1794,8 @@
             color: #9ca3af;
         }
         html.dark .feedbackModal-choice:has(input:checked) {
-            border-color: #755ff8;
-            background: #755ff8;
+            border-color: #3193da;
+            background: #3193da;
             color: #fff;
         }
         html.dark .ticketModal-colleagueToggle-text {
@@ -1805,7 +1805,7 @@
             color: #9ca3af;
         }
         html.dark .ticketModal-colleagueToggle input[type="checkbox"] {
-            accent-color: #755ff8;
+            accent-color: #3193da;
         }
         html.dark .ticketModal-colleagueWrap {
             border-top-color: #374151;
@@ -1818,9 +1818,9 @@
             border-color: #6b7280;
         }
         html.dark .ticketModal-scopeOption:has(input:checked) {
-            border-color: #755ff8;
+            border-color: #3193da;
             background: rgba(117, 95, 248, 0.12);
-            box-shadow: 0 0 0 1px #755ff8;
+            box-shadow: 0 0 0 1px #3193da;
         }
         html.dark .ticketModal-scopeOption-text strong {
             color: #f3f4f6;
@@ -1847,7 +1847,7 @@
         }
         html.dark .ticketModal-participantBadge.you {
             background: rgba(117, 95, 248, 0.2);
-            color: #c4b5fd;
+            color: #a0d7ff;
         }
         html.dark .ticketModal-participantEmpty {
             color: #6b7280;
@@ -1892,7 +1892,7 @@
         /* Feedback form: inputs sit one shade darker than their question card so they stand out, and the
            light-mode near-black accents (number badge, focus ring) get visible dark-mode colours. */
         html.dark .feedbackModal-qNum {
-            background: #755ff8;
+            background: #3193da;
             color: #fff;
         }
         html.dark .feedbackModal-textarea,
@@ -1908,7 +1908,7 @@
             color: #6b7280;
         }
         html.dark .feedbackModal-textarea:focus {
-            border-color: #755ff8;
+            border-color: #3193da;
             box-shadow: 0 0 0 3px rgba(117, 95, 248, .25);
         }
         html.dark .feedbackModal-textarea:disabled {
@@ -1924,17 +1924,17 @@
             border-color: #6b7280;
         }
         html.dark .dateCardOption.selected {
-            border-color: #755ff8;
+            border-color: #3193da;
             background: rgba(117, 95, 248, 0.12);
-            box-shadow: 0 0 0 1px #755ff8;
+            box-shadow: 0 0 0 1px #3193da;
         }
         html.dark .ticketConfirmBtn,
         html.dark .feedbackConfirmBtn {
-            background: #755ff8 !important;
+            background: #3193da !important;
         }
         html.dark .ticketConfirmBtn:hover,
         html.dark .feedbackConfirmBtn:hover {
-            background: #5d47de !important;
+            background: #1c71ae !important;
         }
         html.dark .ticketCancelBtn {
             color: #9ca3af !important;
@@ -2092,12 +2092,12 @@
         // training always gets the same card-icon tile color across reloads
         // instead of a random one each render.
         const cardPalettes = [
-            ['#eef2ff', '#4338ca'],
+            ['#e3f3ff', '#1c71ae'],
             ['#ecfeff', '#0e7490'],
             ['#f0fdf4', '#15803d'],
             ['#fff7ed', '#c2410c'],
             ['#fdf2f8', '#be185d'],
-            ['#f5f3ff', '#6d28d9'],
+            ['#e3f3ff', '#1c71ae'],
             ['#fefce8', '#a16207'],
         ];
 
@@ -2825,7 +2825,7 @@
                 // about your own status) — flag it so it's not mistaken for an
                 // open slot for yourself.
                 const myStatusLabel = s.my_status
-                    ? '<div style="font-size:11px;font-weight:700;color:#7c3aed;margin-top:2px;">✓ You\'re already registered</div>'
+                    ? '<div style="font-size:11px;font-weight:700;color:#3193da;margin-top:2px;">✓ You\'re already registered</div>'
                     : '';
 
                 return `

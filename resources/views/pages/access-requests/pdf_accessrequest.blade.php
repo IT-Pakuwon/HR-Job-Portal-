@@ -186,7 +186,7 @@
         }
 
         .status-revise{
-            color:#7c3aed;
+            color:#3193da;
         }
 
         .status-cancel{

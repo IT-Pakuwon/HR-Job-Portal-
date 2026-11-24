@@ -39,24 +39,24 @@
     <footer class="vendor-guide-footer"><button type="button" class="vendor-guide-done">Mengerti</button></footer>
 </dialog>
 <style>
-    .vendor-score-help{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #c7d2fe;border-radius:999px;background:#eef2ff;padding:5px 10px;color:#4338ca;font-size:11px;font-weight:600;cursor:pointer}
-    .vendor-score-help:hover{background:#e0e7ff}.vendor-score-help svg{width:15px;height:15px;flex-shrink:0}
+    .vendor-score-help{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #b6e1ff;border-radius:999px;background:#e3f3ff;padding:5px 10px;color:#1c71ae;font-size:11px;font-weight:600;cursor:pointer}
+    .vendor-score-help:hover{background:#d1ecff}.vendor-score-help svg{width:15px;height:15px;flex-shrink:0}
     #vendor-score-guide{width:760px;max-width:calc(100vw - 32px);max-height:88vh;margin:auto;border:0;border-radius:16px;padding:0;background:#fff;color:#0f172a;box-shadow:0 24px 80px #0f172a40;overflow:auto}
     #vendor-score-guide::backdrop{background:#0f172a80;backdrop-filter:blur(3px)}
     .vendor-guide-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
-    .vendor-guide-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#6366f1;font-weight:700}
+    .vendor-guide-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#56b1f3;font-weight:700}
     .vendor-guide-header h2{margin:4px 0;font-size:22px;font-weight:750}.vendor-guide-header p{margin:0;font-size:12px;color:#64748b}
     .vendor-guide-close{border:0;background:transparent;font-size:26px;line-height:1;color:#64748b;padding:4px;cursor:pointer}
     .vendor-guide-body{display:grid;gap:20px;padding:22px 24px}.vendor-guide-body h3{margin:0 0 10px;font-size:13px;font-weight:700}
     .vendor-guide-table-wrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px}.vendor-guide-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
     .vendor-guide-table th{padding:9px 12px;background:#f8fafc;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
     .vendor-guide-table td{padding:10px 12px;border-top:1px solid #e2e8f0;vertical-align:top}.vendor-guide-table strong{font-weight:650}.vendor-guide-table p{margin:3px 0 0;font-size:11px;line-height:1.5;color:#64748b}
-    .vendor-guide-score{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#eef2ff;color:#4338ca;font-weight:700}.vendor-guide-number{font-weight:700;font-variant-numeric:tabular-nums}
-    .vendor-guide-example{border:1px solid #c7d2fe;border-radius:10px;padding:14px 16px;background:#eef2ff;color:#312e81}.vendor-guide-example p{margin:5px 0;font-size:12px}.vendor-guide-example div{margin:10px 0;font-size:13px;line-height:1.6}
+    .vendor-guide-score{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#e3f3ff;color:#1c71ae;font-weight:700}.vendor-guide-number{font-weight:700;font-variant-numeric:tabular-nums}
+    .vendor-guide-example{border:1px solid #b6e1ff;border-radius:10px;padding:14px 16px;background:#e3f3ff;color:#124d79}.vendor-guide-example p{margin:5px 0;font-size:12px}.vendor-guide-example div{margin:10px 0;font-size:13px;line-height:1.6}
     .vendor-guide-categories td:first-child{width:30%;font-weight:600}.vendor-guide-note{margin:9px 0 0;font-size:11px;line-height:1.6;color:#64748b}
-    .vendor-guide-footer{display:flex;justify-content:flex-end;padding:14px 24px;border-top:1px solid #e2e8f0}.vendor-guide-done{border:0;border-radius:8px;padding:8px 18px;background:#4f46e5;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+    .vendor-guide-footer{display:flex;justify-content:flex-end;padding:14px 24px;border-top:1px solid #e2e8f0}.vendor-guide-done{border:0;border-radius:8px;padding:8px 18px;background:#3193da;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
     .dark #vendor-score-guide{background:#111827;color:#e2e8f0}.dark .vendor-guide-header,.dark .vendor-guide-table th{background:#1f2937}.dark .vendor-guide-header,.dark .vendor-guide-footer,.dark .vendor-guide-table-wrap,.dark .vendor-guide-table td{border-color:#374151}
-    .dark .vendor-guide-header p,.dark .vendor-guide-table p,.dark .vendor-guide-table th,.dark .vendor-guide-note{color:#94a3b8}.dark .vendor-guide-example{background:#1e1b4b;color:#e0e7ff;border-color:#4338ca}
+    .dark .vendor-guide-header p,.dark .vendor-guide-table p,.dark .vendor-guide-table th,.dark .vendor-guide-note{color:#94a3b8}.dark .vendor-guide-example{background:#0b324f;color:#d1ecff;border-color:#1c71ae}
     @media(max-width:640px){.vendor-guide-header,.vendor-guide-body{padding:16px}.vendor-guide-table th,.vendor-guide-table td{padding:8px}.vendor-guide-header h2{font-size:20px}}
 </style>
 <script>

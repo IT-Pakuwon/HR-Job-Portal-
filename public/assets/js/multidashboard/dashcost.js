@@ -183,7 +183,7 @@
     const titleCase = (v) => String(v).toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (m, a, b) => a + b.toUpperCase());
 
     const AVATAR_COLORS = [
-        ["#dbeafe", "#1d4ed8"], ["#ede9fe", "#6d28d9"], ["#fce7f3", "#be185d"],
+        ["#dbeafe", "#1d4ed8"], ["#d1ecff", "#1c71ae"], ["#fce7f3", "#be185d"],
         ["#dcfce7", "#15803d"], ["#ffedd5", "#c2410c"], ["#cffafe", "#0e7490"],
     ];
 
@@ -197,7 +197,7 @@
             .dsh-av { width: 20px; height: 20px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; margin-left: -6px; border: 2px solid var(--dsh-av-ring, #fff); transition: transform .15s ease; }
             .dsh-av:first-child { margin-left: 0; }
             .dsh-wait:hover .dsh-av { transform: translateY(-2px); }
-            .dsh-av-me { box-shadow: 0 0 0 1.5px #6366f1; }
+            .dsh-av-me { box-shadow: 0 0 0 1.5px #56b1f3; }
             .dark .dsh-wait { --dsh-av-ring: #1e293b; }
         `;
         document.head.appendChild(st);

@@ -7,8 +7,8 @@
         --dsh-muted: #64748b;
         --dsh-card: #fff;
         --dsh-fg: #0f172a;
-        --dsh-accent: #2563eb;
-        --dsh-accent-soft: #e8effe;
+        --dsh-accent: #3193da;
+        --dsh-accent-soft: #e3f3ff;
         --dsh-hot: #b45309;
     }
 
@@ -18,8 +18,8 @@
         --dsh-muted: #94a3b8;
         --dsh-card: #1e293b;
         --dsh-fg: #f1f5f9;
-        --dsh-accent: #7aa2ff;
-        --dsh-accent-soft: #1f2c4d;
+        --dsh-accent: #7bc8ff;
+        --dsh-accent-soft: #12304a;
         --dsh-hot: #fbbf24;
     }
 

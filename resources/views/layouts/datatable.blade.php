@@ -231,7 +231,7 @@ TABLE CELLS & ROWS (GLOBAL)
     table.dataTable thead > tr > th.sorting:hover,
     table.dataTable thead > tr > th.sorting_asc:hover,
     table.dataTable thead > tr > th.sorting_desc:hover {
-        color: #4f46e5;
+        color: #3193da;
     }
 
     table.dataTable thead > tr > th.sorting::before,
@@ -262,12 +262,12 @@ TABLE CELLS & ROWS (GLOBAL)
 
     table.dataTable thead > tr > th.sorting_asc::after {
         content: "\f0de" !important;
-        color: #4f46e5;
+        color: #3193da;
     }
 
     table.dataTable thead > tr > th.sorting_desc::after {
         content: "\f0dd" !important;
-        color: #4f46e5;
+        color: #3193da;
     }
 
     table.dataTable tbody tr td {
@@ -654,15 +654,15 @@ FOOTER: info + pagination (SIK style)
 
     .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
         background: #f9fafb !important;
-        color: #4f46e5 !important;
+        color: #3193da !important;
         border-color: #e5e7eb !important;
     }
 
     .dataTables_wrapper .dataTables_paginate .paginate_button.current,
     .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-        background: #eef2ff !important;
-        color: #4f46e5 !important;
-        border-color: #c7d2fe !important;
+        background: #e3f3ff !important;
+        color: #3193da !important;
+        border-color: #b6e1ff !important;
         font-weight: 600;
     }
 
@@ -690,14 +690,14 @@ FOOTER: info + pagination (SIK style)
 
     .dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
         background: rgba(255, 255, 255, .05) !important;
-        color: #a5b4fc !important;
+        color: #a0d7ff !important;
     }
 
     .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current,
     .dark .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-        background: rgba(99, 102, 241, .15) !important;
-        color: #a5b4fc !important;
-        border-color: rgba(99, 102, 241, .4) !important;
+        background: rgba(86, 177, 243, .15) !important;
+        color: #a0d7ff !important;
+        border-color: rgba(86, 177, 243, .4) !important;
     }
 
     /* =====================================================
@@ -745,7 +745,7 @@ MISC
         height: 54px;
         border-radius: 50%;
         border: 4px solid transparent;
-        border-top-color: #6366f1;
+        border-top-color: #56b1f3;
         /* indigo-500 */
         animation: spin 1s linear infinite;
         position: relative;
@@ -757,7 +757,7 @@ MISC
         inset: 6px;
         border-radius: 50%;
         border: 4px solid transparent;
-        border-left-color: #a5b4fc;
+        border-left-color: #a0d7ff;
         /* indigo-200 */
         animation: spinReverse .75s linear infinite;
     }
@@ -1106,10 +1106,10 @@ SELECT2 – DARK MODE SEARCH FIELD
 
     /* focus state */
     .dark .select2-container--default .select2-search__field:focus {
-        border-color: #6366f1;
+        border-color: #56b1f3;
         /* indigo-500 */
         outline: none;
-        box-shadow: 0 0 0 1px rgba(99, 102, 241, .4);
+        box-shadow: 0 0 0 1px rgba(86, 177, 243, .4);
         font-size: 11px
     }
 
@@ -1162,9 +1162,9 @@ IMPORT BUDGET – DARK MODE SUPPORT
     /* focus */
     .dark input:focus,
     .dark select:focus {
-        border-color: #6366f1;
+        border-color: #56b1f3;
         /* indigo-500 */
-        box-shadow: 0 0 0 1px rgba(99, 102, 241, .4);
+        box-shadow: 0 0 0 1px rgba(86, 177, 243, .4);
     }
 
     /* ---------- File input button ---------- */
@@ -1206,11 +1206,11 @@ IMPORT BUDGET – DARK MODE SUPPORT
 
     /* primary */
     .dark .bg-blue-600 {
-        background-color: #4f46e5 !important;
+        background-color: #3193da !important;
     }
 
     .dark .bg-blue-600:hover {
-        background-color: #4338ca !important;
+        background-color: #1c71ae !important;
     }
 
     /* secondary */
@@ -1409,9 +1409,9 @@ Approval / Attachment / Comments tables
 
     .dark select:focus {
         outline: none;
-        border-color: #6366f1;
+        border-color: #56b1f3;
         /* indigo */
-        font-size: 11px box-shadow: 0 0 0 1px #6366f1;
+        font-size: 11px box-shadow: 0 0 0 1px #56b1f3;
     }
 
     /* =====================================
@@ -1437,7 +1437,7 @@ Approval / Attachment / Comments tables
 
     /* Hover / selected (browser dependent) */
     .dark select option:checked {
-        background-color: #4f46e5;
+        background-color: #3193da;
         color: #ffffff;
         font-size: 11px
     }
@@ -1685,8 +1685,8 @@ Approval / Attachment / Comments tables
     .dataTables_wrapper .dataTables_filter input:hover { border-color: #cbd5e1 !important; }
 
     .dataTables_wrapper .dataTables_filter input:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, .14) !important;
+        border-color: #56b1f3 !important;
+        box-shadow: 0 0 0 4px rgba(86, 177, 243, .14) !important;
     }
 
     .dark .dataTables_wrapper .dataTables_filter input[type="search"],
@@ -1701,8 +1701,8 @@ Approval / Attachment / Comments tables
     .dark .dataTables_wrapper .dataTables_filter input:hover { border-color: rgba(255, 255, 255, .22) !important; }
 
     .dark .dataTables_wrapper .dataTables_filter input:focus {
-        border-color: #818cf8 !important;
-        box-shadow: 0 0 0 4px rgba(129, 140, 248, .18) !important;
+        border-color: #7bc8ff !important;
+        box-shadow: 0 0 0 4px rgba(123, 200, 255, .18) !important;
     }
 
     @media (max-width: 600px) {

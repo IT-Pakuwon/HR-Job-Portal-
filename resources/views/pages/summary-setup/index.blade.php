@@ -218,7 +218,7 @@
 
     <script>
         function summarySetup(widgets, saveUrl, resetUrl, period) {
-            const HEX = { violet: ['#8B5CF6', '#7C3AED'], blue: ['#3B82F6', '#06B6D4'], green: ['#10B981', '#06B6D4'], orange: ['#F59E0B', '#D97706'], red: ['#EF4444', '#F43F5E'], pink: ['#EC4899', '#C026D3'], cyan: ['#06B6D4', '#3B82F6'] };
+            const HEX = { violet: ['#56b1f3', '#3193da'], blue: ['#3B82F6', '#06B6D4'], green: ['#10B981', '#06B6D4'], orange: ['#F59E0B', '#D97706'], red: ['#EF4444', '#F43F5E'], pink: ['#EC4899', '#C026D3'], cyan: ['#06B6D4', '#3B82F6'] };
             const BAR = 'rounded-full';
             return {
                 init() {
@@ -310,7 +310,7 @@
                     if (await this.call(saveUrl, 'PUT', { period: this.period, widgets })) { this.dirty = false; this.flash(true, 'Layout saved.'); }
                 },
                 async reset() {
-                    const ask = window.Swal ? (await Swal.fire({ title: 'Reset to default?', text: 'The saved layout is removed and the panel goes back to the default cards.', icon: 'question', showCancelButton: true, confirmButtonColor: '#4f46e5' })).isConfirmed : confirm('Reset to the default layout?');
+                    const ask = window.Swal ? (await Swal.fire({ title: 'Reset to default?', text: 'The saved layout is removed and the panel goes back to the default cards.', icon: 'question', showCancelButton: true, confirmButtonColor: '#3193da' })).isConfirmed : confirm('Reset to the default layout?');
                     if (ask && await this.call(resetUrl, 'DELETE')) location.reload();
                 },
             };

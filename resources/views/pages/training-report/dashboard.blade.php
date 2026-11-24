@@ -277,19 +277,19 @@
             border-radius: 0.5rem; border: 1px solid #e2e8f0;
             padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
         }
-        .trnrep-select2-dd .select2-search__field:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
+        .trnrep-select2-dd .select2-search__field:focus { border-color: #56b1f3; box-shadow: 0 0 0 3px rgba(86, 177, 243,0.12); }
         .trnrep-select2-dd .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; white-space: normal; word-break: break-word; }
-        .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #F5F3FF; color: #7C3AED; }
-        .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #EDE9FE; color: #6D28D9; font-weight: 600; }
+        .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #3193da; }
+        .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #1c71ae; font-weight: 600; }
 
         .dark #trnrepExtraFilterWrap .select2-selection__rendered { color: #e2e8f0; }
         .dark #trnrepExtraFilterWrap .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
         .dark .select2-dropdown.trnrep-select2-dd { background-color: #1e293b; border-color: #475569; }
         .dark .trnrep-select2-dd .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
         .dark .trnrep-select2-dd .select2-results__option { color: #e2e8f0; }
-        .dark .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #4C1D95; color: #fff; }
-        .dark .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #5B21B6; color: #fff; }
-        .dark .trnrep-select2-dd .select2-search__field:focus { border-color: #8B5CF6; }
+        .dark .trnrep-select2-dd .select2-results__option--highlighted[aria-selected] { background-color: #124d79; color: #fff; }
+        .dark .trnrep-select2-dd .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
+        .dark .trnrep-select2-dd .select2-search__field:focus { border-color: #56b1f3; }
     </style>
 
     <script src="{{ asset('assets/js/gm-report/gm-core.js') }}"></script>

@@ -8,12 +8,12 @@
 
 @php
     $isCancelled = !empty($status_perjalanan);
-    $bannerColor  = $isCancelled ? '#ef4444' : '#6366f1';
+    $bannerColor  = $isCancelled ? '#ef4444' : '#56b1f3';
     $bannerTitle  = $isCancelled ? 'Booking Request — Status Updated' : 'Booking Car — Processed by GA';
     $intro = $isCancelled
         ? "Mohon maaf, permintaan Booking Car Anda telah diperbarui oleh GA dengan status: <strong>{$status_perjalanan}</strong>."
         : "Permintaan Booking Car Anda telah diproses oleh GA. Berikut detail kendaraan dan pengemudi yang ditugaskan.";
-    $btnColor = $isCancelled ? '#ef4444' : '#6366f1';
+    $btnColor = $isCancelled ? '#ef4444' : '#56b1f3';
 @endphp
 
 <table width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6f9;">

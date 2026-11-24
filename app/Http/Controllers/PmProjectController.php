@@ -137,8 +137,12 @@ class PmProjectController extends Controller
     {
         $teamIds = $project->teams->pluck('team_id');
 
-        return MsTeam::whereIn('team_id', $teamIds)->get()
-            ->flatMap(fn ($t) => $t->memberUsers()->pluck('username'))
+        // One query for every linked Team's active members (callers match
+        // these against ms_user themselves, so no per-Team user join here).
+        $members = $teamIds->isEmpty() ? collect() : TrTeamMember::whereIn('team_id', $teamIds)
+            ->where('status', 'A')->pluck('username');
+
+        return $members
             ->map(fn ($u) => strtolower(trim($u)))
             ->merge($project->picUsernames())
             ->push(strtolower(trim((string) $project->created_by)))
@@ -150,14 +154,30 @@ class PmProjectController extends Controller
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects(), ...$this->guessLanding()]);
     }
 
     public function kanban()
     {
         abort_unless($this->canBrowse(), 403);
 
-        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects()]);
+        return view('pages.projectmanagement.projects', ['initialTab' => 'kanban', 'canCreateProject' => $this->canManageProjects(), ...$this->guessLanding()]);
+    }
+
+    // What the page will most likely land on: the user's first starred Team,
+    // else their first starred Project (the sidebar lists starred Teams first).
+    // Only a hint so the browser can start that board's request in parallel
+    // with the sidebar request instead of waiting for it — the client
+    // re-checks it against the real sidebar and discards a wrong guess.
+    private function guessLanding(): array
+    {
+        $favorites = $this->myFavorites();
+        $teamId = $favorites->where('fav_type', 'TEAM')->first()?->ref_id;
+
+        return [
+            'guessTeamId' => $teamId,
+            'guessProjectId' => $teamId ? null : $favorites->where('fav_type', 'PROJECT')->first()?->ref_id,
+        ];
     }
 
     // Kept at /projects/gantt for old bookmarks — the Gantt tab was
@@ -508,9 +528,17 @@ class PmProjectController extends Controller
             ->get(['tag_id', 'tag_name', 'color'])
             ->keyBy('tag_id');
 
+        // Member counts for the landing list — one grouped query for all Teams.
+        $memberCounts = $teamIds->isEmpty() ? collect() : TrTeamMember::where('status', 'A')
+            ->whereIn('team_id', $teamIds)
+            ->selectRaw('team_id, count(*) as total')
+            ->groupBy('team_id')
+            ->pluck('total', 'team_id');
+
         $teamsOut = $teams->map(fn ($t) => [
             'team_id' => $t->team_id,
             'team_name' => $t->team_name,
+            'member_count' => (int) ($memberCounts[$t->team_id] ?? 0),
             'is_favorite' => $favoriteTeamIds->contains($t->team_id),
         ])->sortByDesc('is_favorite')->values();
 
@@ -725,6 +753,21 @@ class PmProjectController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
         $this->assertTeamAccess($project);
+
+        // The Task board only needs the PIC picker's pool (Teams + eligible
+        // people), not the rest of the Overview — skip the ~10 other
+        // lookups it would otherwise pay for on every board load.
+        if (request()->boolean('lite')) {
+            $teamIds = $project->teams->pluck('team_id');
+            $usernames = $this->eligibleUsernames($project);
+
+            return response()->json([
+                'teams' => $teamIds->isEmpty() ? [] : MsTeam::whereIn('team_id', $teamIds)->get(['team_id', 'team_name'])->values(),
+                'eligible_users' => $usernames->isEmpty() ? [] : User::whereIn(DB::raw('lower(username)'), $usernames->all())
+                    ->orderBy('name')->get(['username', 'name'])
+                    ->map(fn ($u) => ['username' => $u->username, 'name' => $u->name])->values(),
+            ]);
+        }
 
         $linkableProjectIds = $this->myProjectIds()
             ->reject(fn ($id) => $id === $project->project_id);

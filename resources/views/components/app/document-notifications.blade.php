@@ -532,6 +532,8 @@ function docNotifStatusCfg(status) {
         // Comment mentions
         'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
         'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
+        'COMMENT_REVISED':  { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'edit' },
+        'COMMENT_REJECTED': { iconBg: 'bg-red-100 dark:bg-red-900/30',     iconText: 'text-red-600 dark:text-red-400',     badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',         bar: 'bg-red-500',   cat: 'cancel' },
         // New unread inbox email
         'MAIL':       { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',   cat: 'mail' },
         // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
@@ -742,6 +744,8 @@ function docNotifications(mailboxConnected = false) {
                             ? 'You are mentioned in this document, please check.'
                             : first.status === 'COMMENT'
                                 ? 'There is a new comment in this document, please check.'
+                                : (first.status === 'COMMENT_REVISED' || first.status === 'COMMENT_REJECTED')
+                                    ? first.message
                                 : first.status === 'MAIL'
                                     ? 'You still have an unread email waiting in your inbox.'
                                     : _proceedStatuses.has(first.status)

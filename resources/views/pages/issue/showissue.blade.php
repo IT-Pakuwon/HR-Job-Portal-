@@ -266,7 +266,7 @@
 
                             {{-- Attachment Tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
-                                <div class="flex-1 overflow-auto rounded-lg">
+                                <div class="flex flex-1 flex-col overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -278,7 +278,7 @@
                                         <tbody id="issueAttachmentTbody"></tbody>
                                     </table>
                                     @if ($canUpload)
-                                        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <div class="mt-auto border-t border-gray-200 p-4 dark:border-gray-700">
                                             <form id="issueAttachmentUploadForm" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="flex flex-col gap-3 md:flex-row md:items-center">

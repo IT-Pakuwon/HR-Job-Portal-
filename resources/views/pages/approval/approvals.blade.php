@@ -799,23 +799,23 @@
 
         #linesContainer .select2-container--default.select2-container--focus .select2-selection--multiple,
         #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--multiple {
-            border-color: #6366f1;
+            border-color: #56b1f3;
             box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
         }
 
         #linesContainer .select2-selection--multiple .select2-selection__choice,
         #editLinesContainer .select2-selection--multiple .select2-selection__choice {
-            background: #eef2ff !important;
-            border-color: #c7d2fe !important;
-            color: #4338ca !important;
+            background: #e3f3ff !important;
+            border-color: #b6e1ff !important;
+            color: #1c71ae !important;
             border-radius: 4px !important;
             font-size: 12px;
         }
 
         #linesContainer .select2-selection--multiple .select2-selection__choice__remove,
         #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove {
-            color: #6366f1 !important;
-            border-color: #c7d2fe !important;
+            color: #56b1f3 !important;
+            border-color: #b6e1ff !important;
         }
 
         #linesContainer .select2-selection--multiple .select2-selection__choice__remove:hover,
@@ -861,15 +861,15 @@
 
         .dark #linesContainer .select2-selection--multiple .select2-selection__choice,
         .dark #editLinesContainer .select2-selection--multiple .select2-selection__choice {
-            background: rgba(99, 102, 241, 0.15) !important;
-            border-color: rgba(99, 102, 241, 0.3) !important;
-            color: #c7d2fe !important;
+            background: rgba(86, 177, 243, 0.15) !important;
+            border-color: rgba(86, 177, 243, 0.3) !important;
+            color: #b6e1ff !important;
         }
 
         .dark #linesContainer .select2-selection--multiple .select2-selection__choice__remove,
         .dark #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove {
-            color: #a5b4fc !important;
-            border-color: rgba(99, 102, 241, 0.3) !important;
+            color: #a0d7ff !important;
+            border-color: rgba(86, 177, 243, 0.3) !important;
         }
 
         /* Type / Condition single-select: same 38px box as the other line fields */
@@ -898,7 +898,7 @@
         #linesContainer .select2-container--default.select2-container--open .select2-selection--single,
         #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--single,
         #editLinesContainer .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #6366f1;
+            border-color: #56b1f3;
             box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
         }
 

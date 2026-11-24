@@ -1,10 +1,10 @@
 <x-authentication-layout>
-<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] sm:h-full bg-white dark:bg-[#0f0f1a] shadow-[0_30px_100px_rgba(0,0,0,.18)] dark:shadow-[0_30px_100px_rgba(0,0,0,.55)]">
+<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] sm:h-full bg-white dark:bg-[#0b1220] shadow-[0_30px_100px_rgba(0,0,0,.18)] dark:shadow-[0_30px_100px_rgba(0,0,0,.55)]">
 
     <div class="grid lg:grid-cols-[58%_42%] sm:h-full">
 
         {{-- LEFT HERO --}}
-        <div class="relative hidden p-6 lg:block bg-white dark:bg-[#0f0f1a]">
+        <div class="relative hidden p-6 lg:block bg-white dark:bg-[#0b1220]">
 
             <div
                 class="relative h-full overflow-hidden rounded-[30px] bg-[#2a1208] dark:bg-[#1a0c05]"
@@ -14,6 +14,7 @@
                 <img
                     src="{{ asset('images/login/Background 1.png') }}"
                     class="absolute inset-0 h-full w-full object-cover"
+                    style="filter:hue-rotate(-40deg) saturate(1.15);"
                     alt="">
 
                 {{-- Light mode: subtle vignette --}}
@@ -101,7 +102,7 @@
         </div>
 
         {{-- RIGHT PANEL --}}
-        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-8 md:px-12 md:py-10 lg:px-10 lg:py-10 xl:px-20 bg-white dark:bg-[#0f0f1a] border-l border-indigo-100/80 dark:border-white/5 [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none">
+        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-8 md:px-12 md:py-10 lg:px-10 lg:py-10 xl:px-20 bg-white dark:bg-[#0b1220] border-l border-indigo-100/80 dark:border-white/5 [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none">
 
             <div class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center">
 

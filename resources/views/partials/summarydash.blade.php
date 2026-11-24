@@ -69,7 +69,7 @@
                     labels: data.po_status.labels,
                     datasets: [{
                         data: data.po_status.data,
-                        backgroundColor: ['#6366F1', '#22C55E', '#F59E0B']
+                        backgroundColor: ['#56b1f3', '#22C55E', '#F59E0B']
                     }]
                 })
             },
@@ -97,7 +97,7 @@
                     labels: data.po_by_company.map(i => i.cpny_id),
                     datasets: [{
                         data: data.po_by_company.map(i => i.total),
-                        backgroundColor: '#6366F1'
+                        backgroundColor: '#56b1f3'
                     }]
                 })
             },
@@ -111,7 +111,7 @@
                     labels: data.po_trend.map(i => i.podate),
                     datasets: [{
                         data: data.po_trend.map(i => i.total),
-                        borderColor: '#6366F1',
+                        borderColor: '#56b1f3',
                         tension: 0.3
                     }]
                 })
@@ -149,7 +149,7 @@
                             data.po_created_vs_completed.created,
                             data.po_created_vs_completed.completed
                         ],
-                        backgroundColor: ['#6366F1', '#22C55E']
+                        backgroundColor: ['#56b1f3', '#22C55E']
                     }]
                 })
             },
@@ -168,7 +168,7 @@
                     labels: data.po_vendor_count.map(i => i.vendorname),
                     datasets: [{
                         data: data.po_vendor_count.map(i => i.total),
-                        backgroundColor: '#6366F1'
+                        backgroundColor: '#56b1f3'
                     }]
                 })
             },

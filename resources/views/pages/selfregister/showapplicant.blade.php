@@ -17,7 +17,7 @@
 
                     {{-- Banner --}}
                     <div class="relative h-28 bg-gradient-to-br from-slate-800 via-indigo-700 to-violet-600">
-                        <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.3) 0,transparent 50%)"></div>
+                        <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(86, 177, 243,.3) 0,transparent 50%)"></div>
                         {{-- PDF buttons inside banner --}}
                         <div class="absolute right-4 top-4 z-20 flex flex-col items-end gap-3">
                             <div class="flex flex-shrink-0 gap-2">

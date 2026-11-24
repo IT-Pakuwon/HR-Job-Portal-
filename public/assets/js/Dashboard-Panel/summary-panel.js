@@ -14,7 +14,7 @@
         bad:  'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300',
     };
     var DOT = { red: 'bg-rose-500', amber: 'bg-amber-500', indigo: 'bg-indigo-500' };
-    var INSIGHT = { positive: '#10B981', warning: '#F59E0B', critical: '#EF4444', info: '#6366F1' };
+    var INSIGHT = { positive: '#10B981', warning: '#F59E0B', critical: '#EF4444', info: '#56b1f3' };
     var LABEL = 'text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500';
     var BIG = 'font-extrabold tabular-nums text-slate-900 dark:text-white';
 
@@ -115,7 +115,7 @@
             el.className = '@container flex-1 px-5 pb-4 pt-3';
             // laid out by the width of the widget itself (not the screen): a narrow column stacks the tiles, a wide one puts them side by side
             el.innerHTML = '<div class="grid grid-cols-1 gap-3 @md:grid-cols-2 @3xl:grid-cols-4">' + items.map(function (i) {
-                var c = i.color || '#6366F1';
+                var c = i.color || '#56b1f3';
                 return '<div class="relative overflow-hidden rounded-xl border border-slate-100 bg-white/70 p-3.5 dark:border-slate-700/60 dark:bg-slate-800/40">' +
                     '<span class="absolute inset-y-0 left-0 w-1" style="background:' + c + '"></span>' +
                     '<p class="' + LABEL + '">' + esc(i.label) + '</p>' +

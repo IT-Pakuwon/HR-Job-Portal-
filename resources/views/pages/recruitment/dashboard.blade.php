@@ -132,7 +132,7 @@
                                 <x-card-chart.insight-lamp :text="$insightDivision['text']" :type="$insightDivision['type']" />
                             @endif
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                <span class="h-2.5 w-2.5 rounded-sm" style="background:#8B5CF6"></span> Job
+                                <span class="h-2.5 w-2.5 rounded-sm" style="background:#56b1f3"></span> Job
                             </span>
                             <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 <span class="h-2.5 w-2.5 rounded-sm" style="background:#3B82F6"></span> Self

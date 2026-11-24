@@ -20,8 +20,8 @@
             margin-right: 0.75rem;
             border: 0;
             border-radius: 9999px;
-            background: #e0e7ff;
-            color: #4338ca;
+            background: #d1ecff;
+            color: #1c71ae;
             padding: 0.45rem 0.9rem;
             font-size: 0.8rem;
             font-weight: 700;
@@ -29,7 +29,7 @@
         }
 
         .parking-file-input:hover::file-selector-button {
-            background: #c7d2fe;
+            background: #b6e1ff;
         }
 
         .dark .parking-file-input {
@@ -39,12 +39,12 @@
         }
 
         .dark .parking-file-input::file-selector-button {
-            background: #4338ca;
+            background: #1c71ae;
             color: #ffffff;
         }
 
         .dark .parking-file-input:hover::file-selector-button {
-            background: #4f46e5;
+            background: #3193da;
         }
     </style>
     <div class="max-w-9xl mx-auto w-full p-2">

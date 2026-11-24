@@ -31,17 +31,18 @@
     --color-gray-900: #111827;
     --color-gray-950: #030712;
 
-    --color-violet-50: #f1eeff;
-    --color-violet-100: #e6e1ff;
-    --color-violet-200: #d2cbff;
-    --color-violet-300: #b7acff;
-    --color-violet-400: #9c8cff;
-    --color-violet-500: #8470ff;
-    --color-violet-600: #755ff8;
-    --color-violet-700: #5d47de;
-    --color-violet-800: #4634b1;
-    --color-violet-900: #2f227c;
-    --color-violet-950: #1c1357;
+    /* violet-* follows the same blue mapping as indigo-* (single brand accent). */
+    --color-violet-50: var(--color-sky-50);
+    --color-violet-100: var(--color-sky-100);
+    --color-violet-200: var(--color-sky-200);
+    --color-violet-300: var(--color-sky-300);
+    --color-violet-400: var(--color-sky-400);
+    --color-violet-500: var(--color-sky-600);
+    --color-violet-600: var(--color-sky-700);
+    --color-violet-700: var(--color-sky-800);
+    --color-violet-800: var(--color-sky-900);
+    --color-violet-900: var(--color-sky-900);
+    --color-violet-950: var(--color-sky-950);
 
     --color-sky-50: #e3f3ff;
     --color-sky-100: #d1ecff;
@@ -54,6 +55,46 @@
     --color-sky-800: #1c71ae;
     --color-sky-900: #124d79;
     --color-sky-950: #0b324f;
+
+    /* Brand accent: indigo-* utilities resolve to the sky (blue) scale.
+       500-800 are shifted one step darker to keep white-text contrast. */
+    --color-indigo-50: var(--color-sky-50);
+    --color-indigo-100: var(--color-sky-100);
+    --color-indigo-200: var(--color-sky-200);
+    --color-indigo-300: var(--color-sky-300);
+    --color-indigo-400: var(--color-sky-400);
+    --color-indigo-500: var(--color-sky-600);
+    --color-indigo-600: var(--color-sky-700);
+    --color-indigo-700: var(--color-sky-800);
+    --color-indigo-800: var(--color-sky-900);
+    --color-indigo-900: var(--color-sky-900);
+    --color-indigo-950: var(--color-sky-950);
+
+    /* blue-* (Tailwind's royal blue) follows the same scale so there is one blue across the app. */
+    --color-blue-50: var(--color-sky-50);
+    --color-blue-100: var(--color-sky-100);
+    --color-blue-200: var(--color-sky-200);
+    --color-blue-300: var(--color-sky-300);
+    --color-blue-400: var(--color-sky-400);
+    --color-blue-500: var(--color-sky-600);
+    --color-blue-600: var(--color-sky-700);
+    --color-blue-700: var(--color-sky-800);
+    --color-blue-800: var(--color-sky-900);
+    --color-blue-900: var(--color-sky-900);
+    --color-blue-950: var(--color-sky-950);
+
+    /* purple-* too (badges, chips) so no stray purple remains next to the blue accent. */
+    --color-purple-50: var(--color-sky-50);
+    --color-purple-100: var(--color-sky-100);
+    --color-purple-200: var(--color-sky-200);
+    --color-purple-300: var(--color-sky-300);
+    --color-purple-400: var(--color-sky-400);
+    --color-purple-500: var(--color-sky-600);
+    --color-purple-600: var(--color-sky-700);
+    --color-purple-700: var(--color-sky-800);
+    --color-purple-800: var(--color-sky-900);
+    --color-purple-900: var(--color-sky-900);
+    --color-purple-950: var(--color-sky-950);
 
     --color-green-50: #d2ffe2;
     --color-green-100: #b1fdcd;
@@ -231,10 +272,10 @@
     gap: 0.35rem;
     margin: 0;
     padding: 0.2rem 0.55rem;
-    border: 1px solid #c7d2fe;
+    border: 1px solid #b6e1ff;
     border-radius: 0.375rem;
-    background-color: #eef2ff;
-    color: #4338ca;
+    background-color: #e3f3ff;
+    color: #1c71ae;
     font-size: 0.8125rem;
     font-weight: 500;
 }
@@ -244,7 +285,7 @@
     margin: 0;
     border: 0;
     background: transparent;
-    color: #818cf8;
+    color: #7bc8ff;
     font-size: 1rem;
     line-height: 1;
 }
@@ -276,7 +317,7 @@
 .prf-select2 .select2-container--default.select2-container--focus .select2-selection--multiple,
 .prf-select2 .select2-container--default.select2-container--open .select2-selection--single,
 .prf-select2 .select2-container--default.select2-container--open .select2-selection--multiple {
-    border-color: #818cf8;
+    border-color: #7bc8ff;
     box-shadow: 0 0 0 2px rgb(129 140 248 / 0.5);
     outline: none;
 }
@@ -306,13 +347,13 @@
 
 .prf-select2-dropdown .select2-results__option--highlighted.select2-results__option--selectable,
 .prf-select2-dropdown .select2-results__option--highlighted[aria-selected] {
-    background-color: #eef2ff;
-    color: #4338ca;
+    background-color: #e3f3ff;
+    color: #1c71ae;
 }
 
 .prf-select2-dropdown .select2-results__option[aria-selected=true] {
-    background-color: #e0e7ff;
-    color: #3730a3;
+    background-color: #d1ecff;
+    color: #124d79;
     font-weight: 600;
 }
 
@@ -330,7 +371,7 @@
 .dark .prf-select2 .select2-container--default .select2-selection--multiple .select2-selection__choice {
     border-color: rgb(99 102 241 / 0.4);
     background-color: rgb(99 102 241 / 0.2);
-    color: #c7d2fe;
+    color: #b6e1ff;
 }
 
 .dark .prf-select2-dropdown.select2-dropdown {
@@ -348,7 +389,7 @@
 .dark .prf-select2-dropdown .select2-results__option--highlighted.select2-results__option--selectable,
 .dark .prf-select2-dropdown .select2-results__option--highlighted[aria-selected] {
     background-color: rgb(99 102 241 / 0.25);
-    color: #e0e7ff;
+    color: #d1ecff;
 }
 
 .dark .prf-select2-dropdown .select2-results__option[aria-selected=true] {
@@ -465,16 +506,16 @@
         select:not([multiple]):not([size]) option::checkmark {
             order: 2;
             margin-left: auto;
-            color: #6366f1;
+            color: #56b1f3;
         }
         select:not([multiple]):not([size]) option:hover,
         select:not([multiple]):not([size]) option:focus-visible {
-            background: #eef2ff;
-            color: #3730a3;
+            background: #e3f3ff;
+            color: #124d79;
         }
         select:not([multiple]):not([size]) option:checked {
-            background: #f5f3ff;
-            color: #4338ca;
+            background: #e3f3ff;
+            color: #1c71ae;
             font-weight: 600;
         }
         /* the empty "Select ..." placeholder option reads as muted */
@@ -499,9 +540,122 @@
             color: #fff;
         }
         .dark select:not([multiple]):not([size]) option:checked {
-            background: #312e81;
-            color: #c7d2fe;
+            background: #124d79;
+            color: #b6e1ff;
         }
         .dark select:not([multiple]):not([size]) option[value=""] { color: #6b7280; }
     }
+}
+
+/* Toastr — modern card-style toasts (replaces the flat saturated blocks).
+   Neutral white card, coloured left accent bar + tinted icon chip, soft
+   shadow. Selectors use #toast-container to beat toastr.min.css specificity
+   (it also sets background-image icons with !important-free rules). */
+html body #toast-container > .toast {
+    --toast-accent: #6366f1;
+    background-color: #fff;
+    background-image: none !important;
+    color: #1f2937;
+    width: 340px;
+    max-width: calc(100vw - 24px);
+    padding: 14px 40px 14px 56px;
+    border-radius: 12px;
+    border-left: 4px solid var(--toast-accent);
+    box-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.25), 0 2px 6px rgb(15 23 42 / 0.08);
+    opacity: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    position: relative;
+    overflow: hidden;
+}
+
+html body #toast-container > .toast:hover {
+    box-shadow: 0 14px 34px -8px rgb(15 23 42 / 0.32), 0 2px 6px rgb(15 23 42 / 0.1);
+    opacity: 1;
+}
+
+/* Icon chip */
+html body #toast-container > .toast::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    background-color: color-mix(in srgb, var(--toast-accent) 14%, transparent);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+}
+
+html body #toast-container > .toast-success { --toast-accent: #10b981; }
+html body #toast-container > .toast-error   { --toast-accent: #ef4444; }
+html body #toast-container > .toast-warning { --toast-accent: #f59e0b; }
+html body #toast-container > .toast-info    { --toast-accent: #3b82f6; }
+
+html body #toast-container > .toast-success::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+}
+html body #toast-container > .toast-error::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ef4444' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+}
+html body #toast-container > .toast-warning::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6v8M12 18h.01'/%3E%3C/svg%3E");
+}
+html body #toast-container > .toast-info::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11v6M12 7h.01'/%3E%3C/svg%3E");
+}
+
+html body #toast-container > .toast .toast-title { font-weight: 600; margin-bottom: 2px; }
+html body #toast-container > .toast .toast-message { word-wrap: break-word; }
+
+html body #toast-container > .toast .toast-close-button {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    color: #9ca3af;
+    text-shadow: none;
+    opacity: 1;
+    font-weight: 400;
+}
+html body #toast-container > .toast .toast-close-button:hover { color: #374151; }
+
+/* Progress bar picks up the accent colour */
+html body #toast-container > .toast .toast-progress {
+    background-color: var(--toast-accent);
+    opacity: 0.55;
+    height: 3px;
+}
+
+.dark body #toast-container > .toast {
+    background-color: var(--color-gray-800);
+    color: var(--color-gray-100);
+    box-shadow: 0 10px 30px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+.dark body #toast-container > .toast .toast-close-button { color: var(--color-gray-400); }
+.dark body #toast-container > .toast .toast-close-button:hover { color: var(--color-gray-100); }
+
+/* SweetAlert2 toasts (Swal.fire({toast:true}) / Swal.mixin) — same card look
+   as the toastr ones above so every toast in the app matches. */
+.swal2-popup.swal2-toast {
+    background: #fff;
+    color: #1f2937;
+    border-radius: 12px;
+    border-left: 4px solid #6366f1;
+    padding: 12px 16px !important;
+    box-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.25), 0 2px 6px rgb(15 23 42 / 0.08);
+}
+.swal2-popup.swal2-toast .swal2-title { font-size: 14px; font-weight: 500; margin: 0 0 0 10px; color: inherit; }
+.swal2-popup.swal2-toast .swal2-icon { transform: scale(.8); margin: 0 !important; }
+.swal2-popup.swal2-toast .swal2-timer-progress-bar { background: rgb(99 102 241 / .55); height: 3px; }
+.swal2-popup.swal2-toast:has(.swal2-icon-success) { border-left-color: #10b981; }
+.swal2-popup.swal2-toast:has(.swal2-icon-error)   { border-left-color: #ef4444; }
+.swal2-popup.swal2-toast:has(.swal2-icon-warning) { border-left-color: #f59e0b; }
+.swal2-popup.swal2-toast:has(.swal2-icon-info)    { border-left-color: #3b82f6; }
+.dark .swal2-popup.swal2-toast {
+    background: var(--color-gray-800) !important;
+    color: var(--color-gray-100) !important;
+    box-shadow: 0 10px 30px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.06);
 }

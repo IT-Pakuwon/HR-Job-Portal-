@@ -898,7 +898,7 @@ function showValidationMessage(
 
         confirmButtonText: "OK",
 
-        confirmButtonColor: "#4f46e5",
+        confirmButtonColor: "#3193da",
 
         background:
             $("html").hasClass("dark")

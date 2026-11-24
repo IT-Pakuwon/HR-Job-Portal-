@@ -37,8 +37,8 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
         select.app-filter-field + .select2-container--open .select2-selection--single {
-            border-color: #818cf8 !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            border-color: #7bc8ff !important;
+            box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.12);
         }
         select.app-filter-field + .select2-container .select2-selection__rendered {
             padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
@@ -61,17 +61,17 @@
             padding: 0.375rem 0.5rem; font-size: 0.8rem; outline: none;
         }
         .selfreg-select2-dropdown .select2-search__field:focus {
-            border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            border-color: #56b1f3; box-shadow: 0 0 0 3px rgba(86, 177, 243, 0.12);
         }
         .selfreg-select2-dropdown .select2-results__option { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
-        .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #EEF2FF; color: #4338CA; }
-        .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #E0E7FF; color: #3730A3; font-weight: 600; }
+        .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #1c71ae; }
+        .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #124d79; font-weight: 600; }
 
         .dark .selfreg-select2-dropdown { background-color: #1e293b; border-color: #475569 !important; }
         .dark .selfreg-select2-dropdown .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
         .dark .selfreg-select2-dropdown .select2-results__option { color: #e2e8f0; }
-        .dark .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #4338CA; color: #fff; }
-        .dark .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #3730A3; color: #fff; }
+        .dark .selfreg-select2-dropdown .select2-results__option--highlighted[aria-selected] { background-color: #1c71ae; color: #fff; }
+        .dark .selfreg-select2-dropdown .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
     </style>
     <div class="max-w-9xl mx-auto p-2">
 

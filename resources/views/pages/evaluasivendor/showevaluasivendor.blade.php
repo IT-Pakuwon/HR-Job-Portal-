@@ -11,7 +11,7 @@
         $kpiScore = (float) $evaluation->template_vpe_aspect_grandtotal_score;
         [$kpiAccent, $kpiTint] = match (true) {
             $kpiScore >= 90 => ['#15803d', '#f0fdf4'],
-            $kpiScore >= 80 => ['#4338ca', '#eef2ff'],
+            $kpiScore >= 80 => ['#1c71ae', '#e3f3ff'],
             $kpiScore >= 70 => ['#a16207', '#fffbeb'],
             $kpiScore >= 60 => ['#c2410c', '#fff7ed'],
             default => ['#b91c1c', '#fef2f2'],
@@ -136,7 +136,7 @@
                                             $detailScore = $detail->template_vpe_subaspect_score === null ? null : (int) $detail->template_vpe_subaspect_score;
                                             [$predicate, $predicateColor, $predicateBackground] = match ($detailScore) {
                                                 5 => ['Sangat Baik', '#15803d', '#dcfce7'],
-                                                4 => ['Baik', '#4338ca', '#e0e7ff'],
+                                                4 => ['Baik', '#1c71ae', '#d1ecff'],
                                                 3 => ['Cukup', '#a16207', '#fef3c7'],
                                                 2 => ['Kurang', '#c2410c', '#ffedd5'],
                                                 1 => ['Sangat Kurang', '#b91c1c', '#fee2e2'],
@@ -173,11 +173,11 @@
         .vendor-attachment-dialog { position: fixed; inset: 0; margin: auto; width: min(32rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
         .vendor-detail-score{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
         .vendor-detail-predicate{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:600;line-height:1.3}
-        .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #6366f1;border-radius:8px;padding:14px 16px;background:#f8fafc}
+        .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #56b1f3;border-radius:8px;padding:14px 16px;background:#f8fafc}
         .vendor-note-recommendation{border-left-color:#0d9488;background:#f0fdfa}
         .vendor-note-heading{margin:0;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#334155}
         .vendor-note-content{margin:10px 0 0;white-space:pre-line;overflow-wrap:anywhere;line-height:1.65;color:#0f172a}
-        .dark .vendor-note-box{background:#1f2937;border-color:#475569;border-left-color:#818cf8}.dark .vendor-note-recommendation{border-left-color:#2dd4bf}
+        .dark .vendor-note-box{background:#1f2937;border-color:#475569;border-left-color:#7bc8ff}.dark .vendor-note-recommendation{border-left-color:#2dd4bf}
         .dark .vendor-note-heading{color:#e2e8f0;border-bottom-color:#475569}.dark .vendor-note-content{color:#f1f5f9}
         .vendor-kpi-summary{display:flex;align-items:center;gap:12px;min-width:210px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--kpi-accent) 18%,transparent);border-left:4px solid var(--kpi-accent);border-radius:10px;background:linear-gradient(120deg,var(--kpi-tint),#fff);box-shadow:0 4px 16px color-mix(in srgb,var(--kpi-accent) 8%,transparent)}
         .vendor-kpi-label{display:block;color:#64748b;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}

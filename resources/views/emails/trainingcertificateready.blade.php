@@ -20,7 +20,7 @@
                             border-collapse: collapse;
         ">
                     <tr>
-                        <td style="background:#1e1b4b; padding:20px; text-align:center; color:#ffffff;">
+                        <td style="background:#0b324f; padding:20px; text-align:center; color:#ffffff;">
                             <h2 style="margin:0; font-size:22px;">{{ $docid }} — Certificate Available</h2>
                         </td>
                     </tr>
@@ -45,7 +45,7 @@
 
                             <p style="text-align:center; margin:30px 0;">
                                 <a href="{{ $url }}" target="_blank"
-                                    style="background:#1e1b4b; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:bold; display:inline-block;">
+                                    style="background:#0b324f; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:bold; display:inline-block;">
                                     Download Certificate →
                                 </a>
                             </p>

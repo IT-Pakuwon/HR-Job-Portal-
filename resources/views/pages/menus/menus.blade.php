@@ -177,19 +177,19 @@
         }
 
         .tree-row.drop-before {
-            box-shadow: inset 0 2px 0 0 #6366f1;
+            box-shadow: inset 0 2px 0 0 #56b1f3;
         }
 
         .tree-row.drop-after {
-            box-shadow: inset 0 -2px 0 0 #6366f1;
+            box-shadow: inset 0 -2px 0 0 #56b1f3;
         }
 
         .tree-row.drop-inside {
-            background-color: rgba(99, 102, 241, .15);
+            background-color: rgba(86, 177, 243, .15);
         }
 
         .tree-row:hover {
-            background-color: rgba(99, 102, 241, .06);
+            background-color: rgba(86, 177, 243, .06);
         }
     </style>
     <script>
