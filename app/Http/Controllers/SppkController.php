@@ -113,6 +113,7 @@ class SppkController extends Controller
         $status = (string) $request->query('status', '');
         $mode = (string) $request->query('mode', 'normal');
         $deptExtra = (string) $request->query('department_extra', '');
+        $cpnyExtra = (string) $request->query('company_extra', '');
 
         $baseTable = (new TrSPPK())->getTable();
 
@@ -157,6 +158,11 @@ class SppkController extends Controller
 
             if (!empty($deptExtra)) {
                 $base->where('sppk.department_id', $deptExtra);
+            }
+
+            // company filter (dropdown)
+            if (!empty($cpnyExtra)) {
+                $base->where('sppk.cpny_id', $cpnyExtra);
             }
 
             if ($status !== '') {
@@ -231,8 +237,8 @@ class SppkController extends Controller
                 ->whereIn('sppk.cpny_id', $cpnyIds)
                 ->whereIn('sppk.status', ['P', 'C']);
 
-            if (!empty($deptExtra)) {
-                $deptQuery->where('sppk.department_id', $deptExtra);
+            if (!empty($cpnyExtra)) {
+                $deptQuery->where('sppk.cpny_id', $cpnyExtra);
             }
 
             $departments = $deptQuery
@@ -242,12 +248,26 @@ class SppkController extends Controller
                 ->pluck('department_id');
         }
 
+        // ==============================
+        // COMPANY LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $companies = [];
+
+        if ($mode === 'all') {
+            $companies = DB::table($baseTable)
+                ->whereIn('cpny_id', $cpnyIds)
+                ->distinct()
+                ->orderBy('cpny_id')
+                ->pluck('cpny_id');
+        }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
             'departments' => $departments,
+            'companies' => $companies,
         ]);
     }
 

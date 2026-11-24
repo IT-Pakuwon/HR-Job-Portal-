@@ -5,26 +5,19 @@
 
     @php
         $cards = [
-            ['ALL', 'All', '📦', 'border-slate-400 bg-slate-200/20 text-slate-600 hover:bg-slate-100 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30'],
-            ['P', 'On Progress', '⏳', 'border-yellow-500 bg-yellow-100/30 text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-500/20'],
-            ['C', 'Completed', '✅', 'border-green-600 bg-green-200/20 text-green-600 hover:bg-green-100 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20'],
-            ['H', 'Hold / Revise', '✏️', 'border-blue-500 bg-blue-100/30 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-500/20'],
-            ['R', 'Rejected', '⛔', 'border-red-600 bg-red-200/20 text-red-600 hover:bg-red-100 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20'],
-            ['X', 'Cancelled', '❌', 'border-slate-500 bg-slate-200/20 text-slate-500 hover:bg-slate-100 dark:border-slate-400 dark:text-slate-400 dark:hover:bg-slate-700/30'],
+            ['ALL', 'All', '📦', 'all'],
+            ['P', 'On Progress', '⏳', 'yellow'],
+            ['C', 'Completed', '✅', 'green'],
+            ['H', 'Hold / Revise', '✏️', 'blue'],
+            ['R', 'Rejected', '⛔', 'red'],
+            ['X', 'Cancelled', '❌', 'cancel'],
         ];
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2" x-data="sikPage()">
         <div class="mb-3 grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-            @foreach ($cards as [$key, $label, $icon, $cls])
-                <button type="button" @click="setStatus('{{ $key }}')" class="text-left">
-                    <div class="flex h-full items-center gap-3 rounded-lg border p-3 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md active:scale-95 {{ $cls }}"
-                        :class="f.status === '{{ $key }}' ? 'ring-2 ring-indigo-500' : ''">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">{{ $icon }}</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight"><p class="break-words text-sm font-medium">{{ $label }}</p></div>
-                        <p class="shrink-0 text-base font-bold" x-text="counts['{{ $key }}'] ?? 0"></p>
-                    </div>
-                </button>
+            @foreach ($cards as [$key, $label, $icon, $tone])
+                <x-status-card :key="$key" :label="$label" :icon="$icon" :tone="$tone" />
             @endforeach
         </div>
 
@@ -183,7 +176,7 @@
                                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
                                         <template x-if="detail.can.upload">
                                             <div>
-                                                <input type="file" x-ref="attachInput" class="hidden" accept=".pdf,.jpg,.jpeg,.doc,.docx" @change="upload($event)">
+                                                <input type="file" x-ref="attachInput" class="hidden" accept=".jpg,.jpeg,.png,video/*" title="JPG, JPEG, PNG or video, max 5 MB per file" @change="upload($event)">
                                                 <button type="button" @click="$refs.attachInput.click()" :disabled="busy"
                                                     class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
                                                     <i class="fa-solid fa-paperclip"></i> Add Attachment
@@ -621,6 +614,9 @@
                 },
                 async upload(ev) {
                     const file = ev.target.files[0]; if (!file) return;
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!(['jpg', 'jpeg', 'png'].includes(ext) || file.type.startsWith('video/'))) { alert('Only image (JPG, JPEG, PNG) or video files are allowed.'); ev.target.value = ''; return; }
+                    if (file.size > 5 * 1024 * 1024) { alert('File size must not exceed 5 MB.'); ev.target.value = ''; return; }
                     const fd = new FormData(); fd.append('file', file);
                     this.busy = true;
                     try { this.detail.attachments = (await this.post('upload', fd)).attachments; }

@@ -15,7 +15,7 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="break-words text-sm font-medium">All</p>
@@ -149,6 +149,12 @@
                             <option value="">All Status</option>
                             <option value="P">On Progress</option>
                             <option value="C">Completed</option>
+                        </select>
+
+                        {{-- Company Filter --}}
+                        <select id="filterCompany"
+                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                            <option value="">All Company</option>
                         </select>
 
                         {{-- Department Filter --}}
@@ -944,6 +950,7 @@
             let statusFilter = 'P'; // default
             let mode = 'normal';
             let deptFilter = '';
+            let cpnyFilter = '';
 
             const table = $('#sppksTable').DataTable({
                 processing: true,
@@ -1009,6 +1016,7 @@
                         d.status = statusFilter ?? '';
                         d.mode = mode;
                         d.department_extra = deptFilter;
+                        d.company_extra = cpnyFilter;
                     },
                     complete: function(xhr) {
 
@@ -1016,6 +1024,20 @@
 
                             const response = xhr.responseJSON;
                             const departments = response?.departments || [];
+                            const companies = response?.companies || [];
+
+                            const cpnySelect = $('#filterCompany');
+
+                            cpnySelect.empty();
+                            cpnySelect.append('<option value="">All Company</option>');
+
+                            companies.forEach(function(c) {
+                                cpnySelect.append('<option value="' + c + '">' + c + '</option>');
+                            });
+
+                            if (cpnyFilter) {
+                                cpnySelect.val(cpnyFilter);
+                            }
 
                             const deptSelect = $('#filterDepartment');
 
@@ -1178,6 +1200,7 @@
                     mode = 'all';
                     statusFilter = '';
                     deptFilter = '';
+                    cpnyFilter = '';
 
                     $('#pageTitle').text('SPPK All List');
 
@@ -1199,6 +1222,12 @@
             });
             $('#filterStatus').on('change', function() {
                 statusFilter = this.value;
+                table.ajax.reload();
+            });
+
+            $('#filterCompany').on('change', function() {
+                cpnyFilter = this.value;
+                deptFilter = '';
                 table.ajax.reload();
             });
 

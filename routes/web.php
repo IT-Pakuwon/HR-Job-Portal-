@@ -180,6 +180,7 @@ use App\Http\Controllers\TenancyMasterController;
 use App\Http\Controllers\TenancyOrganizationController;
 use App\Http\Controllers\TenancyUserController;
 use App\Http\Controllers\TenantSupportController;
+use App\Http\Controllers\TenantSupportSiaController;
 use App\Http\Controllers\TenantSupportSimkbController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
@@ -245,6 +246,7 @@ Route::post('/my-page/forgot-password', [App\Http\Controllers\MyPageController::
 // Public (signed) page behind the QR code printed on a SIK permit; no login so the security gate can scan it.
 Route::get('/verify/tenant-sik/{eid}', [App\Http\Controllers\TenantSupportController::class, 'sikVerify'])->middleware('signed')->name('tenantsupport.sik.verify');
 Route::get('/verify/tenant-simkb/{eid}', [App\Http\Controllers\TenantSupportSimkbController::class, 'simkbVerify'])->middleware('signed')->name('tenantsupport.simkb.verify');
+Route::get('/verify/tenant-sia/{eid}', [App\Http\Controllers\TenantSupportSiaController::class, 'siaVerify'])->middleware('signed')->name('tenantsupport.sia.verify');
 Route::get('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetForm'])->middleware('signed')->name('my-page.reset');
 Route::post('/my-page/reset-password', [App\Http\Controllers\MyPageController::class, 'resetPassword'])->middleware('throttle:10,1')->name('my-page.reset.submit');
 Route::post('/my-page/logout', [App\Http\Controllers\MyPageController::class, 'logout'])->name('my-page.logout');
@@ -1123,6 +1125,7 @@ Route::middleware(['auth'])->group(function () {
         // WO List
         Route::get('/wos', [WoController::class, 'index'])->name('wos');
         Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
+        Route::get('/wos/tenant-jobs', [App\Http\Controllers\TenantSupportComplaintController::class, 'transferredJson'])->name('wos.tenantjobs');
         // View WO Detail
         Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
         Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
@@ -1698,8 +1701,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tenant-support/checker/list', [App\Http\Controllers\TenantSupportCheckerController::class, 'listing'])->name('tenantsupport.checker.list');
         Route::post('/tenant-support/checker/lookup', [App\Http\Controllers\TenantSupportCheckerController::class, 'lookup'])->name('tenantsupport.checker.lookup');
         Route::post('/tenant-support/checker/record', [App\Http\Controllers\TenantSupportCheckerController::class, 'record'])->name('tenantsupport.checker.record');
+        Route::post('/tenant-support/checker/media', [App\Http\Controllers\TenantSupportCheckerController::class, 'uploadMedia'])->name('tenantsupport.checker.media.upload');
+        Route::get('/tenant-support/checker/media/{aeid}', [App\Http\Controllers\TenantSupportCheckerController::class, 'mediaFile'])->name('tenantsupport.checker.media');
+        Route::delete('/tenant-support/checker/media/{aeid}', [App\Http\Controllers\TenantSupportCheckerController::class, 'deleteMedia'])->name('tenantsupport.checker.media.delete');
         Route::get('/tenant-support/complaint', [App\Http\Controllers\TenantSupportComplaintController::class, 'index'])->name('tenantsupport.complaint');
         Route::get('/tenant-support/complaint/data', [App\Http\Controllers\TenantSupportComplaintController::class, 'data'])->name('tenantsupport.complaint.data');
+        Route::post('/tenant-support/complaint/{eid}/action', [App\Http\Controllers\TenantSupportComplaintController::class, 'act'])->name('tenantsupport.complaint.action');
+        Route::get('/tenant-support/complaint/attachment/{aeid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'attachment'])->name('tenantsupport.complaint.attachment');
+        Route::post('/tenant-support/complaint/{eid}/message', [App\Http\Controllers\TenantSupportComplaintController::class, 'message'])->name('tenantsupport.complaint.message');
+        Route::post('/tenant-support/complaint/{eid}/upload', [App\Http\Controllers\TenantSupportComplaintController::class, 'upload'])->name('tenantsupport.complaint.upload');
         Route::get('/tenant-support/complaint/{eid}', [App\Http\Controllers\TenantSupportComplaintController::class, 'show'])->name('tenantsupport.complaint.show');
         Route::get('/tenant-support/sik', [TenantSupportController::class, 'sik'])->name('tenantsupport.sik');
         Route::get('/tenant-support/sik/data', [TenantSupportController::class, 'sikJson'])->name('tenantsupport.sik.data');
@@ -1725,6 +1735,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tenant-support/simkb/{eid}/message', [TenantSupportSimkbController::class, 'simkbMessage'])->name('tenantsupport.simkb.message');
         Route::post('/tenant-support/simkb/{eid}/upload', [TenantSupportSimkbController::class, 'simkbUpload'])->name('tenantsupport.simkb.upload');
         Route::get('/tenant-support/simkb/{eid}', [TenantSupportSimkbController::class, 'simkbPage'])->name('tenantsupport.simkb.show');
+        Route::get('/tenant-support/sia', [TenantSupportSiaController::class, 'sia'])->name('tenantsupport.sia');
+        Route::get('/tenant-support/sia/data', [TenantSupportSiaController::class, 'siaJson'])->name('tenantsupport.sia.data');
+        Route::get('/tenant-support/sia/export', [TenantSupportSiaController::class, 'siaExport'])->name('tenantsupport.sia.export');
+        Route::get('/tenant-support/sia/attachment/{aeid}', [TenantSupportSiaController::class, 'siaAttachment'])->name('tenantsupport.sia.attachment');
+        Route::get('/tenant-support/sia/{eid}/permit', [TenantSupportSiaController::class, 'siaPermit'])->name('tenantsupport.sia.permit');
+        Route::get('/tenant-support/sia/{eid}/print', [TenantSupportSiaController::class, 'siaPrint'])->name('tenantsupport.sia.print');
+        Route::post('/tenant-support/sia/{eid}/action', [TenantSupportSiaController::class, 'siaAction'])->name('tenantsupport.sia.action');
+        Route::get('/tenant-support/sia/{eid}/approver-options', [TenantSupportSiaController::class, 'siaApproverOptions'])->name('tenantsupport.sia.approver-options');
+        Route::post('/tenant-support/sia/{eid}/approver', [TenantSupportSiaController::class, 'siaAddApprover'])->name('tenantsupport.sia.approver');
+        Route::post('/tenant-support/sia/{eid}/message', [TenantSupportSiaController::class, 'siaMessage'])->name('tenantsupport.sia.message');
+        Route::post('/tenant-support/sia/{eid}/upload', [TenantSupportSiaController::class, 'siaUpload'])->name('tenantsupport.sia.upload');
+        Route::get('/tenant-support/sia/{eid}', [TenantSupportSiaController::class, 'siaPage'])->name('tenantsupport.sia.show');
 
         Route::controller(TenancyMasterController::class)->prefix('tenancy')->name('tenancy.')->group(function () {
             Route::get('/master', 'index')->name('master');
@@ -1765,6 +1787,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');
                 Route::put('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+            });
+
+            Route::controller(App\Http\Controllers\Tenancy\TsTenantWarningController::class)->prefix('tenant-warnings')->name('tenant-warnings.')->group(function () {
+                Route::get('/json', 'json')->name('json');
+                Route::get('/{id}', 'show')->name('show');
+                Route::post('/{id}/warn', 'warn')->name('warn');
+                Route::post('/{id}/clear', 'clear')->name('clear');
+                Route::put('/{id}/documents', 'documents')->name('documents');
             });
 
             Route::controller(TsUserTenantController::class)->prefix('user-tenants')->name('user-tenants.')->group(function () {

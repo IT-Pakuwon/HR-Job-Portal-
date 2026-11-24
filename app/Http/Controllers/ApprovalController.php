@@ -138,6 +138,12 @@ class ApprovalController extends Controller
         return !empty($ctx['is_urgent']);
     }
 
+    protected function checkNoSpb(MsApproval $rule, array $ctx): bool
+    {
+        return array_key_exists('spbid', $ctx)
+            && trim((string) $ctx['spbid']) === '';
+    }
+
     protected function checkKomputer(MsApproval $rule, array $ctx): bool
     {
         // sumber: hanya dari BARIS PERTAMA inventory_category
@@ -180,6 +186,7 @@ class ApprovalController extends Controller
             'komputer'     => [$this, 'checkKomputer'],
             'fixed asset'  => [$this, 'checkFixedAsset'],
             'nominal'      => [$this, 'checkNominal'],
+            'no spb'       => [$this, 'checkNoSpb'],
 
             'stock'        => [$this, 'checkStockNonStock'],
             'nonstock'     => [$this, 'checkStockNonStock'],

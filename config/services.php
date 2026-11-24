@@ -66,4 +66,10 @@ return [
             'default'
         ),
     ],
+
+    // WPS tenant app: its permit QR links (/showsik|showsimkb|showsia/{hash}) use its own hashid salt + min length
+    'wps' => [
+        'hashids_salt' => env('WPS_HASHIDS_SALT'),
+        'hashids_length' => 8,
+    ],
 ];

@@ -16,6 +16,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class TenantSupportSimkbController extends Controller
 {
     use UploadsToGcs;
+    use \App\Http\Controllers\Traits\TenantAttachmentRules;
 
     /** SIMKB status letters in trsimkb.status */
     private const SIMKB_STATUS = ['P' => 'On Progress', 'C' => 'Completed', 'H' => 'Hold / Revise', 'E' => 'Extend Pending', 'R' => 'Rejected', 'X' => 'Cancelled'];
@@ -545,7 +546,7 @@ class TenantSupportSimkbController extends Controller
         return response()->json(['messages' => $this->simkbPayload($simkb)['messages']]);
     }
 
-    /** Upload to the same bucket path the legacy app uses: att-wps GPS/<site>/SIMKB/<year>/<SIMKB no>/<random>.<ext> */
+    /** Upload to the same bucket path the legacy app uses: att-wps/<site>/SIMKB/<year>/<SIMKB no>/<random>.<ext> (max 5 MB, image/video) */
     public function simkbUpload(Request $request, string $eid)
     {
         $this->authorizeSimkb();
@@ -560,19 +561,13 @@ class TenantSupportSimkbController extends Controller
         $file = $request->file('file');
         $ext  = strtolower($file->getClientOriginalExtension());
         $db   = $this->simkbDb();
-        $setting = fn (string $p) => $db->table('msglobalsetting')->where('idparameter', $p)->where('status', 'A')->value('parameter');
-
-        if ($maxMb = (float) $setting('FILESIZE')) {
-            if ($file->getSize() / 1048576 > $maxMb) return response()->json(['message' => "File size must not exceed {$maxMb} MB."], 422);
-        }
-        if ($allowed = $setting('FILEEXTENSION')) {
-            $list = array_filter(array_map(fn ($e) => strtolower(trim($e)), explode(',', $allowed)));
-            if ($list && ! in_array($ext, $list, true)) return response()->json(['message' => "File type not allowed. Allowed: {$allowed}."], 422);
+        if ($err = $this->tenantUploadError($file)) {
+            return response()->json(['message' => $err], 422);
         }
 
         $period = \Carbon\Carbon::parse($simkb->simkbdate)->year;
         $stored = Str::random(32) . '.' . $ext;
-        $object = "att-wps GPS/{$simkb->siteid}/SIMKB/{$period}/{$simkb->simkbnbr}/{$stored}";
+        $object = $this->tenantObjectPath($simkb->siteid, 'SIMKB', $period, $simkb->simkbnbr, $stored);
 
         $this->gcsClient()->bucket(config('filesystems.disks.gcs.bucket'))->upload(fopen($file->getRealPath(), 'r'), ['name' => $object]);
 
@@ -602,7 +597,7 @@ class TenantSupportSimkbController extends Controller
         abort_unless($att, 404);
         abort_unless($this->simkbQuery()->where('s.simkbnbr', $att->refnbr)->exists(), 404);
 
-        $object = "att-wps GPS/{$att->siteid}/SIMKB/{$att->period}/{$att->refnbr}/{$att->filename}";
+        $object = $this->tenantAttachmentObject($att, 'SIMKB');
         $url = $this->gcsSignedUrl($object, 15);
         abort_unless($url, 404);
 

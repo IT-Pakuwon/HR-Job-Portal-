@@ -19,7 +19,7 @@ class TsTenantController extends Controller
                 'floor:id,floor',
                 'tenantCompany:id,tenantcompanyname',
             ])
-            ->select(['id', 'storename', 'tenantcompanyid', 'siteid', 'locationid', 'floorid', 'unit', 'status'])
+            ->select(['id', 'storename', 'tenantcompanyid', 'siteid', 'locationid', 'floorid', 'unit', 'picname', 'picphone', 'status'])
             ->when(TenantRelationScope::siteIds() !== null, fn ($q) => $q->whereIn('siteid', TenantRelationScope::siteIds()))
             ->orderByDesc('id')
             ->get();
@@ -47,6 +47,8 @@ class TsTenantController extends Controller
             'floorid'         => 'required|exists:mysql5.msfloor,id',
             'storename'       => 'required|string|max:255',
             'unit'            => 'nullable|string|max:50',
+            'picname'         => 'required|string|max:100',
+            'picphone'        => ['required', 'string', 'max:30', 'regex:/^[0-9+\-\s()]*$/'],
         ]);
 
         DB::connection('mysql5')->beginTransaction();
@@ -62,6 +64,8 @@ class TsTenantController extends Controller
                 'locationid'          => $request->locationid,
                 'floorid'             => $request->floorid,
                 'unit'                => $request->unit,
+                'picname'             => $request->picname,
+                'picphone'            => $request->picphone,
                 'status'              => 'A',
                 'created_user'        => $loginUser->username ?? 'system',
                 'created_datetime'    => now(),
@@ -92,6 +96,8 @@ class TsTenantController extends Controller
             'floorid'         => $tenant->floorid,
             'storename'       => $tenant->storename,
             'unit'            => $tenant->unit,
+            'picname'         => $tenant->picname,
+            'picphone'        => $tenant->picphone,
             'status'          => $tenant->status,
         ]);
     }
@@ -107,6 +113,8 @@ class TsTenantController extends Controller
             'floorid'         => 'required|exists:mysql5.msfloor,id',
             'storename'       => 'required|string|max:255',
             'unit'            => 'nullable|string|max:50',
+            'picname'         => 'required|string|max:100',
+            'picphone'        => ['required', 'string', 'max:30', 'regex:/^[0-9+\-\s()]*$/'],
         ]);
 
         DB::connection('mysql5')->beginTransaction();
@@ -122,6 +130,8 @@ class TsTenantController extends Controller
                 'locationid'          => $request->locationid,
                 'floorid'             => $request->floorid,
                 'unit'                => $request->unit,
+                'picname'             => $request->picname,
+                'picphone'            => $request->picphone,
                 'lastupdate_user'     => $loginUser->username ?? 'system',
                 'lastupdate_datetime' => now(),
             ]);

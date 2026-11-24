@@ -31,7 +31,9 @@
     <div>
         <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-xl font-bold text-slate-800 dark:text-white">{{ $agreement->agreement_id }}</h2>
-            @if ($draft ?? false)
+            @if ($followUp ?? false)
+                <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Follow Up · {{ ucfirst(strtolower($agreement->agreement_step_id)) }}</span>
+            @elseif ($draft ?? false)
                 <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Draft</span>
             @elseif ($cancelled)
                 <span class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Cancelled</span>
@@ -45,6 +47,14 @@
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-2">
+        {{-- Follow Up: read-only here; the work continues on the Agreement FU screen. --}}
+        @if ($followUp ?? false)
+            <a href="/show-legal-agreement/{{ $eid }}" target="_blank" rel="noopener" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:bg-purple-700 hover:shadow-lg">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[14px]"></i>
+                <span>Open Follow Up</span>
+            </a>
+        @endif
+
         {{-- Actions: Active = Edit / Complete / Cancel; Completed or Cancelled = Reopen. Creator and PIC Legal only. --}}
         @if ($canManage)
         <div class="relative">
@@ -233,13 +243,29 @@
                 @elseif (! empty($kind['routing_optional']) && $canUpdateDocs)
                     {{-- Others: routing isn't always needed, so it opens on demand with the Route button. --}}
                     <div id="agrRoutingOptional">
-                        <button type="button" id="btnShowRouting" class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300"
-                            onclick="document.getElementById('agrRoutingPanel').classList.remove('hidden'); this.classList.add('hidden');">
+                        <button type="button" id="btnShowRouting" class="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-900/20 dark:text-blue-300"
+                            onclick="var b = this; Swal.fire({ icon: 'question', title: 'Add routing?', text: 'This opens the Routing section for this agreement.', showCancelButton: true, confirmButtonText: 'Yes, add routing', cancelButtonText: 'No', confirmButtonColor: '#2563eb', reverseButtons: true }).then(function (r) { if (r.isConfirmed) { document.getElementById('agrRoutingPanel').classList.remove('hidden'); b.style.display = 'none'; try { localStorage.setItem('agrRouting:{{ $eid }}', '1'); } catch (e) {} } });">
                             <i class="fa-solid fa-route"></i> Route
                         </button>
-                        <div id="agrRoutingPanel" class="hidden">
+                        <div id="agrRoutingPanel" class="mt-3 hidden">
+                            {{-- Pressed Route by mistake: close the panel and bring the Route button back (nothing is saved until Add). --}}
+                            <button type="button" class="mb-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 text-sm font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
+                                onclick="Swal.fire({ icon: 'question', title: 'Cancel routing?', text: 'The Routing section will be closed. Nothing has been saved yet.', showCancelButton: true, confirmButtonText: 'Yes, cancel routing', cancelButtonText: 'No, keep it', confirmButtonColor: '#dc2626', reverseButtons: true }).then(function (r) { if (r.isConfirmed) { document.getElementById('agrRoutingPanel').classList.add('hidden'); document.getElementById('btnShowRouting').style.display = ''; try { localStorage.removeItem('agrRouting:{{ $eid }}'); } catch (e) {} } });">
+                                <i class="fa-solid fa-xmark"></i> Cancel Routing
+                            </button>
                             @include('pages.legal-new-agreement.partial.process-table', ['rows' => $processes->routing, 'available' => $processes->available['ROUTING'] ?? [], 'label' => 'Routing'])
                         </div>
+                        {{-- Route was confirmed earlier on this agreement (before a refresh / reopen): keep the section open. --}}
+                        <script>
+                            (function () {
+                                try {
+                                    if (localStorage.getItem('agrRouting:{{ $eid }}')) {
+                                        document.getElementById('agrRoutingPanel').classList.remove('hidden');
+                                        document.getElementById('btnShowRouting').style.display = 'none';
+                                    }
+                                } catch (e) {}
+                            })();
+                        </script>
                     </div>
                 @endif
             </form>

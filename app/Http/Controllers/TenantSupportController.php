@@ -16,6 +16,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class TenantSupportController extends Controller
 {
     use UploadsToGcs;
+    use \App\Http\Controllers\Traits\TenantAttachmentRules;
 
     /**
      * Master Data for Tenant Relation (ACCESSTR): Tenant list + User Tenant (usertype TENANT only).
@@ -24,9 +25,12 @@ class TenantSupportController extends Controller
     public function master()
     {
         $user = Auth::user();
-        abort_unless($user && ($user->hasRole('ACCESSTR') || $user->isPrimaryAdmin()), 403);
+        abort_unless($user && ($user->hasRole('ACCESSTR') || $user->hasRole('ACCESSFINTS') || $user->isPrimaryAdmin()), 403);
 
-        return view('pages.tenancy.master', ['tenantRelation' => true]);
+        // ACCESSFINTS (without ACCESSTR) only gets the Warning tab.
+        $warningOnly = $user->hasRole('ACCESSFINTS') && ! $user->hasRole('ACCESSTR') && ! $user->isPrimaryAdmin();
+
+        return view('pages.tenancy.master', ['tenantRelation' => true, 'warningOnly' => $warningOnly]);
     }
 
     /** SIK status letters in trsik.status */
@@ -553,7 +557,7 @@ class TenantSupportController extends Controller
         return response()->json(['messages' => $this->sikPayload($sik)['messages']]);
     }
 
-    /** Upload to the same bucket path the legacy app uses: att-wps GPS/<site>/SIK/<year>/<SIK no>/<random>.<ext> */
+    /** Upload to the same bucket path the legacy app uses: att-wps/<site>/SIK/<year>/<SIK no>/<random>.<ext> (max 5 MB, image/video) */
     public function sikUpload(Request $request, string $eid)
     {
         $this->authorizeSik();
@@ -568,19 +572,13 @@ class TenantSupportController extends Controller
         $file = $request->file('file');
         $ext  = strtolower($file->getClientOriginalExtension());
         $db   = $this->sikDb();
-        $setting = fn (string $p) => $db->table('msglobalsetting')->where('idparameter', $p)->where('status', 'A')->value('parameter');
-
-        if ($maxMb = (float) $setting('FILESIZE')) {
-            if ($file->getSize() / 1048576 > $maxMb) return response()->json(['message' => "File size must not exceed {$maxMb} MB."], 422);
-        }
-        if ($allowed = $setting('FILEEXTENSION')) {
-            $list = array_filter(array_map(fn ($e) => strtolower(trim($e)), explode(',', $allowed)));
-            if ($list && ! in_array($ext, $list, true)) return response()->json(['message' => "File type not allowed. Allowed: {$allowed}."], 422);
+        if ($err = $this->tenantUploadError($file)) {
+            return response()->json(['message' => $err], 422);
         }
 
         $period = \Carbon\Carbon::parse($sik->sikdate)->year;
         $stored = Str::random(32) . '.' . $ext;
-        $object = "att-wps GPS/{$sik->siteid}/SIK/{$period}/{$sik->siknbr}/{$stored}";
+        $object = $this->tenantObjectPath($sik->siteid, 'SIK', $period, $sik->siknbr, $stored);
 
         $this->gcsClient()->bucket(config('filesystems.disks.gcs.bucket'))->upload(fopen($file->getRealPath(), 'r'), ['name' => $object]);
 
@@ -610,7 +608,7 @@ class TenantSupportController extends Controller
         abort_unless($att, 404);
         abort_unless($this->sikQuery()->where('s.siknbr', $att->refnbr)->exists(), 404);
 
-        $object = "att-wps GPS/{$att->siteid}/SIK/{$att->period}/{$att->refnbr}/{$att->filename}";
+        $object = $this->tenantAttachmentObject($att, 'SIK');
         $url = $this->gcsSignedUrl($object, 15);
         abort_unless($url, 404);
 

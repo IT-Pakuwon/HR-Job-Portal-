@@ -2,16 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\UploadsToGcs;
+use App\Models\SysUserRole;
+use App\Models\Usercpny;
 use App\Support\TenantRelationScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
 
-/** Complaint Log: every complaint raised by tenant users in WPS (legacy trcomplaint), read-only, for Tenant Relation (ACCESSTR). */
+/** Complaint Jobs: every complaint raised by tenant users in WPS (legacy tr_complaint), read-only, for Tenant Relation (ACCESSTR). */
 class TenantSupportComplaintController extends Controller
 {
-    private const STATUS = ['P' => 'Pending', 'O' => 'On Progress', 'C' => 'Completed', 'X' => 'Cancelled'];
+    use UploadsToGcs;
+    use \App\Http\Controllers\Traits\TenantAttachmentRules;
+
+    /** Header (tr_complaint.status): C Created -> P On Progress -> D Completed, or X Cancelled. Transfer to WO keeps P; it shows as W in the activity log only. */
+    private const STATUS = ['C' => 'Submitted', 'P' => 'On Progress', 'D' => 'Completed', 'X' => 'Cancelled'];
+
+    /** action => [allowed current header statuses, new header status, note required, log label (activity type)]; activity status = header status */
+    private const ACTIONS = [
+        'process'  => [['C'], 'P', false, 'Process'],
+        'complete' => [['P'], 'D', true, 'Complete'],
+        'cancel'  => [['C', 'P'], 'X', true, 'Cancel'],
+    ];
 
     private function authorizeLog(): void
     {
@@ -21,7 +35,7 @@ class TenantSupportComplaintController extends Controller
 
     private function base()
     {
-        $q = DB::connection('mysql5')->table('trcomplaint as c')
+        $q = DB::connection('mysql5')->table('tr_complaint as c')
             ->leftJoin('mssite as s', 's.siteid', '=', 'c.siteid')
             ->leftJoin('mstenant as t', 't.id', '=', 'c.tenantid')
             ->leftJoin('mstenantcompany as tc', 'tc.id', '=', 't.tenantcompanyid')
@@ -69,7 +83,7 @@ class TenantSupportComplaintController extends Controller
     private function cols(): array
     {
         return ['c.id', 'c.complaintnbr', 'c.complaintdate', 'c.siteid', 's.sitename', 't.storename', 'tc.tenantcompanyname', 't.unit',
-            'f.floor', 'k.name as category', 'c.description', 'c.action', 'c.status', 'c.created_user'];
+            'f.floor', 'k.name as category', 'c.description', 'c.action', 'c.status', 'c.created_user', 'c.resolved_date'];
     }
 
     private function shape($r)
@@ -96,7 +110,15 @@ class TenantSupportComplaintController extends Controller
         $perPage = min(max((int) $request->input('per_page', 15), 10), 100);
         $page    = max((int) $request->input('page', 1), 1);
 
-        $rows = $q->orderByDesc('c.complaintdate')->orderByDesc('c.id')->forPage($page, $perPage)->get($this->cols())
+        $sortable = ['complaintnbr' => 'c.complaintnbr', 'complaintdate' => 'c.complaintdate', 'sitename' => 's.sitename', 'storename' => 't.storename',
+            'category' => 'k.name', 'description' => 'c.description', 'created_user' => 'c.created_user', 'status' => 'c.status'];
+        if (isset($sortable[$request->sort])) {
+            $q->orderBy($sortable[$request->sort], $request->dir === 'asc' ? 'asc' : 'desc')->orderByDesc('c.id');
+        } else {
+            $q->orderByDesc('c.complaintdate')->orderByDesc('c.id');
+        }
+
+        $rows = $q->forPage($page, $perPage)->get($this->cols())
             ->map(fn ($r) => $this->shape($r));
 
         return response()->json(['data' => $rows, 'counts' => $counts, 'total' => $total, 'page' => $page, 'per_page' => $perPage]);
@@ -110,6 +132,381 @@ class TenantSupportComplaintController extends Controller
         $row = $this->base()->where('c.id', $id)->first($this->cols());
         abort_unless($row, 404);
 
-        return response()->json(['data' => $this->shape($row)]);
+        $row = $this->shape($row);
+        foreach ($this->payload($row, $id) as $k => $v) $row->$k = $v;
+
+        return response()->json(['data' => $row]);
+    }
+
+    /** Process / Complete / Cancel. Complete and Cancel need a note; every step is appended to the complaint's action log. */
+    public function act(Request $request, string $eid)
+    {
+        $this->authorizeLog();
+        $in = $request->validate(['action' => 'required|in:' . implode(',', array_keys(self::ACTIONS)), 'description' => 'nullable|string|max:1000', 'activity_date' => 'nullable|date']);
+        [$from, $to, $needNote, $label] = self::ACTIONS[$in['action']];
+        $notes = trim($in['description'] ?? '');
+        if ($needNote && $notes === '') {
+            return response()->json(['message' => 'Please fill the description.'], 422);
+        }
+
+        // Only Process may carry a user-chosen date (empty = now); Complete / Cancel always take the submit time.
+        $actDate = null;
+        if ($in['action'] === 'process' && ! empty($in['activity_date'])) {
+            $actDate = \Carbon\Carbon::parse($in['activity_date'], 'Asia/Jakarta');
+            if ($actDate->gt(now('Asia/Jakarta')->addMinute())) {
+                return response()->json(['message' => 'Process date cannot be in the future.'], 422);
+            }
+            $actDate = $actDate->format('Y-m-d H:i:s');
+        }
+
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_unless($id, 404);
+        abort_unless($this->base()->where('c.id', $id)->exists(), 404);
+
+        $error = $this->transition($id, $from, $to, $label, $notes, null, $actDate);
+        if ($error) return response()->json(['message' => $error], 409);
+
+        return $this->show($eid);
+    }
+
+    // ---- Activity / Messages / Attachments (tr_complaint_activity; trmessage + msattachment with doctype CMP) ----
+
+    private function db()
+    {
+        return DB::connection('mysql5');
+    }
+
+    private function nowJkt(): string
+    {
+        return now('Asia/Jakarta')->format('Y-m-d H:i:s');
+    }
+
+    private function findOrFail(string $eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_unless($id, 404);
+        $row = $this->base()->where('c.id', $id)->first(['c.id', 'c.complaintnbr', 'c.complaintdate', 'c.siteid', 'c.created_user']);
+        abort_unless($row, 404);
+
+        return $row;
+    }
+
+    private const ACT_LABEL = ['Process' => 'Process Complaint', 'Complete' => 'Completed', 'Cancel' => 'Cancelled', 'Transfer to WO' => 'Transfer to WO', 'Upload Attachment' => 'Attachment uploaded'];
+
+    /** One row per step in tr_complaint_activity (status = the complaint status it led to: C/P/W/D/X); newest first. */
+    private function activities($c): array
+    {
+        $db = $this->db();
+        // Status steps only (attachment uploads are not tracked here); messages are merged in below.
+        $rows = $db->table('tr_complaint_activity')->where('complaintnbr', $c->complaintnbr)->where('activitytype', '!=', 'Upload Attachment')
+            ->get(['activitytype', 'status', 'activity_date', 'activity_description', 'created_user', 'created_name', 'created_datetime']);
+
+        $items = $rows->map(fn ($r) => [
+            'type' => $r->activitytype, 'status' => $r->status, 'label' => self::ACT_LABEL[$r->activitytype] ?? $r->activitytype,
+            'ts' => (string) ($r->activity_date ?: $r->created_datetime), 'time' => substr((string) ($r->activity_date ?: $r->created_datetime), 0, 16),
+            'user' => $r->created_name ?: $r->created_user, 'note' => trim((string) $r->activity_description),
+        ])->all();
+
+        // Complaints raised by the tenant app before this log existed still show their Created step.
+        if (! $rows->contains('activitytype', 'Created')) {
+            $items[] = ['type' => 'Created', 'status' => 'C', 'label' => 'Created', 'ts' => (string) $c->complaintdate, 'time' => substr((string) $c->complaintdate, 0, 16), 'user' => $c->created_user, 'note' => ''];
+        }
+
+        foreach ($this->messages($c) as $m) {
+            $items[] = ['type' => 'Message', 'status' => null, 'label' => 'Message', 'ts' => (string) $m->created_datetime,
+                'time' => substr((string) $m->created_datetime, 0, 16), 'user' => $m->name ?: $m->created_user, 'note' => $m->message];
+        }
+
+        usort($items, fn ($x, $y) => strcmp($y['ts'], $x['ts']));
+
+        return $items;
+    }
+    /** Append a step to the activity log. $status = complaint status after the step. */
+    private function logActivity($db, string $nbr, ?string $siteid, string $type, ?string $status, string $activity, string $notes = '', ?string $now = null, ?string $actDate = null): void
+    {
+        $u = Auth::user();
+        $db->table('tr_complaint_activity')->insert([
+            'complaintnbr' => $nbr, 'siteid' => $siteid, 'activitytype' => $type, 'status' => $status, 'activity' => $activity, 'activity_description' => $notes, 'activity_date' => $actDate ?? $now ?? $this->nowJkt(),
+            'created_user' => $u->username, 'created_name' => $u->name, 'created_datetime' => $now ?? $this->nowJkt(),
+        ]);
+    }
+
+    /** Who can be @mentioned: the tenant user who raised it + ACCESSTR users of this site's company(ies). */
+    private function mentionable($c): array
+    {
+        $me = strtolower((string) Auth::user()?->username);
+        $out = [];
+        $tenant = $this->db()->table('msusertenant')->where('username', $c->created_user)->value('name');
+        $out[strtolower($c->created_user)] = ['username' => $c->created_user, 'name' => $tenant ?: $c->created_user, 'role' => 'Tenant'];
+
+        $cpnies = TenantRelationScope::SITE_COMPANY[$c->siteid] ?? [];
+        if ($cpnies) {
+            $inCpny = Usercpny::where('status', 'A')->whereIn(DB::raw('upper(trim(cpny_id))'), $cpnies)->pluck('username')->map(fn ($u) => strtolower($u))->unique()->all();
+            $tr = SysUserRole::where('role_id', 'ACCESSTR')->where('status', 'A')->pluck('username')->map(fn ($u) => strtolower($u))->unique()->all();
+            $names = \App\Models\User::whereIn(DB::raw('lower(username)'), array_values(array_intersect($tr, $inCpny)))->pluck('name', 'username');
+            foreach ($names as $u => $n) $out[strtolower($u)] ??= ['username' => $u, 'name' => $n, 'role' => 'Tenant Relation'];
+        }
+        unset($out[$me]);
+
+        return array_values($out);
+    }
+
+    private function attachments($c)
+    {
+        return $this->db()->table('msattachment')->where('doctype', 'CMP')->where('refnbr', $c->complaintnbr)->where('status', 'A')
+            ->orderBy('id')->get(['id', 'name', 'filename', 'fileextension', 'created_user', 'created_datetime'])
+            ->map(function ($a) {
+                $a->url = route('tenantsupport.complaint.attachment', Hashids::encode($a->id));
+                unset($a->id);
+
+                return $a;
+            });
+    }
+
+    private function messages($c)
+    {
+        return $this->db()->table('trmessage')->where('doctype', 'CMP')->where('refnbr', $c->complaintnbr)->where('status', 'A')
+            ->orderBy('id')->get(['name', 'messagetype', 'message', 'created_user', 'created_datetime']);
+    }
+
+    private function payload($row, int $id): array
+    {
+        $c = $this->base()->where('c.id', $id)->first(['c.complaintnbr', 'c.complaintdate', 'c.siteid', 'c.created_user']);
+
+        // Company that owns the complaint's site (legacy site -> ms_company), e.g. GC -> "AW · PT. ARTISAN WAHYU".
+        $company = null;
+        if ($cands = TenantRelationScope::SITE_COMPANY[$c->siteid] ?? []) {
+            $m = \App\Models\MsCompany::whereIn('cpny_id', $cands)->first(['cpny_id', 'cpny_name']);
+            $company = $m ? trim($m->cpny_id . ' · ' . $m->cpny_name) : $cands[0];
+        }
+
+        return ['company' => $company, 'activities' => $this->activities($c), 'messages' => $this->messages($c), 'attachments' => $this->attachments($c), 'mentionable' => $this->mentionable($c)];
+    }
+
+    public function message(Request $request, string $eid)
+    {
+        $this->authorizeLog();
+        $in = $request->validate(['message' => 'required|string|max:1000']);
+        $c = $this->findOrFail($eid);
+        $u = Auth::user();
+        $now = $this->nowJkt();
+
+        $this->db()->table('trmessage')->insert([
+            'refnbr' => $c->complaintnbr, 'doctype' => 'CMP', 'siteid' => $c->siteid, 'name' => $u->name, 'messagetype' => 'Message',
+            'message' => trim($in['message']), 'status' => 'A',
+            'created_user' => $u->username, 'created_datetime' => $now, 'lastupdate_user' => $u->username, 'lastupdate_datetime' => $now,
+        ]);
+
+        return response()->json(['messages' => $this->messages($c), 'activities' => $this->activities($c)]);
+    }
+
+    /** att-wps/<site>/CMP/<year>/<complaint no>/<random>.<ext> (max 5 MB, image/video) */
+    public function upload(Request $request, string $eid)
+    {
+        $this->authorizeLog();
+        $request->validate(['file' => 'required|file']);
+        $c = $this->findOrFail($eid);
+        $user = Auth::user();
+        $db = $this->db();
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        // Images (JPG/JPEG/PNG) or video only, max 5 MB per file.
+        if ($err = $this->tenantUploadError($file)) {
+            return response()->json(['message' => $err], 422);
+        }
+
+        $period = \Carbon\Carbon::parse($c->complaintdate)->year;
+        $stored = \Illuminate\Support\Str::random(32) . '.' . $ext;
+        $this->gcsClient()->bucket(config('filesystems.disks.gcs.bucket'))
+            ->upload(fopen($file->getRealPath(), 'r'), ['name' => $this->tenantObjectPath($c->siteid, 'CMP', $period, $c->complaintnbr, $stored)]);
+
+        $now = $this->nowJkt();
+        $audit = ['created_user' => $user->username, 'created_datetime' => $now, 'lastupdate_user' => $user->username, 'lastupdate_datetime' => $now];
+        $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $db->table('msattachment')->insert(['refnbr' => $c->complaintnbr, 'doctype' => 'CMP', 'siteid' => $c->siteid, 'period' => $period,
+            'name' => $name, 'filename' => $stored, 'fileextension' => $ext, 'status' => 'A'] + $audit);
+
+        return response()->json(['attachments' => $this->attachments($c)]);
+    }
+
+    public function attachment(string $aeid)
+    {
+        $this->authorizeLog();
+        $id = Hashids::decode($aeid)[0] ?? null;
+        abort_unless($id, 404);
+        $att = $this->db()->table('msattachment')->where('id', $id)->where('doctype', 'CMP')->where('status', 'A')->first();
+        abort_unless($att, 404);
+        abort_unless($this->base()->where('c.complaintnbr', $att->refnbr)->exists(), 404);
+
+        $object = $this->tenantAttachmentObject($att, 'CMP');
+        $url = $this->gcsSignedUrl($object, 15);
+        abort_unless($url, 404);
+
+        return redirect()->away($url);
+    }
+
+    /** For the WO form: the complaint (by hashed id) if this user may transfer it, else null. */
+    public static function forWo(string $eid): ?array
+    {
+        $user = Auth::user();
+        $id = $eid !== '' ? (Hashids::decode($eid)[0] ?? null) : null;
+        if (! $id || ! $user || ! ($user->hasRole('ACCESSTR') || $user->isPrimaryAdmin())) return null;
+
+        $c = (new self)->base()->where('c.id', $id)->whereIn('c.status', ['C', 'P'])
+            ->whereNotExists(fn ($q) => $q->from('tr_complaint_activity as a')->whereColumn('a.complaintnbr', 'c.complaintnbr')->where('a.status', 'W'))
+            ->first(['c.complaintnbr', 'c.siteid', 'c.description', 'k.name as category', 't.storename', 's.sitename']);
+        if (! $c) return null;
+
+        $text = "Complaint {$c->complaintnbr}" . ($c->category ? " ({$c->category})" : '') . "\n"
+            . trim(implode(' - ', array_filter([$c->sitename, $c->storename]))) . "\n" . $c->description;
+
+        return ['eid' => $eid, 'nbr' => $c->complaintnbr, 'text' => trim($text), 'cpny' => self::woCompany($c->siteid, $user->username),
+            'files' => (new self)->attachments($c)->map(fn ($a) => ['name' => self::baseName($a->name, $a->fileextension) . '.' . $a->fileextension, 'url' => $a->url])->all()];
+    }
+
+    /** The tenant app stores names that already end with the extension ("photo.png" + png); drop the duplicate. */
+    private static function baseName(?string $name, ?string $ext): string
+    {
+        $name = (string) $name;
+
+        return $ext && strcasecmp(substr($name, -strlen($ext) - 1), '.' . $ext) === 0 ? substr($name, 0, -strlen($ext) - 1) : $name;
+    }
+
+    /**
+     * Copy the complaint's attachments into the new WO (tr_attachment, doctype WO) inside GCS - no download/re-upload.
+     * Returns how many were copied; a file that fails is reported and skipped.
+     */
+    public static function copyAttachmentsToWo(string $eid, string $woid, ?string $cpny, ?string $dept): int
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        $self = new self;
+        $c = $id ? $self->base()->where('c.id', $id)->first(['c.complaintnbr']) : null;
+        if (! $c) return 0;
+
+        $bucket = $self->gcsClient()->bucket(config('filesystems.disks.gcs.bucket'));
+        $folder = 'att-purchasing-app/wo/' . now()->year;
+        $n = 0;
+
+        $rows = $self->db()->table('msattachment')->where('doctype', 'CMP')->where('refnbr', $c->complaintnbr)->where('status', 'A')->orderBy('id')->get();
+        foreach ($rows as $r) {
+            try {
+                $src = $bucket->object($self->tenantAttachmentObject($r, 'CMP'));
+                $filename = md5((string) random_int(1, 99999999)) . '.' . $r->fileextension;
+                $src->copy($bucket, ['name' => "$folder/$filename"]);
+
+                \App\Models\TrAttachment::create([
+                    'refnbr' => $woid, 'doctype' => 'WO', 'attachment_date' => now(), 'cpny_id' => $cpny, 'department_id' => $dept,
+                    'attachment_name' => self::baseName($r->name, $r->fileextension), 'folder' => $folder, 'filename' => $filename,
+                    'filesize' => (int) ($src->info()['size'] ?? 0), 'extention' => $r->fileextension, 'status' => 'A',
+                    'created_by' => Auth::user()->username,
+                ]);
+                $n++;
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return $n;
+    }
+
+    /** The WO company that follows a complaint's site: the site's company that this user has access to (null = no match, form stays free). */
+    public static function woCompany(?string $siteid, string $username): ?string
+    {
+        $cands = TenantRelationScope::SITE_COMPANY[$siteid] ?? [];
+        if (! $cands) return null;
+
+        $mine = Usercpny::where('username', $username)->where('status', 'A')->pluck('cpny_id')->map(fn ($x) => strtoupper(trim($x)))->all();
+
+        return collect($cands)->first(fn ($x) => in_array($x, $mine, true));
+    }
+
+    /** Company a WO created from this complaint must use (null = unrestricted / unknown complaint). */
+    public static function companyForEid(string $eid): ?string
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        $siteid = $id ? DB::connection('mysql5')->table('tr_complaint')->where('id', $id)->value('siteid') : null;
+
+        return $siteid ? self::woCompany($siteid, (string) Auth::user()?->username) : null;
+    }
+
+    /** "Tenant WO Jobs" tab on the WO list is for ACCESSTR users only. */
+    public static function canSeeTenantWoJobs(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) ($user && $user->hasRole('ACCESSTR'));
+    }
+
+    /**
+     * Every complaint that was transferred to a WO (activity status W), newest first, with that WO's live status.
+     * Complaints live in mysql5 and WOs in pgsql, so the WO number is read from the activity note ("WO WO2611xxxx").
+     */
+    public static function transferredRows(): array
+    {
+        if (! self::canSeeTenantWoJobs()) return [];
+
+        $rows = (new self)->base()
+            ->join('tr_complaint_activity as a', fn ($j) => $j->on('a.complaintnbr', '=', 'c.complaintnbr')->where('a.status', 'W'))
+            ->orderByDesc('a.created_datetime')->orderByDesc('a.id')
+            ->get(['c.complaintnbr', 'c.complaintdate', 'c.status as complaint_status', 's.sitename', 't.storename', 't.unit', 'k.name as category',
+                'c.description', 'a.activity_description', 'a.created_name', 'a.created_user', 'a.created_datetime']);
+
+        $woIds = $rows->map(fn ($r) => preg_match('/WO\d+/i', (string) $r->activity_description, $m) ? strtoupper($m[0]) : null)->all();
+        $wos = \App\Models\TrWO::whereIn('woid', array_filter(array_unique($woIds)))
+            ->get(['id', 'woid', 'cpny_id', 'department_id', 'status', 'status_pekerjaan', 'pic_wo'])->keyBy('woid');
+
+        return $rows->map(function ($r, $i) use ($woIds, $wos) {
+            $wo = $woIds[$i] ? $wos->get($woIds[$i]) : null;
+
+            return [
+                'complaintnbr' => $r->complaintnbr, 'complaintdate' => substr((string) $r->complaintdate, 0, 16),
+                'sitename' => $r->sitename, 'storename' => $r->storename, 'unit' => $r->unit, 'category' => $r->category,
+                'description' => $r->description, 'transferred_by' => $r->created_name ?: $r->created_user,
+                'transferred_at' => substr((string) $r->created_datetime, 0, 16),
+                'woid' => $woIds[$i], 'wo_eid' => $wo ? Hashids::encode($wo->id) : null, 'cpny_id' => $wo->cpny_id ?? null,
+                'department_id' => $wo->department_id ?? null, 'wo_status' => $wo->status ?? null,
+                'wo_job_status' => $wo->status_pekerjaan ?? null, 'pic_wo' => $wo->pic_wo ?? null,
+            ];
+        })->all();
+    }
+
+    /** GET /wos/tenant-jobs */
+    public function transferredJson()
+    {
+        abort_unless(self::canSeeTenantWoJobs(), 403);
+
+        return response()->json(['data' => self::transferredRows()]);
+    }
+
+    /** Called by the WO form once a WO was saved from a complaint: activity W + WO number in the log; header becomes/stays P. */
+    public static function markTransferred(string $eid, string $woid): void
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        if ($id) (new self)->transition($id, ['C', 'P'], 'P', 'Transfer to WO', "WO $woid", 'W');
+    }
+
+    /** $to = new header status; $actStatus = status written to the activity log (defaults to $to). */
+    private function transition(int $id, array $from, string $to, string $label, string $notes, ?string $actStatus = null, ?string $actDate = null): ?string
+    {
+        $db   = DB::connection('mysql5');
+        $user = Auth::user()->username;
+        $now  = now('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+        return $db->transaction(function () use ($db, $id, $from, $to, $label, $notes, $user, $now, $actStatus, $actDate) {
+            $cur = $db->table('tr_complaint')->where('id', $id)->lockForUpdate()->first();
+            if (! $cur || ! in_array($cur->status, $from, true)) return 'This complaint is no longer in a status that allows this action.';
+
+            $line = "[$now $user] $label" . ($notes !== '' ? ": $notes" : '');
+            $update = [
+                'status' => $to, 'action' => trim(($cur->action ? $cur->action . "\n" : '') . $line),
+                'lastupdate_user' => $user, 'lastupdate_datetime' => $now,
+            ];
+            if ($to === 'D') $update['resolved_date'] = $actDate ?? $now;   // Complete -> Resolved Date
+            $db->table('tr_complaint')->where('id', $id)->update($update);
+            $this->logActivity($db, $cur->complaintnbr, $cur->siteid, $label, $actStatus ?? $to, "Complaint {$cur->complaintnbr}: $label", $notes, $now, $actDate);
+
+            return null;
+        });
     }
 }

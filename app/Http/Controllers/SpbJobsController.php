@@ -1233,6 +1233,7 @@ class SpbJobsController extends Controller
                 ->isNotEmpty();
 
             $ctx = [
+                'spbid' => $header->spbid,
                 'is_urgent' => $isUrgent,
                 'first_inventory_category' => $firstCategory,
                 'has_fixed_asset_subtype' => $hasFixedAssetSubtype,

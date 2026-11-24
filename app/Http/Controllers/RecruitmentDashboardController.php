@@ -312,12 +312,10 @@ class RecruitmentDashboardController extends Controller
             ->when($location, fn ($q) => $q->whereIn('viewtrxcareer.docidposting', $locationPostingIds))
             ->when($isSelfMode, fn ($q) => $q->whereRaw('1 = 0'));
 
-        // NOTE: self-registered applicants (viewselfregister / hr_trx_selfposting) are not
-        // tied to a company/group_cpny_id at registration time — hr_trx_selfposting.group_cpny_id
-        // exists in the schema but is empty for every row in this data. They only gain a
-        // company association once mapped to a posting (hr_trx_job_apply -> hr_trx_jobposting.cpnyid),
-        // so self-sourced figures below are portal-wide and do not respond to the group filter.
+        // Self-registered applicants are scoped by group_cpny_id; rows saved without one fall back
+        // to the group of the applicant's own account (hr_ms_applicant).
         $selfBase = $conn->table('viewselfregister')
+            ->when($groupCpnyFilter, fn ($q) => $this->scopeSelfToGroup($q, $groupCpnyFilter))
             ->when($from, fn ($q) => $q->whereDate('viewselfregister.apply_date', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('viewselfregister.apply_date', '<=', $to))
             ->when($department, fn ($q) => $q->where('viewselfregister.departementid', $department))
@@ -1057,7 +1055,8 @@ class RecruitmentDashboardController extends Controller
         // are career (job-applicant) sourced unless source=self is explicitly set.
         if ($isSelfMode) {
             $selfBase = $conn->table('viewselfregister')
-                ->when($from, fn ($q) => $q->whereDate('viewselfregister.apply_date', '>=', $from))
+                ->when($groupCpnyFilter, fn ($q) => $this->scopeSelfToGroup($q, $groupCpnyFilter))
+                ->when($from,fn ($q) => $q->whereDate('viewselfregister.apply_date', '>=', $from))
                 ->when($to, fn ($q) => $q->whereDate('viewselfregister.apply_date', '<=', $to))
                 ->when($department, fn ($q) => $q->where('viewselfregister.departementid', $department))
                 ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewselfregister.departementid', $divisionDepartmentIds));
@@ -1217,6 +1216,26 @@ class RecruitmentDashboardController extends Controller
                 'self_register' => $selfRegister,
             ],
         ]);
+    }
+
+    /**
+     * Limit a viewselfregister query to one group_cpny_id. Older self-registrations were saved
+     * without a group, so those fall back to the group of the applicant's own account.
+     */
+    private function scopeSelfToGroup($query, string $group)
+    {
+        return $query->where(function ($w) use ($group) {
+            $w->where('viewselfregister.group_cpny_id', $group)
+                ->orWhere(function ($blank) use ($group) {
+                    $blank->where(fn ($b) => $b->whereNull('viewselfregister.group_cpny_id')->orWhere('viewselfregister.group_cpny_id', ''))
+                        ->whereExists(function ($sub) use ($group) {
+                            $sub->select(DB::raw(1))
+                                ->from('hr_ms_applicant as ap')
+                                ->whereColumn('ap.applicant_id', 'viewselfregister.applicant_id')
+                                ->where('ap.group_cpny_id', $group);
+                        });
+                });
+        });
     }
 
     /**

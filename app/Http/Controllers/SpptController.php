@@ -120,6 +120,7 @@ class SpptController extends Controller
         $status = (string) $request->query('status', '');
         $mode = (string) $request->query('mode', 'normal');
         $deptExtra = (string) $request->query('department_extra', '');
+        $cpnyExtra = (string) $request->query('company_extra', '');
 
         $baseTable = (new TrSPPT())->getTable();
 
@@ -164,6 +165,11 @@ class SpptController extends Controller
 
             if (!empty($deptExtra)) {
                 $base->where('sppt.department_id', $deptExtra);
+            }
+
+            // company filter (dropdown)
+            if (!empty($cpnyExtra)) {
+                $base->where('sppt.cpny_id', $cpnyExtra);
             }
 
             if ($status !== '') {
@@ -237,8 +243,8 @@ class SpptController extends Controller
                 ->whereIn('sppt.cpny_id', $cpnyIds)
                 ->whereIn('sppt.status', ['P', 'C']);
 
-            if (!empty($deptExtra)) {
-                $deptQuery->where('sppt.department_id', $deptExtra);
+            if (!empty($cpnyExtra)) {
+                $deptQuery->where('sppt.cpny_id', $cpnyExtra);
             }
 
             $departments = $deptQuery
@@ -248,12 +254,26 @@ class SpptController extends Controller
                 ->pluck('department_id');
         }
 
+        // ==============================
+        // COMPANY LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $companies = [];
+
+        if ($mode === 'all') {
+            $companies = DB::table($baseTable)
+                ->whereIn('cpny_id', $cpnyIds)
+                ->distinct()
+                ->orderBy('cpny_id')
+                ->pluck('cpny_id');
+        }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
             'departments' => $departments,
+            'companies' => $companies,
         ]);
     }
 

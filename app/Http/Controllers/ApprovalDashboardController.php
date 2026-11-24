@@ -168,7 +168,10 @@ class ApprovalDashboardController extends Controller
         $sources = [
             'SIK' => ['trsik', 'siknbr', '/tenant-support/sik'],
             'SIMKB' => ['trsimkb', 'simkbnbr', '/tenant-support/simkb'],
+            'SIA' => ['trsia', 'sianbr', '/tenant-support/sia'],
         ];
+        // SIA has no requestname / workdescription: the PIC and the event type fill those two slots
+        $infoCols = ['SIA' => ['requestpenanggungjawab', 'eventtype']];
 
         // msdepartment has one row per doctype/site; collapse to one name per department+site
         $deptNames = DB::connection('mysql5')->table('msdepartment')
@@ -179,6 +182,8 @@ class ApprovalDashboardController extends Controller
             if ($doctype !== '' && $doctype !== $type) {
                 continue;
             }
+
+            [$nameCol, $descCol] = $infoCols[$type] ?? ['requestname', 'workdescription'];
 
             try {
                 $q = DB::connection('mysql5')
@@ -204,7 +209,7 @@ class ApprovalDashboardController extends Controller
 
                 $rows = $q->select([
                     'd.id', "d.{$nbrCol} as docid", 'd.companyid', 'c.companyname', 'd.departmentid', 'dp.departmentname', 'tn.storename',
-                    'd.requestname', 'd.workdescription', 't.aprvdatebefore', 't.aprvdateafter',
+                    "d.{$nameCol} as requestname", "d.{$descCol} as workdescription", 't.aprvdatebefore', 't.aprvdateafter',
                 ])->get();
             } catch (\Throwable $e) {
                 Log::warning('approvalDashboard tenancy fetch failed', ['type' => $type, 'err' => $e->getMessage()]);

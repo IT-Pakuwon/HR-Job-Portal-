@@ -16,9 +16,9 @@
             <thead class="bg-slate-50 dark:bg-white/[0.03]">
                 <tr>
                     <th class="px-3 py-2 text-left" style="min-width:170px;">{{ $label }}</th>
-                    <th class="px-3 py-2 text-left" style="width:150px;">Start</th>
-                    <th class="px-3 py-2 text-left" style="width:150px;">End</th>
-                    <th class="px-3 py-2 text-left">Notes</th>
+                    <th class="px-3 py-2 text-left" style="width:135px;">Start</th>
+                    <th class="px-3 py-2 text-left" style="width:135px;">End</th>
+                    <th class="px-3 py-2 text-left" style="min-width:160px;">Notes</th>
                     <th class="px-3 py-2 text-right" style="width:90px;">Action</th>
                 </tr>
             </thead>

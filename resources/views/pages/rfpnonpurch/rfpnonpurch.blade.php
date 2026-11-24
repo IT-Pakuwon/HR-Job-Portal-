@@ -15,11 +15,11 @@
 
             <a href="#" class="status-filter group block h-full" data-status="">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📄</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">All</p>
                     </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </a>
 
@@ -29,7 +29,7 @@
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">On Progress</p>
                     </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
                 </div>
             </a>
 
@@ -39,7 +39,7 @@
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Reject</p>
                     </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $reject }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
                 </div>
             </a>
 
@@ -49,7 +49,7 @@
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Revise / Draft</p>
                     </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $revise }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                 </div>
             </a>
 
@@ -59,7 +59,7 @@
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Completed</p>
                     </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
 
@@ -70,7 +70,7 @@
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="break-words text-sm font-medium">RFP / RFCA All</p>
                         </div>
-                        <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $rfpAll ?? 0 }}</p>
                     </div>
                 </a>
 
@@ -80,7 +80,7 @@
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="break-words text-sm font-medium">RFP / RFCA Job</p>
                         </div>
-                        <p class="shrink-0 text-base font-extrabold">{{ $rfpFinance ?? 0 }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $rfpFinance ?? 0 }}</p>
                     </div>
                 </a>
             @endif

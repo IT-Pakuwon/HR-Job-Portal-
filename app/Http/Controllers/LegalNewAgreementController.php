@@ -284,11 +284,18 @@ class LegalNewAgreementController extends Controller
         // Old links (emails, bookmarks) to a PSM / OLA that has since become a follow-up.
         $id = Hashids::decode($eid)[0] ?? null;
 
-        if ($id && TrAgreement::query()->whereKey($id)->whereIn('agreement_type', TrAgreement::FU_TYPES)->exists()) {
+        // This page's own follow-ups (FU_PSM / FU_OLA, FU_ADDENDUM) still open here, read-only, on the Follow Up tab.
+        $elsewhere = array_values(array_diff(TrAgreement::FU_TYPES, $this->followUpViewTypes()));
+
+        if ($id && TrAgreement::query()->whereKey($id)->whereIn('agreement_type', $elsewhere)->exists()) {
             return redirect('/show-legal-agreement/'.$eid);
         }
 
         $agreement = $this->viewableAgreementOrFail($eid);
+
+        if (in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true)) {
+            return $this->psmOla(null, $eid, 'followup');
+        }
 
         return $this->psmOla(null, $eid, ['COMPLETED' => 'completed', 'CANCELLED' => 'cancelled', 'DRAFT' => 'draft'][$agreement->agreement_step_id] ?? 'active');
     }
@@ -941,7 +948,16 @@ class LegalNewAgreementController extends Controller
 
         abort_if(!$id, 404);
 
-        return $this->activeQuery([self::STEP_ACTIVE, self::STEP_COMPLETED, self::STEP_CANCELLED, self::STEP_DRAFT])->findOrFail($id);
+        return $this->activeQuery(
+            [self::STEP_ACTIVE, self::STEP_COMPLETED, self::STEP_CANCELLED, self::STEP_DRAFT, 'HOLD', 'ESCALATED'],
+            [...(array) $this->kind()['type'], ...$this->followUpViewTypes()]
+        )->findOrFail($id);
+    }
+
+    // Follow-up types this page lists on its Follow Up tab (none for Others, which has no such tab).
+    protected function followUpViewTypes(): array
+    {
+        return ($this->kind()['r']['follow_up_json'] ?? null) ? ($this->kind()['follow_up_types'] ?: []) : [];
     }
 
     // Active agreement the current user may change: its creator or a PIC Legal.
@@ -979,12 +995,15 @@ class LegalNewAgreementController extends Controller
         $completed = $agreement->agreement_step_id === self::STEP_COMPLETED;
         $cancelled = $agreement->agreement_step_id === self::STEP_CANCELLED;
         $draft = $agreement->agreement_step_id === self::STEP_DRAFT;
+        // Moved on to Agreement FU: read-only here, with a button to its FU screen.
+        $followUp = in_array($agreement->agreement_type, TrAgreement::FU_TYPES, true);
 
         $company = MsCompany::query()->where('cpny_id', $agreement->cpny_id)->first(['cpny_id', 'cpny_name']);
 
         $kind = $this->kind();
 
         return view('pages.legal-new-agreement.psm-ola-agreement-form', [
+            'followUp' => $followUp,
             'draft' => $draft,
             'kind' => $kind,
             'psmOlaNo' => $this->psmOlaNoFor($agreement),
@@ -1004,8 +1023,8 @@ class LegalNewAgreementController extends Controller
             // a completed one is read-only.
             'completed' => $completed,
             'cancelled' => $cancelled,
-            'canUpdateDocs' => !$completed && !$cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
-            'canManage' => $agreement->canBeUpdatedBy((string) auth()->user()->username),
+            'canUpdateDocs' => !$followUp && !$completed && !$cancelled && $agreement->canBeUpdatedBy((string) auth()->user()->username),
+            'canManage' => !$followUp && $agreement->canBeUpdatedBy((string) auth()->user()->username),
             'processes' => $this->processesFor($agreement, (bool) $draft),
             'picLegalNames' => array_values($this->picLabels($agreement->picLegalList())),
             'picLeasingNames' => array_values($this->picLabels($agreement->picLeasingList())),

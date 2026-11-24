@@ -628,6 +628,13 @@ FOOTER: info + pagination (SIK style)
         float: right;
     }
 
+    /* page numbers: 2px gap between each */
+    .dataTables_wrapper .dataTables_paginate > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
+
     .dataTables_wrapper .dataTables_paginate .paginate_button {
         display: inline-flex !important;
         align-items: center;
@@ -1637,6 +1644,83 @@ Approval / Attachment / Comments tables
         }
         new MutationObserver(function(ms) {
             ms.forEach(function(m) { m.addedNodes.forEach(scan); });
+        }).observe(document.documentElement, { childList: true, subtree: true });
+    })();
+</script>
+
+<style>
+    /* =====================================================
+    DATATABLES SEARCH BOX — icon inside, no "Search:" label, soft focus ring
+    ===================================================== */
+    .dataTables_wrapper .dataTables_filter label {
+        font-size: 0 !important;      /* hides the "Search:" text, input restores its own size */
+        display: flex !important;
+        align-items: center;
+        margin: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input[type="search"],
+    .dataTables_wrapper .dataTables_filter input {
+        box-sizing: border-box;
+        width: 16rem !important;
+        max-width: 100%;
+        height: 40px !important;
+        margin: 0 !important;
+        padding: 0 14px 0 38px !important;
+        font-size: 14px !important;
+        color: #1f2937 !important;
+        background-color: #fff !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: 12px center !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 10px !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+        outline: none !important;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .dataTables_wrapper .dataTables_filter input::placeholder { color: #9ca3af; }
+
+    .dataTables_wrapper .dataTables_filter input:hover { border-color: #cbd5e1 !important; }
+
+    .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, .14) !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_filter input[type="search"],
+    .dark .dataTables_wrapper .dataTables_filter input {
+        color: #e5e7eb !important;
+        background-color: rgba(255, 255, 255, .04) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+        border-color: rgba(255, 255, 255, .12) !important;
+        box-shadow: none !important;
+    }
+
+    .dark .dataTables_wrapper .dataTables_filter input:hover { border-color: rgba(255, 255, 255, .22) !important; }
+
+    .dark .dataTables_wrapper .dataTables_filter input:focus {
+        border-color: #818cf8 !important;
+        box-shadow: 0 0 0 4px rgba(129, 140, 248, .18) !important;
+    }
+
+    @media (max-width: 600px) {
+        .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_filter label { width: 100%; }
+        .dataTables_wrapper .dataTables_filter input { width: 100% !important; }
+    }
+</style>
+<script>
+    // Give every DataTables search box a "Search…" placeholder (the "Search:" label is hidden by CSS).
+    (function() {
+        function mark(root) {
+            if (!root || root.nodeType !== 1) return;
+            var inputs = root.matches && root.matches('.dataTables_filter input') ? [root] : (root.querySelectorAll ? root.querySelectorAll('.dataTables_filter input') : []);
+            inputs.forEach(function(i) { if (!i.placeholder) i.placeholder = 'Search…'; });
+        }
+        document.addEventListener('DOMContentLoaded', function() { mark(document.body); });
+        new MutationObserver(function(ms) {
+            ms.forEach(function(m) { m.addedNodes.forEach(mark); });
         }).observe(document.documentElement, { childList: true, subtree: true });
     })();
 </script>

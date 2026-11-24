@@ -1,7 +1,7 @@
 <x-app-layout>
     @php $isAdminUser = (bool) auth()->user()?->isPrimaryAdmin(); @endphp
 
-    <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeTab: '{{ ($tenantRelation ?? false) ? 'tenant' : 'location' }}' }">
+    <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeTab: '{{ ($warningOnly ?? false) ? 'warning' : (($tenantRelation ?? false) ? 'tenant' : 'location') }}' }">
         <nav class="mb-3 flex w-full gap-1 rounded-xl border border-gray-200 bg-gray-100/80 p-1 dark:border-white/[0.06] dark:bg-white/[0.04]">
                 @unless ($tenantRelation ?? false)
                 <button type="button" @click="activeTab = 'location'; $nextTick(() => tsAdjustTable('location'))"
@@ -19,6 +19,7 @@
                     <i class="fas fa-layer-group text-xs"></i> Floor
                 </button>
                 @endunless
+                @unless ($warningOnly ?? false)
                 <button type="button" @click="activeTab = 'tenant'; $nextTick(() => tsAdjustTable('tenant'))"
                     :class="activeTab === 'tenant' ?
                         'bg-indigo-600 text-white shadow-sm' :
@@ -33,11 +34,25 @@
                     class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200">
                     <i class="fas fa-user-tag text-xs"></i> User Tenant
                 </button>
+                @endunless
+                @if ($tenantRelation ?? false)
+                <button type="button" @click="activeTab = 'warning'; $nextTick(() => tsAdjustTable('warning'))"
+                    :class="activeTab === 'warning' ?
+                        'bg-indigo-600 text-white shadow-sm' :
+                        'text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'"
+                    class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-200">
+                    <i class="fas fa-exclamation-triangle text-xs"></i> Warning
+                </button>
+                @endif
         </nav>
 
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             @include('pages.tenancy.partials.master-panels')
+
+            @if ($tenantRelation ?? false)
+                @include('pages.tenancy.partials.master-warning')
+            @endif
 
             <!-- USER TENANT PANEL -->
             <div x-show="activeTab === 'user_tenant'" x-cloak>
@@ -82,6 +97,9 @@
         </div>
 
         @include('pages.tenancy.partials.master-modals')
+        @if ($tenantRelation ?? false)
+            @include('pages.tenancy.partials.master-warning-modal')
+        @endif
 
         <!-- USER TENANT MODAL (Add / View / Edit) -->
         <div id="userTenantModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
@@ -334,6 +352,10 @@
             });
 
             @include('pages.tenancy.partials.master-js')
+
+            @if ($tenantRelation ?? false)
+                @include('pages.tenancy.partials.master-warning-js')
+            @endif
 
             /* =========================================================
              * USER TENANT

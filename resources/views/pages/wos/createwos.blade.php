@@ -4,6 +4,12 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="woForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    @if (!empty($complaint))
+                        <input type="hidden" name="complaint_eid" value="{{ $complaint['eid'] }}">
+                        <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                            Creating a WO from complaint <b>{{ $complaint['nbr'] }}</b>. The complaint becomes "Transferred to WO" once this WO is saved.
+                        </div>
+                    @endif
                     <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-2 flex items-center justify-between border-b pb-3 dark:border-gray-700">
@@ -15,11 +21,18 @@
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid" id="cpnyid" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                @if (!empty($complaint['cpny']))
+                                    {{-- disabled selects are not submitted, so the locked value travels in a hidden input --}}
+                                    <input type="hidden" name="cpnyid" value="{{ $complaint['cpny'] }}">
+                                @endif
+                                <select name="cpnyid" id="cpnyid" required @disabled(!empty($complaint['cpny']))
+                                    class="{{ !empty($complaint['cpny']) ? 'cursor-not-allowed bg-gray-100 opacity-70 ' : '' }}w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    @php $lockCpny = strtoupper(trim($complaint['cpny'] ?? '')); @endphp
                                     @foreach ($usercpny as $p)
+                                        {{-- From a complaint: company follows the complaint's site and cannot be changed --}}
+                                        @continue($lockCpny !== '' && strtoupper(trim($p->cpny_id)) !== $lockCpny)
                                         <option value="{{ $p->cpny_id }}"
-                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
+                                            {{ $lockCpny !== '' || $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
@@ -187,7 +200,7 @@
                         <div>
                             <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                             <textarea name="keperluan" id="keperluan" rows="3" required
-                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
+                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $complaint['text'] ?? '' }}</textarea>
                         </div>
                     </div>
 
@@ -338,6 +351,19 @@
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
+                                @if (!empty($complaint['files']))
+                                    <div class="mb-4 rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm dark:border-violet-500/30 dark:bg-violet-500/10">
+                                        <p class="mb-2 font-semibold text-violet-800 dark:text-violet-200">
+                                            <i class="fa-solid fa-paperclip mr-1"></i>From complaint {{ $complaint['nbr'] }}
+                                            ({{ count($complaint['files']) }}) - these files are attached to the WO automatically
+                                        </p>
+                                        <ul class="space-y-1">
+                                            @foreach ($complaint['files'] as $f)
+                                                <li><a href="{{ $f['url'] }}" target="_blank" class="text-violet-700 underline hover:text-violet-900 dark:text-violet-300">{{ $f['name'] }}</a></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
@@ -437,6 +463,18 @@
                             // value & text sama = category_name
                             $select.append(new Option(it.text, it.text));
                         });
+                        @if (!empty($complaint))
+                            // From a complaint: WO Request is always "Tenant" (only that option is left, so it is still submitted).
+                            if (categoryid === 'worequest') {
+                                $select.find('option').filter(function() {
+                                    return this.value.toLowerCase() !== 'tenant';
+                                }).remove();
+                                const v = $select.find('option').first().val();
+                                $select.val(v).prop('disabled', true).addClass('cursor-not-allowed bg-gray-100 opacity-70');
+                                // disabled selects are not submitted, so the value travels in a hidden input
+                                $select.after($('<input type="hidden" name="worequest">').val(v));
+                            }
+                        @endif
                     })
                     .fail(function() {
                         toastr.error('Gagal memuat data kategori.');
@@ -633,7 +671,8 @@
                 // =========================
                 // Attachment validation (same style as SPPB)
                 // =========================
-                let hasAttachment = false;
+                // Files carried over from the source complaint already count as attachments.
+                let hasAttachment = {{ !empty($complaint['files']) ? 'true' : 'false' }};
 
                 $('#attachmentsContainer input[type="file"]').each(function() {
                     if (this.files && this.files.length > 0) {

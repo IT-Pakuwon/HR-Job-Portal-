@@ -102,7 +102,7 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">All</p>
@@ -248,7 +248,7 @@
             </div>
 
 
-            <div class="relative mt-4 overflow-hidden">
+            <div class="relative mt-4 overflow-hidden px-5 pb-4">
                 <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -336,7 +336,7 @@
                 </p>
             </div>
 
-            <div class="relative overflow-hidden">
+            <div class="relative overflow-hidden px-5 pb-4">
                 <table id="dupApplicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
