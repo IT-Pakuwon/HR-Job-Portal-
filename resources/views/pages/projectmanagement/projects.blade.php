@@ -3307,6 +3307,9 @@
                 method: isEdit ? 'PUT' : 'POST',
                 data,
                 success: function (res) {
+                    // The project's people/Teams may have changed — drop the cached
+                    // assigned-people pool so the next board load refetches it.
+                    pmDetailLoaded = { key: '', at: 0 };
                     $('#projectModal').addClass('hidden');
                     Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false })
                         .then(() => {

@@ -99,11 +99,12 @@ class TrProjectTask extends Model
             ->filter()->unique()->values()]);
     }
 
-    // Admins / PROADMINACCESS always get through a lock — the recovery path
-    // if a locked task ends up with nobody left assigned to it.
+    // Only PROADMINACCESS gets through a lock regardless of assignment — the
+    // recovery path if a locked task ends up with nobody left assigned to it.
+    // (The plain admin role does not.)
     public static function bypassesLock($user): bool
     {
-        return $user && ($user->isPrimaryAdmin() || $user->hasRole('PROADMINACCESS'));
+        return $user && $user->hasRole('PROADMINACCESS');
     }
 
     // A lock covers the task's whole subtree: $user can open this task only
