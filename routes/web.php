@@ -3071,6 +3071,25 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/export/xlsx', 'exportXlsx')->name('training-report.export.xlsx');
             });
 
+        Route::prefix('legal-lease-report')
+            ->controller(\App\Http\Controllers\LegalLeaseReportController::class)
+            ->middleware('access:REPORTLEGALLEASE,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('legal-lease-report.dashboard');
+
+                Route::get('/api/companies', 'companies')->name('legal-lease-report.companies');
+                Route::get('/api/summary', 'summaryJson')->name('legal-lease-report.summary');
+                Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('legal-lease-report.category-by-unit');
+                Route::get('/api/memo-loi', 'memoLoiJson')->name('legal-lease-report.memo-loi');
+                Route::get('/api/sent-letters', 'sentLettersJson')->name('legal-lease-report.sent-letters');
+                Route::get('/api/status-by-category', 'statusByCategoryJson')->name('legal-lease-report.status-by-category');
+                Route::get('/api/top-breakdown', 'topBreakdownJson')->name('legal-lease-report.top-breakdown');
+                Route::get('/api/table', 'tableJson')->name('legal-lease-report.table');
+
+                Route::get('/export/pdf', 'exportPdf')->name('legal-lease-report.export.pdf');
+                Route::get('/export/xlsx', 'exportXlsx')->name('legal-lease-report.export.xlsx');
+            });
+
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('ga.summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('ga.approval');
