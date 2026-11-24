@@ -271,7 +271,7 @@ class SppjController extends Controller
         $companies = [];
 
         if ($mode === 'all') {
-            $companies = DB::table($baseTable)
+            $companies = (new TrSPPJ())->getConnection()->table($baseTable)
                 ->whereIn('cpny_id', $cpnyIds)
                 ->distinct()
                 ->orderBy('cpny_id')

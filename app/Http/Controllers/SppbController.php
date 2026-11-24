@@ -303,7 +303,7 @@ class SppbController extends Controller
         $companies = [];
 
         if ($mode === 'all') {
-            $companies = DB::table($baseTable)
+            $companies = (new TrSPPB())->getConnection()->table($baseTable)
                 ->whereIn('cpny_id', $cpnyIds)
                 ->distinct()
                 ->orderBy('cpny_id')
