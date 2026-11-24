@@ -217,7 +217,7 @@
 
     .sb-root .sb-title {
         font-size: .85rem;
-        font-weight: 700;
+        font-weight: 500;
         letter-spacing: .01em;
         background: none;
         
