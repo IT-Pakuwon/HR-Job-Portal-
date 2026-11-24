@@ -77,6 +77,13 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/perizinan-renewal-reminder.log'));
 
+        // Every 7 days: Active PSM/OLA/Addendum/Others with documents not received remind creator + PIC Legal.
+        $schedule->command('email:agreement-document-reminder')
+            ->dailyAt('07:20')
+            ->timezone('Asia/Jakarta')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/agreement-document-reminder.log'));
+
         // Email reminder H-7 for Paid events (PIC internal, creator, GMACCESS)
         $schedule->command('email:event-h7-paid-reminder')
             ->dailyAt('07:15')

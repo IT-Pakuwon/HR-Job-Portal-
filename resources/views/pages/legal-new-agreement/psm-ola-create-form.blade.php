@@ -93,19 +93,6 @@
                 <input type="hidden" id="unit_id" name="unit_id" value="{{ $values['unit_id'] }}">
 
                 <div>
-                    <label class="agr-label" for="trade_name">Tenant Name</label>
-                    <input type="text" id="trade_name" name="trade_name" maxlength="255" class="agr-input"
-                        value="{{ $values['trade_name'] }}">
-                </div>
-
-                <div>
-                    <label class="agr-label" for="business_name">Tenant Company Name <span
-                            class="text-red-500">*</span></label>
-                    <input type="text" id="business_name" name="business_name" maxlength="255" class="agr-input"
-                        value="{{ $values['business_name'] }}">
-                </div>
-
-                <div>
                     <label class="agr-label" for="property_cd">Property Type</label>
                     {{-- Never editable, even in Edit mode (locked by CSS, not disabled, so it still posts). --}}
                     <select id="property_cd" name="property_cd" class="agr-input agr-locked" data-always-locked
@@ -120,6 +107,19 @@
                             </option>
                         @endif
                     </select>
+                </div>
+
+                <div>
+                    <label class="agr-label" for="business_name">Tenant Company Name <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" id="business_name" name="business_name" maxlength="255" class="agr-input"
+                        value="{{ $values['business_name'] }}">
+                </div>
+
+                <div>
+                    <label class="agr-label" for="trade_name">Tenant Name</label>
+                    <input type="text" id="trade_name" name="trade_name" maxlength="255" class="agr-input"
+                        value="{{ $values['trade_name'] }}">
                 </div>
 
                 <div class="sm:col-span-2">

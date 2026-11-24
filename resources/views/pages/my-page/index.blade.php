@@ -4374,7 +4374,7 @@
             const TONE = {
                 red: ['R', 'TKT_CANCEL', 'ITR_R', 'ITR_PIC_I', 'ACC_R', 'AGR_ESCALATED', 'TRN_REJECTED'],
                 amber: ['D', 'TKT_TRANSFER', 'TKT_REOPEN', 'ITR_P', 'ITR_D', 'ITR_PIC_W', 'ACC_P', 'VPL_EXPIRING',
-                    'TRN_PENDING_APPROVAL', 'AGR_SURAT1'
+                    'TRN_PENDING_APPROVAL', 'AGR_SURAT1', 'AGR_DOCS'
                 ],
                 orange: ['H', 'TKT_PENDING', 'BAST_JOB', 'TRN_RESCHEDULE', 'AGR_SURAT2'],
                 green: ['TKT_COMPLETED', 'ITR_C', 'ACC_C', 'TRN_APPROVED', 'TRN_MANUAL_ACCEPT'],
