@@ -386,10 +386,9 @@ class PmTaskController extends Controller
             })->values();
         };
 
-        // Lock visibility: a locked task stays on the board (name, status,
-        // dates, assignees — so people know who to ask) but is masked for
-        // non-assignees, and everything beneath it is dropped entirely.
-        // "Assigned" = direct PIC people + members of PIC Teams.
+        // Lock visibility: a locked task (and everything beneath it) is hidden
+        // from anyone who isn't assigned. "Assigned" = direct PIC people +
+        // members of PIC Teams; PROADMINACCESS always sees everything.
         $me = strtolower(trim(Auth::user()->username));
         // Assignee / Team rows are loaded once here and reused below and by
         // effectiveAssigneeMap() instead of being fetched a second time.
@@ -397,7 +396,9 @@ class PmTaskController extends Controller
         $effective = TrProjectTask::effectiveAssigneeMap($tasks->pluck('task_id'), $assignees, $allTaskTeams);
         $canOpen = TrProjectTask::accessMap($tasks, Auth::user());
         $resolve = fn ($taskId) => $canOpen[$taskId];
-        $tasks = $tasks->filter(fn ($t) => !$t->parent_task_id || !isset($canOpen[$t->parent_task_id]) || $canOpen[$t->parent_task_id]);
+        // A private task (or anything under one) the viewer can't open is left
+        // out of the board entirely — not even a masked card.
+        $tasks = $tasks->filter(fn ($t) => $canOpen[$t->task_id] ?? true);
 
         $taskTeams = $allTaskTeams->only($tasks->pluck('task_id')->all());
         $teamIdsOnBoard = $taskTeams->flatten()->pluck('team_id')->unique();
