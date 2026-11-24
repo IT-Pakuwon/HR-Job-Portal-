@@ -20,7 +20,17 @@
 
             {{-- Filters --}}
             <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
-                <div class="md:col-span-3">
+                <div class="md:col-span-2">
+                    <label for="filterCompany" class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Company</label>
+                    <select id="filterCompany"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        <option value="">All Company</option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company }}">{{ $company }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="md:col-span-2">
                     <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Filter Status</label>
                     <select id="filterStatus"
                         class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
@@ -38,7 +48,7 @@
                         placeholder="cpny_id / order_no / vendor / remark / ref_no...">
                 </div>
 
-                <div class="flex items-end md:col-span-3">
+                <div class="flex items-end md:col-span-2">
                     <button id="btnSearch"
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                         Apply
@@ -338,21 +348,36 @@
         }
     }
 
+    let tableRequestId = 0;
+
     async function loadTable() {
+        const requestId = ++tableRequestId;
         const status = document.getElementById('filterStatus').value;
         const search = document.getElementById('searchInput').value.trim();
+        const company = document.getElementById('filterCompany').value;
 
         tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
 
         const qs = new URLSearchParams();
         if (status) qs.set('status', status);
         if (search) qs.set('search', search);
+        if (company) qs.set('cpny_id', company);
 
-        const res = await fetch(URL_JSON + '?' + qs.toString(), {
-            headers: { 'Accept': 'application/json' }
-        });
+        let json;
+        try {
+            const res = await fetch(URL_JSON + '?' + qs.toString(), {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Failed to load data');
+            json = await res.json();
+        } catch (error) {
+            if (requestId === tableRequestId) {
+                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-red-600">Gagal memuat data. Silakan coba lagi.</td></tr>`;
+            }
+            return;
+        }
+        if (requestId !== tableRequestId) return;
 
-        const json = await res.json();
         const rows = json.data || [];
 
         if (!rows.length) {
@@ -547,6 +572,7 @@
     document.getElementById('btnReload').addEventListener('click', loadTable);
     document.getElementById('btnSearch').addEventListener('click', loadTable);
     document.getElementById('filterStatus').addEventListener('change', loadTable);
+    document.getElementById('filterCompany').addEventListener('change', loadTable);
 
     document.getElementById('searchInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') loadTable();
