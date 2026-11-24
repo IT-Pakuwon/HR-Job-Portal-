@@ -1123,6 +1123,7 @@ Route::middleware(['auth'])->group(function () {
         // WO List
         Route::get('/wos', [WoController::class, 'index'])->name('wos');
         Route::get('/wos/json', [WoController::class, 'json'])->name('wos.json');
+        Route::get('/wos/tenant-jobs', [App\Http\Controllers\TenantSupportComplaintController::class, 'transferredJson'])->name('wos.tenantjobs');
         // View WO Detail
         Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
         Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');

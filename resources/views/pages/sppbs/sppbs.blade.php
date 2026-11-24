@@ -202,6 +202,12 @@
                             <option value="C">Completed</option>
                         </select>
 
+                        {{-- Company Filter --}}
+                        <select id="filterCompany"
+                            class="h-9 rounded-lg border border-gray-200 px-3 text-sm dark:border-white/[0.06] dark:bg-[#0f172a] dark:text-gray-300">
+                            <option value="">All Company</option>
+                        </select>
+
                         {{-- Department Filter --}}
                         <select id="filterDepartment"
                             class="h-9 rounded-lg border border-gray-200 px-3 text-sm dark:border-white/[0.06] dark:bg-[#0f172a] dark:text-gray-300">
@@ -1069,6 +1075,7 @@
             let statusFilter = 'P';
             let mode = 'normal';
             let deptFilter = '';
+            let cpnyFilter = '';
 
             const woColumnIndex = 2; // index WO column
 
@@ -1145,6 +1152,7 @@
                         d.status = statusFilter ?? '';
                         d.mode = mode;
                         d.department_extra = deptFilter;
+                        d.company_extra = cpnyFilter;
                     },
                     complete: function(xhr) {
 
@@ -1152,6 +1160,20 @@
 
                             const response = xhr.responseJSON;
                             const departments = response?.departments || [];
+                            const companies = response?.companies || [];
+
+                            const cpnySelect = $('#filterCompany');
+
+                            cpnySelect.empty();
+                            cpnySelect.append('<option value="">All Company</option>');
+
+                            companies.forEach(function(c) {
+                                cpnySelect.append('<option value="' + c + '">' + c + '</option>');
+                            });
+
+                            if (cpnyFilter) {
+                                cpnySelect.val(cpnyFilter);
+                            }
 
                             const deptSelect = $('#filterDepartment');
 
@@ -1385,6 +1407,7 @@
                     mode = 'all';
                     statusFilter = '';
                     deptFilter = '';
+                    cpnyFilter = '';
 
                     $('#pageTitle').text('SPPB All List');
                     $('#createBtn').hide();
@@ -1421,6 +1444,12 @@
 
                 table.ajax.reload(null, true);
             });
+            $('#filterCompany').on('change', function() {
+                cpnyFilter = this.value;
+                deptFilter = '';
+                table.ajax.reload();
+            });
+
             $('#filterDepartment').on('change', function() {
                 deptFilter = this.value;
                 table.ajax.reload();

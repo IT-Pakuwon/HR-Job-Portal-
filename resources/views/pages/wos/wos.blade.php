@@ -13,12 +13,29 @@
         if ($hasWoAllAccess || $hasAllList) {
             $xlCols++; // WO All
         }
+        if (!empty($canTenantWo)) {
+            $xlCols++; // Tenant WO Jobs (ACCESSTR only)
+        }
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
         {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"> --}}
             <div
             class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+
+            {{-- Tenant WO Jobs: complaints transferred to WO (ACCESSTR only) --}}
+            @if (!empty($canTenantWo))
+                <a href="#" id="tenantWoTab" class="group block h-full">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-violet-700 bg-violet-200/20 p-3 text-violet-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-violet-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🏢</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Tenant WO Jobs</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $tenantWoCount ?? 0 }}</p>
+                    </div>
+                </a>
+            @endif
 
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
@@ -114,7 +131,39 @@
 
         </div>
 
-        <div
+        @if (!empty($canTenantWo))
+            <div id="tenantWoPanel"
+                class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Tenant WO Jobs
+                        <span class="ml-2 text-xs font-normal text-gray-500">Complaints transferred to WO</span>
+                    </h2>
+                </div>
+                <div class="relative overflow-x-auto">
+                    <table id="tenantWoTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="px-4 py-3 text-left font-medium">Complaint No</th>
+                                <th class="px-4 py-3 text-left font-medium">Complaint Date</th>
+                                <th class="px-4 py-3 text-left font-medium">Site</th>
+                                <th class="px-4 py-3 text-left font-medium">Tenant</th>
+                                <th class="px-4 py-3 text-left font-medium">Category</th>
+                                <th class="px-4 py-3 text-left font-medium">Description</th>
+                                <th class="px-4 py-3 text-left font-medium">Transferred</th>
+                                <th class="px-4 py-3 text-left font-medium">WO</th>
+                                <th class="px-4 py-3 text-left font-medium">Status</th>
+                                <th class="px-4 py-3 text-left font-medium">WO Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
+        <div id="requestWoPanel"
             class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div
                 class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
@@ -608,8 +657,67 @@
             });
 
 
+            // ===== Tenant WO Jobs tab (ACCESSTR only): complaints transferred to WO =====
+            let tenantWoTable = null;
+            $('#tenantWoTab').on('click', function(e) {
+                e.preventDefault();
+                $('#requestWoPanel').addClass('hidden');
+                $('#tenantWoPanel').removeClass('hidden');
+                $('.status-filter').removeClass('active');
+                $(this).addClass('active');
+
+                if (tenantWoTable) {
+                    tenantWoTable.ajax.reload();
+                    return;
+                }
+                const esc = s => $('<div>').text(s ?? '').html();
+                const badge = (map, v) => {
+                    const it = map[v] || {
+                        t: v || '-',
+                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                    };
+                    return `<span class="inline-block w-28 ${it.c} font-semibold px-2 py-1 text-xs text-center rounded">${it.t}</span>`;
+                };
+                const woStatus = {
+                    P: { t: 'On Progress', c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40' },
+                    C: { t: 'Completed', c: 'bg-green-200/60 text-green-800 border border-green-600/40' },
+                    R: { t: 'Rejected', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
+                    D: { t: 'Revise', c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40' },
+                };
+                const jobStatus = {
+                    H: { t: 'Hold', c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40' },
+                    P: { t: 'On Progress', c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40' },
+                    C: { t: 'Completed', c: 'bg-green-200/60 text-green-800 border border-green-600/40' },
+                    X: { t: 'Cancel', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
+                };
+                tenantWoTable = $('#tenantWoTable').DataTable({
+                    ajax: { url: "{{ route('wos.tenantjobs') }}", dataSrc: 'data' },
+                    pageLength: 10,
+                    order: [[6, 'desc']],
+                    dom: '<"dt-toolbar"l f>rtip',
+                    columns: [
+                        { data: 'complaintnbr', render: v => `<span class="whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white">${esc(v)}</span>` },
+                        { data: 'complaintdate' },
+                        { data: 'sitename', defaultContent: '-' },
+                        { data: 'storename', render: (v, t, r) => esc(v || '-') + (r.unit ? `<div class="text-xs text-gray-500">${esc(r.unit)}</div>` : '') },
+                        { data: 'category', defaultContent: '-' },
+                        { data: 'description', className: 'whitespace-normal break-words min-w-[220px]', render: v => esc(v) },
+                        { data: 'transferred_at', render: (v, t, r) => esc(v) + `<div class="text-xs text-gray-500">${esc(r.transferred_by)}</div>` },
+                        { data: 'woid', render: (v, t, r) => !v ? '-' : (r.wo_eid
+                            ? `<a href="/showwos/${r.wo_eid}" class="whitespace-nowrap rounded bg-gray-500 px-3 py-1.5 text-sm text-white hover:bg-gray-700">${esc(v)}</a>`
+                            : esc(v)) },
+                        { data: 'wo_status', render: v => badge(woStatus, v) },
+                        { data: 'wo_job_status', render: v => badge(jobStatus, v) },
+                    ],
+                    language: { emptyTable: 'No complaint has been transferred to WO yet.' },
+                });
+            });
+
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
+                $('#tenantWoPanel').addClass('hidden');
+                $('#requestWoPanel').removeClass('hidden');
+                $('#tenantWoTab').removeClass('active');
 
                 const status = $(this).data('status');
                 const scope = $(this).data('scope');

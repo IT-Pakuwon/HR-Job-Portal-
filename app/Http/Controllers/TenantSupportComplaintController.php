@@ -273,7 +273,14 @@ class TenantSupportComplaintController extends Controller
     {
         $c = $this->base()->where('c.id', $id)->first(['c.complaintnbr', 'c.complaintdate', 'c.siteid', 'c.created_user']);
 
-        return ['activities' => $this->activities($c), 'messages' => $this->messages($c), 'attachments' => $this->attachments($c), 'mentionable' => $this->mentionable($c)];
+        // Company that owns the complaint's site (legacy site -> ms_company), e.g. GC -> "AW · PT. ARTISAN WAHYU".
+        $company = null;
+        if ($cands = TenantRelationScope::SITE_COMPANY[$c->siteid] ?? []) {
+            $m = \App\Models\MsCompany::whereIn('cpny_id', $cands)->first(['cpny_id', 'cpny_name']);
+            $company = $m ? trim($m->cpny_id . ' · ' . $m->cpny_name) : $cands[0];
+        }
+
+        return ['company' => $company, 'activities' => $this->activities($c), 'messages' => $this->messages($c), 'attachments' => $this->attachments($c), 'mentionable' => $this->mentionable($c)];
     }
 
     public function message(Request $request, string $eid)
@@ -348,13 +355,128 @@ class TenantSupportComplaintController extends Controller
 
         $c = (new self)->base()->where('c.id', $id)->whereIn('c.status', ['C', 'P'])
             ->whereNotExists(fn ($q) => $q->from('tr_complaint_activity as a')->whereColumn('a.complaintnbr', 'c.complaintnbr')->where('a.status', 'W'))
-            ->first(['c.complaintnbr', 'c.description', 'k.name as category', 't.storename', 's.sitename']);
+            ->first(['c.complaintnbr', 'c.siteid', 'c.description', 'k.name as category', 't.storename', 's.sitename']);
         if (! $c) return null;
 
         $text = "Complaint {$c->complaintnbr}" . ($c->category ? " ({$c->category})" : '') . "\n"
             . trim(implode(' - ', array_filter([$c->sitename, $c->storename]))) . "\n" . $c->description;
 
-        return ['eid' => $eid, 'nbr' => $c->complaintnbr, 'text' => trim($text)];
+        return ['eid' => $eid, 'nbr' => $c->complaintnbr, 'text' => trim($text), 'cpny' => self::woCompany($c->siteid, $user->username),
+            'files' => (new self)->attachments($c)->map(fn ($a) => ['name' => self::baseName($a->name, $a->fileextension) . '.' . $a->fileextension, 'url' => $a->url])->all()];
+    }
+
+    /** The tenant app stores names that already end with the extension ("photo.png" + png); drop the duplicate. */
+    private static function baseName(?string $name, ?string $ext): string
+    {
+        $name = (string) $name;
+
+        return $ext && strcasecmp(substr($name, -strlen($ext) - 1), '.' . $ext) === 0 ? substr($name, 0, -strlen($ext) - 1) : $name;
+    }
+
+    /**
+     * Copy the complaint's attachments into the new WO (tr_attachment, doctype WO) inside GCS - no download/re-upload.
+     * Returns how many were copied; a file that fails is reported and skipped.
+     */
+    public static function copyAttachmentsToWo(string $eid, string $woid, ?string $cpny, ?string $dept): int
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        $self = new self;
+        $c = $id ? $self->base()->where('c.id', $id)->first(['c.complaintnbr']) : null;
+        if (! $c) return 0;
+
+        $bucket = $self->gcsClient()->bucket(config('filesystems.disks.gcs.bucket'));
+        $folder = 'att-purchasing-app/wo/' . now()->year;
+        $n = 0;
+
+        $rows = $self->db()->table('msattachment')->where('doctype', 'CMP')->where('refnbr', $c->complaintnbr)->where('status', 'A')->orderBy('id')->get();
+        foreach ($rows as $r) {
+            try {
+                $src = $bucket->object($self->tenantAttachmentObject($r, 'CMP'));
+                $filename = md5((string) random_int(1, 99999999)) . '.' . $r->fileextension;
+                $src->copy($bucket, ['name' => "$folder/$filename"]);
+
+                \App\Models\TrAttachment::create([
+                    'refnbr' => $woid, 'doctype' => 'WO', 'attachment_date' => now(), 'cpny_id' => $cpny, 'department_id' => $dept,
+                    'attachment_name' => self::baseName($r->name, $r->fileextension), 'folder' => $folder, 'filename' => $filename,
+                    'filesize' => (int) ($src->info()['size'] ?? 0), 'extention' => $r->fileextension, 'status' => 'A',
+                    'created_by' => Auth::user()->username,
+                ]);
+                $n++;
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return $n;
+    }
+
+    /** The WO company that follows a complaint's site: the site's company that this user has access to (null = no match, form stays free). */
+    public static function woCompany(?string $siteid, string $username): ?string
+    {
+        $cands = TenantRelationScope::SITE_COMPANY[$siteid] ?? [];
+        if (! $cands) return null;
+
+        $mine = Usercpny::where('username', $username)->where('status', 'A')->pluck('cpny_id')->map(fn ($x) => strtoupper(trim($x)))->all();
+
+        return collect($cands)->first(fn ($x) => in_array($x, $mine, true));
+    }
+
+    /** Company a WO created from this complaint must use (null = unrestricted / unknown complaint). */
+    public static function companyForEid(string $eid): ?string
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        $siteid = $id ? DB::connection('mysql5')->table('tr_complaint')->where('id', $id)->value('siteid') : null;
+
+        return $siteid ? self::woCompany($siteid, (string) Auth::user()?->username) : null;
+    }
+
+    /** "Tenant WO Jobs" tab on the WO list is for ACCESSTR users only. */
+    public static function canSeeTenantWoJobs(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) ($user && $user->hasRole('ACCESSTR'));
+    }
+
+    /**
+     * Every complaint that was transferred to a WO (activity status W), newest first, with that WO's live status.
+     * Complaints live in mysql5 and WOs in pgsql, so the WO number is read from the activity note ("WO WO2611xxxx").
+     */
+    public static function transferredRows(): array
+    {
+        if (! self::canSeeTenantWoJobs()) return [];
+
+        $rows = (new self)->base()
+            ->join('tr_complaint_activity as a', fn ($j) => $j->on('a.complaintnbr', '=', 'c.complaintnbr')->where('a.status', 'W'))
+            ->orderByDesc('a.created_datetime')->orderByDesc('a.id')
+            ->get(['c.complaintnbr', 'c.complaintdate', 'c.status as complaint_status', 's.sitename', 't.storename', 't.unit', 'k.name as category',
+                'c.description', 'a.activity_description', 'a.created_name', 'a.created_user', 'a.created_datetime']);
+
+        $woIds = $rows->map(fn ($r) => preg_match('/WO\d+/i', (string) $r->activity_description, $m) ? strtoupper($m[0]) : null)->all();
+        $wos = \App\Models\TrWO::whereIn('woid', array_filter(array_unique($woIds)))
+            ->get(['id', 'woid', 'cpny_id', 'department_id', 'status', 'status_pekerjaan', 'pic_wo'])->keyBy('woid');
+
+        return $rows->map(function ($r, $i) use ($woIds, $wos) {
+            $wo = $woIds[$i] ? $wos->get($woIds[$i]) : null;
+
+            return [
+                'complaintnbr' => $r->complaintnbr, 'complaintdate' => substr((string) $r->complaintdate, 0, 16),
+                'sitename' => $r->sitename, 'storename' => $r->storename, 'unit' => $r->unit, 'category' => $r->category,
+                'description' => $r->description, 'transferred_by' => $r->created_name ?: $r->created_user,
+                'transferred_at' => substr((string) $r->created_datetime, 0, 16),
+                'woid' => $woIds[$i], 'wo_eid' => $wo ? Hashids::encode($wo->id) : null, 'cpny_id' => $wo->cpny_id ?? null,
+                'department_id' => $wo->department_id ?? null, 'wo_status' => $wo->status ?? null,
+                'wo_job_status' => $wo->status_pekerjaan ?? null, 'pic_wo' => $wo->pic_wo ?? null,
+            ];
+        })->all();
+    }
+
+    /** GET /wos/tenant-jobs */
+    public function transferredJson()
+    {
+        abort_unless(self::canSeeTenantWoJobs(), 403);
+
+        return response()->json(['data' => self::transferredRows()]);
     }
 
     /** Called by the WO form once a WO was saved from a complaint: activity W + WO number in the log; header becomes/stays P. */

@@ -100,7 +100,12 @@ class WoController extends Controller
                 ->whereIn('department_id', $deptIds)
                 ->count();
 
+        $canTenantWo = \App\Http\Controllers\TenantSupportComplaintController::canSeeTenantWoJobs();
+        $tenantWoCount = $canTenantWo ? count(\App\Http\Controllers\TenantSupportComplaintController::transferredRows()) : 0;
+
         return view('pages.wos.wos', compact(
+            'canTenantWo',
+            'tenantWoCount',
             'all',
             'onProgress',
             'reject',
@@ -354,6 +359,23 @@ class WoController extends Controller
         }
         $validated = $validator->validated();
 
+        // From a complaint: WO Request is always Tenant, and the WO company must follow the complaint's site company.
+        if ($request->filled('complaint_eid')) {
+            if (strtolower(trim($validated['worequest'])) !== 'tenant') {
+                return response()->json([
+                    'message' => 'Validasi gagal',
+                    'errors' => ['worequest' => ['WO Request must be Tenant for a WO created from a complaint.']],
+                ], 422);
+            }
+            $required = \App\Http\Controllers\TenantSupportComplaintController::companyForEid((string) $request->complaint_eid);
+            if ($required && strtoupper(trim($validated['cpnyid'])) !== $required) {
+                return response()->json([
+                    'message' => 'Validasi gagal',
+                    'errors' => ['cpnyid' => ["Company must be $required (the complaint's company)."]],
+                ], 422);
+            }
+        }
+
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
         // Pastikan line approval ada (validasi awal)
@@ -523,6 +545,13 @@ class WoController extends Controller
             if ($request->filled('complaint_eid')) {
                 try {
                     \App\Http\Controllers\TenantSupportComplaintController::markTransferred((string) $request->complaint_eid, $docid);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+                // Bring the complaint's own attachments along (separate try: a failed log entry must not skip the files).
+                try {
+                    \App\Http\Controllers\TenantSupportComplaintController::copyAttachmentsToWo(
+                        (string) $request->complaint_eid, $docid, $validated['cpnyid'], $validated['departementid']);
                 } catch (\Throwable $e) {
                     report($e);
                 }

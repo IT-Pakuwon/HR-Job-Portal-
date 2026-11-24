@@ -168,6 +168,7 @@
                                         ['Created By', detail.created_user || '-'],
                                         ['Complaint Date', String(detail.complaintdate || '').substring(0, 16) || '-'],
                                         ...(detail.resolved_date ? [['Resolved Date', String(detail.resolved_date).substring(0, 16)]] : []),
+                                        ['Company', detail.company || '-'],
                                         ['Site', detail.sitename || detail.siteid || '-'],
                                         ['Category', detail.category || '-'],
                                         ['Tenant', [detail.storename, detail.tenantcompanyname].filter(Boolean).join(' · ') || '-'],

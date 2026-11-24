@@ -124,6 +124,7 @@ class SppjController extends Controller
         $status = (string) $request->query('status', '');
         $mode = (string) $request->query('mode', 'normal');
         $deptExtra = (string) $request->query('department_extra', '');
+        $cpnyExtra = (string) $request->query('company_extra', '');
 
         $baseTable = (new TrSPPJ())->getTable();
 
@@ -171,6 +172,11 @@ class SppjController extends Controller
             // department filter from dropdown
             if (!empty($deptExtra)) {
                 $base->where('sppj.department_id', $deptExtra);
+            }
+
+            // company filter (dropdown)
+            if (!empty($cpnyExtra)) {
+                $base->where('sppj.cpny_id', $cpnyExtra);
             }
 
             // status dropdown override
@@ -248,8 +254,8 @@ class SppjController extends Controller
                 ->whereIn('sppj.cpny_id', $cpnyIds)
                 ->whereIn('sppj.status', ['P', 'C']);
 
-            if (!empty($deptExtra)) {
-                $deptQuery->where('sppj.department_id', $deptExtra);
+            if (!empty($cpnyExtra)) {
+                $deptQuery->where('sppj.cpny_id', $cpnyExtra);
             }
 
             $departments = $deptQuery
@@ -259,12 +265,26 @@ class SppjController extends Controller
                 ->pluck('department_id');
         }
 
+        // ==============================
+        // COMPANY LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $companies = [];
+
+        if ($mode === 'all') {
+            $companies = DB::table($baseTable)
+                ->whereIn('cpny_id', $cpnyIds)
+                ->distinct()
+                ->orderBy('cpny_id')
+                ->pluck('cpny_id');
+        }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
             'departments' => $departments,
+            'companies' => $companies,
         ]);
     }
 

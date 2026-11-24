@@ -130,6 +130,7 @@ class SppbController extends Controller
         $status = (string) $request->query('status', '');
         $mode = (string) $request->query('mode', 'normal');
         $deptExtra = (string) $request->query('department_extra', '');
+        $cpnyExtra = (string) $request->query('company_extra', '');
 
         $baseTable = (new TrSPPB())->getTable();
 
@@ -180,6 +181,11 @@ class SppbController extends Controller
             // department filter (dropdown)
             if (!empty($deptExtra)) {
                 $base->where('sppb.department_id', $deptExtra);
+            }
+
+            // company filter (dropdown)
+            if (!empty($cpnyExtra)) {
+                $base->where('sppb.cpny_id', $cpnyExtra);
             }
 
             // status dropdown override
@@ -281,18 +287,36 @@ class SppbController extends Controller
             $deptQuery = TrSPPB::query()
                 ->whereIn('cpny_id', $cpnyIds);
 
+            if (!empty($cpnyExtra)) {
+                $deptQuery->where('cpny_id', $cpnyExtra);
+            }
+
             $departments = $deptQuery
                 ->select('department_id')
                 ->distinct()
                 ->orderBy('department_id')
                 ->pluck('department_id');
         }
+        // ==============================
+        // COMPANY LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $companies = [];
+
+        if ($mode === 'all') {
+            $companies = DB::table($baseTable)
+                ->whereIn('cpny_id', $cpnyIds)
+                ->distinct()
+                ->orderBy('cpny_id')
+                ->pluck('cpny_id');
+        }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
             'departments' => $departments,
+            'companies' => $companies,
         ]);
     }
 
