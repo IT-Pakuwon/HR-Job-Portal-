@@ -132,6 +132,7 @@ class RfpController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
         $scope  = (string) $request->query('scope', '');
+        $company = trim((string) $request->query('cpny_id', ''));
         $financeCpny = trim((string) $request->query('finance_cpny', ''));
         $financeStatus = trim((string) $request->query('finance_status', ''));
         $typePo = strtoupper(trim((string) $request->query('type_po', '')));
@@ -170,6 +171,7 @@ class RfpController extends Controller
 
         $base = TrRfp::from($baseTable . ' as rfp')
             ->whereIn('rfp.cpny_id', $cpnyIds)
+            ->when($company !== '', fn ($q) => $q->where('rfp.cpny_id', $company))
             ->when(
                 !in_array($scope, ['rfp_all', 'rfp_finance'], true),
                 fn ($q) => $q->whereIn('rfp.department_id', $deptIds)
@@ -177,7 +179,7 @@ class RfpController extends Controller
             ->when($scope === 'rfp_finance', function ($q) {
                 $q->where('rfp.status', 'C');
             })
-            ->when($scope === 'rfp_finance' && $financeCpny !== '' && in_array($financeCpny, $cpnyIds, true), function ($q) use ($financeCpny) {
+            ->when($scope === 'rfp_finance' && $company === '' && $financeCpny !== '', function ($q) use ($financeCpny) {
                 $q->where('rfp.cpny_id', $financeCpny);
             })
             ->when($scope === 'rfp_finance' && $financeStatus === 'waiting_user', function ($q) {
