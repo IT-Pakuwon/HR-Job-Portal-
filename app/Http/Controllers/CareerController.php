@@ -548,6 +548,57 @@ class CareerController extends Controller
         return $query;
     }
 
+    public function pdfInterviewAssessment(Request $request, string $hash, string $type)
+    {
+        abort_unless(in_array($type, ['hc', 'user'], true), 404);
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = $request->user();
+        $career = ViewCareer::findOrFail($id);
+        $this->assertApplicantCompanyAccess($user, $career->group_cpny_id, $career->cpnyid);
+        $access = $type === 'hc' ? 'INTERVIEWHC' : 'INTERVIEWUSER';
+        abort_unless(GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', $access)->where('status', 'A')->exists(), 403);
+
+        $assessment = TrAssessment::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->docidposting)
+            ->where('group_cpny_id', $career->group_cpny_id)
+            ->where('type', $type)->firstOrFail();
+
+        $details = TrAssessmentdetail::leftJoin('hr_ms_interview_assessment as master', function ($join) {
+            $join->on('hr_trx_interview_assessment_detail.assessment_id', '=', 'master.assessment_id')
+                ->on('hr_trx_interview_assessment_detail.group_cpny_id', '=', 'master.group_cpny_id');
+        })->where('hr_trx_interview_assessment_detail.docid', $assessment->docid)
+            ->where('hr_trx_interview_assessment_detail.group_cpny_id', $career->group_cpny_id)
+            ->where('hr_trx_interview_assessment_detail.jobid', $career->docidposting)
+            ->select('hr_trx_interview_assessment_detail.*', 'master.assessment_group', 'master.assessment_descr')
+            ->orderBy('hr_trx_interview_assessment_detail.step_order_group')
+            ->orderBy('hr_trx_interview_assessment_detail.step_order')
+            ->get()->groupBy('step_order_group');
+
+        $groups = $details->map(function ($items) {
+            $selected = $items->first(fn ($item) => $item->assessment_score_value !== null);
+            return [
+                'label' => $items->first()->assessment_group,
+                'selected' => $selected?->assessment_score_value,
+                'options' => $items->keyBy(fn ($item) => (string) $item->assessment_score),
+            ];
+        })->values();
+
+        $results = TrAssessmentResult::where('jobapply_id', $career->docid)
+            ->where('jobid', $career->docidposting)->where('group_cpny_id', $career->group_cpny_id)
+            ->where('assessment_type', $type)->orderBy('created_at')->get();
+        $names = User::whereIn('username', $results->pluck('created_user')->push($assessment->user)->filter()->unique())
+            ->pluck('name', 'username');
+        $companyName = MsCompany::where('cpny_id', $career->cpnyid)
+            ->where('group_cpny_id', $career->group_cpny_id)->value('cpny_name');
+
+        return PDF::loadView('pages.careers.pdfinterviewassessment', compact(
+            'career', 'assessment', 'groups', 'results', 'names', 'type', 'companyName'
+        ))->setPaper('A4', 'portrait')->stream('interview-'.strtolower($type).'-'.$career->docid.'.pdf');
+    }
+
     public function updateAssessment(Request $request)
     {
         // dd($request->all());

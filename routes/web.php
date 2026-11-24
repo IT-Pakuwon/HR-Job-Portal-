@@ -594,6 +594,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assessment/update', [CareerController::class, 'updateAssessment'])->name('assessment.update');
     Route::post('/assessmentuser/update', [CareerController::class, 'updateAssessmentuser'])->name('assessmentuser.update');
     Route::post('/assessmentresult/update', [CareerController::class, 'updateAssessmentResult'])->name('assessmentresult.update');
+    Route::get('/career/{hash}/interview-assessment/{type}/pdf', [CareerController::class, 'pdfInterviewAssessment'])
+        ->whereIn('type', ['hc', 'user'])->name('career.interview-assessment.pdf');
     Route::get('/career/{docid}/check-reject-permission', [CareerController::class, 'checkRejectPermission']);
     Route::get('/career/{docid}/check-rollback-permission', [CareerController::class, 'checkRollbackPermission']);
     // Route::get('/payroll-confirmation', [CareerController::class, 'index'])->name('payroll.index');
