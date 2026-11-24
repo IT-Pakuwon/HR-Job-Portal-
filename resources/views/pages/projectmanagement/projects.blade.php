@@ -1094,6 +1094,7 @@
         /* "Assigned" picker (#task_assignees, #qc_pic) — avatar chips and a
            richer dropdown (see pmAssignSelect2Opts()). */
         #select2-task_assignees-container .select2-selection__choice,
+        #select2-project_team_pic-container .select2-selection__choice,
         #select2-qc_pic-container .select2-selection__choice {
             padding: 2px 8px 2px 3px !important;
             background: #fff !important;
@@ -1102,6 +1103,7 @@
             transition: box-shadow .15s ease, transform .15s ease;
         }
         #select2-task_assignees-container .select2-selection__choice:hover,
+        #select2-project_team_pic-container .select2-selection__choice:hover,
         #select2-qc_pic-container .select2-selection__choice:hover {
             box-shadow: 0 0 0 1px rgb(165 180 252), 0 2px 6px rgb(99 102 241 / .15);
         }
@@ -1120,8 +1122,18 @@
         .pm-opt .pm-opt-name { font-weight: 600; line-height: 1.2; }
         .pm-opt .pm-opt-sub { font-size: .7rem; opacity: .6; line-height: 1.2; }
         .pm-opt .pm-opt-team { display: inline-flex; height: 28px; width: 28px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; background: rgb(224 231 255); color: rgb(79 70 229); font-size: 12px; }
-        .pm-opt .pm-opt-check { margin-left: auto; font-size: .7rem; color: rgb(99 102 241); }
+        .pm-opt .pm-opt-box { display: inline-flex; height: 18px; width: 18px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 5px; border: 1.5px solid rgb(203 213 225); background: #fff; color: transparent; font-size: 9px; transition: background .12s ease, border-color .12s ease, color .12s ease; }
+        .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(79 70 229); border-color: rgb(79 70 229); color: #fff; }
+        .pm-assign-dd .select2-results__option[aria-selected=true] { background-color: rgb(245 247 255) !important; }
+        .pm-assign-dd .select2-results__options { max-height: 280px !important; }
+        .select2-selection__rendered .pm-more { display: inline-flex; align-items: center; cursor: pointer; border-radius: 9999px; padding: 3px 10px; font-size: .75rem; font-weight: 600; color: rgb(79 70 229); background: rgb(238 242 255); }
+        .select2-selection__rendered .pm-more:hover { background: rgb(224 231 255); }
+        .dark .pm-opt .pm-opt-box { background: transparent; border-color: rgb(100 116 139); }
+        .dark .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(99 102 241); border-color: rgb(99 102 241); }
+        .dark .pm-assign-dd .select2-results__option[aria-selected=true] { background-color: rgb(99 102 241 / .12) !important; }
+        .dark .select2-selection__rendered .pm-more { background: rgb(99 102 241 / .2); color: rgb(199 210 254); }
         .dark #select2-task_assignees-container .select2-selection__choice,
+        .dark #select2-project_team_pic-container .select2-selection__choice,
         .dark #select2-qc_pic-container .select2-selection__choice {
             background: rgb(255 255 255 / .06) !important;
             color: rgb(226 232 240) !important;
@@ -2999,7 +3011,8 @@
                 const el = state.element;
                 const isTeam = !!state.id && String(state.id).startsWith('TEAM:');
                 const m = isTeam ? null : /^(.*?)\s*\(([^()]+)\)\s*$/.exec(state.text || '');
-                return { isTeam, name: m ? m[1] : (state.text || ''), username: m ? m[2] : '' };
+                const idUser = String(state.id || '').startsWith('USER:') ? String(state.id).slice(5) : '';
+                return { isTeam, name: m ? m[1] : (state.text || ''), username: m ? m[2] : idUser };
             };
             return {
                 width: '100%',
@@ -3015,6 +3028,7 @@
                     }
                     const { isTeam, name, username } = parse(state);
                     const $row = $('<div class="pm-opt"></div>');
+                    $row.append('<span class="pm-opt-box"><i class="fas fa-check"></i></span>');
                     $row.append(isTeam
                         ? '<span class="pm-opt-team"><i class="fas fa-users"></i></span>'
                         : $(initialsAvatar(name || username, 28)));
@@ -3022,7 +3036,6 @@
                     $txt.append($('<div class="pm-opt-name"></div>').text(name));
                     $txt.append($('<div class="pm-opt-sub"></div>').text(isTeam ? 'Team · all members' : (username ? '@' + username : '')));
                     $row.append($txt);
-                    if (state.selected) $row.append('<i class="fas fa-check pm-opt-check"></i>');
                     return $row;
                 },
                 templateSelection: (state) => {
@@ -3036,6 +3049,32 @@
                     return $chip;
                 },
             };
+        }
+        // Keep the field compact for long selections: show the first 3 chips
+        // and a "+N more" pill that expands/collapses the rest.
+        function pmCollapseChips($select) {
+            const container = $select.data('select2')?.$container;
+            if (!container) return;
+            const $ul = container.find('.select2-selection__rendered');
+            $ul.find('.pm-more').remove();
+            const $chips = $ul.children('.select2-selection__choice');
+            const limit = 3;
+            const expanded = !!$select.data('pmExpanded');
+            $chips.each(function (i) { $(this).toggle(expanded || i < limit); });
+            if ($chips.length > limit) {
+                const label = expanded ? 'Show less' : `+${$chips.length - limit} more`;
+                const $more = $(`<li class="pm-more">${label}</li>`);
+                $more.on('mousedown click', (e) => {
+                    e.stopPropagation();
+                    if (e.type === 'click') {
+                        $select.data('pmExpanded', !expanded);
+                        pmCollapseChips($select);
+                    }
+                });
+                $ul.children('.select2-search--inline').before($more);
+            } else {
+                $select.data('pmExpanded', false);
+            }
         }
         // Init the "Assigned" select2 and give its dropdown a Select all /
         // Clear bar. Select all adds every option that matches the search box
@@ -3076,7 +3115,11 @@
                 $dd.find('.select2-results').before($bar);
                 refresh();
             });
-            $select.on('change', () => $select.data('select2')?.$dropdown?.find('.pm-assign-count').trigger('pm:refresh'));
+            $select.on('change select2:open select2:close', () => {
+                $select.data('select2')?.$dropdown?.find('.pm-assign-count').trigger('pm:refresh');
+                setTimeout(() => pmCollapseChips($select), 0);
+            });
+            setTimeout(() => pmCollapseChips($select), 0);
         }
         function initPicSelect($select, $dropdownParent) {
             if (!$select.hasClass('select2-hidden-accessible')) {
@@ -3150,7 +3193,7 @@
         // so the submit handler can split pic_type/ref_id back out.
         function initTeamPicMultiSelect($select, $dropdownParent) {
             if (!$select.hasClass('select2-hidden-accessible')) {
-                $select.select2({ width: '100%', closeOnSelect: false, dropdownParent: $dropdownParent });
+                pmInitAssignSelect($select, $dropdownParent);
             }
         }
 
@@ -3162,6 +3205,10 @@
         // Teams listed above it; picking one does NOT implicitly link a Team.
         function loadProjectTeamPicOptions($select, selectedTeamIds = [], selectedPicEntries = []) {
             $select.empty().trigger('change');
+            // A newer load supersedes an older one still in flight — otherwise
+            // both would append their own People group and list everyone twice.
+            const token = ($select.data('picLoad') || 0) + 1;
+            $select.data('picLoad', token);
             const allTeams = window.PM_ALL_TEAMS || [];
 
             const selectedKeys = selectedPicEntries.map(e => `${e.pic_type}:${e.pic_type === 'TEAM' ? e.team_id : e.username}`);
@@ -3179,6 +3226,8 @@
             }
 
             $.get('{{ route('projects.pic-users') }}', (users) => {
+                if ($select.data('picLoad') !== token) return;
+                $select.find('optgroup[label="People"]').remove();
                 const peopleGroup = $('<optgroup label="People"></optgroup>');
                 (users || []).forEach((u) => {
                     const key = `USER:${u.username}`;
