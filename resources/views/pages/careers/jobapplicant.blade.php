@@ -248,7 +248,7 @@
             </div>
 
 
-            <div class="relative mt-4 overflow-hidden">
+            <div class="relative mt-4 overflow-hidden px-5 pb-4">
                 <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -336,7 +336,7 @@
                 </p>
             </div>
 
-            <div class="relative overflow-hidden">
+            <div class="relative overflow-hidden px-5 pb-4">
                 <table id="dupApplicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr

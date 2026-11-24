@@ -332,11 +332,16 @@ function refreshCounts() {
 }
 
 function initViewSwitcher() {
+    $('.legal-nav-card[data-view="jobs"] .agreement-status-card').addClass('is-selected');
+
     $(document).on('click', '.legal-nav-card', function (e) {
         e.preventDefault();
 
         const $card = $(this);
         const view = $card.data('view');
+
+        $('.legal-nav-card .agreement-status-card').removeClass('is-selected');
+        $card.find('.agreement-status-card').addClass('is-selected');
 
         if (view === 'jobs') {
             $('#agreementSection').addClass('hidden');

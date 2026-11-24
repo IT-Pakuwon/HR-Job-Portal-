@@ -511,4 +511,14 @@
         background: #fff;
         color: #0f172a;
     }
+
+    /* Selected status card (Agreement FU): thicker border, bold, lifted, glow in the card's own colour. */
+    .agreement-status-card.is-selected {
+        border-width: 2px;
+        padding: 11px;
+        font-weight: 700;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px -4px currentColor;
+        background-color: color-mix(in srgb, currentColor 14%, transparent);
+    }
 </style>

@@ -1405,10 +1405,31 @@
                 jobsExport: "{{ route($kind['r']['jobs_export'], [], false) }}",
             };
 
+            // Selected-card highlight, same look as the Tenant Support status cards (darker fill + border + shadow).
+            const CARD_ACTIVE = {
+                jobs: 'border-2! p-[11px]! font-bold! bg-purple-100! border-purple-700! text-purple-700! shadow-[0_4px_14px_-4px_rgba(147,51,234,.55)]! -translate-y-px dark:bg-purple-500/20! dark:border-purple-400! dark:text-purple-200!',
+                draft: 'border-2! p-[11px]! font-bold! bg-pink-100! border-pink-700! text-pink-700! shadow-[0_4px_14px_-4px_rgba(219,39,119,.55)]! -translate-y-px dark:bg-pink-500/20! dark:border-pink-400! dark:text-pink-200!',
+                active: 'border-2! p-[11px]! font-bold! bg-green-100! border-green-700! text-green-700! shadow-[0_4px_14px_-4px_rgba(22,163,74,.55)]! -translate-y-px dark:bg-green-500/20! dark:border-green-400! dark:text-green-200!',
+                completed: 'border-2! p-[11px]! font-bold! bg-blue-100! border-blue-700! text-blue-700! shadow-[0_4px_14px_-4px_rgba(59,130,246,.55)]! -translate-y-px dark:bg-blue-500/20! dark:border-blue-400! dark:text-blue-200!',
+                followup: 'border-2! p-[11px]! font-bold! bg-indigo-100! border-indigo-700! text-indigo-700! shadow-[0_4px_14px_-4px_rgba(79,70,229,.55)]! -translate-y-px dark:bg-indigo-500/20! dark:border-indigo-400! dark:text-indigo-200!',
+                cancelled: 'border-2! p-[11px]! font-bold! bg-red-100! border-red-700! text-red-700! shadow-[0_4px_14px_-4px_rgba(220,38,38,.55)]! -translate-y-px dark:bg-red-500/20! dark:border-red-400! dark:text-red-200!',
+            };
+
+            function markActiveCard(tab) {
+                $('.new-agr-tab').each(function () {
+                    const t = $(this).data('tab');
+                    $(this).find('.agreement-status-card').removeClass(CARD_ACTIVE[t]).toggleClass(CARD_ACTIVE[t], t === tab);
+                });
+            }
+
+            markActiveCard('jobs');
+
             $(document).on('click', '.new-agr-tab', function (e) {
                 e.preventDefault();
 
                 const tab = $(this).data('tab');
+
+                markActiveCard(tab);
 
                 $('[data-tab-panel]').addClass('hidden');
                 $(`[data-tab-panel="${tab}"]`).removeClass('hidden');
@@ -1527,8 +1548,8 @@
             let followupTable = null;
             const listTable = (tab) => ({ active: activeTable, completed: completedTable, cancelled: cancelledTable, draft: draftTable, followup: followupTable })[tab];
 
-            // statusHtml is a string, or a function of (step, row). followUp: rows are Agreement FU agreements and link to their FU page.
-            function buildAgreementTable(selector, url, statusHtml, withAction, followUp = false) {
+            // statusHtml is a string, or a function of (step, row).
+            function buildAgreementTable(selector, url, statusHtml, withAction) {
                 const esc = (s) => $('<div>').text(s ?? '').html();
 
                 const columns = [
@@ -1545,10 +1566,6 @@
                     { data: 'created_user', render: (d) => esc(d) || '-' },
                     { data: 'agreement_step_id', render: (d, type, row) => typeof statusHtml === 'function' ? statusHtml(d, row) : statusHtml },
                 ];
-
-                if (followUp) {
-                    columns[0].render = (d, type, row) => `<a href="/show-legal-agreement/${esc(row.eid)}" class="inline-flex w-[150px] items-center justify-center rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700">${esc(d)}</a>`;
-                }
 
                 if (withAction) {
                     columns.push({
@@ -1650,7 +1667,7 @@
                 );
             }
 
-            // Follow Up: the row is an Agreement FU now, so it links to that page instead of opening this page's modal.
+            // Follow Up: opens the same read-only view modal; its "Open Follow Up" button goes to the Agreement FU page.
             function initFollowUpTable() {
                 if (followupTable) {
                     followupTable.ajax.reload();
@@ -1664,8 +1681,7 @@
                     '#followupTable',
                     "{{ ($kind['r']['follow_up_json'] ?? null) ? route($kind['r']['follow_up_json'], [], false) : '' }}",
                     (d) => `<span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Follow Up · ${$('<div>').text(stepWord(d)).html()}</span>`,
-                    false,
-                    true
+                    false
                 );
             }
 
