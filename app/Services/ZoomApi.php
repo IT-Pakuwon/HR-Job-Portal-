@@ -94,6 +94,22 @@ class ZoomApi
         return json_decode($response->getBody(),true);
     }
 
+    /**
+     * Cloud recording of one meeting (404 from Zoom = no recording, handled by the caller).
+     * Needs the cloud_recording read scope on the Server-to-Server app and cloud recording enabled for the host.
+     */
+    public function getRecordings($id, string $account = 'business')
+    {
+        $response = $this->client->request('GET', 'meetings/'.$id.'/recordings', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->generateToken($account),
+                'Accept'        => 'application/json',
+            ],
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
     public function deletezoom($id, string $account = 'business')
     {
         $response = $this->client->request('delete', 'meetings/'.$id, [

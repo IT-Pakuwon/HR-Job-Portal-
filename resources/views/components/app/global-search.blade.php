@@ -1,7 +1,16 @@
-<div x-data="globalSearch()" x-init="init()" @keydown.window="onGlobalKeydown($event)" @click.outside="close()" class="relative w-full">
+{{-- Collapsed: just a magnifier next to the notification bell. Click it (or press Ctrl K) and it expands into the search box; Esc / clicking elsewhere folds it back. --}}
+<div x-data="globalSearch()" x-init="init()" @keydown.window="onGlobalKeydown($event)" @click.outside="close()" class="relative flex items-center">
+
+    <button type="button" x-show="!expanded" @click="expand()" title="Search documents (Ctrl K)" aria-label="Search documents" :aria-expanded="expanded.toString()"
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+    </button>
 
     {{-- Search Input --}}
-    <div class="relative">
+    <div x-show="expanded" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+        class="relative w-[min(20rem,calc(100vw-9rem))] origin-right sm:w-80" style="display: none;">
         <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -28,13 +37,13 @@
     </div>
 
     {{-- Results Panel --}}
-    <div x-show="open" x-transition:enter="transition ease-out duration-150"
+    <div x-show="expanded && open" x-transition:enter="transition ease-out duration-150"
         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-        class="absolute left-0 z-50 mt-2 w-full min-w-88 max-w-[calc(100vw-1rem)] origin-top-left overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        class="absolute right-0 top-full z-50 mt-2 w-[26rem] max-w-[calc(100vw-1rem)] origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
         style="display: none;">
 
         <ul class="max-h-105 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
@@ -95,6 +104,7 @@
 function globalSearch() {
     return {
         open: false,
+        expanded: false,
         q: '',
         results: [],
         loading: false,
@@ -102,8 +112,16 @@ function globalSearch() {
 
         init() {},
 
+        expand() {
+            this.expanded = true;
+            this.open = true;
+            this.$nextTick(() => this.$refs.input.focus());
+        },
+
+        // fold back to the magnifier (the typed text is kept for next time)
         close() {
             this.open = false;
+            this.expanded = false;
         },
 
         clear() {
@@ -116,8 +134,7 @@ function globalSearch() {
             const isMod = e.ctrlKey || e.metaKey;
             if (isMod && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
-                this.open = true;
-                this.$nextTick(() => this.$refs.input.focus());
+                this.expand();
             }
         },
 

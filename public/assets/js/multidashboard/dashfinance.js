@@ -116,7 +116,7 @@
             .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
             .then((res) => {
                 renderSummary(res.data || {});
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }

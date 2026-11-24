@@ -111,7 +111,7 @@
             .then((r) => r.json())
             .then((res) => {
                 renderSummary(res.data || {});
-                startCountdown(20);
+                startCountdown(window.dashRefreshSeconds || 20);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }

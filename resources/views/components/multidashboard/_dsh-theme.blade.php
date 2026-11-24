@@ -47,10 +47,15 @@
         border-color: var(--dsh-accent);
     }
 
+    /* the KPI card whose tab / filter is showing */
+    .dsh-kpis .dsh-kpi.dsh-kpi-on {
+        border-color: var(--dsh-accent);
+        box-shadow: 0 0 0 1px var(--dsh-accent);
+    }
+
     .dsh-kpi-static {
         cursor: default;
     }
-
     .dsh-kpi-static:hover {
         border-color: var(--dsh-line);
     }
@@ -91,7 +96,7 @@
         gap: .4rem;
         white-space: nowrap;
         cursor: pointer;
-        padding: .5rem .75rem .625rem;
+        padding: .625rem .75rem .5rem;
         font-size: .8125rem;
         font-weight: 600;
         color: var(--dsh-muted);

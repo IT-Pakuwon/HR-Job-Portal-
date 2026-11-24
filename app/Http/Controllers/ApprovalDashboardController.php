@@ -34,9 +34,6 @@ class ApprovalDashboardController extends Controller
 
         $waiting = $this->getApprovalCollection($request, 'P');
 
-        $approved = $this->getApprovalCollection($request, 'A');
-
-        $today = now()->toDateString();
         $threeDaysAgo = now()->subDays(3)->toDateString();
 
         return response()->json([
@@ -49,13 +46,39 @@ class ApprovalDashboardController extends Controller
                     )
                     ->count(),
 
-                'approved_today' => $approved
-                    ->filter(fn ($row) => !empty($row['docdate'])
-                        && substr($row['docdate'], 0, 10) === $today
-                    )
-                    ->count(),
+                'approved_today' => $this->handledTodayCount($request, ['A']),
+
+                'handled_today' => $this->handledTodayCount($request, ['A', 'R']),
             ],
         ]);
+    }
+
+    /**
+     * Approval lines this user actually approved or rejected today (aprv_dateafter is stamped at the moment of the
+     * action), so this is "what I did today" - not aprv_datebefore, which is when the line started waiting.
+     * Feeds the Approved Today KPI (A) and "Your Progress" (A + R).
+     */
+    private function handledTodayCount(Request $request, array $statuses): int
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return 0;
+        }
+
+        $aprM = new TrApproval();
+        $username = strtolower(trim((string) $user->username));
+
+        return DB::connection($aprM->getConnectionName() ?: config('database.default'))
+            ->table($aprM->getTable())
+            ->whereRaw(
+                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                ['%,'.$username.',%']
+            )
+            ->whereIn('status', $statuses)
+            ->where('aprv_dateafter', '>=', now()->startOfDay())
+            ->where('aprv_dateafter', '<', now()->addDay()->startOfDay())
+            ->count();
     }
 
     public function waitingJson(Request $request)

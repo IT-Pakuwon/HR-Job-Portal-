@@ -155,14 +155,14 @@
                     class="sm:col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-1 xl:row-start-1" color="green"
                     leftLabel="Total Budget" leftValueId="gmTotalBudget" leftDescription="Original + Additional"
                     rightLabel="Remaining" rightValueId="gmTotalRemaining" rightBadgeId="gmUtilTrend"
-                    barLabel="Utilization" barPctId="gmUtilPct" barId="gmUtilBar" />
+                    barLabel="Utilization (Used)" barPctId="gmUtilPct" barId="gmUtilBar" />
 
                 {{-- 2. Donut Breakdown --}}
                 <x-card-chart.card-shell class="sm:col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-1 xl:row-start-2"
                     subtitle="Breakdown" title="Used · Reserved · Remaining"
                     gradient="linear-gradient(to right,#EF4444,#F59E0B,#10B981)">
                     <div class="px-2 pb-2 pt-0">
-                        <div id="gmBudgetDonut" style="min-height:210px"></div>
+                        <div id="gmBudgetDonut" style="min-height:150px"></div>
                     </div>
                 </x-card-chart.card-shell>
 
@@ -1336,6 +1336,8 @@
     <script src="{{ asset('assets/js/gm-report/gm-core.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-core.js') }}">
     </script>
     <script src="{{ asset('assets/js/gm-report/gm-filter.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-filter.js') }}">
+    </script>
+    <script src="{{ asset('assets/js/card-chart/stacked-bar.js') }}?v={{ $gmAssetVer('assets/js/card-chart/stacked-bar.js') }}">
     </script>
     <script src="{{ asset('assets/js/gm-report/gm-budget.js') }}?v={{ $gmAssetVer('assets/js/gm-report/gm-budget.js') }}">
     </script>

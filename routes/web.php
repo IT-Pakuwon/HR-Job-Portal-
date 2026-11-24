@@ -89,6 +89,7 @@ use App\Http\Controllers\LegalNewAgreementController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\MailboxController;
+use App\Http\Controllers\DashboardMenuController;
 use App\Http\Controllers\ManageApprovalController;
 use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
@@ -155,6 +156,7 @@ use App\Http\Controllers\SysCalendarController;
 // INTEGRATION
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
+use App\Http\Controllers\TodoController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
@@ -2934,6 +2936,21 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/files', 'files')->name('files');
         });
 
+        Route::prefix('todo')->controller(TodoController::class)->name('todo.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/zoom-json', 'zoomJson')->name('zoom-json');
+            Route::get('/meetings/{docid}/recording', 'recording')->name('recording');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+        // Plaud panel: recordings/summaries of the Plaud accounts mapped to the user's companies on a dashboard (see PlaudScope)
+        Route::prefix('plaud')->controller(App\Http\Controllers\PlaudController::class)->name('plaud.')->group(function () {
+            Route::get('/panel-json', 'panelJson')->name('panel-json');
+            Route::get('/summary/{id}', 'summary')->whereNumber('id')->name('summary');
+        });
+
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/toggle', 'toggle')->name('toggle');
@@ -2941,8 +2958,13 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/approval', [MultiDashboardController::class, 'approval'])->name('dashboard.approval');
+        Route::post('/dashboard-menu/pin', [DashboardMenuController::class, 'pin'])->name('dashboard-menu.pin');
+        Route::get('/dashboard-menu/badges', [DashboardMenuController::class, 'badges'])->name('dashboard-menu.badges');
+        Route::get('/summary-panel/{panel}', [App\Http\Controllers\SummaryPanelController::class, 'data'])->name('summary-panel.data');
 
         Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
+            Route::get('/', 'index')->name('index');
             Route::get('/json', 'json')->name('json');
             Route::post('/', 'store')->name('store');
         });
@@ -2955,6 +2977,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        // Dashboard Legal Leasing: Incomplete Document / Follow Up Document lists
+        Route::prefix('legal-leasing-dashboard')->controller(App\Http\Controllers\LegalLeasingDashboardController::class)->name('legal-leasing.')->group(function () {
+            Route::get('/incomplete-json', 'incompleteJson')->name('incomplete-json');
+            Route::get('/follow-up-json', 'followUpJson')->name('follow-up-json');
         });
 
         Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {
@@ -3345,6 +3373,25 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/approvals-groupbiaya/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya.update');
         Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
         Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
+
+        // Dashboard Setup: arrange the blocks of each dashboard (table ms_dashboard_layout on pgsql2)
+        Route::get('/dashboard-setup', [App\Http\Controllers\DashboardLayoutController::class, 'index'])->name('dashboard-setup');
+        Route::put('/dashboard-setup/{dash}', [App\Http\Controllers\DashboardLayoutController::class, 'save'])->name('dashboard-setup.save');
+        Route::delete('/dashboard-setup/{dash}', [App\Http\Controllers\DashboardLayoutController::class, 'reset'])->name('dashboard-setup.reset');
+        Route::get('/dashboard-menu', [DashboardMenuController::class, 'index'])->name('dashboard-menu');
+        Route::post('/dashboard-menu/tile', [DashboardMenuController::class, 'saveTile'])->name('dashboard-menu.tile');
+        Route::put('/dashboard-menu/map/{dash}', [DashboardMenuController::class, 'saveMap'])->name('dashboard-menu.map');
+        Route::patch('/dashboard-menu/map/{dash}/row', [DashboardMenuController::class, 'saveRow'])->name('dashboard-menu.map.row');
+        Route::get('/dashboard-menu/plaud/{dash}', [App\Http\Controllers\PlaudController::class, 'adminShow'])->name('dashboard-menu.plaud');
+        Route::put('/dashboard-menu/plaud/{dash}', [App\Http\Controllers\PlaudController::class, 'adminSave'])->name('dashboard-menu.plaud.save');
+
+        // Dashboard Setup > Summary Setup (OM | GM switcher; layout of the Summary panels; table on pgsql2)
+        Route::prefix('summary-setup')->controller(App\Http\Controllers\SummarySetupController::class)->group(function () {
+            Route::get('/', fn () => redirect()->route('summary-setup', 'om'))->name('summary-setup.home');
+            Route::get('/{p}', 'index')->whereIn('p', ['om', 'gm'])->name('summary-setup');
+            Route::put('/{p}', 'save')->whereIn('p', ['om', 'gm'])->name('summary-setup.save');
+            Route::delete('/{p}', 'reset')->whereIn('p', ['om', 'gm'])->name('summary-setup.reset');
+        });
 
         Route::get('/manage-approvals', [ManageApprovalController::class, 'index'])->name('manage-approvals');
         Route::get('/manage-approvals/json', [ManageApprovalController::class, 'search'])->name('manage-approvals.json');

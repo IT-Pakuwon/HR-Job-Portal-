@@ -1,179 +1,25 @@
-<div class="space-y-4">
+@php $dashCd = 'DASHWH'; @endphp
+@php $hdr = \App\Services\Dashboard\DashboardLayout::header($dashCd); @endphp
+<div class="space-y-4" x-data="{ panel: null }">
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:hidden">
 
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-                Warehouse Dashboard
-            </h1>
-
-            <p class="text-xs text-slate-500 dark:text-slate-400">
-                Approval • SPPB • Solomon Integration
-            </p>
-        </div>
-
-        <div class="flex items-center gap-2">
-
-            <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-3 pr-1 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                <span class="h-2 w-2 rounded-full bg-green-500"></span>
-                <span class="text-slate-500 dark:text-slate-400">Next refresh</span>
-                <span id="whRefreshTime" class="font-semibold tabular-nums text-slate-900 dark:text-white">--</span>
-                <button id="whRefresh" type="button" title="Refresh now"
-                    class="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                </button>
+        {{-- The title lives in the app header on large screens (see header_new: header-title); smaller screens keep it on the page. --}}
+        @push('header-title')
+            <div class="min-w-0 leading-tight">
+                <h1 class="truncate text-base font-bold text-slate-900 dark:text-white">{{ $hdr['title'] }}</h1>
+                <p class="truncate text-[11px] text-slate-500 dark:text-slate-400">{{ $hdr['subtitle'] }}</p>
             </div>
-
-            <button id="updateNotificationBtn" type="button" title="Update Notification"
-                class="relative flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span id="updateNotificationBadge"
-                    class="hidden absolute -right-1.5 -top-1.5 min-w-[18px] rounded-full bg-red-500 px-1 text-center text-[10px] font-bold leading-[18px] text-white">
-                    0
-                </span>
-            </button>
-
+        @endpush
+        <div class="lg:hidden">
+            <h1 class="text-xl font-bold text-slate-900 dark:text-white">{{ $hdr['title'] }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">{{ $hdr['subtitle'] }}</p>
         </div>
+
 
     </div>
 
-    <div class="dsh-kpis">
-
-        <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">Waiting Approval</span>
-            <span id="whWaitingApprovalCount" class="dsh-kpi-n">0</span>
-            <span id="whWaitingApprovalBar" class="hidden" style="width:0%"></span>
-        </div>
-
-        <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">SPPB On Progress</span>
-            <span id="whSppbOnProgressCount" class="dsh-kpi-n">0</span>
-            <span id="whSppbOnProgressBar" class="hidden" style="width:0%"></span>
-        </div>
-
-        <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">PO Solomon (P)</span>
-            <span id="whPoSolomonCount" class="dsh-kpi-n">0</span>
-            <span id="whPoSolomonBar" class="hidden" style="width:0%"></span>
-        </div>
-
-        <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">GRN Ifca (P)</span>
-            <span id="whGrnSolomonCount" class="dsh-kpi-n">0</span>
-            <span id="whGrnSolomonBar" class="hidden" style="width:0%"></span>
-        </div>
-
-        <div class="dsh-kpi dsh-kpi-static">
-            <span class="dsh-kpi-l">Issue Solomon (P)</span>
-            <span id="whIssueSolomonCount" class="dsh-kpi-n">0</span>
-            <span id="whIssueSolomonBar" class="hidden" style="width:0%"></span>
-        </div>
-
-    </div>
-
-    <div class="grid grid-cols-12 gap-6">
-        <x-multidashboard.dashboard-favourite />
-    </div>
-
-    <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-
-        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-            <div class="flex flex-wrap gap-3">
-                <button id="wh-tab-approval">📝 Waiting Approval</button>
-                <button id="wh-tab-approval-history">📋 Approval History</button>
-                <button id="wh-tab-sppb">📦 SPPB On Progress</button>
-                <button id="wh-tab-po-solomon">🛒 PO Solomon</button>
-                <button id="wh-tab-grn-solomon">📥 GRN Ifca</button>
-                <button id="wh-tab-issue-solomon">📤 Issue Solomon</button>
-            </div>
-        </div>
-
-        <div class="border-b border-slate-200 p-4 dark:border-slate-700">
-            <div class="grid gap-3 lg:grid-cols-12">
-
-                <div class="lg:col-span-4" id="whDoctypeFilterWrap">
-                    <div id="whDoctypeFilterInnerWrap">
-                        <select id="whDoctypeFilter"
-                            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                            <option value="ALL">All Doctype</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-4">
-                    <input
-                        id="whSearch"
-                        type="text"
-                        placeholder="Search..."
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                </div>
-
-                <div class="lg:col-span-2">
-                    <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="hidden shrink-0 sm:inline">Show</span>
-                        <select id="whPageSize"
-                            class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </select>
-                        <span class="hidden shrink-0 sm:inline">Entries</span>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2">
-                    <div class="flex gap-2">
-                        <button
-                            id="whApplyFilter"
-                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 4a1 1 0 011-1h16a1 1 0 01.8 1.6l-6.3 8.4v5.5a1 1 0 01-1.45.9l-3-1.5A1 1 0 019.5 18v-4l-6.3-8.4A1 1 0 013 4z" />
-                            </svg>
-                            Filter
-                        </button>
-                        <button
-                            id="whOpenAll"
-                            class="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
-                            🚀 Open All
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="p-4">
-            <div id="whCardList" class="divide-y divide-slate-100 dark:divide-slate-700"></div>
-            <div id="whEmptyState" class="hidden py-10 text-center text-sm text-slate-400 dark:text-slate-500">
-                No data available
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            <span id="whPaginationInfo">Showing 0 to 0 of 0 entries</span>
-            <div class="flex gap-2">
-                <button id="whPrevPage"
-                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
-                    Previous
-                </button>
-                <button id="whNextPage"
-                    class="rounded border border-slate-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600">
-                    Next
-                </button>
-            </div>
-        </div>
-
-    </div>
-
+    <x-multidashboard.dashboard-top :dash-cd="$dashCd" />
 </div>
 
 <style>

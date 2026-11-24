@@ -1,0 +1,2 @@
+@props(['title' => 'Corporate Teknik · Berita Acara'])
+<x-panel.shell type="corptek-berita-acara" url="/corporate-teknik-dashboard/berita-acara-json" :title="$title" :statuses="['ALL' => 'All Status', 'CREATED' => 'Created', 'RESPONSE' => 'Response', 'APPROVED' => 'Approved', 'PROCESS' => 'Process', 'REVISED' => 'Revised', 'REJECTED' => 'Rejected', 'PENDING' => 'Pending', 'TRANSFER' => 'Transfer', 'REOPEN' => 'Reopen', 'COMPLETED' => 'Completed', 'CANCEL' => 'Cancel']" />

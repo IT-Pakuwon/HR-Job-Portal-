@@ -4,6 +4,9 @@
 @import "./additional-styles/utility-patterns.css" layer(components);
 
 @source "../views/**/*.blade.php";
+@source "../../public/assets/js/Dashboard-Panel/summary-panel.js";
+@source "../../public/assets/js/Dashboard-Panel/dash-panel.js";
+@source "../../public/assets/js/multidashboard/dashlegalleasing.js";
 
 @plugin "@tailwindcss/forms" {
     strategy: base;

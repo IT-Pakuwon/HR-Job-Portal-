@@ -21,8 +21,18 @@
             </div>
         @endif
 
-        @if(View::exists($viewPath))
-            {{-- One merged "My Activity" tab on every dashboard. --}}
+        {{-- Panels of other dashboards chosen on this dashboard's Menu tiles (see dashboard-menu). --}}
+        @unless (app()->bound('dashPanelHostRendered'))
+            <div id="dashForeignPanelHost" class="mt-4 empty:hidden"></div>
+        @endunless
+
+        @php
+            // My Activity is a panel now (tile in Dashboard Menu). Dashboards without that tile keep the injected tab until one is added.
+            $dashCode = array_search($dashboardComponent, \App\Http\Controllers\MultiDashboardController::DASHBOARD_COMPONENTS, true);
+            $hasActivityPanel = $dashCode && \App\Models\DashboardMenu::forDashboard($dashCode, auth()->user())->contains(fn ($i) => ($i['panel'] ?? null) === 'my-activity');
+        @endphp
+        @if(View::exists($viewPath) && !in_array($dashboardComponent, ['dashboard-om', 'dashboard-gm'], true) && !$hasActivityPanel)
+            {{-- One merged "My Activity" tab on every dashboard (except OM and GM, which have none). --}}
             @include('components.multidashboard.my-activity', ['combined' => true])
         @endif
 
