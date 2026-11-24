@@ -329,7 +329,10 @@ class RecruitmentDashboardController extends Controller
             ->pluck('total', 'status');
 
         $selfCandidates = (clone $selfBase)
-            ->leftJoin('hr_ms_applicant as a', 'viewselfregister.applicant_id', '=', 'a.applicant_id')
+            ->leftJoin('hr_ms_applicant as a', function ($j) {
+                $j->on('viewselfregister.applicant_id', '=', 'a.applicant_id')
+                    ->whereRaw("a.group_cpny_id = COALESCE(NULLIF(viewselfregister.group_cpny_id, ''), a.group_cpny_id)");
+            })
             ->select(
                 'a.gender as gender',
                 'a.date_of_birth as date_of_birth',
@@ -343,7 +346,12 @@ class RecruitmentDashboardController extends Controller
             ->values();
 
         $careerCandidates = (clone $careerBase)
-            ->leftJoin('hr_ms_applicant as a', 'viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+            // hr_ms_applicant holds one row per (applicant_id, group_cpny_id); joining on
+            // applicant_id alone duplicated every applicant and mixed in other groups' profiles.
+            ->leftJoin('hr_ms_applicant as a', function ($j) {
+                $j->on('viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+                    ->on('viewtrxcareer.group_cpny_id', '=', 'a.group_cpny_id');
+            })
             ->select('a.gender as gender', 'a.date_of_birth as date_of_birth', 'a.ktp_id as ktp_id', 'viewtrxcareer.education_type as education_type', 'viewtrxcareer.applicant_id as applicant_id', 'a.domicile_city as domicile_city', 'a.source_information as source_information')
             ->get()
             ->unique(fn ($row) => $row->ktp_id && $row->date_of_birth
@@ -495,7 +503,8 @@ class RecruitmentDashboardController extends Controller
             : null;
 
         // ── Applicant funnel totals (Job Applicant vs Self Applicant) ───────
-        $careerSourced = (clone $careerBase)->count();
+        // Unique people, not applications: one applicant can apply to several postings.
+        $careerSourced = (int) (clone $careerBase)->distinct()->count('viewtrxcareer.applicant_id');
         $selfSourced = (clone $selfBase)->count();
         $totalApplicantAll = $careerSourced + $selfSourced;
         $totalRejectedAll = $totalRejected + $selfRejected;
@@ -503,7 +512,7 @@ class RecruitmentDashboardController extends Controller
         // ── Top 10 Division by candidate applied (Job Applicant vs Self Applicant) ──
         $careerDeptCounts = (clone $careerBase)
             ->whereNotNull('departementid')
-            ->select('departementid', DB::raw('COUNT(*) as total'))
+            ->select('departementid', DB::raw('COUNT(DISTINCT viewtrxcareer.applicant_id) as total'))
             ->groupBy('departementid')
             ->pluck('total', 'departementid');
         $selfDeptCounts = (clone $selfBase)
@@ -1062,7 +1071,10 @@ class RecruitmentDashboardController extends Controller
                 ->when($divisionDepartmentIds, fn ($q) => $q->whereIn('viewselfregister.departementid', $divisionDepartmentIds));
 
             $candidates = (clone $selfBase)
-                ->leftJoin('hr_ms_applicant as a', 'viewselfregister.applicant_id', '=', 'a.applicant_id')
+                ->leftJoin('hr_ms_applicant as a', function ($j) {
+                    $j->on('viewselfregister.applicant_id', '=', 'a.applicant_id')
+                        ->whereRaw("a.group_cpny_id = COALESCE(NULLIF(viewselfregister.group_cpny_id, ''), a.group_cpny_id)");
+                })
                 ->select(
                     'viewselfregister.applicant_id as applicant_id',
                     'a.full_name as fullname',
@@ -1089,7 +1101,10 @@ class RecruitmentDashboardController extends Controller
                 ->when($location, fn ($q) => $q->whereIn('viewtrxcareer.docidposting', $locationPostingIds));
 
             $candidates = (clone $careerBase)
-                ->leftJoin('hr_ms_applicant as a', 'viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+                ->leftJoin('hr_ms_applicant as a', function ($j) {
+                    $j->on('viewtrxcareer.applicant_id', '=', 'a.applicant_id')
+                        ->on('viewtrxcareer.group_cpny_id', '=', 'a.group_cpny_id');
+                })
                 ->select(
                     'viewtrxcareer.applicant_id as applicant_id',
                     'viewtrxcareer.fullname as fullname',

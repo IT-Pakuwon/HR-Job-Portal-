@@ -83,6 +83,13 @@
                             data-url="{{ route($kind['r']['complete'], $eid, false) }}" data-missing="{{ $missingRequired }}">
                             <i class="fa-solid fa-flag-checkered w-4 text-center"></i> Complete Agreement
                         </button>
+                        {{-- A PSM / OLA can have several addendums: opens the Addendum create form prefilled from this one. --}}
+                        @if (! $kind['from_psm'])
+                            <a href="{{ route('legal-new-agreement.addendum.create-agreement', $eid, false) }}?src=psm" target="_blank" rel="noopener"
+                                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-indigo-600 hover:bg-slate-100 dark:text-indigo-400 dark:hover:bg-white/[0.06]">
+                                <i class="fa-solid fa-file-circle-plus w-4 text-center"></i> Create Addendum
+                            </a>
+                        @endif
                         <button type="button" class="btn-cancel-agr flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-slate-100 dark:text-rose-400 dark:hover:bg-white/[0.06]"
                             data-url="{{ route($kind['r']['cancel'], $eid, false) }}">
                             <i class="fa-solid fa-ban w-4 text-center"></i> Cancel Agreement
@@ -152,10 +159,10 @@
                 <p class="agr-section-title">Property &amp; Tenant</p>
             </div>
             <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                <div><label class="text-xs text-slate-400">Tenant Company Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->business_name) !!}</p></div>
-                <div><label class="text-xs text-slate-400">Tenant Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->trade_name) !!}</p></div>
-                <div><label class="text-xs text-slate-400">Tenant Number</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->tenant_no) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Property Type</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($propertyTypes[strtoupper((string) $agreement->property_cd)] ?? $agreement->property_cd) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Tenant Company Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->business_name) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Tenant Number</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->tenant_no) !!}</p></div>
+                <div><label class="text-xs text-slate-400">Tenant Name</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash($agreement->trade_name) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Floor - Unit</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash(collect([$agreement->floor_id, $agreement->unit_id])->map(fn ($v) => trim((string) $v))->filter()->implode(' - ')) !!}</p></div>
                 <div><label class="text-xs text-slate-400">Floor - Unit LOI</label><p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">{!! $dash(collect([$agreement->floor_loi, $agreement->unit_loi])->map(fn ($v) => trim((string) $v))->filter()->implode(' - ')) !!}</p></div>
             </div>

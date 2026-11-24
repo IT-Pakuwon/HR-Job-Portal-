@@ -220,3 +220,31 @@ WHERE c.agreementcategory_id = v.id AND c.agreementcategory_type = 'ROUTING' AND
 INSERT INTO ms_agreement_category (agreementcategory_id, agreementcategory_descr, agreementcategory_type, agreementcategory_order, agreementcategory_system, status, created_by, created_at)
 SELECT 'ROUTE_DIREKTUR_3', 'Direktur 3', 'ROUTING', 6, false, 'A', 'system', now()
 WHERE NOT EXISTS (SELECT 1 FROM ms_agreement_category WHERE agreementcategory_id = 'ROUTE_DIREKTUR_3' AND deleted_at IS NULL);
+
+
+-- ── Memo / LoI split for Addendum (2026-11-24) ────────────────────────
+-- Block 1 (PGSQL5). PSM / OLA / Others keep ONE row, now named "LOI dan Memo" (MEMO_LOI).
+-- Addendum shows TWO rows instead: LOI and Memo (the code picks which ids each kind lists).
+UPDATE ms_agreement_document SET agreementdocument_descr = 'LOI dan Memo', updated_by = 'system', updated_at = now()
+WHERE agreementdocument_id = 'MEMO_LOI' AND deleted_at IS NULL;
+
+INSERT INTO ms_agreement_document (agreementdocument_id, agreementdocument_descr, agreementdocument_required, status, created_by, created_at)
+SELECT v.id, v.descr, true, 'A', 'system', now()
+FROM (VALUES ('LOI', 'LOI'), ('MEMO', 'Memo')) AS v(id, descr)
+WHERE NOT EXISTS (SELECT 1 FROM ms_agreement_document d WHERE d.agreementdocument_id = v.id);
+
+-- Which screens list a document, and in what order (2026-11-24). Replaces the ids hardcoded in the controller.
+-- agreementdocument_type = comma list of kinds (psm-ola, addendum, others); NULL = every kind.
+ALTER TABLE ms_agreement_document ADD COLUMN IF NOT EXISTS agreementdocument_type VARCHAR(100);
+ALTER TABLE ms_agreement_document ADD COLUMN IF NOT EXISTS agreementdocument_order INTEGER;
+
+UPDATE ms_agreement_document SET agreementdocument_type = 'psm-ola,others' WHERE agreementdocument_id = 'MEMO_LOI';
+UPDATE ms_agreement_document SET agreementdocument_type = 'addendum' WHERE agreementdocument_id IN ('LOI', 'MEMO');
+
+-- Order: LOI / LOI dan Memo first, Memo second, the rest keep their id order after them.
+UPDATE ms_agreement_document SET agreementdocument_order = 1 WHERE agreementdocument_id IN ('MEMO_LOI', 'LOI');
+UPDATE ms_agreement_document SET agreementdocument_order = 2 WHERE agreementdocument_id = 'MEMO';
+UPDATE ms_agreement_document d SET agreementdocument_order = r.n + 2
+FROM (SELECT id, row_number() OVER (ORDER BY id) AS n FROM ms_agreement_document
+      WHERE agreementdocument_id NOT IN ('MEMO_LOI', 'LOI', 'MEMO')) r
+WHERE d.id = r.id AND d.agreementdocument_order IS NULL;

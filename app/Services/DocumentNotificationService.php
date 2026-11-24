@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Console\Commands\SendAgreementDocumentReminder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -1113,6 +1115,51 @@ class DocumentNotificationService
             }
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationService: Legal Agreement follow-up fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 15. Legal Agreement: documents not received. Same 7-day rule as the
+        //       email:agreement-document-reminder command (7, 14, 21 ... days after the
+        //       agreement was created), so the bell shows it on the due day for the
+        //       creator + PIC Legal, alongside that email. Gone once every document is in.
+        try {
+            $docAgreements = TrAgreement::query()
+                ->whereNull('deleted_at')
+                ->whereIn('agreement_type', SendAgreementDocumentReminder::TYPES)
+                ->where('agreement_step_id', 'ACTIVE')
+                ->whereNotNull('agreement_date')
+                ->where(function ($q) use ($username) {
+                    $q->where('created_user', $username)
+                        ->orWhere(fn ($q2) => $q2->wherePicLegal($username));
+                })
+                ->withCount(['documents as missing_docs' => fn ($q) => $q->whereNull('deleted_at')->where('agreementdocument_received', false)])
+                ->get()
+                ->filter(function ($a) {
+                    $days = (int) Carbon::parse($a->agreement_date)->startOfDay()->diffInDays(today(), false);
+
+                    return $a->missing_docs > 0 && $days > 0 && $days % SendAgreementDocumentReminder::INTERVAL_DAYS === 0;
+                });
+
+            $prefix = ['ADDENDUM' => 'addendum/', 'OTHERS' => 'others/'];
+
+            $data = $data->concat($docAgreements->map(function ($a) use ($prefix) {
+                $days = (int) Carbon::parse($a->agreement_date)->startOfDay()->diffInDays(today(), false);
+
+                return [
+                    // Day count in the key: a new reminder is a new notification (toast / unread again).
+                    'key'        => strtoupper($a->agreement_id) . '_AGR_DOCS_' . $days,
+                    'hid'        => Hashids::encode($a->id),
+                    'docid'      => $a->agreement_id,
+                    'status'     => 'AGR_DOCS',
+                    'label'      => 'Documents Not Received',
+                    'message'    => $a->missing_docs . ' document(s) are still not received for this agreement (day ' . $days . ').',
+                    'cpnyid'     => $a->cpny_id,
+                    'url'        => '/legal-new-agreement/' . ($prefix[$a->agreement_type] ?? '') . Hashids::encode($a->id),
+                    'by'         => null,
+                    'updated_at' => today()->setTime(7, 20),
+                ];
+            }));
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: Legal Agreement documents reminder failed', ['err' => $e->getMessage()]);
         }
 
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();

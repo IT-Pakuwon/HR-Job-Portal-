@@ -38,6 +38,7 @@ class DashboardLayout
     public const DEFAULT_HEADERS = [
         'DASHOM'        => ['OM Dashboard', 'Favourites • Main Menu'],
         'DASHGM'        => ['GM Dashboard', 'Favourites • Main Menu'],
+        'DASHLEGALLEASE' => ['Dashboard Legal Leasing', 'Waiting Approval • Approval History • My Activity'],
         'DASHIT'        => ['IT Dashboard', 'Ticketing • Access Request • IT Recommendation • Approval'],
         'DASHGA'        => ['General Affairs Dashboard', 'Approval • Transportation • Parking'],
         'DASHHR'        => ['HR Dashboard', 'PRF • Recruitment • Approval'],

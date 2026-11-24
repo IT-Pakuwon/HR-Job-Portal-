@@ -67,6 +67,7 @@ class MultiDashboardController extends Controller
     /** Homepage screen_id => dashboard component. Also the list offered in the user's "Homepage Dashboard" dropdown. */
     public const DASHBOARD_COMPONENTS = [
         'DASHAPPROVAL' => 'dashboard-approval',
+        'DASHLEGALLEASE' => 'dashboard-legal-leasing',
         'DASHIT' => 'dashboard-it',
         'DASHOM' => 'dashboard-om',
         'DASHGM' => 'dashboard-gm',

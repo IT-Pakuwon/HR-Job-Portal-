@@ -44,4 +44,14 @@ class MailboxAccount extends Model
     protected $hidden = [
         'imap_password',
     ];
+
+    /** True when the user has an active connected mailbox account. */
+    public static function isConnectedFor($user): bool
+    {
+        if (!$user || !$user->username) {
+            return false;
+        }
+
+        return static::where('username', $user->username)->where('status', true)->exists();
+    }
 }

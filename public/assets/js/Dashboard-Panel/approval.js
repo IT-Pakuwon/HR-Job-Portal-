@@ -234,6 +234,74 @@
             });
     }
 
+    // ─── Waiting Approval + who the line is waiting on (same look as the Cost Control dashboard) ───
+
+    const escHtml = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const titleCase = (v) => String(v).toLowerCase().replace(/(^|[\s.'-])([a-z])/g, (m, a, b) => a + b.toUpperCase());
+
+    const AVATAR_COLORS = [
+        ["#dbeafe", "#1d4ed8"], ["#ede9fe", "#6d28d9"], ["#fce7f3", "#be185d"],
+        ["#dcfce7", "#15803d"], ["#ffedd5", "#c2410c"], ["#cffafe", "#0e7490"],
+    ];
+
+    function injectWaitingStyles() {
+        if (document.getElementById("dsh-waiting-style")) return;
+        const st = document.createElement("style");
+        st.id = "dsh-waiting-style";
+        st.textContent = `
+            @keyframes dshPulse { 0% { box-shadow: 0 0 0 0 currentColor; opacity: 1 } 70% { box-shadow: 0 0 0 5px transparent; opacity: .6 } 100% { box-shadow: 0 0 0 0 transparent; opacity: 1 } }
+            .dsh-wait-dot { width: 6px; height: 6px; border-radius: 9999px; background: currentColor; animation: dshPulse 1.8s ease-out infinite; }
+            .dsh-av { width: 20px; height: 20px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; margin-left: -6px; border: 2px solid var(--dsh-av-ring, #fff); transition: transform .15s ease; }
+            .dsh-av:first-child { margin-left: 0; }
+            .dsh-wait:hover .dsh-av { transform: translateY(-2px); }
+            .dsh-av-me { box-shadow: 0 0 0 1.5px #6366f1; }
+            .dark .dsh-wait { --dsh-av-ring: #1e293b; }
+        `;
+        document.head.appendChild(st);
+    }
+
+    function waitingApproverStatus(list, s, isDark) {
+        injectWaitingStyles();
+
+        const MAX_AV = 3;
+        const names = list.map((a) => (a.me ? "You" : titleCase(a.name)));
+        const full = names.join(", ");
+
+        const avatars = list.slice(0, MAX_AV).map((a) => {
+            const nm = titleCase(a.name);
+            const initials = nm.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+            let h = 0;
+            for (const ch of nm) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+            const [bg, fg] = AVATAR_COLORS[h % AVATAR_COLORS.length];
+            const style = isDark ? `background:${fg};color:#fff` : `background:${bg};color:${fg}`;
+            return `<span class="dsh-av${a.me ? " dsh-av-me" : ""}" style="${style}">${escHtml(initials)}</span>`;
+        }).join("");
+
+        const more = list.length - MAX_AV;
+        const moreHtml = more > 0
+            ? `<span class="dsh-av" style="background:${isDark ? "#475569" : "#e2e8f0"};color:${isDark ? "#e2e8f0" : "#475569"}">+${more}</span>`
+            : "";
+
+        // short caption: up to two names, then "+N more"; "You" always comes first
+        const sorted = [...names].sort((a, b) => (a === "You" ? -1 : b === "You" ? 1 : 0));
+        const caption = sorted.length <= 2
+            ? sorted.join(", ")
+            : `${sorted.slice(0, 2).join(", ")} +${sorted.length - 2} more`;
+
+        const cap = isDark ? "#94a3b8" : "#64748b";
+
+        return `
+            <div class="dsh-wait flex flex-col items-start gap-1" title="Waiting for: ${escHtml(full)}">
+                <span style="background:${s.bg};color:${s.color};border:1px solid ${s.color}60" class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap">
+                    <span class="dsh-wait-dot"></span>Waiting Approval
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="flex items-center pl-0.5">${avatars}${moreHtml}</span>
+                    <span class="max-w-[190px] truncate text-[11px]" style="color:${cap}">${escHtml(caption)}</span>
+                </span>
+            </div>`;
+    }
+
     function approvalStatusBadge(row) {
 
         const isDark = document.documentElement.classList.contains("dark");
@@ -258,6 +326,10 @@
         };
 
         const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+
+        if (row.status === "P" && Array.isArray(row.waiting_approvers) && row.waiting_approvers.length) {
+            return waitingApproverStatus(row.waiting_approvers, s, isDark);
+        }
 
         return badge(s.text, s.bg, s.color);
     }
@@ -316,7 +388,7 @@
             case "dept":    return (row.departementid || "").toString();
             case "date":    return (row.docdate || "").toString();
             case "desc":    return (row.infohd || "").toString();
-            case "status":  return approvalStatusBadge(row).replace(/<[^>]*>/g, "").trim();
+            case "status":  return row.status === "P" && Array.isArray(row.waiting_approvers) && row.waiting_approvers.length ? "Waiting Approval" : approvalStatusBadge(row).replace(/<[^>]*>/g, "").trim();
             default:        return "";
         }
     }

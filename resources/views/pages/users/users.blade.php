@@ -2281,6 +2281,8 @@
                     syncRoles();
                     syncTypes();
                     $('#umRoleSearch').val('').trigger('input');
+                    // Clear the Access-scope picker search boxes left over from the previous session.
+                    $('#appForm .um-pick-q').val('').trigger('input');
                 }
             }).observe(document.getElementById('appModal'), { attributes: true, attributeFilter: ['class'] });
             syncRoles();

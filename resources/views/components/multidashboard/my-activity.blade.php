@@ -406,10 +406,15 @@
             const first = document.querySelector(TAB_SEL);
             if (!first) return;
 
+            // The card is the tabs' bordered, rounded box; the header is its child that holds the tab bar. Tab bars are wrapped
+            // a different number of levels deep from one dashboard to the next (some have an extra flex wrapper around the
+            // tabs), so walk up from the bar to the card instead of assuming bar > header > card.
             const bar = first.parentElement;
-            const header = bar.parentElement;
-            const card = header && header.parentElement;
-            if (!card || card === document.body) return;
+            const card = bar.closest('[class*="rounded-"][class*="border"]');
+            if (!card || card === document.body || !card.contains(bar)) return;
+            let header = bar;
+            while (header.parentElement && header.parentElement !== card) header = header.parentElement;
+            if (header.parentElement !== card) return;
 
             const combined = root.dataset.combined === '1';
             const defs = combined

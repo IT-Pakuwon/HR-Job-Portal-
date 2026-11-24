@@ -594,6 +594,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assessment/update', [CareerController::class, 'updateAssessment'])->name('assessment.update');
     Route::post('/assessmentuser/update', [CareerController::class, 'updateAssessmentuser'])->name('assessmentuser.update');
     Route::post('/assessmentresult/update', [CareerController::class, 'updateAssessmentResult'])->name('assessmentresult.update');
+    Route::get('/career/{hash}/interview-assessment/{type}/pdf', [CareerController::class, 'pdfInterviewAssessment'])
+        ->whereIn('type', ['hc', 'user'])->name('career.interview-assessment.pdf');
     Route::get('/career/{docid}/check-reject-permission', [CareerController::class, 'checkRejectPermission']);
     Route::get('/career/{docid}/check-rollback-permission', [CareerController::class, 'checkRollbackPermission']);
     // Route::get('/payroll-confirmation', [CareerController::class, 'index'])->name('payroll.index');
@@ -3011,6 +3013,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
         });
 
+        // Dashboard Legal Leasing: Incomplete Document / Follow Up Document lists
+        Route::prefix('legal-leasing-dashboard')->controller(App\Http\Controllers\LegalLeasingDashboardController::class)->name('legal-leasing.')->group(function () {
+            Route::get('/incomplete-json', 'incompleteJson')->name('incomplete-json');
+            Route::get('/follow-up-json', 'followUpJson')->name('follow-up-json');
+        });
+
         Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('costdashboard.summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('costdashboard.waiting');
@@ -3093,6 +3101,25 @@ Route::middleware(['auth'])->group(function () {
 
                 Route::get('/export/pdf', 'exportPdf')->name('training-report.export.pdf');
                 Route::get('/export/xlsx', 'exportXlsx')->name('training-report.export.xlsx');
+            });
+
+        Route::prefix('legal-lease-report')
+            ->controller(\App\Http\Controllers\LegalLeaseReportController::class)
+            ->middleware('access:REPORTLEGALLEASE,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('legal-lease-report.dashboard');
+
+                Route::get('/api/companies', 'companies')->name('legal-lease-report.companies');
+                Route::get('/api/summary', 'summaryJson')->name('legal-lease-report.summary');
+                Route::get('/api/category-by-unit', 'categoryByUnitJson')->name('legal-lease-report.category-by-unit');
+                Route::get('/api/memo-loi', 'memoLoiJson')->name('legal-lease-report.memo-loi');
+                Route::get('/api/sent-letters', 'sentLettersJson')->name('legal-lease-report.sent-letters');
+                Route::get('/api/status-by-category', 'statusByCategoryJson')->name('legal-lease-report.status-by-category');
+                Route::get('/api/top-breakdown', 'topBreakdownJson')->name('legal-lease-report.top-breakdown');
+                Route::get('/api/table', 'tableJson')->name('legal-lease-report.table');
+
+                Route::get('/export/pdf', 'exportPdf')->name('legal-lease-report.export.pdf');
+                Route::get('/export/xlsx', 'exportXlsx')->name('legal-lease-report.export.xlsx');
             });
 
         Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {

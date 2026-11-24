@@ -1,6 +1,7 @@
 @props([
     'title'            => '',
     'subtitle'         => '',
+    'description'      => '',
     'color'            => 'blue',
     'gradient'         => null,
     'columns'          => [],
@@ -37,6 +38,9 @@
                 <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{{ $subtitle }}</p>
             @endif
             <h3 class="mt-0.5 text-sm font-bold text-slate-800 dark:text-white">{{ $title }}</h3>
+            @if($description)
+                <p class="mt-0.5 text-[11px] text-slate-400 dark:text-slate-500">{{ $description }}</p>
+            @endif
         </div>
         @if($countBadgeId)
             <span id="{{ $countBadgeId }}"

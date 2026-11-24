@@ -106,6 +106,8 @@ class LegalNewAgreementController extends Controller
                 'checklist' => true,
                 // Can also be started from an existing PSM / OLA (second Jobs source).
                 'from_psm' => true,
+                // A unit can carry several Active addendums at once (Others / PSM / OLA stay one per unit).
+                'multi' => !$others,
                 // Others only routes when asked: the "Route" button on its process sheet opens Routing
                 // (no Cetak needed first); PSM / OLA and Addendum start Routing once Cetak is added.
                 'routing' => true,
@@ -155,6 +157,7 @@ class LegalNewAgreementController extends Controller
             'docs' => true,
             'checklist' => true,
             'from_psm' => false,
+            'multi' => false,
             'routing' => true,
             'follow_up_types' => TrAgreement::FU_PARENT_TYPES,
             'page' => 'legal-new-agreement.psm-ola',
@@ -200,7 +203,17 @@ class LegalNewAgreementController extends Controller
         };
     }
 
-    // PSM / OLAs an addendum can still be started from: not cancelled, and no ACTIVE addendum made from them yet.
+    // Types whose ACTIVE rows take a unit out of the Jobs lists / block a second one for that unit.
+    // Empty when the kind allows several per unit (Addendum).
+    protected function singleActiveTypes(): array
+    {
+        $kind = $this->kind();
+
+        return $kind['multi'] ? [] : (array) $kind['type'];
+    }
+
+    // PSM / OLAs an addendum can still be started from: not cancelled, and (for kinds limited to one
+    // per unit) no ACTIVE addendum made from them yet.
     // One that has moved on to a follow-up (FU_PSM / FU_OLA, in any step) is still a valid parent.
     protected function psmOlaSourceQuery()
     {
@@ -210,21 +223,21 @@ class LegalNewAgreementController extends Controller
             [self::STEP_ACTIVE, self::STEP_COMPLETED, 'HOLD', 'ESCALATED'],
             [...self::PSM_OLA_TYPES, ...TrAgreement::FU_PARENT_TYPES]
         )
-            ->whereNotExists(function ($sub) use ($type) {
+            ->when(!$this->kind()['multi'], fn ($q) => $q->whereNotExists(function ($sub) use ($type) {
                 $sub->selectRaw('1')
                     ->from('tr_agreement as ad')
                     ->whereNull('ad.deleted_at')
                     ->where('ad.agreement_step_id', self::STEP_ACTIVE)
                     ->where('ad.agreement_type', $type)
                     ->whereColumn('ad.prev_agreement_id', 'tr_agreement.agreement_id');
-            });
+            }));
     }
 
     // Counts for the tab cards; Addendum's Jobs card adds its second source.
     protected function tabCounts(): array
     {
         $kind = $this->kind();
-        $jobs = app(LegalAgreementController::class)->pendingJobsCount((array) $kind['type']);
+        $jobs = app(LegalAgreementController::class)->pendingJobsCount($this->singleActiveTypes());
 
         $counts = [
             'jobs_pending' => $jobs,
@@ -622,9 +635,19 @@ class LegalNewAgreementController extends Controller
             return collect();
         }
 
+        // ms_agreement_document.agreementdocument_type lists the types (screens) a document belongs to
+        // (psm-ola, addendum, others); empty = every kind. agreementdocument_order sets the sequence.
+        $key = $this->kind()['key'];
+
         return MsAgreementDocument::query()
             ->where('status', 'A')
             ->whereNull('deleted_at')
+            ->where(function ($q) use ($key) {
+                $q->whereNull('agreementdocument_type')
+                    ->orWhere('agreementdocument_type', '')
+                    ->orWhereRaw("? = ANY(string_to_array(replace(agreementdocument_type, ' ', ''), ','))", [$key]);
+            })
+            ->orderByRaw('agreementdocument_order asc nulls last')
             ->orderBy('id')
             ->get(['agreementdocument_id', 'agreementdocument_descr', 'agreementdocument_required']);
     }
@@ -1842,7 +1865,7 @@ class LegalNewAgreementController extends Controller
         $tenant = trim((string) $request->tenant_no);
         $unit = trim((string) $request->unit_id);
 
-        if ($tenant !== '' && $unit !== '') {
+        if ($tenant !== '' && $unit !== '' && !$kind['multi']) {
             $hit = (clone $base)->where('agreement_step_id', self::STEP_ACTIVE)
                 ->where('cpny_id', $cpnyId)->where('tenant_no', $tenant)->where('unit_id', $unit)->first();
 
@@ -2261,7 +2284,7 @@ class LegalNewAgreementController extends Controller
             ->whereNull('deleted_at')
             ->where('status', 'A')
             ->withoutContractNo()
-            ->withoutActiveAgreement((array) $this->kind()['type'])
+            ->withoutActiveAgreement($this->singleActiveTypes())
             ->findOrFail($id);
     }
 
@@ -2305,12 +2328,12 @@ class LegalNewAgreementController extends Controller
     // implementation in LegalAgreementController and can't drift apart.
     public function jobsJson(Request $request)
     {
-        return app(LegalAgreementController::class)->jobsJson($request, (array) $this->kind()['type']);
+        return app(LegalAgreementController::class)->jobsJson($request, $this->singleActiveTypes());
     }
 
     public function jobsExport(Request $request)
     {
-        return app(LegalAgreementController::class)->jobsExport($request, (array) $this->kind()['type']);
+        return app(LegalAgreementController::class)->jobsExport($request, $this->singleActiveTypes());
     }
 
     // /legal-new-agreement/{addendum|others}/create-agreement/{eid}[?src=psm]: that page with the create modal opened.

@@ -40,6 +40,13 @@
                 <p class="text-base font-bold text-gray-900 dark:text-gray-100">HC Interview Assessment</p>
                 <p id="editHintHC" class="text-xs italic text-gray-400"></p>
             </div>
++            @if ($tr_assessment)
+            <a href="{{ route('career.interview-assessment.pdf', ['hash' => $hash, 'type' => 'hc']) }}" target="_blank" rel="noopener"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 dark:bg-indigo-500 dark:hover:bg-indigo-400">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z"/></svg>
+                Print PDF
+            </a>
+            @endif
         </div>
         <div class="flex items-center gap-2">
             <button type="button" id="cancelBtnHC" onclick="cancelEditHC()" style="display:none"

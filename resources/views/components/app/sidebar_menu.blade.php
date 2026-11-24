@@ -91,6 +91,9 @@
 
                     if (in_array('admin', $userRolesForSearch)) {
                         $addSearchItem('access_control_studio', 'Access Control Studio', 'Global Settings');
+                        $addSearchItem('dashboard-setup', 'Dashboard Layout', 'Dashboard Setup');
+                        $addSearchItem('dashboard-menu', 'Dashboard Menu', 'Dashboard Setup');
+                        $addSearchItem('summary-setup.home', 'Summary Setup', 'Dashboard Setup');
 
                         $addSearchItem('users', 'Users', 'Organization Setup');
                         $addSearchItem('user-data-sync', 'Update Data User', 'Organization Setup');
@@ -827,6 +830,43 @@
                                         <li><a href="{{ route('project-status.index') }}"
                                                 class="{{ Request::segment(1) === 'project-status' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Status
                                                 Master</a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <!-- ================================================= -->
+                                <!-- DASHBOARD SETUP (admin only: this whole block is the admin branch) -->
+                                <!-- ================================================= -->
+                                @php $dashboardSetup = ['dashboard-setup', 'dashboard-menu', 'summary-setup']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $dashboardSetup) ? 'true' : 'false' }} }">
+
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between min-h-9 rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
+
+                                        <span class="flex flex-1 items-center gap-2 text-left">
+                                            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                                            <span class="whitespace-normal wrap-break-word leading-snug">Dashboard Setup</span>
+                                        </span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
+                                    </button>
+
+                                    <ul x-show="open" x-collapse class="space-y-0.5 pl-4">
+                                        <li><a href="{{ route('dashboard-setup') }}"
+                                                class="{{ Request::segment(1) === 'dashboard-setup' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard
+                                                Layout</a>
+                                        </li>
+                                        <li><a href="{{ route('dashboard-menu') }}"
+                                                class="{{ Request::segment(1) === 'dashboard-menu' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Dashboard
+                                                Menu</a>
+                                        </li>
+                                        <li><a href="{{ route('summary-setup.home') }}"
+                                                class="{{ Request::segment(1) === 'summary-setup' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Summary
+                                                Setup</a>
                                         </li>
                                     </ul>
                                 </li>
