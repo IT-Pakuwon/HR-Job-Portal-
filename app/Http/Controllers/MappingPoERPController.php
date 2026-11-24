@@ -17,7 +17,19 @@ class MappingPoERPController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        return view('pages.budgets.mapping_po_erp');
+        return view('pages.budgets.mapping_po_erp', [
+            'companies' => $this->companyIds($user),
+        ]);
+    }
+
+    private function companyIds($user): array
+    {
+        $companies = is_string($user->cpny_id)
+            ? explode(',', $user->cpny_id)
+            : (array) $user->cpny_id;
+
+        return collect($companies)->map(fn ($company) => trim((string) $company))
+            ->filter(fn ($company) => $company !== '')->unique()->sort()->values()->all();
     }
 
     private function statusLabel(?string $status): string
@@ -41,14 +53,11 @@ class MappingPoERPController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['data' => []], 401);
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $cpnyIds = $this->companyIds($user);
 
         $status = strtoupper(trim((string)$req->query('status', '')));
         $search = trim((string)$req->query('search', ''));
+        $company = trim((string)$req->query('cpny_id', ''));
 
         $sub = StagingIfcaPoApprove::query()
             ->selectRaw('MAX(id) AS id')
@@ -58,6 +67,10 @@ class MappingPoERPController extends Controller
         $q = StagingIfcaPoApprove::query()
             ->whereIn('id', $sub)
             ->whereIn('cpny_id', $cpnyIds);
+
+        if ($company !== '') {
+            $q->where('cpny_id', $company);
+        }
 
         if (in_array($status, ['D', 'P', 'C'], true)) {
             $q->where('status', $status);

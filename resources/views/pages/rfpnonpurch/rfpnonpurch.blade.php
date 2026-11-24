@@ -102,6 +102,19 @@
                         <button type="button" class="type-filter rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-type="RCA">RCA</button>
                     </div>
 
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-building text-xs"></i>
+                        </span>
+                        <select id="rfpCompanyFilter" aria-label="Company"
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Company</option>
+                            @foreach ($cpnyIds as $cpnyId)
+                                <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     {{-- RFP All: Status Filter --}}
                     <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
                         <div class="relative">
@@ -120,21 +133,8 @@
                         </div>
                     </div>
 
-                    {{-- RFP Finance: Company + Status Filters --}}
+                    {{-- RFP Finance: Status Filter --}}
                     <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-3">
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                                <i class="fas fa-building text-xs"></i>
-                            </span>
-                            <select id="rfpFinanceCpnyFilter"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <option value="">All Company</option>
-                                @foreach ($cpnyIds as $cpnyId)
-                                    <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         <div class="relative">
                             <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
                                 <i class="fas fa-check-circle text-xs"></i>
@@ -235,7 +235,7 @@
 
     <script>
         let scopeFilter = '';
-        let financeCpnyFilter = '';
+        let companyFilter = '';
         let financeStatusFilter = '';
         let typeFilter = '';
         var currentUser = "{{ auth()->user()->username }}";
@@ -348,7 +348,7 @@
                     data: function(d) {
                         d.status = statusFilter ?? '';
                         d.scope = scopeFilter ?? '';
-                        d.finance_cpny = financeCpnyFilter ?? '';
+                        d.cpny_id = companyFilter;
                         d.finance_status = financeStatusFilter ?? '';
                         d.type = typeFilter ?? '';
                     }
@@ -621,18 +621,16 @@
                 if (scope === 'rfp_all') {
                     scopeFilter = scope;
                     statusFilter = $('#rfpAllStatusFilter').val() || '';
-                    financeCpnyFilter = '';
                     financeStatusFilter = '';
 
                     $('#rfpAllStatusFilterWrapper').removeClass('hidden').addClass('flex');
                     $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#rfpFinanceStatusFilter').val('');
                     $('#createBtn').hide();
                     table.column(10).visible(false);
                 } else if (scope === 'rfp_finance') {
                     scopeFilter = scope;
                     statusFilter = '';
-                    financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
                     financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
 
                     $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
@@ -643,13 +641,12 @@
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
-                    financeCpnyFilter = '';
                     financeStatusFilter = '';
 
                     $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
                     $('#rfpAllStatusFilter').val('');
                     $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#rfpFinanceStatusFilter').val('');
                     $('#createBtn').show();
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
                     table.column(10).visible(false);
@@ -667,13 +664,17 @@
                 table.ajax.reload(null, true);
             });
 
-            $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').on('change', function() {
+            $('#rfpFinanceStatusFilter').on('change', function() {
                 if (scopeFilter !== 'rfp_finance') {
                     return;
                 }
 
-                financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
                 financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
+                table.ajax.reload(null, true);
+            });
+
+            $('#rfpCompanyFilter').on('change', function() {
+                companyFilter = $(this).val() || '';
                 table.ajax.reload(null, true);
             });
 
