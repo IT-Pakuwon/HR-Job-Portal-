@@ -60,6 +60,41 @@
                             <option value="X">Cancelled</option>
                         </select>
                     </div>
+
+                    {{-- RFP All: Status Filter --}}
+                    <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-filter text-xs"></i>
+                            </span>
+                            <select id="rfpAllStatusFilter"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="D">Revise</option>
+                                <option value="C">Completed</option>
+                                <option value="R">Rejected</option>
+                                <option value="X">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- RFP Finance: Status Filter --}}
+                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-check-circle text-xs"></i>
+                            </span>
+                            <select id="rfpFinanceStatusFilter"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Finance Status</option>
+                                <option value="waiting_user">Waiting User</option>
+                                <option value="finance_received">Finance Received</option>
+                                <option value="treasury_received">Treasury Received</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- RFP Finance: Status Filter --}}
@@ -388,6 +423,9 @@ const finPill = (text) => {
                             let receiveItem = '';
                             let reviseItem = '';
                             let reminderItem = '';
+                            const cancelItem = (hasApFinAccess || hasApTreAccess) && row.statusreceive !== 'X'
+                                ? `<button type="button" class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700" data-mode="cancel" data-action="cancel" ${commonData} data-button-text="Cancel Finance">Cancel</button>`
+                                : '';
 
                             if (receiveAllowed) {
                                 receiveItem = `
@@ -466,6 +504,7 @@ const finPill = (text) => {
                                         ${receiveItem}
                                         ${reviseItem}
                                         ${reminderItem}
+                                        ${cancelItem}
                                     </div>
                                 </div>
                             `;
@@ -479,7 +518,29 @@ const finPill = (text) => {
 
                             // 🔥 CASE 1: RFP Finance
                             if (scopeFilter === 'rfp_finance') {
-                                return finPill(row.finance_flow_status_text || 'Waiting User');
+
+                                const statusText = row.finance_flow_status_text || '-';
+
+                                const map = {
+                                    'Waiting User': {
+                                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                    },
+                                    'Finance Received': {
+                                        c: 'bg-blue-200/60 text-blue-800 border border-blue-600/40'
+                                    },
+                                    'Treasury Received': {
+                                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                    },
+                                    'Cancelled': {
+                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    }
+                                };
+
+                                const it = map[statusText] || {
+                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                };
+
+                                return `<span class="w-36 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${statusText}</span>`;
                             }
 
                             // 🔥 CASE 2: NORMAL STATUS
@@ -640,7 +701,7 @@ const finPill = (text) => {
                 }
 
                 if (
-                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder' || selectedActionMode === 'cancel') &&
                     !hasApFinAccess &&
                     !hasApTreAccess
                 ) {
@@ -694,6 +755,12 @@ const finPill = (text) => {
                     $('#modalMessageLabel').text('Revise Message');
                     $('#modalMessage').attr('placeholder', 'Input revise reason/message...');
                     $('#modalMessageHint').text('Message wajib diisi untuk Revise.');
+                } else if (selectedActionMode === 'cancel') {
+                    $('#rfpActionTitle').text('Cancel Finance Status');
+                    $('#modalUserLabel').text('Action:');
+                    $('#modalDateLabel').text('Date:');
+                    $('#modalUserValue').text('Cancel');
+                    $('#modalDateValue').text(formatNow());
                 } else if (selectedActionMode === 'reminder') {
                     $('#rfpActionTitle').text('Send Reminder');
                     $('#modalUserLabel').text('Action:');
@@ -711,7 +778,7 @@ const finPill = (text) => {
                     .text(buttonText)
                     .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-green-600 hover:bg-green-700 bg-yellow-600 hover:bg-yellow-700')
                     .addClass(
-                        selectedActionType === 'rollback'
+                        selectedActionType === 'rollback' || selectedActionMode === 'cancel'
                             ? 'bg-red-600 hover:bg-red-700'
                             : selectedActionMode === 'revise'
                                 ? 'bg-yellow-600 hover:bg-yellow-700'
@@ -739,7 +806,7 @@ const finPill = (text) => {
                 }
 
                 if (
-                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder' || selectedActionMode === 'cancel') &&
                     !hasApFinAccess &&
                     !hasApTreAccess
                 ) {
@@ -769,6 +836,8 @@ const finPill = (text) => {
                     url = `/rfpnonpurch/${selectedActionHash}/finance-revise`;
                 } else if (selectedActionMode === 'reminder') {
                     url = `/rfpnonpurch/${selectedActionHash}/reminder`;
+                } else if (selectedActionMode === 'cancel') {
+                    url = `/rfpnonpurch/${selectedActionHash}/finance-cancel`;
                 }
 
                 if (!url) {
