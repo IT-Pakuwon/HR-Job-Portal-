@@ -47,6 +47,16 @@ class VendorController extends Controller
         return response()->json(['data' => $directory->rows($tab, $filters)])->header('Cache-Control', 'no-store, private');
     }
 
+    public function companyProfile(Request $request, \App\Services\Vms\CompanyProfileFiles $files, int $id)
+    {
+        $this->authorizeAccess($request);
+        $vendor = \App\Models\Vms\Vendor::query()->findOrFail($id, ['vendor_id', 'company_profile']);
+        $url = $files->url($vendor->company_profile);
+        abort_unless($url, 404, 'Company profile belum tersedia.');
+
+        return redirect()->away($url)->header('Cache-Control', 'no-store, private')->header('Referrer-Policy', 'no-referrer');
+    }
+
     public function registration(Request $request, VendorDirectory $directory, RegistrationReview $review, int $id)
     {
         $this->authorizeAccess($request);

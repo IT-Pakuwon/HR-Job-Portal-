@@ -80,3 +80,11 @@
 #vms-vendors-page [data-vendor-panel] table.dataTable tbody tr:hover{background-color:#edf4ff}
 #vms-vendors-page [data-vendor-panel] button.vms-vendor-link{background:#edf3ff;border-color:#d1dff6;color:#385fa6;font-weight:600}
 #vms-vendors-page [data-vendor-panel] button.vms-vendor-link:hover{background:#dfeaff;border-color:#a9bfe5}
+
+#vms-vendors-page td.vms-registration-company{text-align:left}
+#vms-vendors-page td.vms-registration-company .vms-vendor-company{justify-content:flex-start;text-align:left}
+
+/* Keep company names aligned with the first column header in New Registration. */
+#vms-vendors-page #vendor-table-new.dataTable tbody tr td:first-child{text-align:left!important}
+#vms-vendors-page #vendor-table-new.dataTable tbody tr td:first-child .vms-vendor-company{display:block!important;width:100%;text-align:left!important}
+#vms-vendors-page #vendor-table-new.dataTable tbody tr td:first-child .vms-vendor-company>span{display:block;width:100%;margin:0;text-align:left!important}
