@@ -145,6 +145,7 @@
                                 <option value="waiting_user">Waiting User</option>
                                 <option value="finance_received">Finance Received</option>
                                 <option value="treasury_received">Treasury Received</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
                     </div>
@@ -471,6 +472,9 @@
                             let receiveItem = '';
                             let reviseItem = '';
                             let reminderItem = '';
+                            const cancelItem = (hasApFinAccess || hasApTreAccess) && row.statusreceive !== 'X'
+                                ? `<button type="button" class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700" data-mode="cancel" data-action="cancel" ${commonData} data-button-text="Cancel Finance">Cancel</button>`
+                                : '';
 
                             if (receiveAllowed) {
                                 receiveItem = `
@@ -549,6 +553,7 @@
                                         ${receiveItem}
                                         ${reviseItem}
                                         ${reminderItem}
+                                        ${cancelItem}
                                     </div>
                                 </div>
                             `;
@@ -574,6 +579,9 @@
                                     },
                                     'Treasury Received': {
                                         c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                    },
+                                    'Cancelled': {
+                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
                                     }
                                 };
 
@@ -753,7 +761,7 @@
                 }
 
                 if (
-                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder' || selectedActionMode === 'cancel') &&
                     !hasApFinAccess &&
                     !hasApTreAccess
                 ) {
@@ -807,6 +815,12 @@
                     $('#modalMessageLabel').text('Revise Message');
                     $('#modalMessage').attr('placeholder', 'Input revise reason/message...');
                     $('#modalMessageHint').text('Message wajib diisi untuk Revise.');
+                } else if (selectedActionMode === 'cancel') {
+                    $('#rfpActionTitle').text('Cancel Finance Status');
+                    $('#modalUserLabel').text('Action:');
+                    $('#modalDateLabel').text('Date:');
+                    $('#modalUserValue').text('Cancel');
+                    $('#modalDateValue').text(formatNow());
                 } else if (selectedActionMode === 'reminder') {
                     $('#rfpActionTitle').text('Send Reminder');
                     $('#modalUserLabel').text('Action:');
@@ -824,7 +838,7 @@
                     .text(buttonText)
                     .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-green-600 hover:bg-green-700 bg-yellow-600 hover:bg-yellow-700')
                     .addClass(
-                        selectedActionType === 'rollback'
+                        selectedActionType === 'rollback' || selectedActionMode === 'cancel'
                             ? 'bg-red-600 hover:bg-red-700'
                             : selectedActionMode === 'revise'
                                 ? 'bg-yellow-600 hover:bg-yellow-700'
@@ -852,7 +866,7 @@
                 }
 
                 if (
-                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder' || selectedActionMode === 'cancel') &&
                     !hasApFinAccess &&
                     !hasApTreAccess
                 ) {
@@ -882,6 +896,8 @@
                     url = `/rfpnonpurch/${selectedActionHash}/finance-revise`;
                 } else if (selectedActionMode === 'reminder') {
                     url = `/rfpnonpurch/${selectedActionHash}/reminder`;
+                } else if (selectedActionMode === 'cancel') {
+                    url = `/rfpnonpurch/${selectedActionHash}/finance-cancel`;
                 }
 
                 if (!url) {

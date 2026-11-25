@@ -225,6 +225,9 @@ class RfpNonPurchController extends Controller
                 $q->where('r.statusreceive', 'C')
                     ->where('r.statuspayment', 'C');
             })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'cancelled', function ($q) {
+                $q->where('r.statusreceive', 'X');
+            })
 
             // 🔥 FINANCE FLOW TETAP
             ->when($scope === 'finance_received', function ($q) {
@@ -298,7 +301,9 @@ class RfpNonPurchController extends Controller
             $sr = strtoupper(trim($row->statusreceive ?? 'P'));
             $sp = strtoupper(trim($row->statuspayment ?? 'P'));
 
-            if ($sr === 'P' && $sp === 'P') {
+            if ($sr === 'X') {
+                $row->finance_flow_status_text = 'Cancelled';
+            } elseif ($sr === 'P' && $sp === 'P') {
                 $row->finance_flow_status_text = 'Waiting User';
             } elseif ($sr === 'C' && $sp === 'P') {
                 $row->finance_flow_status_text = 'Finance Received';
@@ -1258,7 +1263,7 @@ class RfpNonPurchController extends Controller
             'description' => 'Finance Received',
             'user' => $rfpnonpurch->userreceive ?: '-',
             'date' => $rfpnonpurch->receivedate,
-            'status' => $rfpnonpurch->statusreceive === 'C' ? 'Done' : 'Pending',
+            'status' => $rfpnonpurch->statusreceive === 'X' ? 'Cancelled' : ($rfpnonpurch->statusreceive === 'C' ? 'Done' : 'Pending'),
         ]);
 
         $rfpnonpurchSteps->push([
@@ -1301,6 +1306,28 @@ class RfpNonPurchController extends Controller
         ));
     }
 
+    public function cancelFinanceRfpNonPurch($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+        abort_unless($user->hasRole('APFINACCESS') || $user->hasRole('APTREACCESS'), 403);
+
+        $rfp = TrRfpNonPurch::whereIn('cpny_id', $user->scopedCompanyIds())->findOrFail($id);
+        if ($rfp->status !== 'C') {
+            return response()->json(['success' => false, 'message' => 'Only completed documents can be cancelled in finance.'], 422);
+        }
+
+        $rfp->statusreceive = 'X';
+        $rfp->updated_by = $user->username ?? $user->name;
+        $rfp->updated_at = now();
+        $rfp->save();
+
+        return response()->json(['success' => true, 'message' => 'Finance status cancelled successfully.']);
+    }
+
     public function updateReceived($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1317,6 +1344,10 @@ class RfpNonPurchController extends Controller
         }
 
         $rfpnonpurch = TrRfpNonPurch::findOrFail($id);
+
+        if ($rfpnonpurch->statusreceive === 'X') {
+            return response()->json(['success' => false, 'message' => 'Finance status has been cancelled.'], 422);
+        }
 
         $updatedBy = $user->username ?? $user->name;
         $now = now();
@@ -1376,6 +1407,10 @@ class RfpNonPurchController extends Controller
         }
 
         $rfpnonpurch = TrRfpNonPurch::findOrFail($id);
+
+        if ($rfpnonpurch->statusreceive === 'X') {
+            return response()->json(['success' => false, 'message' => 'Finance status has been cancelled.'], 422);
+        }
 
         $updatedBy = $user->username ?? $user->name;
         $now = now();

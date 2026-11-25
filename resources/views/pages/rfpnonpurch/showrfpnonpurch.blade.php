@@ -539,6 +539,7 @@
 
                             @if ($hasApFinAccess || $hasApTreAccess)
                                 @php
+                                    $isFinanceCancelled = $rfpnonpurch->statusreceive === 'X';
                                     $isReceiveCompleted = $rfpnonpurch->statusreceive === 'C'
                                         || (!empty($rfpnonpurch->userreceive) && !empty($rfpnonpurch->receivedate));
                                     $isPaymentCompleted = $rfpnonpurch->statuspayment === 'C'
@@ -562,7 +563,7 @@
                                     <div id="progressActionDropdown"
                                         class="absolute right-0 top-full z-50 mt-1 hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
 
-                                        @if ($hasApTreAccess && $isReceiveCompleted)
+                                        @if (!$isFinanceCancelled && $hasApTreAccess && $isReceiveCompleted)
                                             @php
                                                 $treAction = $isPaymentCompleted ? 'rollback' : 'update';
                                                 $treText   = $isPaymentCompleted ? 'Rollback Treasury' : 'Update Treasury';
@@ -576,7 +577,7 @@
                                                 data-button-text="{{ $treText }}">
                                                 {{ $treText }}
                                             </button>
-                                        @elseif ($hasApFinAccess && in_array($finFlowStatus, ['Waiting User', 'Finance Received']))
+                                        @elseif (!$isFinanceCancelled && $hasApFinAccess && in_array($finFlowStatus, ['Waiting User', 'Finance Received']))
                                             @php
                                                 $finAction = $isReceiveCompleted ? 'rollback' : 'update';
                                                 $finText   = $isReceiveCompleted ? 'Rollback Received' : 'Update Received';
@@ -607,6 +608,13 @@
                                             data-button-text="Send Reminder">
                                             Reminder
                                         </button>
+                                        @if (!$isFinanceCancelled && $rfpnonpurch->status === 'C')
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="cancel" data-action="cancel" data-button-text="Cancel Finance">
+                                                Cancel
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -631,6 +639,7 @@
                                                 'Done' => 'bg-green-100 text-green-700',
                                                 'Pending' => 'bg-yellow-100 text-yellow-700',
                                                 'Rejected' => 'bg-red-100 text-red-700',
+                                                'Cancelled' => 'bg-red-100 text-red-700',
                                                 'Revise' => 'bg-blue-100 text-blue-700',
                                                 default => 'bg-gray-100 text-gray-700'
                                             };
@@ -1416,6 +1425,12 @@
                     $('#progressModalDateValue').text(formatNow());
                     $('#progressModalMessageWrapper').removeClass('hidden');
                     $('#progressModalMessage').attr('placeholder', 'Input revise reason/message...');
+                } else if (progActionMode === 'cancel') {
+                    $('#progressActionTitle').text('Cancel Finance Status');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Cancel');
+                    $('#progressModalDateValue').text(formatNow());
                 } else if (progActionMode === 'reminder') {
                     $('#progressActionTitle').text('Send Reminder');
                     $('#progressModalUserLabel').text('Action:');
@@ -1430,7 +1445,7 @@
                     .text(buttonText)
                     .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-yellow-600 hover:bg-yellow-700')
                     .addClass(
-                        progActionType === 'rollback'  ? 'bg-red-600 hover:bg-red-700' :
+                        (progActionType === 'rollback' || progActionMode === 'cancel') ? 'bg-red-600 hover:bg-red-700' :
                         progActionMode  === 'revise'   ? 'bg-yellow-600 hover:bg-yellow-700' :
                                                          'bg-indigo-600 hover:bg-indigo-700'
                     );
@@ -1460,6 +1475,7 @@
                     treasury : `/rfpnonpurch/${hash}/treasury`,
                     revise   : `/rfpnonpurch/${hash}/finance-revise`,
                     reminder : `/rfpnonpurch/${hash}/reminder`,
+                    cancel   : `/rfpnonpurch/${hash}/finance-cancel`,
                 };
                 const url = urlMap[progActionMode];
                 if (!url) return;
