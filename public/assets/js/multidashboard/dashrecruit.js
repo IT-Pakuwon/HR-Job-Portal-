@@ -161,10 +161,10 @@
                 : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
         }
         const map = isDark ? {
-            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+            P: { text: "Waiting Approval", bg: "rgba(86, 177, 243,0.15)", color: "#93c5fd" },
             A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
         } : {
-            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+            P: { text: "Waiting Approval", bg: "rgba(86, 177, 243,0.1)", color: "#2563eb" },
             A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
         };
         const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };

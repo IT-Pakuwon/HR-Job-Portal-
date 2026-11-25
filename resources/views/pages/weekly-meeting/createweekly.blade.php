@@ -105,7 +105,7 @@
             .meeting-input:focus {
                 border-color: #7bc8ff;
                 outline: none;
-                box-shadow: 0 0 0 3px rgb(99 102 241 / .12);
+                box-shadow: 0 0 0 3px rgb(86 177 243 / .12);
             }
             #participantRows .select2-container .select2-selection--single {
                 height: 46px;

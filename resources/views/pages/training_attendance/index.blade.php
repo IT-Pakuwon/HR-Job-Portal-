@@ -381,7 +381,7 @@
         .eventStat--blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #bfdbfe; color: #1d4ed8; }
         .eventStat--green { background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-color: #a7f3d0; color: #047857; }
         .eventStat--amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fde68a; color: #b45309; }
-        .dark .eventStat--blue { background: rgba(59,130,246,.14); border-color: rgba(59,130,246,.35); color: #93c5fd; }
+        .dark .eventStat--blue { background: rgba(86, 177, 243,.14); border-color: rgba(86, 177, 243,.35); color: #93c5fd; }
         .dark .eventStat--green { background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.35); color: #6ee7b7; }
         .dark .eventStat--amber { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.35); color: #fcd34d; }
         .dark .eventStatIcon { background: rgba(17,24,39,.7); }

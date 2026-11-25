@@ -5,7 +5,7 @@
 .dh-description{margin:0;color:#6b7280;font-size:15px;line-height:1.6}
 
 /* Hero banner */
-.dh-hero{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:28px 32px;border-radius:22px;background:linear-gradient(120deg,#1e3a8a 0%,#2563eb 55%,#7c3aed 100%);color:#fff;overflow:hidden;box-shadow:0 12px 30px -12px rgb(37 99 235 / 55%)}
+.dh-hero{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:28px 32px;border-radius:22px;background:linear-gradient(120deg,#1e3a8a 0%,#2563eb 55%,#7c3aed 100%);color:#fff;overflow:hidden;box-shadow:0 12px 30px -12px rgb(49 147 218 / 55%)}
 .dh-hero::before,.dh-hero::after{content:"";position:absolute;border-radius:999px;background:rgb(255 255 255 / 9%);pointer-events:none}
 .dh-hero::before{width:260px;height:260px;right:-60px;top:-120px}
 .dh-hero::after{width:160px;height:160px;right:180px;bottom:-100px}

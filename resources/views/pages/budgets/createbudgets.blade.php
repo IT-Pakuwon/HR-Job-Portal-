@@ -1,4 +1,16 @@
 <x-app-layout>
+    <style>
+        /* Make the Select2 department box match the other fields */
+        #department_select + .select2-container { width: 100% !important; }
+        #department_select + .select2-container .select2-selection--single {
+            height: 42px; border: 1px solid #d1d5db; border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+        }
+        #department_select + .select2-container .select2-selection__rendered { line-height: 40px; padding-left: 12px; font-size: 0.875rem; }
+        #department_select + .select2-container .select2-selection__arrow { height: 40px; right: 6px; }
+        #department_select + .select2-container--focus .select2-selection--single,
+        #department_select + .select2-container--open .select2-selection--single { border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+    </style>
     <div class="max-w-9xl mx-auto p-2">
         <div class="gap-4">
             <div class="flex flex-col gap-4">
@@ -6,79 +18,75 @@
                 <form id="budgetForm" action="{{ route('budgets.import') }}" method="POST" enctype="multipart/form-data"
                     class="flex flex-col gap-4">
                     @csrf
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                         <!-- header -->
-                        <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
-                            <h2 class="text-base font-bold">📥 Import Budget</h2>
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" /></svg>
+                                </span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Import Budget</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Choose the scope, then upload your filled Excel template.</p>
+                                </div>
+                            </div>
 
-                            <!-- ONLY Template button here -->
-                            <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener"
-                                download
-                                class="inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+                            <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener" download
+                                class="inline-flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white dark:border-green-800 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-600 dark:hover:text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
                                 </svg>
                                 Template Budget
                             </a>
                         </div>
 
-                        <!-- FORM FIELDS GRID -->
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                        <div class="p-6">
+                            <!-- FORM FIELDS GRID -->
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
 
-                            <!-- Company -->
-                            <div>
-                                <label
-                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpny_id" required
-                                    class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    <option value="" disabled selected>Select</option>
-                                    @foreach ($companies as $p)
-                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
-                                    @endforeach
-                                </select>
+                                <!-- Company -->
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</label>
+                                    <select name="cpny_id" required class="budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="" disabled selected>Select</option>
+                                        @foreach ($companies as $p)
+                                            <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Business Unit -->
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Business Unit</label>
+                                    <select name="business_unit_id" required class="budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
+                                    </select>
+                                </div>
+
+                                <!-- Department -->
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</label>
+                                    <select name="department_fin_id" id="department_select" required class="select2 budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    </select>
+                                </div>
+
+                                <!-- File Upload -->
+                                <div>
+                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Import Excel</label>
+                                    <input type="file" name="file" id="file" required
+                                        class="block h-[42px] w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
+                                </div>
                             </div>
 
-                            <!-- Business Unit -->
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
-                                    Unit</label>
-                                <select name="business_unit_id" required
-                                    class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    <option value="">Select</option>
-                                </select>
+                            <!-- IMPORT button -->
+                            <div class="mt-6 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-700">
+                                <button type="submit" id="importBtn"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" /></svg>
+                                    Import
+                                </button>
                             </div>
-
-                            <!-- Department -->
-                            <div>
-                                <label
-                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="department_fin_id" id="department_select" required
-                                    class="select2 h-[42px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
-                                    {{-- @foreach ($departements as $p)
-                                            <option value="{{ $p->deptname }}">{{ $p->deptname }}</option>
-                                        @endforeach --}}
-                                </select>
-                            </div>
-
-                            <!-- File Upload -->
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
-                                    Excel</label>
-                                <input type="file" name="file" id="file" required
-                                    class="block h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
-
-                            </div>
-                        </div>
-
-                        <!-- IMPORT button stays below grid -->
-                        <div class="mt-4 flex justify-end">
-                            <button type="submit" id="importBtn"
-                                class="inline-flex items-center rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
-                                Import
-                            </button>
                         </div>
                     </div>
                 </form>
@@ -86,19 +94,22 @@
                 {{-- Table Preview Import --}}
                 @if (isset($tempData) && count($tempData) > 0)
                     <div class="flex flex-col gap-4">
-                        <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
-                                <h2 class="flex items-center gap-2 text-sm font-bold">
-                                    📊 Budget Details
+                        <div class="flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div class="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                                <h2 class="flex items-center gap-3 text-base font-bold text-gray-800 dark:text-gray-100">
+                                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    </span>
+                                    Budget Details
                                 </h2>
-                                <h5 class="rounded-xl bg-red-100/50 px-4 py-1.5 text-sm font-semibold text-red-600">
-                                    Preview
-                                </h5>
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Preview
+                                </span>
                             </div>
 
-                            <div class="w-full min-w-[55px] overflow-x-auto">
-                                <table class="h-full w-full table-auto whitespace-nowrap border text-left text-sm">
-                                    <thead class="bg-gray-100 font-bold text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                            <div class="w-full min-w-[55px] overflow-x-auto px-6 pb-6 pt-4">
+                                <table class="w-full table-auto overflow-hidden whitespace-nowrap rounded-lg border border-gray-200 text-left text-sm dark:border-gray-700">
+                                    <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                                         <tr>
                                             <th class="px-4 py-2">Perpost</th>
                                             <th class="px-4 py-2">Cpny ID</th>
@@ -108,8 +119,8 @@
                                             <th class="px-4 py-2">Activity ID</th>
                                             <th class="px-4 py-2">Activity Description</th>
                                             <th class="px-4 py-2">Activity Detail</th>
-                                            <th class="px-4 py-2">Qty</th>
-                                            <th class="px-4 py-2">Unit Price</th>
+                                            <th class="px-4 py-2 text-right">Qty</th>
+                                            <th class="px-4 py-2 text-right">Unit Price</th>
                                             <th class="px-4 py-2 text-right">Total Budget</th>
                                             @for ($i = 1; $i <= 12; $i++)
                                                 <th class="px-4 py-2 text-right">
@@ -119,7 +130,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($tempData as $item)
-                                            <tr class="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            <tr class="border-t border-gray-100 transition-colors odd:bg-white even:bg-gray-50/50 hover:bg-blue-50/60 dark:border-gray-700 dark:odd:bg-gray-800 dark:even:bg-gray-800/60 dark:hover:bg-gray-700">
                                                 <td class="px-4 py-2">{{ $item->perpost }}</td>
                                                 <td class="px-4 py-2">{{ $item->cpny_id }}</td>
                                                 <td class="px-4 py-2">{{ $item->business_unit_id }}</td>
@@ -128,23 +139,23 @@
                                                 <td class="px-4 py-2">{{ $item->activity_id }}</td>
                                                 <td class="px-4 py-2">{{ $item->activity_descr }}</td>
                                                 <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                                <td class="px-4 py-2">{{ $item->qty_budget }}</td>
-                                                <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
-                                                <td class="px-4 py-2 text-right">
+                                                <td class="px-4 py-2 text-right tabular-nums">{{ $item->qty_budget }}</td>
+                                                <td class="px-4 py-2 text-right tabular-nums">{{ $item->unit_price_budget }}</td>
+                                                <td class="px-4 py-2 text-right font-medium tabular-nums">
                                                     {{ number_format($item->totalbudget) }}</td>
                                                 @for ($i = 1; $i <= 12; $i++)
                                                     @php
                                                         $period =
                                                             'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
                                                     @endphp
-                                                    <td class="px-4 py-2 text-right">
+                                                    <td class="px-4 py-2 text-right tabular-nums text-gray-600 dark:text-gray-300">
                                                         {{ number_format($item->$period) }}</td>
                                                 @endfor
                                             </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot
-                                        class="sticky bottom-0 z-10 border-t bg-gray-100 font-semibold text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                                        class="sticky bottom-0 z-10 border-t-2 border-blue-200 font-semibold text-gray-800 dark:border-blue-800 dark:text-gray-100">
 
                                         @php
                                             $qtyTotal = 0;
@@ -180,28 +191,28 @@
                                         <tr>
                                             {{-- LABEL --}}
                                             <td colspan="8"
-                                                class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                class="bg-blue-50 px-4 py-3 text-right tabular-nums text-blue-900 dark:bg-gray-900 dark:text-blue-200">
                                                 TOTAL
                                             </td>
 
                                             {{-- QTY --}}
-                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                            <td class="bg-blue-50 px-4 py-3 text-right tabular-nums text-blue-900 dark:bg-gray-900 dark:text-blue-200">
                                                 {{ number_format($qtyTotal, 2, ',', '.') }}
                                             </td>
 
                                             {{-- AVG UNIT PRICE --}}
-                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                            <td class="bg-blue-50 px-4 py-3 text-right tabular-nums text-blue-900 dark:bg-gray-900 dark:text-blue-200">
                                                 {{ $unitPriceCount > 0 ? number_format($unitPriceSum / $unitPriceCount, 2, ',', '.') : '–' }}
                                             </td>
 
                                             {{-- TOTAL BUDGET --}}
-                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                            <td class="bg-blue-50 px-4 py-3 text-right tabular-nums text-blue-900 dark:bg-gray-900 dark:text-blue-200">
                                                 {{ number_format($totalBudgetSum) }}
                                             </td>
 
                                             {{-- TOTAL PER PERIOD --}}
                                             @for ($i = 1; $i <= 12; $i++)
-                                                <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                <td class="bg-blue-50 px-4 py-3 text-right tabular-nums text-blue-900 dark:bg-gray-900 dark:text-blue-200">
                                                     {{ $periodSums[$i] == 0 ? '–' : number_format($periodSums[$i]) }}
                                                 </td>
                                             @endfor
@@ -212,33 +223,35 @@
                         </div>
 
 
-                        <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="flex-1 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                             <form id="submitApprovalForm" method="POST" action="{{ route('budgets.store') }}">
                                 @csrf
                                 <div class="flex w-full flex-col gap-4">
-                                    <div class="flex w-full flex-col border-b">
+                                    <div class="flex w-full flex-col">
                                         <details class="group mb-4" open>
                                             <summary
-                                                class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
-                                                <span class="text-sm font-semibold">Attachments</span>
-                                                <span class="transition-all group-open:hidden">See details</span>
-                                                <span class="hidden transition-all group-open:inline">Hide
-                                                    details</span>
+                                                class="mb-4 flex cursor-pointer list-none items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">
+                                                <span class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                    Attachments
+                                                </span>
+                                                <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details</span>
+                                                <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details</span>
                                             </summary>
-                                            <div class="flex flex-col pt-6">
+                                            <div class="flex flex-col pt-2">
                                                 <div id="attachmentsContainer">
-                                                    <div class="attachment-row flex items-center gap-2">
+                                                    <div class="attachment-row mb-2 flex items-center gap-2">
                                                         <input type="file" name="attachments[]"
                                                             {{-- class="mt-4 w-full border p-3 text-sm"> --}}
-                                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                                         <button type="button"
-                                                            class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 px-4 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">
+                                                            class="removeAttachment hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                             🗑️
                                                         </button>
                                                     </div>
                                                 </div>
                                                 <button type="button" id="addAttachment"
-                                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                                    class="mb-2 mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                                         viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
@@ -250,9 +263,9 @@
                                         </details>
                                     </div>
                                     <div
-                                        class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                        class="mt-2 flex flex-col gap-4 border-t border-gray-100 pt-5 dark:border-gray-700 md:flex-row md:items-center md:justify-between">
                                         <button id="backBtn" onclick="history.back()"
-                                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                                            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
 
                                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -284,7 +297,7 @@
 
                                             <!-- Submit -->
                                             <button type="submit" id="submitBtn"
-                                                class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                                class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                                 <span id="btnText">Submit Approval</span>
                                                 <svg id="loadingSpinner"
                                                     class="hidden h-5 w-5 animate-spin text-white"

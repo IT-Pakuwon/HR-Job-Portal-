@@ -77,7 +77,7 @@
         .st-input { width:100%; border-radius:0.75rem; border:1px solid rgb(229 231 235); background:rgb(249 250 251 / .6); padding:0.65rem 0.875rem; font-size:0.875rem; color:rgb(17 24 39); box-shadow:0 1px 2px rgb(0 0 0 / .04); transition:all .15s; }
         .st-input::placeholder { color:rgb(156 163 175); }
         .st-input:hover { border-color:rgb(165 180 252); background:#fff; }
-        .st-input:focus { outline:none; border-color:rgb(99 102 241); background:#fff; box-shadow:0 0 0 4px rgb(99 102 241 / .15); }
+        .st-input:focus { outline:none; border-color:rgb(86 177 243); background:#fff; box-shadow:0 0 0 4px rgb(86 177 243 / .15); }
         .st-input:disabled { background:rgb(243 244 246); color:rgb(107 114 128); cursor:not-allowed; }
         .dark .st-input { background:rgb(255 255 255 / .05); border-color:rgb(255 255 255 / .1); color:#fff; }
         .dark .st-input:focus { background:rgb(255 255 255 / .08); }

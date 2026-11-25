@@ -27,10 +27,8 @@
     function loadSummary(params) {
         fetchJson(routes.summary, params).then(function (res) {
             var d = res.data || {};
-            utils.setText('llrepStatTotal', d.total || 0);
-            utils.setText('llrepStatCompleted', d.completed || 0);
-            utils.setText('llrepStatProgress', d.on_progress || 0);
-            utils.setText('llrepStatRate', (d.completion_rate || 0) + '%');
+            utils.setText('llrepStatActiveDraft', d.active_draft || 0);
+            utils.setText('llrepStatFollowUp', d.followup_active || 0);
             utils.setText('llrepStatIncomplete', d.incomplete_docs || 0);
 
             hlItems = d.highlight_items || [];
@@ -141,6 +139,24 @@
 
         var dark = isDark();
         var height = vertical ? 300 : Math.max(grouped ? 340 : 280, categories.length * (grouped ? 80 : 32));
+        if (opts && opts.fill) {
+            // Container is absolutely sized to the card body: use its measured pixel height
+            // (Apex's '100%' is unreliable) and follow it when the neighbouring card grows.
+            height = Math.max(el.clientHeight || 0, 240);
+            if (!el._fillObs && window.ResizeObserver && el.parentElement) {
+                var lastH = height, timer = null;
+                el._fillObs = new ResizeObserver(function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(function () {
+                        var h = Math.max(el.clientHeight || 0, 240);
+                        if (Math.abs(h - lastH) < 4 || !charts[key]) return;
+                        lastH = h;
+                        charts[key].updateOptions({ chart: { height: h } }, false, false);
+                    }, 120);
+                });
+                el._fillObs.observe(el);
+            }
+        }
 
         // Counts are whole numbers — never label the value axis 0.2, 0.4 …
         var valueLabels = {

@@ -290,7 +290,7 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
             box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
         }
         .ts-select2-container.select2-container--default.select2-container--focus .select2-selection--multiple {
-            border-color: rgb(99 102 241) !important;
+            border-color: rgb(86 177 243) !important;
         }
         .ts-select2-container.select2-container--default .select2-selection--multiple .select2-selection__choice {
             border-radius: 9999px;
@@ -300,7 +300,7 @@ class="w-full rounded-xl border border-gray-200 bg-gray-50/60 py-2.5 pl-10 pr-3 
             font-size: 12px;
             padding: 1px 8px;
         }
-        .ts-select2-container.select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: rgb(129 140 248); margin-right: 4px; }
+        .ts-select2-container.select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: rgb(123 200 255); margin-right: 4px; }
         .ts-select2-container.select2-container--default .select2-selection--single:hover {
             border-color: rgb(199 210 254) !important;
             background-color: #fff !important;

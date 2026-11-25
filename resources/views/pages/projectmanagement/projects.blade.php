@@ -909,7 +909,7 @@
             font-style: normal;
         }
         .task-quill:focus-within {
-            border-color: rgb(129 140 248) !important;
+            border-color: rgb(123 200 255) !important;
             box-shadow: 0 0 0 4px rgb(238 242 255);
         }
         .dark .task-quill .ql-toolbar.ql-snow {
@@ -924,7 +924,7 @@
             color: rgb(100 116 139);
         }
         .dark .task-quill:focus-within {
-            box-shadow: 0 0 0 4px rgb(99 102 241 / .18);
+            box-shadow: 0 0 0 4px rgb(86 177 243 / .18);
         }
         .dark .task-quill .ql-snow .ql-stroke {
             stroke: rgb(148 163 184);
@@ -945,7 +945,7 @@
         }
         .dark .task-quill .ql-snow button.ql-active .ql-stroke,
         .dark .task-quill .ql-snow .ql-picker-label.ql-active .ql-stroke {
-            stroke: rgb(129 140 248);
+            stroke: rgb(123 200 255);
         }
         .dark .task-quill .ql-picker-options {
             background: #0f172a;
@@ -985,7 +985,7 @@
         .select2-container--default.select2-container--open .select2-selection--multiple,
         .select2-container--default.select2-container--focus .select2-selection--single,
         .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: rgb(129 140 248) !important;
+            border-color: rgb(123 200 255) !important;
             box-shadow: 0 0 0 4px rgb(238 242 255);
         }
         .select2-selection--multiple .select2-selection__rendered {
@@ -1009,7 +1009,7 @@
             order: 2;
             margin-left: 6px !important;
             margin-right: 0 !important;
-            color: rgb(129 140 248) !important;
+            color: rgb(123 200 255) !important;
             border: none !important;
         }
         .select2-selection__choice__remove:hover {
@@ -1062,10 +1062,10 @@
         .dark .select2-container--default.select2-container--open .select2-selection--multiple,
         .dark .select2-container--default.select2-container--focus .select2-selection--single,
         .dark .select2-container--default.select2-container--open .select2-selection--single {
-            box-shadow: 0 0 0 4px rgb(99 102 241 / .18);
+            box-shadow: 0 0 0 4px rgb(86 177 243 / .18);
         }
         .dark .select2-selection--multiple .select2-selection__choice {
-            background: rgb(99 102 241 / .18) !important;
+            background: rgb(86 177 243 / .18) !important;
             color: rgb(199 210 254) !important;
         }
         .dark .select2-search--inline .select2-search__field,
@@ -1081,7 +1081,7 @@
             color: rgb(226 232 240);
         }
         .dark .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: rgb(99 102 241 / .18) !important;
+            background-color: rgb(86 177 243 / .18) !important;
             color: rgb(199 210 254) !important;
         }
         .dark .select2-container--default .select2-results__option[aria-selected=true] {
@@ -1105,33 +1105,33 @@
         #select2-task_assignees-container .select2-selection__choice:hover,
         #select2-project_team_pic-container .select2-selection__choice:hover,
         #select2-qc_pic-container .select2-selection__choice:hover {
-            box-shadow: 0 0 0 1px rgb(165 180 252), 0 2px 6px rgb(99 102 241 / .15);
+            box-shadow: 0 0 0 1px rgb(165 180 252), 0 2px 6px rgb(86 177 243 / .15);
         }
         .pm-chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-        .pm-chip .pm-chip-team { display: inline-flex; height: 20px; width: 20px; align-items: center; justify-content: center; border-radius: 9999px; background: rgb(224 231 255); color: rgb(79 70 229); font-size: 9px; }
+        .pm-chip .pm-chip-team { display: inline-flex; height: 20px; width: 20px; align-items: center; justify-content: center; border-radius: 9999px; background: rgb(224 231 255); color: rgb(49 147 218); font-size: 9px; }
         .pm-assign-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid rgb(241 245 249); font-size: .75rem; }
-        .pm-assign-bar button { border-radius: 6px; padding: 3px 8px; font-weight: 600; color: rgb(79 70 229); transition: background .15s ease; }
+        .pm-assign-bar button { border-radius: 6px; padding: 3px 8px; font-weight: 600; color: rgb(49 147 218); transition: background .15s ease; }
         .pm-assign-bar button:hover { background: rgb(238 242 255); }
         .pm-assign-bar .pm-assign-clear { color: rgb(100 116 139); }
         .pm-assign-bar .pm-assign-count { color: rgb(148 163 184); }
         .dark .pm-assign-bar { border-color: rgb(255 255 255 / .08); }
-        .dark .pm-assign-bar button:hover { background: rgb(99 102 241 / .18); }
+        .dark .pm-assign-bar button:hover { background: rgb(86 177 243 / .18); }
         .pm-assign-dd .select2-results__option { padding: 6px 10px !important; margin: 1px 6px; }
         .pm-assign-dd .select2-results__group { display: flex; align-items: center; gap: 6px; }
         .pm-opt { display: flex; align-items: center; gap: 10px; }
         .pm-opt .pm-opt-name { font-weight: 600; line-height: 1.2; }
         .pm-opt .pm-opt-sub { font-size: .7rem; opacity: .6; line-height: 1.2; }
-        .pm-opt .pm-opt-team { display: inline-flex; height: 28px; width: 28px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; background: rgb(224 231 255); color: rgb(79 70 229); font-size: 12px; }
+        .pm-opt .pm-opt-team { display: inline-flex; height: 28px; width: 28px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 8px; background: rgb(224 231 255); color: rgb(49 147 218); font-size: 12px; }
         .pm-opt .pm-opt-box { display: inline-flex; height: 18px; width: 18px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 5px; border: 1.5px solid rgb(203 213 225); background: #fff; color: transparent; font-size: 9px; transition: background .12s ease, border-color .12s ease, color .12s ease; }
-        .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(79 70 229); border-color: rgb(79 70 229); color: #fff; }
+        .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(49 147 218); border-color: rgb(49 147 218); color: #fff; }
         .pm-assign-dd .select2-results__option[aria-selected=true] { background-color: rgb(245 247 255) !important; }
         .pm-assign-dd .select2-results__options { max-height: 280px !important; }
-        .select2-selection__rendered .pm-more { display: inline-flex; align-items: center; cursor: pointer; border-radius: 9999px; padding: 3px 10px; font-size: .75rem; font-weight: 600; color: rgb(79 70 229); background: rgb(238 242 255); }
+        .select2-selection__rendered .pm-more { display: inline-flex; align-items: center; cursor: pointer; border-radius: 9999px; padding: 3px 10px; font-size: .75rem; font-weight: 600; color: rgb(49 147 218); background: rgb(238 242 255); }
         .select2-selection__rendered .pm-more:hover { background: rgb(224 231 255); }
         .dark .pm-opt .pm-opt-box { background: transparent; border-color: rgb(100 116 139); }
-        .dark .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(99 102 241); border-color: rgb(99 102 241); }
-        .dark .pm-assign-dd .select2-results__option[aria-selected=true] { background-color: rgb(99 102 241 / .12) !important; }
-        .dark .select2-selection__rendered .pm-more { background: rgb(99 102 241 / .2); color: rgb(199 210 254); }
+        .dark .pm-assign-dd .select2-results__option[aria-selected=true] .pm-opt-box { background: rgb(86 177 243); border-color: rgb(86 177 243); }
+        .dark .pm-assign-dd .select2-results__option[aria-selected=true] { background-color: rgb(86 177 243 / .12) !important; }
+        .dark .select2-selection__rendered .pm-more { background: rgb(86 177 243 / .2); color: rgb(199 210 254); }
         .dark #select2-task_assignees-container .select2-selection__choice,
         .dark #select2-project_team_pic-container .select2-selection__choice,
         .dark #select2-qc_pic-container .select2-selection__choice {
@@ -1139,7 +1139,7 @@
             color: rgb(226 232 240) !important;
             box-shadow: 0 0 0 1px rgb(255 255 255 / .1);
         }
-        .dark .pm-chip .pm-chip-team, .dark .pm-opt .pm-opt-team { background: rgb(99 102 241 / .2); color: rgb(199 210 254); }
+        .dark .pm-chip .pm-chip-team, .dark .pm-opt .pm-opt-team { background: rgb(86 177 243 / .2); color: rgb(199 210 254); }
         /* Gantt chart theming (Frappe Gantt, Project Detail's hidden
            #taskGanttPanel only) — the library's built-in dark
            theme keys off html[data-theme="dark"], which this app never

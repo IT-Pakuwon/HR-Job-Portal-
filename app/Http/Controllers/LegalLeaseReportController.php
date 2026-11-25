@@ -237,14 +237,37 @@ class LegalLeaseReportController extends Controller
 
     public function summaryJson(Request $request)
     {
-        $data = $this->gatherRows($request);
-        $active = $data['rows']->reject(fn ($r) => $r['is_cancelled']);
+        // The three stat cards describe the current state (period filter does not apply);
+        // only the Company filter and the visibility rule do.
+        $cpnyId = $this->parseFilters($request)['cpnyId'];
+        $scoped = function ($types) use ($cpnyId) {
+            $q = $this->applyVisibility(TrAgreement::query()->whereNull('deleted_at')->whereIn('agreement_type', $types));
+            if ($cpnyId) {
+                $q->where('cpny_id', strtoupper(trim($cpnyId)));
+            }
 
-        $total = $active->count();
-        $completed = $active->where('is_completed', true)->count();
-        $onProgress = $total - $completed;
-        $rate = $total > 0 ? round(($completed / $total) * 100) : 0;
-        $incomplete = $active->where('is_incomplete_docs', true)->count();
+            return $q;
+        };
+
+        // 1) PSM / OLA / Addendum / Others still Active or Draft
+        $activeDraft = $scoped(TrAgreement::NEW_AGREEMENT_TYPES)
+            ->where(fn ($q) => $q->whereNull('agreement_step_id')->orWhereIn('agreement_step_id', ['ACTIVE', 'DRAFT']))
+            ->count();
+
+        // 2) In follow-up (FU) and still Active
+        $followUpActive = $scoped(TrAgreement::FU_TYPES)
+            ->where(fn ($q) => $q->whereNull('agreement_step_id')->orWhere('agreement_step_id', 'ACTIVE'))
+            ->count();
+
+        // 3) Without a full set of tenant documents (same rule as the Legal Leasing dashboard)
+        $incomplete = $scoped(TrAgreement::NEW_AGREEMENT_TYPES)
+            ->whereIn('agreement_step_id', ['ACTIVE', 'COMPLETED'])
+            ->whereIn('agreement_id', TrAgreementDocument::query()
+                ->whereNull('deleted_at')
+                ->where('agreementdocument_required', true)
+                ->where(fn ($q) => $q->where('agreementdocument_received', false)->orWhereNull('agreementdocument_received'))
+                ->select('agreement_id'))
+            ->count();
 
         $items = $this->actionHighlights($request);
         if (empty($items)) {
@@ -257,10 +280,8 @@ class LegalLeaseReportController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'total' => $total,
-                'completed' => $completed,
-                'on_progress' => $onProgress,
-                'completion_rate' => $rate,
+                'active_draft' => $activeDraft,
+                'followup_active' => $followUpActive,
                 'incomplete_docs' => $incomplete,
                 // English sentences only, kept for anything that still reads the old flat list.
                 'highlights' => collect($items)->map(fn ($i) => $i['text']['en'])->all(),
@@ -818,6 +839,41 @@ class LegalLeaseReportController extends Controller
 
     // ── Export ───────────────────────────────────────────────────────────────
 
+    /** Reuse a JSON endpoint's payload so exports always match the dashboard cards. */
+    protected function jsonData($response): array
+    {
+        $payload = $response->getData(true);
+
+        return (array) ($payload['data'] ?? []);
+    }
+
+    /** One readable line (or two) describing why a Delay Analysis row is slow. */
+    protected function delayDetailText(array $r): string
+    {
+        $lines = [];
+        if (! empty($r['hold'])) {
+            $lines[] = 'On hold'.(isset($r['hold']['days']) ? ' ('.$r['hold']['days'].'d)' : '').': '.$r['hold']['reason'];
+        }
+        if (! empty($r['return'])) {
+            $x = $r['return'];
+            $lines[] = 'Delivered '.$x['delivered'].' — signed copy not back after '.$x['days'].'d';
+            $lines[] = 'Surat 1: '.($x['surat1'] ?: 'not yet').' · Surat 2: '.($x['surat2'] ?: 'not yet').' · Escalation: '.($x['escalated'] ? 'yes' : 'not yet');
+            if (! empty($x['next']) && $x['next_in_days'] !== null) {
+                $lines[] = 'Next: '.$x['next'].($x['next_in_days'] < 0 ? ' overdue '.abs($x['next_in_days']).'d' : ' in '.$x['next_in_days'].'d');
+            }
+        }
+        if (! empty($r['tenant'])) {
+            $docs = $r['tenant']['docs'] ?? [];
+            $lines[] = $r['tenant']['count'].' documents missing'.(isset($r['tenant']['days']) ? ' ('.$r['tenant']['days'].'d)' : '').': '.implode(', ', $docs);
+        }
+        if (! empty($r['step'])) {
+            $lines[] = 'In step '.$r['step']['name'].' for '.$r['step']['days'].'d';
+        }
+
+        return $lines ? implode("
+", $lines) : 'No blocker';
+    }
+
     protected function gatherExportData(Request $request): array
     {
         $g = $this->gatherRows($request);
@@ -826,11 +882,34 @@ class LegalLeaseReportController extends Controller
         $total = $active->count();
         $completed = $active->where('is_completed', true)->count();
 
+        // Same data the dashboard cards/charts show.
+        $cards = $this->jsonData($this->summaryJson($request));
+        $byType = $this->jsonData($this->categoryByUnitJson($request));
+        $memo = $this->jsonData($this->memoLoiJson($request));
+        $sent = $this->jsonData($this->sentLettersJson($request));
+        $workload = $this->jsonData($this->picWorkloadJson($request));
+        $delay = collect($this->jsonData($this->delayJson($request)))->map(fn ($r) => [
+            'docid' => $r['docid'],
+            'type' => $r['type'],
+            'tenant' => $r['tenant_name'],
+            'company' => $r['company'],
+            'pic' => $r['pic'] ?: '-',
+            'age' => $r['age_days'],
+            'cause' => $r['cause_label'],
+            'detail' => $this->delayDetailText($r),
+        ])->values()->all();
+
         return [
             'dateFrom' => $g['dateFrom'],
             'dateTo' => $g['dateTo'],
             'cpnyId' => $g['cpnyId'],
             'type' => $g['type'],
+            'cards' => $cards,
+            'byType' => $byType,
+            'memo' => $memo,
+            'sent' => $sent,
+            'workload' => $workload,
+            'delay' => $delay,
             'summary' => [
                 'total' => $total,
                 'completed' => $completed,

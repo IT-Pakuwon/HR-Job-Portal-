@@ -147,7 +147,7 @@
     @push('styles')
         <style>
             .status-filter.active .status-card {
-                box-shadow: 0 0 0 3px rgb(99 102 241 / .22);
+                box-shadow: 0 0 0 3px rgb(86 177 243 / .22);
                 transform: translateY(-2px);
             }
 

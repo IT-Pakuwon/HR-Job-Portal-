@@ -1031,10 +1031,10 @@ DARK MODE SUPPORT
 
     /* CSV button */
     .dark .dt-button.buttons-csv {
-        background: rgba(59, 130, 246, .15) !important;
+        background: rgba(86, 177, 243, .15) !important;
         /* blue */
         color: #93c5fd !important;
-        border-color: rgba(59, 130, 246, .35) !important;
+        border-color: rgba(86, 177, 243, .35) !important;
     }
 
     /* ================= SEARCH / FILTER ================= */

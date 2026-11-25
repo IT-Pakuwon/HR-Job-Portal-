@@ -65,7 +65,7 @@ NEW JOBS / REQUEST
     .scope-filter[data-scope="issuejobsnew"] .scope-card,
     .scope-filter[data-scope="issuejobs"] .scope-card {
 
-        background: rgba(168, 85, 247, .20);
+        background: rgba(86, 177, 243, .20);
         border-color: rgba(126, 34, 206, .45);
         color: #1c71ae;
     }
@@ -200,7 +200,7 @@ WORKFLOW
 
     .scope-filter[data-scope="spbflow"] .scope-card {
 
-        background: rgba(59, 130, 246, .20);
+        background: rgba(86, 177, 243, .20);
         border-color: rgba(29, 78, 216, .45);
         color: #1d4ed8;
     }
@@ -216,7 +216,7 @@ FINANCE
 
     .scope-filter[data-scope="financereceived"] .scope-card {
 
-        background: rgba(59, 130, 246, .20);
+        background: rgba(86, 177, 243, .20);
         border-color: rgba(29, 78, 216, .45);
         color: #1d4ed8;
     }
@@ -432,8 +432,8 @@ WORKFLOW
 
     .dark .scope-filter[data-scope="spbflow"] .scope-card {
 
-        background: rgba(59, 130, 246, .10);
-        border-color: rgba(59, 130, 246, .35);
+        background: rgba(86, 177, 243, .10);
+        border-color: rgba(86, 177, 243, .35);
         color: #93c5fd;
 
     }
@@ -445,8 +445,8 @@ FINANCE
 
     .dark .scope-filter[data-scope="financereceived"] .scope-card {
 
-        background: rgba(59, 130, 246, .10);
-        border-color: rgba(59, 130, 246, .35);
+        background: rgba(86, 177, 243, .10);
+        border-color: rgba(86, 177, 243, .35);
         color: #93c5fd;
 
     }
@@ -618,14 +618,14 @@ TRACK
 
     .status-filter[data-status="TRACK"] .status-card {
 
-        background: rgba(168, 85, 247, .18);
+        background: rgba(86, 177, 243, .18);
         border-color: rgba(126, 34, 206, .35);
         color: #1c71ae;
 
     }
 
     .status-filter[data-status="TRACK"]:hover .status-card {
-        background: rgba(168, 85, 247, .28);
+        background: rgba(86, 177, 243, .28);
     }
 
     .status-filter[data-status="TRACK"].active .status-card {
@@ -660,14 +660,14 @@ UNREAD
 
     .status-filter[data-status="is_read_N"] .status-card {
 
-        background: rgba(59, 130, 246, .18);
+        background: rgba(86, 177, 243, .18);
         border-color: rgba(29, 78, 216, .35);
         color: #1d4ed8;
 
     }
 
     .status-filter[data-status="is_read_N"]:hover .status-card {
-        background: rgba(59, 130, 246, .28);
+        background: rgba(86, 177, 243, .28);
     }
 
     .status-filter[data-status="is_read_N"].active .status-card {
@@ -777,8 +777,8 @@ DARK MODE STATUS COLORS
     }
 
     .dark .status-filter[data-status="is_read_N"] .status-card {
-        background: rgba(59, 130, 246, .10);
-        border-color: rgba(59, 130, 246, .35);
+        background: rgba(86, 177, 243, .10);
+        border-color: rgba(86, 177, 243, .35);
         color: #93c5fd;
     }
 
@@ -1577,7 +1577,7 @@ Overrides the per-status colours above so every module's cards match.
     .dark .status-filter[data-status="D"] .status-card,
     .dark .status-filter[data-status="H,D"] .status-card { border-color: #3b82f6 !important; color: #60a5fa !important; }
     .dark .status-filter[data-status="D"]:hover .status-card,
-    .dark .status-filter[data-status="H,D"]:hover .status-card { background: rgba(59, 130, 246, .20) !important; }
+    .dark .status-filter[data-status="H,D"]:hover .status-card { background: rgba(86, 177, 243, .20) !important; }
 
     .dark .status-filter[data-status="R"] .status-card { border-color: #ef4444 !important; color: #f87171 !important; }
     .dark .status-filter[data-status="R"]:hover .status-card { background: rgba(239, 68, 68, .20) !important; }
@@ -1602,7 +1602,7 @@ Overrides the per-status colours above so every module's cards match.
 
     .dark .status-filter[data-status="D"].active .status-card,
     .dark .status-filter[data-status="H,D"].active .status-card,
-    .dark .status-filter[data-status="D"].active-card .status-card { --g: 59,130,246; background: rgba(59, 130, 246, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #60a5fa !important; color: #93c5fd !important; }
+    .dark .status-filter[data-status="D"].active-card .status-card { --g: 59,130,246; background: rgba(86, 177, 243, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #60a5fa !important; color: #93c5fd !important; }
 
     .dark .status-filter[data-status="R"].active .status-card,
     .dark .status-filter[data-status="R"].active-card .status-card { --g: 239,68,68; background: rgba(239, 68, 68, .20) !important; box-shadow: 0 4px 16px -4px rgba(var(--g), .5) !important; border-color: #f87171 !important; color: #fca5a5 !important; }

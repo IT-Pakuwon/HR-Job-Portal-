@@ -161,7 +161,7 @@
     }
 
     @keyframes congratsGlow {
-        0%, 100% { box-shadow: 0 25px 70px -20px rgba(168, 85, 247, .55), 0 0 0 1px rgba(255, 255, 255, .04); }
+        0%, 100% { box-shadow: 0 25px 70px -20px rgba(86, 177, 243, .55), 0 0 0 1px rgba(255, 255, 255, .04); }
         50% { box-shadow: 0 25px 70px -20px rgba(236, 72, 153, .65), 0 0 0 1px rgba(255, 255, 255, .04); }
     }
 

@@ -1094,7 +1094,7 @@
         .count-pill-violet { background: #d1ecff; color: #1c71ae; }
         .count-pill-zero { background: #f3f4f6; color: #9ca3af; }
         .count-pill-warn { background: #fef3c7; color: #b45309; }
-        .dark .count-pill-blue { background: rgba(59,130,246,.2); color: #93c5fd; }
+        .dark .count-pill-blue { background: rgba(86, 177, 243,.2); color: #93c5fd; }
         .dark .count-pill-violet { background: rgba(86, 177, 243,.2); color: #a0d7ff; }
         .dark .count-pill-zero { background: rgba(255,255,255,.06); color: #6b7280; }
         .dark .count-pill-warn { background: rgba(245,158,11,.2); color: #fcd34d; }

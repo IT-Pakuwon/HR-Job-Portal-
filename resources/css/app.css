@@ -318,7 +318,7 @@
 .prf-select2 .select2-container--default.select2-container--open .select2-selection--single,
 .prf-select2 .select2-container--default.select2-container--open .select2-selection--multiple {
     border-color: #7bc8ff;
-    box-shadow: 0 0 0 2px rgb(129 140 248 / 0.5);
+    box-shadow: 0 0 0 2px rgb(123 200 255 / 0.5);
     outline: none;
 }
 
@@ -369,8 +369,8 @@
 }
 
 .dark .prf-select2 .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    border-color: rgb(99 102 241 / 0.4);
-    background-color: rgb(99 102 241 / 0.2);
+    border-color: rgb(86 177 243 / 0.4);
+    background-color: rgb(86 177 243 / 0.2);
     color: #b6e1ff;
 }
 
@@ -388,12 +388,12 @@
 
 .dark .prf-select2-dropdown .select2-results__option--highlighted.select2-results__option--selectable,
 .dark .prf-select2-dropdown .select2-results__option--highlighted[aria-selected] {
-    background-color: rgb(99 102 241 / 0.25);
+    background-color: rgb(86 177 243 / 0.25);
     color: #d1ecff;
 }
 
 .dark .prf-select2-dropdown .select2-results__option[aria-selected=true] {
-    background-color: rgb(99 102 241 / 0.4);
+    background-color: rgb(86 177 243 / 0.4);
     color: #fff;
 }
 
@@ -552,7 +552,7 @@
    shadow. Selectors use #toast-container to beat toastr.min.css specificity
    (it also sets background-image icons with !important-free rules). */
 html body #toast-container > .toast {
-    --toast-accent: #6366f1;
+    --toast-accent: #3193da;
     background-color: #fff;
     background-image: none !important;
     color: #1f2937;
@@ -593,7 +593,7 @@ html body #toast-container > .toast::before {
 html body #toast-container > .toast-success { --toast-accent: #10b981; }
 html body #toast-container > .toast-error   { --toast-accent: #ef4444; }
 html body #toast-container > .toast-warning { --toast-accent: #f59e0b; }
-html body #toast-container > .toast-info    { --toast-accent: #3b82f6; }
+html body #toast-container > .toast-info    { --toast-accent: #3193da; }
 
 html body #toast-container > .toast-success::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
@@ -643,17 +643,17 @@ html body #toast-container > .toast .toast-progress {
     background: #fff;
     color: #1f2937;
     border-radius: 12px;
-    border-left: 4px solid #6366f1;
+    border-left: 4px solid #3193da;
     padding: 12px 16px !important;
     box-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.25), 0 2px 6px rgb(15 23 42 / 0.08);
 }
 .swal2-popup.swal2-toast .swal2-title { font-size: 14px; font-weight: 500; margin: 0 0 0 10px; color: inherit; }
 .swal2-popup.swal2-toast .swal2-icon { transform: scale(.8); margin: 0 !important; }
-.swal2-popup.swal2-toast .swal2-timer-progress-bar { background: rgb(99 102 241 / .55); height: 3px; }
+.swal2-popup.swal2-toast .swal2-timer-progress-bar { background: rgb(86 177 243 / .55); height: 3px; }
 .swal2-popup.swal2-toast:has(.swal2-icon-success) { border-left-color: #10b981; }
 .swal2-popup.swal2-toast:has(.swal2-icon-error)   { border-left-color: #ef4444; }
 .swal2-popup.swal2-toast:has(.swal2-icon-warning) { border-left-color: #f59e0b; }
-.swal2-popup.swal2-toast:has(.swal2-icon-info)    { border-left-color: #3b82f6; }
+.swal2-popup.swal2-toast:has(.swal2-icon-info)    { border-left-color: #3193da; }
 .dark .swal2-popup.swal2-toast {
     background: var(--color-gray-800) !important;
     color: var(--color-gray-100) !important;

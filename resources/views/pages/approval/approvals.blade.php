@@ -800,7 +800,7 @@
         #linesContainer .select2-container--default.select2-container--focus .select2-selection--multiple,
         #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--multiple {
             border-color: #56b1f3;
-            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+            box-shadow: 0 0 0 3px rgb(86 177 243 / 0.15);
         }
 
         #linesContainer .select2-selection--multiple .select2-selection__choice,
@@ -899,7 +899,7 @@
         #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--single,
         #editLinesContainer .select2-container--default.select2-container--open .select2-selection--single {
             border-color: #56b1f3;
-            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+            box-shadow: 0 0 0 3px rgb(86 177 243 / 0.15);
         }
 
         .dark #linesContainer .select2-container--default .select2-selection--single,

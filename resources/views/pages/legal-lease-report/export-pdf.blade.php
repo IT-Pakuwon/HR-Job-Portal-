@@ -181,6 +181,137 @@ body {
     </table>
 </div>
 
+@php
+    $cards = $cards ?? [];
+    $byType = $byType ?? [];
+    $memo = $memo ?? [];
+    $sent = $sent ?? [];
+    $workload = $workload ?? [];
+    $delay = $delay ?? [];
+    $matrix = function (array $x) {
+        $series = $x['series'] ?? [];
+        $rows = [];
+        foreach (($x['categories'] ?? []) as $i => $label) {
+            $vals = array_map(fn ($sr) => (int) ($sr['data'][$i] ?? 0), $series);
+            $rows[] = ['label' => $label, 'vals' => $vals, 'total' => array_sum($vals)];
+        }
+        return [array_column($series, 'name'), $rows];
+    };
+    [$typeCols, $typeRows] = $matrix($byType);
+    [$picCols, $picRows] = $matrix($workload);
+@endphp
+
+<div class="section">
+    <div class="sec-head">Current State</div>
+    <table class="sum-tbl">
+        <tr>
+            <td style="width:33%"><div class="s-lbl">PSM / OLA / Addendum / Others — Active or Draft</div><div class="s-val">{{ $cards['active_draft'] ?? 0 }}</div></td>
+            <td style="width:33%"><div class="s-lbl">Follow Up — Active</div><div class="s-val">{{ $cards['followup_active'] ?? 0 }}</div></td>
+            <td style="width:34%"><div class="s-lbl">Without complete tenant documents</div><div class="s-val" style="color:#dc2626">{{ $cards['incomplete_docs'] ?? 0 }}</div></td>
+        </tr>
+    </table>
+    @if(!empty($cards['highlights']))
+        <table class="dt">
+            <thead><tr><th>Key Highlights</th></tr></thead>
+            <tbody>
+                @foreach($cards['highlights'] as $i => $h)
+                    <tr class="{{ $i % 2 === 1 ? 'ev' : '' }}"><td>{{ $h }}</td></tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+
+<div class="section">
+    <div class="sec-head">Agreement Type by Company</div>
+    <table class="dt">
+        <thead><tr><th>Type</th>@foreach($typeCols as $c)<th style="text-align:right">{{ $c }}</th>@endforeach<th style="text-align:right">Total</th></tr></thead>
+        <tbody>
+            @forelse($typeRows as $i => $r)
+                <tr class="{{ $i % 2 === 1 ? 'ev' : '' }}"><td>{{ $r['label'] }}</td>@foreach($r['vals'] as $v)<td style="text-align:right">{{ $v }}</td>@endforeach<td style="text-align:right"><strong>{{ $r['total'] }}</strong></td></tr>
+            @empty
+                <tr><td colspan="{{ count($typeCols) + 2 }}" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="sec-head">Memo &amp; LOI by Property</div>
+    <table class="dt">
+        <thead><tr><th>Document</th><th>Property</th><th style="text-align:right">Received</th><th style="text-align:right">Pending</th><th>Received by company</th></tr></thead>
+        <tbody>
+            @php $n = 0; @endphp
+            @foreach(['new_loi_memo' => 'New LOI & Memo (PSM / OLA)', 'addendum_memo' => 'Change Memo (Addendum)'] as $key => $label)
+                @foreach(($memo[$key]['by_property'] ?? []) as $p)
+                    <tr class="{{ $n++ % 2 === 1 ? 'ev' : '' }}">
+                        <td>{{ $label }}</td><td>{{ $p['property'] }}</td>
+                        <td style="text-align:right">{{ $p['received'] }}</td><td style="text-align:right">{{ $p['pending'] }}</td>
+                        <td>{{ collect($p['by_company'] ?? [])->map(fn ($c, $k) => $k.': '.$c)->implode(', ') }}</td>
+                    </tr>
+                @endforeach
+                <tr class="{{ $n++ % 2 === 1 ? 'ev' : '' }}">
+                    <td><strong>{{ $label }}</strong></td><td><strong>Total</strong></td>
+                    <td style="text-align:right"><strong>{{ $memo[$key]['received'] ?? 0 }}</strong></td>
+                    <td style="text-align:right"><strong>{{ $memo[$key]['pending'] ?? 0 }}</strong></td><td></td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="sec-head">Follow-up Letters (tenants)</div>
+    <table class="dt">
+        <thead><tr><th>Follow Up Type</th><th style="text-align:right">Sent</th><th style="text-align:right">Surat 1</th><th style="text-align:right">Surat 2</th><th style="text-align:right">Escalation</th></tr></thead>
+        <tbody>
+            @forelse(($sent['rows'] ?? []) as $i => $r)
+                <tr class="{{ $i % 2 === 1 ? 'ev' : '' }}"><td>{{ $r['label'] }}</td><td style="text-align:right">{{ $r['sent'] }}</td><td style="text-align:right">{{ $r['surat1'] }}</td><td style="text-align:right">{{ $r['surat2'] }}</td><td style="text-align:right">{{ $r['escalation'] }}</td></tr>
+            @empty
+                <tr><td colspan="5" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
+            @endforelse
+            @if(!empty($sent['total']))
+                <tr><td><strong>Total</strong></td><td style="text-align:right"><strong>{{ $sent['total']['sent'] }}</strong></td><td style="text-align:right"><strong>{{ $sent['total']['surat1'] }}</strong></td><td style="text-align:right"><strong>{{ $sent['total']['surat2'] }}</strong></td><td style="text-align:right"><strong>{{ $sent['total']['escalation'] }}</strong></td></tr>
+            @endif
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="sec-head">PIC Workload (open documents)</div>
+    <table class="dt">
+        <thead><tr><th>PIC Legal</th>@foreach($picCols as $c)<th style="text-align:right">{{ $c }}</th>@endforeach<th style="text-align:right">Total</th></tr></thead>
+        <tbody>
+            @forelse($picRows as $i => $r)
+                <tr class="{{ $i % 2 === 1 ? 'ev' : '' }}"><td>{{ $r['label'] }}</td>@foreach($r['vals'] as $v)<td style="text-align:right">{{ $v }}</td>@endforeach<td style="text-align:right"><strong>{{ $r['total'] }}</strong></td></tr>
+            @empty
+                <tr><td colspan="{{ count($picCols) + 2 }}" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="sec-head">Delay Analysis ({{ count($delay) }})</div>
+    <table class="dt">
+        <thead><tr><th>Agreement</th><th>Tenant</th><th>PIC Legal</th><th style="text-align:right">Age</th><th>Cause</th><th>Detail</th></tr></thead>
+        <tbody>
+            @forelse($delay as $i => $r)
+                <tr class="{{ $i % 2 === 1 ? 'ev' : '' }}">
+                    <td>{{ $r['docid'] }}<br><span style="color:#94a3b8">{{ $r['type'] }} · {{ $r['company'] }}</span></td>
+                    <td>{{ $r['tenant'] }}</td>
+                    <td>{{ $r['pic'] }}</td>
+                    <td style="text-align:right">{{ $r['age'] }}d</td>
+                    <td>{{ $r['cause'] }}</td>
+                    <td>{!! nl2br(e($r['detail'])) !!}</td>
+                </tr>
+            @empty
+                <tr><td colspan="6" style="text-align:center;padding:12px;color:#94a3b8">No data available</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
 <div class="section">
     <div class="sec-head">Agreement List ({{ count($tableRows) }})</div>
     <table class="dt">

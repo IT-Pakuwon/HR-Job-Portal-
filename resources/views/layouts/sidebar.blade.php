@@ -45,7 +45,7 @@
     }
 
     .sidebar-link.text-indigo-600::before {
-        background-color: rgb(99 102 241);
+        background-color: rgb(86 177 243);
         /* indigo-500 */
     }
 

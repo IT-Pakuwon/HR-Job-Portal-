@@ -9,6 +9,7 @@
     'summaryId'   => null,   // optional headline-tiles row above the chart, filled by the page's JS
     'tabsId'      => null,   // optional filter-tabs row, filled by the page's JS
     'minHeight'   => 280,
+    'fill'        => false,  // true: chart stretches to the card's full height (card must be stretched by its parent, e.g. a grid row)
 ])
 
 {{--
@@ -41,8 +42,8 @@
         <div id="{{ $tabsId }}" class="flex flex-wrap gap-1.5 px-5 pb-1 pt-2"></div>
     @endif
 
-    <div class="flex-1 px-2 pb-3 pt-1">
-        <div id="{{ $chartId }}" style="min-height:{{ (int) $minHeight }}px"></div>
+    <div class="flex-1 px-2 pb-3 pt-1 {{ $fill ? 'relative' : '' }}" @if($fill) style="min-height:{{ (int) $minHeight }}px" @endif>
+        <div id="{{ $chartId }}" @if($fill) class="absolute inset-x-2 bottom-3 top-1" @else style="min-height:{{ (int) $minHeight }}px" @endif></div>
     </div>
 
 </x-card-chart.card-shell>

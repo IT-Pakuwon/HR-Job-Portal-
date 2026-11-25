@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -29,6 +30,58 @@ class LegalLeaseReportExport implements WithMultipleSheets
         };
     }
 
+    /** Type × company matrix (the "Agreement type by company" chart). */
+    protected function byTypeSheet(array $x): array
+    {
+        $series = $x['series'] ?? [];
+        $head = array_merge(['Type'], array_column($series, 'name'), ['Total']);
+        $rows = [];
+        foreach (($x['categories'] ?? []) as $i => $type) {
+            $vals = array_map(fn ($sr) => (int) ($sr['data'][$i] ?? 0), $series);
+            $rows[] = array_merge([$type], $vals, [array_sum($vals)]);
+        }
+
+        return [$head, $rows, array_merge([22], array_fill(0, count($head) - 1, 16))];
+    }
+
+    protected function memoSheet(array $x): array
+    {
+        $rows = [];
+        foreach (['new_loi_memo' => 'New LOI & Memo (PSM / OLA)', 'addendum_memo' => 'Change Memo (Addendum)'] as $key => $label) {
+            foreach (($x[$key]['by_property'] ?? []) as $p) {
+                $by = collect($p['by_company'] ?? [])->map(fn ($n, $c) => $c.': '.$n)->implode(', ');
+                $rows[] = [$label, $p['property'], $p['received'], $p['pending'], $by];
+            }
+            $rows[] = [$label, 'Total', $x[$key]['received'] ?? 0, $x[$key]['pending'] ?? 0, ''];
+        }
+
+        return [['Document', 'Property', 'Received', 'Pending', 'Received by company'], $rows, [32, 16, 12, 12, 60]];
+    }
+
+    protected function sentSheet(array $x): array
+    {
+        $rows = array_map(fn ($r) => [$r['label'], $r['sent'], $r['surat1'], $r['surat2'], $r['escalation']], $x['rows'] ?? []);
+        if (! empty($x['total'])) {
+            $t = $x['total'];
+            $rows[] = ['Total', $t['sent'], $t['surat1'], $t['surat2'], $t['escalation']];
+        }
+
+        return [['Follow Up Type', 'Tenants sent', 'Surat 1', 'Surat 2', 'Escalation'], $rows, [26, 14, 12, 12, 14]];
+    }
+
+    protected function workloadSheet(array $x): array
+    {
+        $series = $x['series'] ?? [];
+        $head = array_merge(['PIC Legal'], array_column($series, 'name'), ['Total']);
+        $rows = [];
+        foreach (($x['categories'] ?? []) as $i => $pic) {
+            $vals = array_map(fn ($sr) => (int) ($sr['data'][$i] ?? 0), $series);
+            $rows[] = array_merge([$pic], $vals, [array_sum($vals)]);
+        }
+
+        return [$head, $rows, array_merge([30], array_fill(0, count($head) - 1, 12))];
+    }
+
     public function sheets(): array
     {
         $d = $this->data;
@@ -46,7 +99,7 @@ class LegalLeaseReportExport implements WithMultipleSheets
 
                 public function columnWidths(): array
                 {
-                    return ['A' => 22, 'B' => 26];
+                    return ['A' => 48, 'B' => 26];
                 }
 
                 public function array(): array
@@ -67,6 +120,14 @@ class LegalLeaseReportExport implements WithMultipleSheets
                         ['In Progress', $s['on_progress']],
                         ['Completion Rate', $s['completion_rate'].'%'],
                         ['Incomplete Documents', $s['incomplete_docs']],
+                        [],
+                        ['Current State (all periods)', 'Value'],
+                        ['PSM / OLA / Addendum / Others — Active or Draft', $this->d['cards']['active_draft'] ?? 0],
+                        ['Follow Up — Active', $this->d['cards']['followup_active'] ?? 0],
+                        ['Without complete tenant documents', $this->d['cards']['incomplete_docs'] ?? 0],
+                        [],
+                        ['Key Highlights'],
+                        ...array_map(fn ($h) => [$h], $this->d['cards']['highlights'] ?? []),
                     ];
                 }
 
@@ -98,8 +159,34 @@ class LegalLeaseReportExport implements WithMultipleSheets
                     $rate = (float) ($this->d['summary']['completion_rate'] ?? 0);
                     $argb = $rate >= 80 ? 'FF059669' : ($rate >= 50 ? 'FFD97706' : 'FFDC2626');
                     $sheet->getStyle('B12:B12')->applyFromArray(['font' => ['bold' => true, 'color' => ['argb' => $argb]]]);
+
+                    foreach (['A15:B15', 'A20:B20'] as $range) {
+                        $sheet->getStyle($range)->applyFromArray([
+                            'font' => ['bold' => true, 'color' => ['argb' => 'FF1D4ED8']],
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFDBEAFE']],
+                        ]);
+                    }
+                    $sheet->getStyle('A16:A18')->getFont()->setBold(true);
+                    $sheet->getStyle('B16:B18')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    $lastRow = $sheet->getHighestRow();
+                    if ($lastRow >= 21) {
+                        $sheet->getStyle('A21:A'.$lastRow)->getFont()->setSize(9)->getColor()->setARGB('FF475569');
+                    }
                 }
             },
+
+            // ── Analysis sheets (same data as the dashboard cards) ──
+            new LegalLeaseReportTableSheet('By Type & Company', ...$this->byTypeSheet($d['byType'] ?? [])),
+            new LegalLeaseReportTableSheet('Memo & LOI', ...$this->memoSheet($d['memo'] ?? [])),
+            new LegalLeaseReportTableSheet('Follow-up Letters', ...$this->sentSheet($d['sent'] ?? [])),
+            new LegalLeaseReportTableSheet('PIC Workload', ...$this->workloadSheet($d['workload'] ?? [])),
+            new LegalLeaseReportTableSheet(
+                'Delay Analysis',
+                ['Agreement', 'Type', 'Tenant', 'Company', 'PIC Legal', 'Age (days)', 'Cause', 'Detail'],
+                array_map(fn ($r) => [$r['docid'], $r['type'], $r['tenant'], $r['company'], $r['pic'], $r['age'], $r['cause'], $r['detail']], $d['delay'] ?? []),
+                [16, 14, 28, 26, 24, 11, 16, 80],
+                ['H'],
+            ),
 
             // ── Sheet 2: List ──────────────────────────────────────────────────
             new class($d['tableRows'], $moduleLabel) implements FromArray, WithTitle, WithHeadings, WithStyles, WithColumnWidths {
@@ -161,5 +248,64 @@ class LegalLeaseReportExport implements WithMultipleSheets
                 }
             },
         ];
+    }
+}
+
+/** Plain styled table sheet (header row + rows) used by the analysis sheets. */
+class LegalLeaseReportTableSheet implements FromArray, WithColumnWidths, WithHeadings, WithStyles, WithTitle
+{
+    public function __construct(
+        private string $title,
+        private array $headings,
+        private array $rows,
+        private array $widths = [],
+        private array $wrapColumns = [],
+    ) {}
+
+    public function title(): string
+    {
+        return $this->title;
+    }
+
+    public function headings(): array
+    {
+        return $this->headings;
+    }
+
+    public function array(): array
+    {
+        return $this->rows;
+    }
+
+    public function columnWidths(): array
+    {
+        $out = [];
+        foreach (array_values($this->widths) as $i => $w) {
+            $out[Coordinate::stringFromColumnIndex($i + 1)] = $w;
+        }
+
+        return $out;
+    }
+
+    public function styles(Worksheet $sheet): void
+    {
+        $lastCol = Coordinate::stringFromColumnIndex(max(1, count($this->headings)));
+        $lastRow = $sheet->getHighestRow();
+
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['argb' => 'FFFFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF3B82F6']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        if ($lastRow > 1) {
+            $sheet->getStyle("A2:{$lastCol}{$lastRow}")->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
+            $sheet->getStyle("A1:{$lastCol}{$lastRow}")->getBorders()->getInside()
+                ->setBorderStyle(Border::BORDER_HAIR)->getColor()->setARGB('FFE2E8F0');
+            foreach ($this->wrapColumns as $col) {
+                $sheet->getStyle("{$col}2:{$col}{$lastRow}")->getAlignment()->setWrapText(true);
+            }
+        }
     }
 }

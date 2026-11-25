@@ -154,7 +154,7 @@
         #rating-table .kpi-aspect th>span{display:inline-block;padding:.6rem 1rem}
         .kpi-aspect-title{font-size:.8rem;font-weight:700;color:#124d79;border-left:4px solid #56b1f3}
         .kpi-aspect-weight{float:right;font-size:.7rem;font-weight:600;color:#3193da}
-        html.dark #rating-table .kpi-aspect th{background:rgb(99 102 241/.12);border-color:#374151}
+        html.dark #rating-table .kpi-aspect th{background:rgb(86 177 243/.12);border-color:#374151}
         html.dark .kpi-aspect-title{color:#b6e1ff}
         .kpi-score{display:flex;gap:.3rem}
         .kpi-score-label{min-width:0;font-size:.7rem}
@@ -170,11 +170,11 @@
         .kpi-aspect-progress{float:right;margin-right:1rem;padding:.15rem .5rem;border-radius:999px;background:#fff;color:#1c71ae;font-size:.65rem;font-weight:600;margin-top:.5rem}
         .kpi-aspect-weight{margin-top:.7rem}
         .kpi-text{field-sizing:content;overflow:hidden;display:block;width:100%;min-height:4.5rem;padding:.5rem .65rem;border:1px solid #e5e7eb;border-radius:.5rem;background:#fff;color:#374151;font-size:.8rem;line-height:1.35;resize:vertical;transition:border-color .15s,box-shadow .15s}
-        .kpi-text:focus{outline:none;border-color:#56b1f3;box-shadow:0 0 0 2px rgb(99 102 241/.25)}
+        .kpi-text:focus{outline:none;border-color:#56b1f3;box-shadow:0 0 0 2px rgb(86 177 243/.25)}
         .kpi-text:disabled{background:#f9fafb;color:#6b7280}
         html.dark .kpi-text{background:#1f2937;border-color:#4b5563;color:#e5e7eb}
         .kpi-select{display:block;width:100%;height:2.5rem;padding:0 2rem 0 .65rem;border:1px solid #d1d5db;border-radius:.5rem;background-color:#fff;color:#374151;font-size:.8rem;font-weight:600;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .55rem center;background-size:1rem;transition:border-color .15s,box-shadow .15s,background-color .15s}
-        .kpi-select:focus{outline:none;border-color:#56b1f3;box-shadow:0 0 0 2px rgb(99 102 241/.25)}
+        .kpi-select:focus{outline:none;border-color:#56b1f3;box-shadow:0 0 0 2px rgb(86 177 243/.25)}
         .kpi-select[data-score="1"]{background-color:#fef2f2;border-color:#fca5a5;color:#b91c1c}
         .kpi-select[data-score="2"]{background-color:#fff7ed;border-color:#fdba74;color:#c2410c}
         .kpi-select[data-score="3"]{background-color:#fefce8;border-color:#fde047;color:#a16207}
@@ -183,12 +183,12 @@
         html.dark .kpi-select{background-color:#1f2937;border-color:#4b5563;color:#e5e7eb}
         .kpi-clip{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border:1px solid #b6e1ff;border-radius:.5rem;background:#e3f3ff;color:#1c71ae;font-size:.75rem;font-weight:600;transition:background .15s}
         .kpi-clip:hover{background:#d1ecff}
-        html.dark .kpi-clip{background:rgb(99 102 241/.15);border-color:rgb(99 102 241/.4);color:#b6e1ff}
+        html.dark .kpi-clip{background:rgb(86 177 243/.15);border-color:rgb(86 177 243/.4);color:#b6e1ff}
         .select2-filter .select2-selection--single{height:2.5rem!important;border-radius:.5rem;border-color:#d1d5db;background:#fff;box-shadow:0 1px 2px rgb(0 0 0/.04)}
         .select2-filter .select2-selection--single:hover{border-color:#9ca3af}
         .select2-filter .select2-selection__rendered{text-transform:none!important;font-weight:400!important;letter-spacing:normal!important;color:#1f2937;font-size:.875rem!important;line-height:2.4rem!important;padding-left:.75rem;padding-right:2rem}
         .select2-filter .select2-selection__arrow{height:2.4rem!important;right:.5rem!important}
-        .select2-filter.select2-container--focus .select2-selection--single,.select2-filter.select2-container--open .select2-selection--single{border-color:#56b1f3;box-shadow:0 0 0 2px rgb(99 102 241/.3)}
+        .select2-filter.select2-container--focus .select2-selection--single,.select2-filter.select2-container--open .select2-selection--single{border-color:#56b1f3;box-shadow:0 0 0 2px rgb(86 177 243/.3)}
         .select2-dropdown.select2-filter{border-color:#d1d5db;border-radius:.5rem;box-shadow:0 8px 24px rgb(0 0 0/.12);overflow:hidden;font-size:.875rem}
         .select2-dropdown.select2-filter .select2-results__option{padding:.5rem .75rem;text-transform:none;letter-spacing:normal;font-weight:400}
         .select2-dropdown.select2-filter .select2-results__option--highlighted[aria-selected]{background:#3193da;color:#fff}

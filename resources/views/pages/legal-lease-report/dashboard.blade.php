@@ -72,12 +72,10 @@
         </div>
 
         {{-- ── Stat Cards ───────────────────────────────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <x-card-chart.stat-card title="Total Agreements" subtitle="Period" value="0" color="blue" valueId="llrepStatTotal" />
-            <x-card-chart.stat-card title="Completed" subtitle="Period" value="0" color="green" valueId="llrepStatCompleted" />
-            <x-card-chart.stat-card title="In Progress" subtitle="Active, Hold & Escalated" value="0" color="orange" valueId="llrepStatProgress" />
-            <x-card-chart.stat-card title="Completion Rate" subtitle="Period" value="0%" color="violet" valueId="llrepStatRate" />
-            <x-card-chart.stat-card title="Incomplete Documents" subtitle="Missing tenant documents" value="0" color="red" valueId="llrepStatIncomplete" />
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <x-card-chart.stat-card title="Active & Draft Agreements" subtitle="PSM / OLA / Addendum / Others" value="0" color="blue" valueId="llrepStatActiveDraft" />
+            <x-card-chart.stat-card title="Active Follow-Ups" subtitle="Agreement FU still Active" value="0" color="orange" valueId="llrepStatFollowUp" />
+            <x-card-chart.stat-card title="Incomplete Documents" subtitle="PSM / OLA / Addendum / Others" value="0" color="red" valueId="llrepStatIncomplete" />
         </div>
 
         {{-- ── Overview row: type by company + tenants sent / letters + Key Highlights ── --}}
@@ -108,7 +106,7 @@
         </div>
 
         {{-- ── Memo & LoI documents by property type ──────────────────────────────── --}}
-        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3" style="align-items:stretch">
             <x-card-chart.stacked-bar-card subtitle="PSM / OLA" title="New LOI & Memo"
                 gradient="linear-gradient(to right,#06B6D4,#3B82F6)"
                 chartId="llrepNewLoiMemoChart" :minHeight="300" />
@@ -116,16 +114,16 @@
             <x-card-chart.stacked-bar-card subtitle="Addendum" title="Change Memo"
                 gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
                 chartId="llrepAddendumMemoChart" :minHeight="300" />
-        </div>
 
-        {{-- ── PIC workload + delay analysis, side by side (stack on narrower screens) ── --}}
-        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2" style="align-items:stretch">
             {{-- ── PIC Legal workload: open documents per PIC, by type ─────────────────── --}}
             <x-card-chart.stacked-bar-card subtitle="PIC Legal" title="PIC Workload"
-                description="Open documents (Active, Hold, Escalated) per PIC Legal, by type. Shows how loaded each PIC is — not which document they are working on."
+                description="Open documents (Active, Hold, Escalated) per PIC Legal, by type."
                 gradient="linear-gradient(to right,#8B5CF6,#06B6D4)"
-                chartId="llrepPicWorkloadChart" :minHeight="240" />
+                chartId="llrepPicWorkloadChart" :minHeight="300" class="lg:col-span-2 2xl:col-span-1" />
+        </div>
 
+        {{-- ── Delay analysis + agreements list, side by side (stack on narrower screens) ── --}}
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2 *:min-w-0" style="align-items:start">
             {{-- ── Delay analysis: why are open PSM / OLA agreements slow? ───────────────── --}}
             <x-card-chart.dynamic-table-card subtitle="PSM / OLA / Addendum / Others & Follow Up" title="Delay Analysis"
                 description="Open agreements and follow-ups already delivered to the tenant, oldest first. Cause: On Hold (with reason), Waiting Return (follow-up: signed copy not back since the delivery date, with Surat 1 / Surat 2 / Escalation progress), Waiting Tenant (missing documents), In Step (a process step still running), No Blocker."
@@ -140,7 +138,6 @@
                     ['label' => 'Cause', 'align' => 'left'],
                     ['label' => 'Detail', 'align' => 'left'],
                 ]" />
-        </div>
 
         {{-- ── List Table ───────────────────────────────────────────────────────────── --}}
         <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
@@ -196,6 +193,7 @@
                         class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">›</button>
                 </div>
             </div>
+        </div>
         </div>
 
     </div>

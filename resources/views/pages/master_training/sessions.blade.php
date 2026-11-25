@@ -323,7 +323,7 @@
         #quotaModal .select2-container--default .select2-selection--single .select2-selection__arrow { height: 44px; right: 8px; }
         #quotaModal .select2-container--default.select2-container--focus .select2-selection--single,
         #quotaModal .select2-container--default.select2-container--open .select2-selection--single {
-            border: 1.5px solid #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+            border: 1.5px solid #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(49, 147, 218, .15);
         }
         #quotaModal .select2-dropdown { border: 1px solid #e2e8f0; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0, 0, 0, .12); overflow: hidden; }
         #quotaModal .select2-search--dropdown { padding: 8px; }
@@ -384,7 +384,7 @@
 
         .status-badge-DRAFT { background: rgba(156,163,175,.3); color: #4b5563; }
         .status-badge-PUBLISHED { background: rgba(34,197,94,.2); color: #16a34a; }
-        .status-badge-CLOSED { background: rgba(59,130,246,.2); color: #2563eb; }
+        .status-badge-CLOSED { background: rgba(86, 177, 243,.2); color: #2563eb; }
         .status-badge-CANCELLED { background: rgba(239,68,68,.2); color: #dc2626; }
     </style>
 

@@ -11,7 +11,7 @@
         .manage-approval-table tbody tr:nth-child(even) { background-color: rgb(249 250 251); }
         .dark .manage-approval-table tbody tr:nth-child(even) { background-color: rgb(255 255 255 / .02); }
         .manage-approval-table tbody tr:hover { background-color: rgb(238 242 255); }
-        .dark .manage-approval-table tbody tr:hover { background-color: rgb(99 102 241 / .08); }
+        .dark .manage-approval-table tbody tr:hover { background-color: rgb(86 177 243 / .08); }
         .manage-approval-table tbody td { padding: .6rem .75rem; vertical-align: middle; border-bottom: 1px solid rgb(243 244 246); }
         .dark .manage-approval-table tbody td { border-bottom-color: rgb(255 255 255 / .06); }
         .select2-container .select2-selection--single,
