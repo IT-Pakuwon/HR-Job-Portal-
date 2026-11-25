@@ -1,10 +1,9 @@
 <x-app-layout>
+    <x-spp-list-styles />
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div>
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">🎓 Training List</h1>
-                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Browse open trainings and manage your registrations.</p>
-            </div>
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Training List" subtitle="Browse open trainings and manage your registrations." />
+            <div class="flex flex-col gap-4 p-4">
 
             {{-- Tabs --}}
             <div class="flex w-full flex-wrap gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/60">
@@ -23,24 +22,12 @@
 
             {{-- Available Trainings --}}
             <div id="tab-available" class="tab-panel space-y-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <select id="filterLevel" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <option value="">All Levels</option>
-                    </select>
-                    <select id="filterCategory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <option value="">All Categories</option>
-                    </select>
-                    <select id="filterMandatory" class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <option value="">Mandatory: All</option>
-                        <option value="1">Mandatory Only</option>
-                        <option value="0">Non-Mandatory Only</option>
-                    </select>
-                    <select id="filterStatus" class="rounded-lg border border-gray-300 py-1.5 pl-2.5 pr-8 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
-                        <option value="open">Available Trainings</option>
-                        <option value="closed">Closed Training</option>
-                        <option value="all">All Trainings</option>
-                    </select>
-                    <button id="filterResetBtn" class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">Reset</button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="sppb-f relative w-44"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></span><select id="filterLevel"><option value="">All Levels</option></select></div>
+                    <div class="sppb-f relative w-52"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg></span><select id="filterCategory"><option value="">All Categories</option></select></div>
+                    <div class="sppb-f relative w-52"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg></span><select id="filterMandatory"><option value="">Mandatory: All</option><option value="1">Mandatory Only</option><option value="0">Non-Mandatory Only</option></select></div>
+                    <div class="sppb-f relative w-56"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span><select id="filterStatus"><option value="open">Available Trainings</option><option value="closed">Closed Training</option><option value="all">All Trainings</option></select></div>
+                    <button id="filterResetBtn" type="button" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"><i class="fas fa-rotate-right mr-2 text-xs"></i>Reset</button>
                 </div>
 
                 <div id="availableEmpty" class="hidden rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
@@ -54,34 +41,34 @@
                  already decided) as an approver on other employees' rows. --}}
             <div id="tab-mine" class="tab-panel hidden">
                 <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                    <button class="subTabBtn flex-1 border-b-2 border-gray-900 px-2.5 py-1.5 text-center text-sm font-semibold text-gray-900 dark:border-white dark:text-white" data-subtab="myreg">
+                    <button class="subTabBtn flex-1 border-b-2 border-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-blue-700 dark:border-blue-400 dark:text-blue-300" data-subtab="myreg">
                         My Registration
                     </button>
-                    <button class="subTabBtn flex-1 border-b-2 border-transparent px-2.5 py-1.5 text-center text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-subtab="approval">
+                    <button class="subTabBtn flex-1 border-b-2 border-transparent px-4 py-2.5 text-center text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" data-subtab="approval">
                         Approval
                     </button>
                 </div>
 
                 {{-- My Registration --}}
                 <div id="subtab-myreg" class="sub-tab-panel space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]">
                         <div class="flex flex-1 flex-wrap items-center gap-4">
                             <span id="mineCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="mineTrainingFilter">Training</label>
-                                <select id="mineTrainingFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-52">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg></span>
+                                <select id="mineTrainingFilter">
                                     <option value="">All Trainings</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="mineScheduleFilter">Schedule</label>
-                                <select id="mineScheduleFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-56">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span>
+                                <select id="mineScheduleFilter">
                                     <option value="">All Schedules</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="minePageSize">Show</label>
-                                <select id="minePageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-28">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                <select id="minePageSize">
                                     <option value="10">10</option>
                                     <option value="25" selected>25</option>
                                     <option value="50">50</option>
@@ -90,21 +77,26 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
+                            <input id="mineSearch" type="text" placeholder="Search doc ID, participant, or training..."
+                                class="h-10 w-full rounded-full border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                        </div>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/[0.06]">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
-                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2 pr-4">Doc ID</th>
-                                    <th class="py-2 pr-4">Participant</th>
-                                    <th class="py-2 pr-4">Training</th>
-                                    <th class="py-2 pr-4">Level</th>
-                                    <th class="py-2 pr-4">Speaker</th>
-                                    <th class="py-2 pr-4">Date</th>
-                                    <th class="py-2 pr-4">Status</th>
-                                    <th class="py-2 pr-4">Attendance</th>
-                                    <th class="py-2 pr-4">Stars</th>
-                                    <th class="py-2 pr-4">Actions</th>
+                                <tr class="border-b border-gray-100 bg-gray-50/70 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="px-4 py-3">Doc ID</th>
+                                    <th class="px-4 py-3">Participant</th>
+                                    <th class="px-4 py-3">Training</th>
+                                    <th class="px-4 py-3">Level</th>
+                                    <th class="px-4 py-3">Speaker</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Attendance</th>
+                                    <th class="px-4 py-3">Stars</th>
+                                    <th class="px-4 py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="mineBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -119,33 +111,33 @@
                 {{-- Approval: every registration the caller is/was an approver
                      on — currently waiting on them, or already decided by them. --}}
                 <div id="subtab-approval" class="sub-tab-panel hidden space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]">
                         <div class="flex flex-1 flex-wrap items-center gap-4">
                             <span id="approvalCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="approvalStatusFilter">Status</label>
-                                <select id="approvalStatusFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-52">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                                <select id="approvalStatusFilter">
                                     <option value="">All</option>
                                     <option value="P">Waiting Approval</option>
                                     <option value="A">Approved</option>
                                     <option value="R">Rejected</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="approvalTrainingFilter">Training</label>
-                                <select id="approvalTrainingFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-52">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg></span>
+                                <select id="approvalTrainingFilter">
                                     <option value="">All Trainings</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="approvalCompanyFilter">Company</label>
-                                <select id="approvalCompanyFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-56">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                                <select id="approvalCompanyFilter">
                                     <option value="">All Companies</option>
                                 </select>
                             </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="approvalPageSize">Show</label>
-                                <select id="approvalPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-28">
+                                <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                <select id="approvalPageSize">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
@@ -158,21 +150,21 @@
                         <div class="relative w-full sm:w-72">
                             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                             <input id="approvalSearch" type="text" placeholder="Search employee, doc ID, or training..."
-                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                class="h-10 w-full rounded-full border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/[0.06]">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
-                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="approvalSortTh py-2 pr-4" data-field="docid">Doc ID</th>
-                                    <th class="approvalSortTh py-2 pr-4" data-field="name">Employee</th>
-                                    <th class="py-2 pr-4">Company / Dept</th>
-                                    <th class="approvalSortTh py-2 pr-4" data-field="training_name">Training</th>
-                                    <th class="approvalSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
-                                    <th class="approvalSortTh py-2 pr-4" data-field="approval_status">Status</th>
-                                    <th class="approvalSortTh py-2 pr-4" data-field="action_date">Date</th>
-                                    <th class="py-2 pr-4">Action</th>
+                                <tr class="border-b border-gray-100 bg-gray-50/70 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="approvalSortTh px-4 py-3" data-field="docid">Doc ID</th>
+                                    <th class="approvalSortTh px-4 py-3" data-field="name">Employee</th>
+                                    <th class="px-4 py-3">Company / Dept</th>
+                                    <th class="approvalSortTh px-4 py-3" data-field="training_name">Training</th>
+                                    <th class="approvalSortTh px-4 py-3" data-field="schedule_date">Schedule Date</th>
+                                    <th class="approvalSortTh px-4 py-3" data-field="approval_status">Status</th>
+                                    <th class="approvalSortTh px-4 py-3" data-field="action_date">Date</th>
+                                    <th class="px-4 py-3">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="approvalBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -189,41 +181,12 @@
             @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
                 <div id="tab-allregs" class="tab-panel hidden space-y-4">
                     {{-- Filters — Training Event also rescopes the summary cards below --}}
-                    <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-cyan-50/30 p-6 shadow-sm dark:border-gray-700 dark:from-gray-800/40 dark:to-cyan-900/10">
-                        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                    <i class="fa-solid fa-chalkboard-user mr-1 text-gray-400"></i> Training Event
-                                </label>
-                                <select id="allRegsTrainingFilter" class="w-full">
-                                    <option value="">All Training Events</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                    <i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> Level
-                                </label>
-                                <select id="allRegsLevelFilter" class="w-full">
-                                    <option value="">All Levels</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                    <i class="fa-solid fa-calendar-days mr-1 text-gray-400"></i> Schedule Date
-                                </label>
-                                <select id="allRegsScheduleFilter" class="w-full">
-                                    <option value="">All Dates</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                    <i class="fa-solid fa-list-check mr-1 text-gray-400"></i> Status
-                                </label>
-                                <select id="allRegsStatusFilter" class="w-full">
+                    <div class="rounded-xl border border-gray-100 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="sppb-f relative min-w-[220px] flex-1"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg></span><select id="allRegsTrainingFilter"><option value="">All Training Events</option></select></div>
+                            <div class="sppb-f relative min-w-[200px] flex-1"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg></span><select id="allRegsLevelFilter"><option value="">All Levels</option></select></div>
+                            <div class="sppb-f relative min-w-[200px] flex-1"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span><select id="allRegsScheduleFilter"><option value="">All Dates</option></select></div>
+                            <div class="sppb-f relative min-w-[200px] flex-1"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span><select id="allRegsStatusFilter">
                                     <option value="">All Statuses</option>
                                     <option value="P">Waiting Approval</option>
                                     <option value="C">Approved</option>
@@ -231,26 +194,23 @@
                                     <option value="W">Waiting List</option>
                                     <option value="O">Slot Offered</option>
                                     <option value="X">Cancelled</option>
-                                </select>
-                            </div>
-
+                                </select></div>
                             <div class="flex gap-2">
-                                <button type="button" id="allRegsExportBtn" class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-black hover:shadow active:scale-[0.98] dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white">
-                                    <i class="fa-solid fa-file-arrow-down"></i> Export
+                                <button type="button" id="allRegsExportBtn" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                                    <i class="fa-solid fa-file-arrow-down text-xs"></i> Export
                                 </button>
-                                <button type="button" id="allRegsResetBtn" class="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-gray-200 dark:hover:bg-gray-700/40">
-                                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                                <button type="button" id="allRegsResetBtn" class="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    <i class="fa-solid fa-arrow-rotate-left text-xs"></i> Reset
                                 </button>
                             </div>
-
                         </div>
                     </div>
 
                     {{-- Summary — stat cards + quota, collapsible; open by default --}}
                     <div x-data="{ summaryOpen: true }" class="space-y-3">
                         <button type="button" @click="summaryOpen = !summaryOpen"
-                            class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-gray-700 transition hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-gray-600">
-                            <span><i class="fa-solid fa-chart-simple mr-2 text-gray-400"></i>Summary</span>
+                            class="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-2.5 text-left text-sm font-semibold text-gray-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200">
+                            <span><i class="fa-solid fa-chart-simple mr-2 text-blue-500"></i>Summary</span>
                             <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform" :class="{ 'rotate-180': summaryOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
@@ -258,39 +218,39 @@
 
                         <div x-show="summaryOpen" x-transition class="space-y-3">
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-6">
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Waiting Approval</p>
-                                    <p id="statWaitingApproval" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-amber-500 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Waiting Approval</p>
+                                    <p id="statWaitingApproval" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Waiting List</p>
-                                    <p id="statWaitingList" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-sky-500 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">Waiting List</p>
+                                    <p id="statWaitingList" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-violet-600 dark:text-violet-400">Waiting Offer</p>
-                                    <p id="statWaitingOffer" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-[#a855f7] bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">Waiting Offer</p>
+                                    <p id="statWaitingOffer" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-green-600 dark:text-green-400">Approved</p>
-                                    <p id="statApproved" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-green-500 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-green-600 dark:text-green-400">Approved</p>
+                                    <p id="statApproved" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Rejected</p>
-                                    <p id="statRejected" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-red-500 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Rejected</p>
+                                    <p id="statRejected" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
-                                <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-                                    <p class="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cancelled</p>
-                                    <p id="statCancelled" class="mt-1 text-xl font-bold text-gray-800 dark:text-white">-</p>
+                                <div class="rounded-xl border border-l-4 border-gray-100 border-l-slate-400 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+                                    <p class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Cancelled</p>
+                                    <p id="statCancelled" class="mt-1 text-2xl font-bold text-gray-800 dark:text-white">-</p>
                                 </div>
                             </div>
 
-                            <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+                            <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reserved / Total Quota</p>
                                     <span id="quotaOverallValue" class="text-sm font-bold text-gray-800 dark:text-white">-</span>
                                 </div>
                                 <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                                    <div id="quotaOverallBar" class="h-full rounded-full bg-gray-900 dark:bg-white" style="width:0%"></div>
+                                    <div id="quotaOverallBar" class="h-full rounded-full bg-blue-600 transition-all duration-500" style="width:0%"></div>
                                 </div>
 
                                 <p class="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Per Company</p>
@@ -300,50 +260,44 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/[0.02]">
                         <div class="flex flex-1 flex-wrap items-center gap-4">
                             <span id="allRegsCount" class="text-sm font-medium text-gray-500 dark:text-gray-400"></span>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="allRegsCompanyFilter">Company</label>
-                                <select id="allRegsCompanyFilter" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                            <div class="sppb-f relative w-56"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span><select id="allRegsCompanyFilter">
                                     <option value="">All Companies</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                                <label for="allRegsPageSize">Show</label>
-                                <select id="allRegsPageSize" class="rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-8 text-sm text-gray-700 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                </select></div>
+                            <div class="sppb-f relative w-28"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span><select id="allRegsPageSize">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
                                     <option value="100">100</option>
                                     <option value="all">All</option>
-                                </select>
-                            </div>
+                                </select></div>
                         </div>
 
                         <div class="relative w-full sm:w-72">
                             <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                             <input id="allRegsSearch" type="text" placeholder="Search employee or doc ID..."
-                                class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-sm text-gray-700 placeholder:text-gray-400 transition focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700">
+                                class="h-10 w-full rounded-full border border-gray-200 bg-white pl-9 pr-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/[0.06]">
                         <table class="responsive-table min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
-                                <tr class="text-left text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="docid">Doc ID</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="name">Employee</th>
-                                    <th class="py-2 pr-4">Company / Dept</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="training_name">Training</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="grade_name">Level</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_date">Schedule Date</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="schedule_status">Training Status</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="registered_at">Registered On</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="status">Status</th>
-                                    <th class="py-2 pr-4">Approval</th>
-                                    <th class="allRegsSortTh py-2 pr-4" data-field="queue_no">Queue #</th>
-                                    <th class="py-2 pr-4">Action</th>
+                                <tr class="border-b border-gray-100 bg-gray-50/70 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="allRegsSortTh px-4 py-3" data-field="docid">Doc ID</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="name">Employee</th>
+                                    <th class="px-4 py-3">Company / Dept</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="training_name">Training</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="grade_name">Level</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="schedule_date">Schedule Date</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="schedule_status">Training Status</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="registered_at">Registered On</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="status">Status</th>
+                                    <th class="px-4 py-3">Approval</th>
+                                    <th class="allRegsSortTh px-4 py-3" data-field="queue_no">Queue #</th>
+                                    <th class="px-4 py-3">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="allRegsBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -355,6 +309,7 @@
                     </div>
                 </div>
             @endif
+        </div>
         </div>
 
         {{-- Training Detail modal --}}
@@ -408,8 +363,8 @@
     <style>
         .tabBtn.active {
             background: #ffffff;
-            color: #111827;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+            color: #1d4ed8;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.10);
         }
         html.dark .tabBtn.active {
             background: #374151;
@@ -1988,7 +1943,7 @@
 
         function statusBadge(status) {
             const [label, cls] = statusLabels[status] || [status, 'bg-gray-100 text-gray-600'];
-            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
+            return `<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
         }
 
         // Approved registrations read as plain text ("Registration Approved")
@@ -2013,7 +1968,7 @@
 
         function scheduleStatusBadge(status) {
             const [label, cls] = scheduleStatusLabels[status] || [status ?? '-', 'bg-gray-100 text-gray-600'];
-            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${cls}">${label}</span>`;
+            return `<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
         }
 
         function fmtDate(d) {
@@ -2147,6 +2102,8 @@
             $category.find('option:not(:first)').remove();
             categories.forEach((c) => $category.append(new Option(c, c)));
             $category.val(categories.includes(selectedCategory) ? selectedCategory : '');
+            $level.trigger('change.select2');
+            $category.trigger('change.select2');
         }
 
         // A card is "closed" once every schedule in its batch is no longer
@@ -2177,10 +2134,15 @@
             renderTrainingCards(filtered);
         }
 
+        // styled dropdowns (same Select2 skin as the SPP lists)
+        $('#filterLevel, #filterCategory, #filterMandatory, #filterStatus').each(function () {
+            $(this).select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
+        });
         $('#filterLevel, #filterCategory, #filterMandatory, #filterStatus').on('change', applyFilters);
         $('#filterResetBtn').on('click', function () {
             $('#filterLevel, #filterCategory, #filterMandatory').val('');
             $('#filterStatus').val('open');
+            $('#filterLevel, #filterCategory, #filterMandatory, #filterStatus').trigger('change.select2');
             applyFilters();
         });
 
@@ -3018,12 +2980,20 @@
         }
 
         function renderMine() {
+            if (typeof refreshRegFilters === 'function') refreshRegFilters();
             const trainingFilterVal = $('#mineTrainingFilter').val();
             const scheduleFilterVal = $('#mineScheduleFilter').val();
+
+            const mineSearchVal = ($('#mineSearch').val() || '').toLowerCase().trim();
 
             const rows = myRegistrationsRows.filter((r) => {
                 if (trainingFilterVal && r.training_name !== trainingFilterVal) return false;
                 if (scheduleFilterVal && String(r.schedule_id) !== scheduleFilterVal) return false;
+                if (mineSearchVal) {
+                    const hay = [r.docid, r.participant_name, r.participant_username, r.training_name, r.grade_name, r.speaker_name, r.schedule_date]
+                        .filter(Boolean).join(' ').toLowerCase();
+                    if (!hay.includes(mineSearchVal)) return false;
+                }
                 return true;
             });
 
@@ -3061,17 +3031,17 @@
                        </div>`;
 
                 $body.append(`
-                    <tr>
-                        <td class="py-2 pr-4" data-label="Doc ID"><button type="button" class="viewRegBtn inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 px-2.5 py-1 font-mono text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600" data-id="${r.id}">${r.docid}</button></td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Participant">${participantHtml}</td>
-                        <td class="py-2 pr-4 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
-                        <td class="py-2 pr-4 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
-                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
-                        <td class="py-2 pr-4" data-label="Attendance">${attendanceBadge(r)}</td>
-                        <td class="py-2 pr-4" data-label="Stars">${starsBadge(r)}</td>
-                        <td class="py-2 pr-4" data-label="Actions">
+                    <tr class="transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]">
+                        <td class="px-4 py-3" data-label="Doc ID"><button type="button" class="viewRegBtn group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white" data-id="${r.id}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${r.docid}</span></button></td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Participant">${participantHtml}</td>
+                        <td class="px-4 py-3 wrap-break-word text-sm text-gray-800 dark:text-gray-100" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="px-4 py-3 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="px-4 py-3 wrap-break-word" data-label="Speaker">${r.speaker_name ?? '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="px-4 py-3" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="px-4 py-3" data-label="Attendance">${attendanceBadge(r)}</td>
+                        <td class="px-4 py-3" data-label="Stars">${starsBadge(r)}</td>
+                        <td class="px-4 py-3" data-label="Actions">
                             <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
                                 <button type="button" @click="
                                         const b = \$el.getBoundingClientRect();
@@ -3079,7 +3049,7 @@
                                         left = b.right + window.scrollX - 192;
                                         open = !open;
                                     "
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                    class="inline-flex h-8 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-medium text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
                                     Actions
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -3106,6 +3076,13 @@
             }, minePageSize);
         }
 
+        // styled dropdowns (same Select2 skin as the other lists)
+        const regFilterIds = '#mineTrainingFilter, #mineScheduleFilter, #minePageSize, #approvalStatusFilter, #approvalTrainingFilter, #approvalCompanyFilter, #approvalPageSize';
+        $(regFilterIds).each(function () {
+            $(this).select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
+        });
+        function refreshRegFilters() { $(regFilterIds).trigger('change.select2'); }
+
         $('#mineTrainingFilter').on('change', function () {
             // Training changed — rebuild Schedule's options scoped to it
             // before re-rendering, so stale out-of-scope sessions don't
@@ -3120,6 +3097,11 @@
             renderMine();
         });
 
+        $('#mineSearch').on('input', function () {
+            minePage = 1;
+            renderMine();
+        });
+
         $('#minePageSize').on('change', function () {
             const val = $(this).val();
             minePageSize = val === 'all' ? Infinity : parseInt(val, 10);
@@ -3129,10 +3111,10 @@
 
         $('.subTabBtn').on('click', function () {
             const sub = $(this).data('subtab');
-            $('.subTabBtn').removeClass('border-gray-900 text-gray-900 dark:border-white dark:text-white')
+            $('.subTabBtn').removeClass('border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300')
                 .addClass('border-transparent text-gray-500 dark:text-gray-400');
             $(this).removeClass('border-transparent text-gray-500 dark:text-gray-400')
-                .addClass('border-gray-900 text-gray-900 dark:border-white dark:text-white');
+                .addClass('border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300');
             $('.sub-tab-panel').addClass('hidden');
             $('#subtab-' + sub).removeClass('hidden');
 
@@ -3210,10 +3192,11 @@
                 pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
                 neutral: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
             };
-            return `<span class="inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${clsMap[meta.cls] || clsMap.neutral}">${meta.label}</span>`;
+            return `<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${clsMap[meta.cls] || clsMap.neutral}">${meta.label}</span>`;
         }
 
         function renderApprovalHistory() {
+            if (typeof refreshRegFilters === 'function') refreshRegFilters();
             const statusFilterVal = $('#approvalStatusFilter').val();
             const trainingFilterVal = $('#approvalTrainingFilter').val();
             const companyFilterVal = $('#approvalCompanyFilter').val();
@@ -3254,26 +3237,26 @@
             pageRows.forEach(function (r) {
                 const actionHtml = r.approval_status === 'P'
                     ? `
-                        <button class="approveRegBtn rounded-lg bg-green-600 px-2.5 py-1 text-sm font-semibold text-white hover:bg-green-700" data-id="${r.id}">Approve</button>
-                        <button class="rejectRegBtn rounded-lg border border-red-200 px-2.5 py-1 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20" data-id="${r.id}">Reject</button>
+                        <button class="approveRegBtn inline-flex h-8 items-center rounded-md bg-green-600 px-3 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-md active:translate-y-0 active:scale-95" data-id="${r.id}">Approve</button>
+                        <button class="rejectRegBtn inline-flex h-8 items-center rounded-md border border-red-200 bg-red-50 px-3 text-sm font-semibold text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-red-900/40 dark:bg-red-500/10 dark:text-red-400" data-id="${r.id}">Reject</button>
                     `
                     : '';
 
                 $body.append(`
-                    <tr>
-                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
-                        <td class="py-2 pr-4" data-label="Employee">
+                    <tr class="transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]">
+                        <td class="px-4 py-3" data-label="Doc ID"><button type="button" class="viewRegBtn group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white" data-id="${r.id}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${r.docid}</span></button></td>
+                        <td class="px-4 py-3" data-label="Employee">
                             <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
                             <span class="block text-sm text-gray-400">${r.username}</span>
                         </td>
-                        <td class="py-2 pr-4" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
-                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
-                        <td class="py-2 pr-4" data-label="Status">${approvalRowStatusBadge(r.approval_status)}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Date">${fmtDate(r.action_date)}</td>
-                        <td class="py-2 pr-4" data-label="Action">
+                        <td class="px-4 py-3" data-label="Company / Dept">${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}</td>
+                        <td class="px-4 py-3" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="px-4 py-3" data-label="Status">${approvalRowStatusBadge(r.approval_status)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Date">${fmtDate(r.action_date)}</td>
+                        <td class="px-4 py-3" data-label="Action">
                             <div class="flex items-center gap-1.5">
-                                <button class="viewRegBtn rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700" data-id="${r.id}">View</button>
+                                <button class="viewRegBtn inline-flex h-8 items-center rounded-md border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" data-id="${r.id}">View</button>
                                 ${actionHtml}
                             </div>
                         </td>
@@ -3789,35 +3772,14 @@
         });
 
         @if (Auth::user()->hasRole('HCDEVACCESS') || Auth::user()->hasRole('HCBPACCESS'))
-        $('#allRegsTrainingFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Training Events',
-            allowClear: true,
-            width: '100%',
-            // Full name as a title tooltip since long training names truncate
-            // in the box itself.
-            templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
-        });
-        $('#allRegsStatusFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            minimumResultsForSearch: -1,
-            width: '100%',
-        });
-        $('#allRegsLevelFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Levels',
-            allowClear: true,
-            width: '100%',
-        });
-        $('#allRegsScheduleFilter').select2({
-            containerCssClass: 'select2-filter',
-            dropdownCssClass: 'select2-filter',
-            placeholder: 'All Dates',
-            allowClear: true,
-            width: '100%',
+        $('#allRegsTrainingFilter, #allRegsLevelFilter, #allRegsScheduleFilter, #allRegsStatusFilter, #allRegsCompanyFilter, #allRegsPageSize').each(function () {
+            $(this).select2({
+                width: '100%',
+                minimumResultsForSearch: (this.id === 'allRegsStatusFilter' || this.id === 'allRegsPageSize') ? Infinity : 8,
+                dropdownCssClass: 'sppb-s2-dropdown',
+                // Full name as a title tooltip since long training names truncate in the box itself.
+                templateSelection: (data) => $('<span></span>').text(data.text).attr('title', data.text),
+            });
         });
 
         let allRegistrationRows = [];
@@ -3959,6 +3921,7 @@
         }
 
         function renderAllRegistrations() {
+            $('#allRegsCompanyFilter, #allRegsPageSize').trigger('change.select2');
             const search = ($('#allRegsSearch').val() || '').toLowerCase().trim();
             const statusFilter = $('#allRegsStatusFilter').val();
             const trainingFilter = $('#allRegsTrainingFilter').val();
@@ -4028,35 +3991,35 @@
                 // so that's checked first — otherwise this kept showing a stale
                 // "Pending" for a registration that's actually dead.
                 const approvalHtml = r.status === 'X'
-                    ? '<span class="text-sm text-gray-400 dark:text-gray-500">Cancelled</span>'
+                    ? '<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300">Cancelled</span>'
                     : r.approval_status === 'C'
-                        ? '<span class="text-sm font-semibold text-green-600 dark:text-green-400">Approved</span>'
+                        ? '<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300">Approved</span>'
                         : r.approval_status === 'R'
-                            ? '<span class="text-sm font-semibold text-red-600 dark:text-red-400">Rejected</span>'
-                            : '<span class="text-sm text-amber-600 dark:text-amber-400">Pending</span>';
+                            ? '<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300">Rejected</span>'
+                            : '<span class="inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Pending</span>';
 
                 $body.append(`
-                    <tr>
-                        <td class="py-2 pr-4 font-mono text-sm" data-label="Doc ID">${r.docid}</td>
-                        <td class="py-2 pr-4" data-label="Employee">
+                    <tr class="transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]">
+                        <td class="px-4 py-3" data-label="Doc ID"><button type="button" class="allRegsViewBtn group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white" data-id="${r.id}" title="View"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${r.docid}</span></button></td>
+                        <td class="px-4 py-3" data-label="Employee">
                             <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100">${r.name ?? r.username}</span>
                             <span class="block text-sm text-gray-400">${r.username}</span>
                         </td>
-                        <td class="py-2 pr-4" data-label="Company / Dept">
+                        <td class="px-4 py-3" data-label="Company / Dept">
                             ${r.cpny_name ?? r.cpny_id} / ${r.department_name ?? r.department_id}
                             ${r.registration_cpny_id && r.registration_cpny_id !== r.cpny_id
                                 ? `<span class="block text-sm text-purple-600 dark:text-purple-400">quota: ${r.registration_cpny_name ?? r.registration_cpny_id}</span>`
                                 : ''}
                         </td>
-                        <td class="py-2 pr-4" data-label="Training">${r.training_name ?? '-'}</td>
-                        <td class="py-2 pr-4 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
-                        <td class="py-2 pr-4" data-label="Training Status">${scheduleStatusBadge(r.schedule_status)}</td>
-                        <td class="py-2 pr-4 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
-                        <td class="py-2 pr-4" data-label="Status">${statusBadge(r.status)}</td>
-                        <td class="py-2 pr-4" data-label="Approval">${approvalHtml}</td>
-                        <td class="py-2 pr-4 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-sm font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
-                        <td class="py-2 pr-4" data-label="Action">
+                        <td class="px-4 py-3" data-label="Training">${r.training_name ?? '-'}</td>
+                        <td class="px-4 py-3 wrap-break-word" data-label="Level">${r.grade_name ?? '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Schedule Date">${fmtDate(r.schedule_date)}</td>
+                        <td class="px-4 py-3" data-label="Training Status">${scheduleStatusBadge(r.schedule_status)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap" data-label="Registered On">${fmtDate(r.registered_at)}</td>
+                        <td class="px-4 py-3" data-label="Status">${statusBadge(r.status)}</td>
+                        <td class="px-4 py-3" data-label="Approval">${approvalHtml}</td>
+                        <td class="px-4 py-3 text-center" data-label="Queue #">${r.queue_no ? `<span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">#${r.queue_no}</span>` : '-'}</td>
+                        <td class="px-4 py-3" data-label="Action">
                             <div class="relative inline-block text-left" x-data="{ open: false, top: 0, left: 0 }" @click.outside="open = false">
                                 <button type="button" @click="
                                         const b = \$el.getBoundingClientRect();
@@ -4064,7 +4027,7 @@
                                         left = b.right + window.scrollX - 192;
                                         open = !open;
                                     "
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    class="inline-flex h-8 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-medium text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
                                     Actions
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -4325,8 +4288,8 @@
             $('#allRegsTrainingFilter').val('').trigger('change.select2');
             $('#allRegsLevelFilter').val('').trigger('change.select2');
             $('#allRegsScheduleFilter').val('').trigger('change.select2');
-            $('#allRegsCompanyFilter').val('');
-            $('#allRegsPageSize').val('10');
+            $('#allRegsCompanyFilter').val('').trigger('change.select2');
+            $('#allRegsPageSize').val('10').trigger('change.select2');
             allRegsPageSize = 10;
             allRegsSortField = null;
             allRegsSortDir = 'asc';

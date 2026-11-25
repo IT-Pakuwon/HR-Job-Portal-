@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'wos' ? 'HR' : '';
     @endphp
@@ -19,127 +21,26 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"> --}}
-            <div
-            class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-
-            {{-- Tenant WO Jobs: complaints transferred to WO (ACCESSTR only) --}}
-            @if (!empty($canTenantWo))
-                <a href="#" id="tenantWoTab" class="group block h-full">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-violet-700 bg-violet-200/20 p-3 text-violet-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-violet-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🏢</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Tenant WO Jobs</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $tenantWoCount ?? 0 }}</p>
-                    </div>
-                </a>
-            @endif
-
-            {{-- All Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </a>
-
-            {{-- On Progress Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </a>
-
-            {{-- Reject Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Reject</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                </div>
-            </a>
-
-            {{-- Revise / Draft Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✏️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise / Draft</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </a>
-
-            {{-- Completed Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </a>
-
-            {{-- WO ALL (Cost Control Only) --}}
-            @if (auth()->user()->isAdmin())
-                <a href="#" class="status-filter group block h-full" data-scope="wo_all">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">WO All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $woAll ?? 0 }}</p>
-                    </div>
-                </a>
-            @endif
-
-        </div>
+        @php
+            $statusCards = [];
+            if (!empty($canTenantWo)) {
+                $statusCards[] = [['id' => 'tenantWoTab'], 'Tenant WO Jobs', '🏢', 'sky', $tenantWoCount ?? 0, false, null, null, true];
+            }
+            $statusCards[] = [['data-status' => ''], 'All', '📦', 'all', $all, false];
+            $statusCards[] = [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, true];
+            $statusCards[] = [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false];
+            $statusCards[] = [['data-status' => 'D'], 'Revise / Draft', '✏️', 'blue', $revise, false];
+            $statusCards[] = [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false];
+            if (auth()->user()->isAdmin()) {
+                $statusCards[] = [['data-scope' => 'wo_all'], 'WO All', '🌐', 'purple', $woAll ?? 0, false];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         @if (!empty($canTenantWo))
             <div id="tenantWoPanel"
-                class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-                <div
-                    class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Tenant WO Jobs
-                        <span class="ml-2 text-xs font-normal text-gray-500">Complaints transferred to WO</span>
-                    </h2>
-                </div>
+                class="dt-pretty mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <x-list-page-header title="Tenant WO Jobs" subtitle="Complaints transferred to WO" />
                 <div class="relative overflow-x-auto">
                     <table id="tenantWoTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                         <thead>
@@ -164,15 +65,8 @@
         @endif
 
         <div id="requestWoPanel"
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Request WO</h2>
-                <a href="{{ url('/createwos') }}"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    <i class="fas fa-plus pr-2"></i>Create
-                </a>
-            </div>
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Request WO" :create-url="url('/createwos')" />
 
             <div class="relative overflow-hidden">
                 <table id="wosTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -528,28 +422,7 @@
                     {
                         data: 'woid',
                         render: function(data, type, row) {
-                            let url = `/showwos/${row.eid}`;
-                            let cls =
-                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700  text-sm ';
-                            const text = data || row.eid;
-
-                            if (row.status === 'D' && row.created_by === currentUser) {
-                                url = `/editwos/${row.eid}`;
-                                cls =
-                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700  text-sm ';
-                            }
-
-                            return `
-                            <div class="flex items-left gap-2 whitespace-nowrap">
-                            <a href="${url}" class="${cls}">${text}</a>
-                            <button type="button"
-                                class="tracking-btn inline-flex items-left justify-center rounded-full p-2
-                                    text-red-600 hover:text-red-700 hover:bg-red-50"
-                                data-id="${row.eid}" data-doc="${text}" aria-label="Tracking" title="Tracking">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                            </div>
-                        `;
+                            return sppDocCell(row, data || row.eid, 'wos', currentUser);
                         }
                     },
                     {
@@ -587,33 +460,7 @@
                         data: 'status',
                         className: 'text-left',
                         render: function(data) {
-                            const map = {
-                                'D': {
-                                    t: 'Revise',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return sppStatusBadge(data);
                         }
                     },
                     {
@@ -621,33 +468,7 @@
                         className: 'text-left',
                         render: function(data, type, row) {
                             // map dok-status (boleh dibiarkan)
-                            const map = {
-                                'H': {
-                                    t: 'Hold',
-                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return sppStatusBadge(data === 'H' ? 'Hold' : data);
                         }
                     }
                 ],
@@ -671,13 +492,7 @@
                     return;
                 }
                 const esc = s => $('<div>').text(s ?? '').html();
-                const badge = (map, v) => {
-                    const it = map[v] || {
-                        t: v || '-',
-                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                    };
-                    return `<span class="inline-block w-28 ${it.c} font-semibold px-2 py-1 text-xs text-center rounded">${it.t}</span>`;
-                };
+                const badge = (map, v) => sppStatusBadge(v === 'H' ? 'Hold' : v);
                 const woStatus = {
                     P: { t: 'On Progress', c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40' },
                     C: { t: 'Completed', c: 'bg-green-200/60 text-green-800 border border-green-600/40' },
@@ -696,7 +511,7 @@
                     order: [[6, 'desc']],
                     dom: '<"dt-toolbar"l f>rtip',
                     columns: [
-                        { data: 'complaintnbr', render: v => `<span class="whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white">${esc(v)}</span>` },
+                        { data: 'complaintnbr', render: v => `<span class="inline-flex whitespace-nowrap rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-[13px] font-semibold tabular-nums text-slate-700">${esc(v)}</span>` },
                         { data: 'complaintdate' },
                         { data: 'sitename', defaultContent: '-' },
                         { data: 'storename', render: (v, t, r) => esc(v || '-') + (r.unit ? `<div class="text-xs text-gray-500">${esc(r.unit)}</div>` : '') },
@@ -704,7 +519,7 @@
                         { data: 'description', className: 'whitespace-normal break-words min-w-[220px]', render: v => esc(v) },
                         { data: 'transferred_at', render: (v, t, r) => esc(v) + `<div class="text-xs text-gray-500">${esc(r.transferred_by)}</div>` },
                         { data: 'woid', render: (v, t, r) => !v ? '-' : (r.wo_eid
-                            ? `<a href="/showwos/${r.wo_eid}" class="whitespace-nowrap rounded bg-gray-500 px-3 py-1.5 text-sm text-white hover:bg-gray-700">${esc(v)}</a>`
+                            ? `<a href="/showwos/${r.wo_eid}" class="inline-flex min-w-[130px] items-center gap-2 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold tabular-nums text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"><i class="fa-regular fa-file-lines text-xs"></i>${esc(v)}</a>`
                             : esc(v)) },
                         { data: 'wo_status', render: v => badge(woStatus, v) },
                         { data: 'wo_job_status', render: v => badge(jobStatus, v) },

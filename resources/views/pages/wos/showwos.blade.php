@@ -1,4 +1,5 @@
 ﻿<x-app-layout>
+    <x-spp-form-styles />
 
     <div class="max-w-9xl mx-auto p-2">
         <x-breadcrumb :items="[
@@ -432,41 +433,35 @@
 
             @if ($canProcess)
                 <div id="jobProcessBox"
-                    class="rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 dark:border-gray-700 dark:bg-gray-800">
+                    class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 dark:border-gray-700 dark:bg-gray-800">
 
                     {{-- HEADER --}}
-                    <div
-                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
 
                         {{-- LEFT SIDE --}}
-                        <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Process Work Order</h2>
 
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
-                                    🛠 Process Work Order
-                                </h2>
-
-                                <span id="jobStatusBadge"
-                                    class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 transition-all duration-300 dark:bg-gray-700 dark:text-gray-300">
-                                    Draft
-                                </span>
+                                    <span id="jobStatusBadge"
+                                        class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 transition-all duration-300 dark:bg-gray-700 dark:text-gray-300">
+                                        Draft
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    Update status, department and notes
+                                    <span class="mx-1 text-gray-300">&bull;</span>
+                                    PIC:
+                                    <span id="picName" class="font-semibold text-blue-600 dark:text-blue-400">{{ $wo->pic_wo ?: '-' }}</span>
+                                </p>
                             </div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Update status, department and notes.
-                            </p>
-
-                            <p class="text-sm text-gray-600 dark:text-gray-300">
-                                PIC:
-                                <span id="picName" class="font-semibold text-indigo-600 dark:text-indigo-400">
-                                    {{ $wo->pic_wo ?: '-' }}
-                                </span>
-                            </p>
-
                         </div>
 
                         {{-- RIGHT SIDE BUTTON --}}
                         <button id="btnJobProcess" type="button"
-                            class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-blue-700"
                             data-mode="{{ $isPicWo ? 'save' : 'process' }}">
 
                             <span>
@@ -478,16 +473,17 @@
 
                     {{-- FORM --}}
                     <div id="jobForm"
-                        class="{{ $isPicWo ? '' : 'hidden' }} space-y-6 p-6 transition-all duration-300">
+                        class="{{ $isPicWo ? '' : 'hidden' }} space-y-5 p-6 transition-all duration-300">
 
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                         {{-- STATUS --}}
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        <div class="sf-field">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Status Pekerjaan
                             </label>
 
                             <select id="jobStatusSelect"
-                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="sf-select w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-70 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 h-10">
 
                                 <option value="">Pilih Status</option>
                                 <option value="P">🟡 On Progress</option>
@@ -497,32 +493,14 @@
                             </select>
                         </div>
 
-                        {{-- CHECKBOX --}}
-                        <div class="flex items-center justify-between">
-
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Please check if needed:
-                            </p>
-
-                            <label class="inline-flex items-center gap-3">
-                                <input type="checkbox" id="flagSppbJkt"
-                                    class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500">
-
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                    SPB / SPPBJKT
-                                </span>
-                            </label>
-
-                        </div>
-
                         {{-- DEPARTMENT --}}
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        <div class="sf-field">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Department
                             </label>
 
                             <select name="pic_department" id="pic_department"
-                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="sf-select w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-70 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 h-10">
 
                                 @foreach ($userdept as $p)
                                     <option value="{{ $p->department_id }}"
@@ -534,34 +512,60 @@
                             </select>
                         </div>
 
+                        </div>
+
+                        {{-- CHECKBOX --}}
+                        <div class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50/70 px-4 py-3 dark:border-gray-700 dark:bg-white/[0.03]">
+
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Please check if needed:
+                            </p>
+
+                            <label class="inline-flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm transition hover:border-blue-300 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:border-gray-600 dark:bg-gray-700">
+                                <input type="checkbox" id="flagSppbJkt"
+                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-300 dark:border-gray-500">
+
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    SPB / SPPBJKT
+                                </span>
+                            </label>
+
+                        </div>
+
                         {{-- COMMENT --}}
                         <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Comment
                             </label>
 
-                            <textarea id="jobComment" rows="4"
-                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                            <textarea id="jobComment" rows="3"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-70 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2.5"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
 
                         {{-- ATTACHMENT (JOB PROCESS) --}}
-                        <div id="jobAttachmentBox" class="space-y-3">
+                        <div id="jobAttachmentBox" class="space-y-2">
 
-                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Attachment
                             </label>
 
-                            <input type="file" id="jobAttachment" name="attachments[]" multiple
-                                accept=".jpg,.jpeg,.png,.pdf"
-                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                            <label for="jobAttachment" id="jobDropzone"
+                                class="group flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-4 transition hover:border-blue-400 hover:bg-blue-50/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:disabled]:hover:border-gray-300 has-[:disabled]:hover:bg-gray-50 dark:border-gray-600 dark:bg-white/[0.03]">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-500/10 dark:text-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-semibold text-gray-700 dark:text-gray-200">Click to upload <span class="font-normal text-gray-500">or drag and drop</span></span>
+                                    <span id="jobFileNames" class="block truncate text-xs text-gray-500 dark:text-gray-400">JPG, PNG or PDF &middot; you can choose several files</span>
+                                </span>
+                                <input type="file" id="jobAttachment" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf" class="sr-only" />
+                            </label>
 
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Required when status is <b>Completed</b>.
-                            </p>
+                            <p class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Required when status is <b>Completed</b>.</p>
 
                             <div id="jobAttachmentUploaded"
-                                class="hidden rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+                                class="hidden rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
                                 ✔ Attachment uploaded
                             </div>
 
@@ -573,27 +577,30 @@
             @else
                 {{-- READ ONLY MODE --}}
                 <div
-                    class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
-                    <div
-                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
-                            📝 WO Detail
-                        </h2>
-                        <span class="text-sm font-medium text-gray-500 dark:text-gray-300">
+                    <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
+                            <div>
+                                <h2 class="text-base font-bold text-gray-800 dark:text-white">WO Detail</h2>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Job status and notes for this work order</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             PIC: {{ $wo->pic_wo ?: '-' }}
                         </span>
                     </div>
 
-                    <div class="space-y-6 p-6">
+                    <div class="space-y-5 p-6">
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 
                             <div>
-                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Status
                                 </label>
-                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                <div class="rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5 text-[13px] font-medium text-gray-800 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-200">
                                     @switch($wo->status_pekerjaan)
                                         @case('P')
                                             🟡 On Progress
@@ -614,18 +621,18 @@
                             </div>
 
                             <div>
-                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Department
                                 </label>
-                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                <div class="rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5 text-[13px] font-medium text-gray-800 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-200">
                                     {{ $wo->pic_department ?? '-' }}
                                 </div>
                             </div>
 
                             <div class="flex items-end">
-                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                <div class="rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5 text-[13px] font-medium text-gray-800 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-200">
                                     <input type="checkbox" disabled
-                                        class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
+                                        class="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-500"
                                         @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
                                     SPB/SPPBJKT
                                 </div>
@@ -633,10 +640,10 @@
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Comment
                             </label>
-                            <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-700">
+                            <div class="rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5 text-[13px] font-medium text-gray-800 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-200">
                                 {{ $wo->pic_wo_comment ?: '-' }}
                             </div>
                         </div>
@@ -1567,6 +1574,8 @@
             const $dept = $("#pic_department");
             const $badge = $("#jobStatusBadge");
 
+            $select.add($dept).select2({ width: "100%", minimumResultsForSearch: Infinity, dropdownCssClass: "sf-s2-dropdown" });
+
             /* =====================================
                UI STATE CONTROLLER
             ===================================== */
@@ -1574,12 +1583,12 @@
             function setButtonMode(mode) {
 
                 const baseClass =
-                    "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold shadow-md transition-all duration-200";
+                    "inline-flex h-10 items-center gap-2 rounded-lg px-5 text-sm font-semibold shadow-sm transition-all duration-200";
 
                 $btn.removeClass().addClass(baseClass).prop("disabled", false);
 
                 if (mode === "process") {
-                    $btn.addClass("bg-indigo-600 hover:bg-indigo-700 text-white");
+                    $btn.addClass("bg-blue-600 hover:bg-blue-700 text-white");
                     $btn.find("span").text("Process");
 
                     $badge.removeClass().addClass(
@@ -1650,7 +1659,7 @@
             ===================================== */
 
             if (initialJobStatus) {
-                $select.val(initialJobStatus);
+                $select.val(initialJobStatus).trigger("change.select2");
             }
             if (initialJobStatus === 'C' || initialJobStatus === 'X') {
                 lockForm();
@@ -1833,4 +1842,43 @@
 
 
 
+    <script>
+        // Attachment dropzone: show chosen file names and support drag & drop
+        (function() {
+            const input = document.getElementById("jobAttachment");
+            const zone = document.getElementById("jobDropzone");
+            const names = document.getElementById("jobFileNames");
+            if (!input || !zone || !names) return;
+            const hint = names.textContent;
+
+            function refresh() {
+                const files = Array.from(input.files || []);
+                if (!files.length) {
+                    names.textContent = hint;
+                    names.classList.remove("text-blue-700", "font-semibold");
+                    return;
+                }
+                names.textContent = files.length + " file" + (files.length > 1 ? "s" : "") + ": " + files.map(f => f.name).join(", ");
+                names.classList.add("text-blue-700", "font-semibold");
+            }
+
+            input.addEventListener("change", refresh);
+            ["dragenter", "dragover"].forEach(ev => zone.addEventListener(ev, function(e) {
+                if (input.disabled) return;
+                e.preventDefault();
+                zone.classList.add("border-blue-500", "bg-blue-50");
+            }));
+            ["dragleave", "drop"].forEach(ev => zone.addEventListener(ev, function() {
+                zone.classList.remove("border-blue-500", "bg-blue-50");
+            }));
+            zone.addEventListener("drop", function(e) {
+                if (input.disabled) return;
+                e.preventDefault();
+                if (e.dataTransfer && e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+            });
+        })();
+    </script>
 </x-app-layout>

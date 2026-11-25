@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-list-styles />
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
@@ -31,7 +32,7 @@
 
         /* Filter panel — make select2 fields look like the bordered text inputs beside them */
         select.app-filter-field + .select2-container .select2-selection--single {
-            height: 38px; display: flex; align-items: center;
+            height: 40px; display: flex; align-items: center;
             border-radius: 0.5rem; border: 1px solid #e2e8f0 !important;
             background-color: #fff; padding: 0 1.75rem 0 0.75rem;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -43,7 +44,7 @@
         select.app-filter-field + .select2-container .select2-selection__rendered {
             padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
         }
-        select.app-filter-field + .select2-container .select2-selection__arrow { height: 38px; right: 8px; }
+        select.app-filter-field + .select2-container .select2-selection__arrow { height: 40px; right: 8px; }
         select.app-filter-field + .select2-container .select2-selection__placeholder { color: #94a3b8; }
 
         .dark select.app-filter-field + .select2-container .select2-selection--single {
@@ -95,99 +96,17 @@
         </div>
 
         <div id="tabPanelList" class="flex flex-col gap-4">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-
-            {{-- All Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </a>
-
-            {{-- Unchecked --}}
-            <a href="#" class="status-filter group block h-full" data-status="is_read_N">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Unchecked</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $unchecked }}</p>
-                </div>
-            </a>
-
-            {{-- Checked --}}
-            <a href="#" class="status-filter group block h-full" data-status="is_read_Y">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Checked</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $checked }}</p>
-                </div>
-            </a>
-
-            {{-- Reject --}}
-            <a href="#" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Reject</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                </div>
-            </a>
-
-            {{-- Approved --}}
-            <a href="#" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Approved</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $approved }}</p>
-                </div>
-            </a>
-
-            {{-- Transferred --}}
-            <a href="#" class="status-filter group block h-full" data-status="T">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-violet-700 bg-violet-200/20 p-3 text-violet-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-violet-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔄</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Transfer</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $transferred }}</p>
-                </div>
-            </a>
-
-        </div>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, true],
+                [['data-status' => 'is_read_N'], 'Unchecked', '⏳', 'blue', $unchecked, false],
+                [['data-status' => 'is_read_Y'], 'Checked', '✏️', 'all', $checked, false],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'C'], 'Approved', '✅', 'green', $approved, false],
+                [['data-status' => 'T'], 'Transfer', '🔄', 'sky', $transferred, false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         <div id="applicantFiltersCard"
             class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
@@ -217,7 +136,7 @@
                         Job Title &amp; Level
                     </label>
                     <select id="filterJobTL"
-                        class="app-filter-field w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                        class="app-filter-field w-full rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                     </select>
                 </div>
                 @endif
@@ -227,28 +146,17 @@
         </div>
 
         <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Applicant List</h2>
-                <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span class="flex items-center gap-1.5">
-                        <span class="legend-dot-checked h-2 w-2 rounded-full"></span>
-                        Checked
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="legend-dot-unchecked h-2 w-2 rounded-full"></span>
-                        Unchecked
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span class="legend-dot-reject h-2 w-2 rounded-full"></span>
-                        Reject
-                    </span>
+            class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Applicant List" subtitle="Review, check and map incoming applicants">
+                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span class="flex items-center gap-1.5"><span class="legend-dot-checked h-2 w-2 rounded-full"></span>Checked</span>
+                    <span class="flex items-center gap-1.5"><span class="legend-dot-unchecked h-2 w-2 rounded-full"></span>Unchecked</span>
+                    <span class="flex items-center gap-1.5"><span class="legend-dot-reject h-2 w-2 rounded-full"></span>Reject</span>
                 </div>
-            </div>
+            </x-list-page-header>
 
 
-            <div class="relative mt-4 overflow-hidden px-5 pb-4">
+            <div class="relative overflow-hidden">
                 <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -748,7 +656,7 @@
             ];
 
             const $filters = $('#applicantsFilters');
-            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
+            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
 
             columnFilters.forEach(col => {
                 let $el;
@@ -878,7 +786,7 @@
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'Job_Applicants',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -890,7 +798,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'Job_Applicants',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -927,7 +835,7 @@
                         data: 'docid',
                         name: 'docid',
                         render: function(data, type, row) {
-                            return `<a href="/showcareers/${row.eid}" target="_blank" rel="noopener noreferrer" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700'>${data}</a>`;
+                            return `<a href="/showcareers/${row.eid}" target="_blank" rel="noopener noreferrer" class='group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white' title="Open"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${data}</span></a>`;
                         }
                     },
                     {
@@ -1005,21 +913,21 @@
                             let label, cls;
                             if (row.status === 'T') {
                                 label = 'Transfer';
-                                cls = 'bg-violet-300/30 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300';
+                                cls = 'bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-500/30';
                             } else if (row.status === 'R') {
                                 label = 'Reject';
-                                cls = 'bg-red-300/30 text-red-600 dark:bg-red-500/20 dark:text-red-300';
+                                cls = 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30';
                             } else if (row.status === 'C') {
                                 label = 'Approved';
-                                cls = 'bg-green-300/30 text-green-600 dark:bg-green-500/20 dark:text-green-300';
+                                cls = 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30';
                             } else if (row.is_read === 'N') {
                                 label = 'Unchecked';
-                                cls = 'bg-blue-300/30 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300';
+                                cls = 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30';
                             } else {
                                 label = 'Checked';
-                                cls = 'bg-gray-300/30 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300';
+                                cls = 'bg-slate-50 text-slate-600 ring-slate-200 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10';
                             }
-                            return `<span class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-center rounded ${cls}">${label}</span>`;
+                            return `<span class="inline-flex min-w-[100px] items-center justify-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${cls}">${label}</span>`;
                         }
                     },
                     {

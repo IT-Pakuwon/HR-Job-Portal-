@@ -1,95 +1,28 @@
 <x-app-layout>
+    <x-spp-list-styles />
     {{-- Select2 & Toastr (biarkan seperti sebelumnya) --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        @php
+            $statusCards = [
+                [['id' => 'btn-mine', 'data-filter' => 'mine'], 'CS Jobs', '🗂️', 'blue', $mine, true, 'count-mine', 'filter-card'],
+                [['id' => 'btn-revision', 'data-filter' => 'revision'], 'CS Reuse', '📝', 'yellow', $revision, false, 'count-revision', 'filter-card'],
+                [['id' => 'btn-all', 'data-filter' => 'all'], 'All CS Jobs', '🌐', 'all', $all, false, 'count-all', 'filter-card'],
+                [['id' => 'btn-sppbjkt', 'data-filter' => 'sppbjkt'], 'SPPBJKT IN Progress', '🚦', 'sky', $sppbjkt, false, 'count-sppbjkt', 'filter-card'],
+                [['id' => 'btn-completed', 'data-filter' => 'completed'], 'Completed Jobs', '✅', 'green', $completed ?? 0, false, 'count-completed', 'filter-card'],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- CS Jobs --}}
-            <button type="button" class="w-full text-left">
-                <div id="btn-mine"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-indigo-700 bg-indigo-200/20 p-2 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🗂️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">CS Jobs</p>
-                    </div>
-
-                    <p id="count-mine" class="shrink-0 text-base font-bold">{{ $mine }}</p>
-                </div>
-            </button>
-
-            {{-- CS Revision --}}
-            <button type="button" class="w-full text-left">
-                <div id="btn-revision"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-amber-700 bg-amber-200/20 p-2 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">CS Reuse</p>
-                    </div>
-
-                    <p id="count-revision" class="shrink-0 text-base font-bold">{{ $revision }}</p>
-                </div>
-            </button>
-
-            {{-- All CS Jobs --}}
-            <button type="button" class="w-full text-left">
-                <div id="btn-all"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All CS Jobs</p>
-                    </div>
-
-                    <p id="count-all" class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-            {{-- SPPBJKT IN Progress --}}
-            <button type="button" class="w-full text-left">
-                <div id="btn-sppbjkt"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-green-700 bg-green-200/20 p-2 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">SPPBJKT IN Progress</p>
-                    </div>
-
-                    <p id="count-sppbjkt" class="shrink-0 text-base font-bold">{{ $sppbjkt }}</p>
-                </div>
-            </button>
-
-            {{-- Completed Jobs --}}
-            <button type="button" class="w-full text-left">
-                <div id="btn-completed"
-                    class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700 dark:text-slate-100">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed Jobs</p>
-                    </div>
-
-                    <p id="count-completed" class="shrink-0 text-base font-bold">{{ $completed ?? 0 }}</p>
-                </div>
-            </button>
-
-        </div>
-
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="dt-pretty mt-2 flex flex-col gap-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
             <div id="pane-mine">
                 <div>
-                    <h2 class="mb-2 text-base font-semibold">CS Jobs</h2>
+                    <x-list-page-header title="CS Jobs" subtitle="Jobs assigned to you" />
                     <table id="tblMine" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
                             class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -130,26 +63,26 @@
                 </div>
 
                 <div class="mt-10">
-                    <h2 class="mb-2 text-base font-semibold">Entry CS (My CS)</h2>
+                    <x-list-page-header title="Entry CS (My CS)" subtitle="Canvass sheets you have entered" />
                     <table id="tblEntryCS" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th></th>
-                                <th class="w-32 px-4 py-3 text-center">CSID
+                                <th class="w-32 px-4 py-3 text-center!">CSID
                                 </th>
-                                <th class="w-32 px-4 py-3 text-center">
+                                <th class="w-32 px-4 py-3 text-center!">
                                     SPPBJKT ID
                                 </th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-center!">
                                     Date</th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-center!">
                                     Company</th>
-                                <th class="px-4 py-3 text-left">
+                                <th class="px-4 py-3 text-center!">
                                     Department</th>
-                                <th class="w-32 px-4 py-3 text-center">User
+                                <th class="w-32 px-4 py-3 text-center!">User
                                     Peminta</th>
-                                <th class="w-32 px-4 py-3 text-center">Note
+                                <th class="w-32 px-4 py-3 text-center!">Note
                                 </th>
                             </tr>
                         </thead>
@@ -161,7 +94,7 @@
 
             {{-- === PANE: My Revision (TrPO Reuse) === --}}
             <div id="pane-revision" class="hidden">
-                <h2 class="mb-2 text-base font-semibold">My Revision</h2>
+                <x-list-page-header title="My Revision" subtitle="Purchase orders waiting to be reused" />
                 <table id="tblRevision" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -201,7 +134,7 @@
 
             {{-- === PANE: All Jobs === --}}
             <div id="pane-all" class="hidden">
-                <h2 class="mb-2 text-base font-semibold">All Jobs</h2>
+                <x-list-page-header title="All Jobs" subtitle="Every canvass job" />
                 <table id="tblAll" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -236,7 +169,7 @@
 
             {{-- === PANE: SPPBJKT IN Progress === --}}
             <div id="pane-sppbjkt" class="hidden">
-                <h2 class="mb-2 text-base font-semibold">SPPBJKT IN Progress</h2>
+                <x-list-page-header title="SPPBJKT IN Progress" subtitle="Requests currently in progress" />
                 <table id="tblSppbjkt" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -270,7 +203,7 @@
 
             {{-- === PANE: Completed Jobs === --}}
             <div id="pane-completed" class="hidden">
-                <h2 class="mb-2 text-base font-semibold">Completed Jobs</h2>
+                <x-list-page-header title="Completed Jobs" subtitle="Finished canvass jobs" />
 
                 <table id="tblCompleted" class="text-body w-full text-left text-sm rtl:text-right">
                     {{-- <thead class="bg-gray-50 dark:bg-gray-700">
@@ -336,7 +269,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ' target="_blank">${row.doc_no}</a>`;
+                return csDocBtn(`/${base}/${row.eid}`, row.doc_no);
             }
 
             function colSetWithoutCreate() {
@@ -657,18 +590,13 @@
                 columns: [
                     dtControlColumn, {
                         data: 'csid',
-                        className: 'text-left',
+                        className: 'text-center',
                         render: (v, _t, row) =>
-                            `<a href="/editcs/${row.eid}"
-                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5
-                                    text-sm leading-tight font-semibold text-white rounded text-center
-                                    transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">
-                                ${v}
-                            </a>`
+                            csDocBtn(`/editcs/${row.eid}`, v, { edit: true, self: true })
                     },
                     {
                         data: 'sppbjktid',
-                        className: 'text-left',
+                        className: 'text-center',
                         render: (v, _t, row) => {
                             if (!row.sppbjkt_eid) return '-';
 
@@ -681,12 +609,7 @@
 
                             const base = mapShowUrl[row.sppbjkt_doc_type] || '#';
 
-                            return `
-                                <a href="/${base}/${row.sppbjkt_eid}"
-                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 " target="_blank">
-                                    ${v}
-                                </a>
-                            `;
+                            return csDocBtn(`/${base}/${row.sppbjkt_eid}`, v);
                         }
                     },
                     {
@@ -712,12 +635,12 @@
                     },
                     {
                         data: 'user_peminta',
-                        className: 'text-left',
+                        className: 'text-center',
                         defaultContent: '-'
                     },
                     {
                         data: 'csnote',
-                        className: 'text-left',
+                        className: 'text-center',
                         defaultContent: '-'
                     },
                 ],
@@ -1105,13 +1028,7 @@
                             'opacity-50 pointer-events-none' :
                             '';
 
-                        return `
-                            <a href="${href}" target="_blank"
-                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5
-                                    text-sm leading-tight font-semibold text-white rounded text-center
-                                    transition-colors duration-200 bg-gray-600 hover:bg-gray-700 ${disabled}">
-                                ${v}
-                            </a>`;
+                        return csDocBtn(href, v, { extra: disabled });
                     }
                 },
                 {
@@ -1183,7 +1100,7 @@
                     data: 'ponbr',
                     className: 'text-left',
                     render: (v, _t, row) =>
-                        `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${v}</a>`
+                        csDocBtn(`/showpo/${row.eid}`, v)
                 },
 
                 {
@@ -1410,4 +1327,16 @@
     </script>
 
 
+    <script>
+        // Doc ID button (same look as the SPP lists): icon + number. edit = amber, otherwise blue.
+        window.csDocBtn = function(href, text, o) {
+            o = o || {};
+            const base = "group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 ";
+            const cls = o.edit ?
+                base + "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-500 hover:text-white dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500 dark:hover:text-white" :
+                base + "border-blue-100 bg-blue-50 text-blue-700 hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white";
+            const icon = o.edit ? "fa-solid fa-pen text-[10px]" : "fa-regular fa-file-lines";
+            return `<a href="${href}"${o.self ? "" : ' target="_blank"'} title="${o.edit ? "Edit" : "Open"}" class="${cls} ${o.extra || ""}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:-rotate-6 group-hover/doc:opacity-100"><i class="${icon}"></i></span><span>${text}</span></a>`;
+        };
+    </script>
 </x-app-layout>

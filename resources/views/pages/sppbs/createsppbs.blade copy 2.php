@@ -605,7 +605,7 @@
                                 <label class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                 <select id="modal_location_id"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    <option value="">Select</option>
                                 </select>
                                 <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih Location.</small>
                                 </div>
@@ -615,7 +615,7 @@
                                 <label class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
                                 <select id="modal_sub_location_id"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    <option value="">Select</option>
                                 </select>
                                 <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib memilih sub location.</small>
                                 </div>
@@ -2111,8 +2111,8 @@
             const cpny = $('select[name="cpnyid"]').val();
             if (!cpny) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
 
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
+            $selLoc.empty().append('<option value="">Select</option>');
+            $selSub.empty().append('<option value="">Select</option>');
 
             $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
             .done(function(list){
@@ -2147,7 +2147,7 @@
         $selLoc.on('change', function(){
             const cpny = $('select[name="cpnyid"]').val();
             const loc  = $(this).val();
-            $selSub.empty().append('<option value="">-- choose --</option>');
+            $selSub.empty().append('<option value="">Select</option>');
 
             if (!loc) return;
 
@@ -2194,8 +2194,8 @@
         $('select[name="cpnyid"]').on('change', function(){
             if ($lokasiModal.is(':visible')) {
             // reset dan panggil open ulang dengan row yang sama
-            $selLoc.empty().append('<option value="">-- choose --</option>');
-            $selSub.empty().append('<option value="">-- choose --</option>');
+            $selLoc.empty().append('<option value="">Select</option>');
+            $selSub.empty().append('<option value="">Select</option>');
             if (currentLocRow) openLokasiModal(currentLocRow);
             }
         });

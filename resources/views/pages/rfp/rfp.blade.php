@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'rfp' ? 'RFP' : '';
         $user = auth()->user();
@@ -15,121 +17,35 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="P">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Progress</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="D">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✏️</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="H">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✏️</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Hold</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $hold ?? 0 }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="C">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </a>
-
-            @if ($hasRfpAllAccess)
-                <a href="#" class="status-filter group block h-full" data-scope="rfp_all">
-                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">RFP All</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $rfpAll ?? 0 }}</p>
-                    </div>
-                </a>
-
-            @endif
-
-            @if ($hasRfpFinanceAccess)
-                <a href="#" class="status-filter group block h-full" data-scope="rfp_finance">
-                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">RFP Finance</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $rfpFinance ?? 0 }}</p>
-                    </div>
-                </a>
-            @endif
-        </div>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, false],
+                [['data-status' => 'D'], 'Revise', '✏️', 'blue', $revise, false],
+                [['data-status' => 'H'], 'Hold', '✏️', 'pink', $hold, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+                ...($hasRfpAllAccess ? [[['data-scope' => 'rfp_all'], 'RFP All', '🌐', 'purple', $rfpAll ?? 0, false]] : []),
+                ...($hasRfpFinanceAccess ? [[['data-scope' => 'rfp_finance'], 'RFP Finance', '💰', 'sky', $rfpFinance ?? 0, false]] : []),
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         <div
-            class="mt-3 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Request For
-                    Payment</h2>
-
-                <div class="flex flex-wrap items-center justify-end gap-4">
-                    <div class="flex items-center gap-2">
-                        <label for="rfpCompanyFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">Company</label>
-                        <select id="rfpCompanyFilter"
-                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+            class="dt-pretty mt-3 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Request For Payment" subtitle="Track and manage payment requests">
+                <div class="sppb-f relative w-44"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span><select id="rfpCompanyFilter">
                             <option value="">All Company</option>
                             @foreach ($cpnyIds as $cpnyId)
                                 <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
                             @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label for="rfpTypePoFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                            Type PO
-                        </label>
-                        <select id="rfpTypePoFilter"
-                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        </select></div>
+                <div class="sppb-f relative w-44"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg></span><select id="rfpTypePoFilter">
                             <option value="">All Type PO</option>
                             <option value="PO">PO</option>
                             <option value="SPK">SPK</option>
                             <option value="KONTRAK">KONTRAK</option>
-                        </select>
-                    </div>
-
-                    <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
-                        <label for="rfpAllStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                            Status
-                        </label>
-                        <select id="rfpAllStatusFilter"
-                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        </select></div>
+                <div id="rfpAllStatusFilterWrapper" class="sppb-f relative hidden w-48"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span><select id="rfpAllStatusFilter">
                             <option value="">All Status</option>
                             <option value="P">On Progress</option>
                             <option value="D">Revise</option>
@@ -137,25 +53,14 @@
                             <option value="C">Completed</option>
                             <option value="R">Rejected</option>
                             <option value="X">Cancelled</option>
-                        </select>
-                    </div>
-
-                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <label for="rfpFinanceStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                Finance Status
-                            </label>
-                            <select id="rfpFinanceStatusFilter"
-                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        </select></div>
+                <div id="rfpFinanceFilterWrapper" class="sppb-f relative hidden w-56"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span><select id="rfpFinanceStatusFilter">
                                 <option value="">All Status</option>
                                 <option value="waiting_user">Waiting User</option>
                                 <option value="finance_received">Finance Received</option>
                                 <option value="treasury_received">Treasury Received</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </select></div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="rfpTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -181,11 +86,14 @@
                     <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]"></tbody>
                 </table>
 
-                <div id="rfpActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                    <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
-                        <h2 id="rfpActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Action</h2>
+                <div id="rfpActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                        <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-700">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <h2 id="rfpActionTitle" class="text-base font-bold text-gray-800 dark:text-white">Action</h2>
+                        </div>
 
-                        <div class="space-y-3 text-sm">
+                        <div class="space-y-2 rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200 [&_strong]:mr-1 [&_strong]:text-[11px] [&_strong]:font-semibold [&_strong]:uppercase [&_strong]:tracking-wider [&_strong]:text-gray-500">
                             <div><strong>RFP ID:</strong> <span id="modalRfpId">-</span></div>
                             <div><strong>Keperluan:</strong> <span id="modalKeperluan">-</span></div>
                             <div><strong>Amount:</strong> <span id="modalAmount">-</span></div>
@@ -193,12 +101,12 @@
                             <div><strong id="modalDateLabel">Date Receive:</strong> <span id="modalDateValue">-</span></div>
 
                             <div id="modalMessageWrapper" class="hidden">
-                                <label id="modalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                                <label id="modalMessageLabel" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Message
                                 </label>
 
                                 <textarea id="modalMessage" rows="4"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     placeholder="Input message..."></textarea>
 
                                 <p id="modalMessageHint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -207,14 +115,14 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 flex justify-end gap-2">
+                        <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
                             <button type="button" id="closeRfpActionModal"
-                                class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                                class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 Cancel
                             </button>
 
                             <button type="button" id="submitRfpActionBtn"
-                                class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                                class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500">
                                 Update
                             </button>
                         </div>
@@ -309,7 +217,7 @@
                 buttons: [
                     {
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'List_RFP',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -319,7 +227,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'List_RFP',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -387,20 +295,20 @@
                         render: function(data, type, row) {
 
                             let url = `/showrfp/${row.eid}`;
-                            let cls = 'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700';
+                            let cls = 'group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white';
+                            let ico = 'fa-regular fa-file-lines';
 
                             if (row.status === 'D' && row.created_by === currentUser) {
                                 url = `/editrfp/${row.eid}`;
-                                cls = 'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-yellow-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-yellow-700';
+                                cls = 'group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-amber-800 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300';
+                                ico = 'fa-solid fa-pen text-[10px]';
                             }
 
                             return `
                                 <a href="${url}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="${cls}">
-                                    ${data}
-                                </a>
+                                class="${cls}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="${ico}"></i></span><span>${data}</span></a>
                             `;
                         }
                     },
@@ -557,7 +465,7 @@
                             return `
                                 <div class="rfp-action-wrap inline-block text-left">
                                     <button type="button"
-                                        class="btn-rfp-action-menu inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        class="btn-rfp-action-menu inline-flex h-8 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-medium text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
                                         Action
                                         <span>▾</span>
                                     </button>
@@ -584,39 +492,39 @@
 
                                 const map = {
                                     'Waiting User': {
-                                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                        c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                     },
                                     'Finance Received': {
-                                        c: 'bg-blue-200/60 text-blue-800 border border-blue-600/40'
+                                        c: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30'
                                     },
                                     'Treasury Received': {
-                                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                        c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                     }
                                 };
 
                                 const it = map[statusText] || {
-                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                    c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                 };
 
-                                return `<span class="w-36 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${statusText}</span>`;
+                                return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${statusText}</span>`;
                             }
 
                             // 🔥 CASE 2: NORMAL STATUS
                             const map = {
-                                'D': { t: 'Revise', c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40' },
-                                'P': { t: 'On Progress', c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40' },
-                                'H': { t: 'Hold', c: 'bg-yellow-200/60 text-yellow-800 border border-yellow-600/40' },
-                                'C': { t: 'Completed', c: 'bg-green-200/60 text-green-800 border border-green-600/40' },
-                                'X': { t: 'Cancel', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
-                                'R': { t: 'Rejected', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
+                                'D': { t: 'Revise', c: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30' },
+                                'P': { t: 'On Progress', c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30' },
+                                'H': { t: 'Hold', c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30' },
+                                'C': { t: 'Completed', c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30' },
+                                'X': { t: 'Cancel', c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30' },
+                                'R': { t: 'Rejected', c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30' },
                             };
 
                             const it = map[row.status] || {
                                 t: row.status || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                             };
 
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                         }
                     },
                 ],
@@ -654,9 +562,9 @@
                     statusFilter = $('#rfpAllStatusFilter').val() || '';
                     financeStatusFilter = '';
 
-                    $('#rfpAllStatusFilterWrapper').removeClass('hidden').addClass('flex');
-                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpFinanceStatusFilter').val('');
+                    $('#rfpAllStatusFilterWrapper').removeClass('hidden');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden');
+                    $('#rfpFinanceStatusFilter').val('').trigger('change.select2');
                     $('#createBtn').hide();
                     table.column(0).visible(false);
                     table.column(12).visible(false);
@@ -665,9 +573,9 @@
                     statusFilter = '';
                     financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
 
-                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpAllStatusFilter').val('');
-                    $('#rfpFinanceFilterWrapper').removeClass('hidden').addClass('flex');
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden');
+                    $('#rfpAllStatusFilter').val('').trigger('change.select2');
+                    $('#rfpFinanceFilterWrapper').removeClass('hidden');
                     $('#createBtn').hide();
                     table.column(0).visible(false);
                     // tampilkan kolom Action hanya saat RFP Finance
@@ -677,10 +585,10 @@
                     scopeFilter = '';
                     financeStatusFilter = '';
 
-                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpAllStatusFilter').val('');
-                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
-                    $('#rfpFinanceStatusFilter').val('');
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden');
+                    $('#rfpAllStatusFilter').val('').trigger('change.select2');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden');
+                    $('#rfpFinanceStatusFilter').val('').trigger('change.select2');
                     $('#createBtn').show();
                     table.column(0).visible(statusFilter === 'H');
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
@@ -688,6 +596,11 @@
                 }
 
                 table.ajax.reload(null, true);
+            });
+
+            // styled dropdowns (same Select2 skin as the other lists)
+            $('#rfpCompanyFilter, #rfpTypePoFilter, #rfpAllStatusFilter, #rfpFinanceStatusFilter').each(function() {
+                $(this).select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
             });
 
             $('#rfpAllStatusFilter').on('change', function() {

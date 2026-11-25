@@ -401,7 +401,7 @@
                                             class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih Location.</small>
@@ -414,7 +414,7 @@
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih sub location.</small>
@@ -459,7 +459,7 @@
                                             class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih Location.</small>
@@ -472,7 +472,7 @@
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih sub location.</small>
@@ -608,7 +608,7 @@
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
                                     <select id="modal_worktypeid"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
                                 <div>
@@ -616,7 +616,7 @@
                                         Worktype</label>
                                     <select id="modal_subworktypeid"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
                             </div>
@@ -1811,8 +1811,8 @@
                 // 2) Reset option
                 const $wt = $('#modal_worktypeid');
                 const $swt = $('#modal_subworktypeid');
-                $wt.empty().append('<option value="">-- choose --</option>');
-                $swt.empty().append('<option value="">-- choose --</option>');
+                $wt.empty().append('<option value="">Select</option>');
+                $swt.empty().append('<option value="">Select</option>');
 
                 // 3) Load worktypes (optional filter departementid)
                 const params = $.param({
@@ -1833,7 +1833,7 @@
             $('#modal_worktypeid').on('change', function() {
                 const wt = $(this).val();
                 const $sub = $('#modal_subworktypeid');
-                $sub.empty().append('<option value="">-- choose --</option>');
+                $sub.empty().append('<option value="">Select</option>');
                 if (!wt) return;
 
                 const doctype = 'SPB';
@@ -2033,8 +2033,8 @@
                 }
 
                 // reset dropdown
-                $selLoc.empty().append('<option value="">-- choose --</option>');
-                $selSub.empty().append('<option value="">-- choose --</option>');
+                $selLoc.empty().append('<option value="">Select</option>');
+                $selSub.empty().append('<option value="">Select</option>');
 
                 // load locations
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
@@ -2070,7 +2070,7 @@
             $selLoc.on('change', function() {
                 const cpny = $('select[name="cpnyid"]').val();
                 const loc = $(this).val();
-                $selSub.empty().append('<option value="">-- choose --</option>');
+                $selSub.empty().append('<option value="">Select</option>');
 
                 if (!loc) return;
 
@@ -2117,8 +2117,8 @@
             $('select[name="cpnyid"]').on('change', function() {
                 if ($lokasiModal.is(':visible')) {
                     // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">-- choose --</option>');
-                    $selSub.empty().append('<option value="">-- choose --</option>');
+                    $selLoc.empty().append('<option value="">Select</option>');
+                    $selSub.empty().append('<option value="">Select</option>');
                     if (currentLocRow) openLokasiModal(currentLocRow);
                 }
             });
@@ -2170,14 +2170,14 @@
             $selLoc.select2({
             dropdownParent: $lokasiModal,
             width: '100%',
-            placeholder: '-- choose --',
+            placeholder: 'Select',
             allowClear: true
             });
 
             $selSub.select2({
             dropdownParent: $lokasiModal,
             width: '100%',
-            placeholder: '-- choose --',
+            placeholder: 'Select',
             allowClear: true
             });
         }

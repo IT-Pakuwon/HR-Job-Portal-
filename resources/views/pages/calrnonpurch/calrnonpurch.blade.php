@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $user = auth()->user();
 
@@ -8,146 +10,38 @@
         $hasApTreAccess = $hasApTreAccess ?? ($user ? $user->hasRole('APTREACCESS') : false);
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        @if ($isFinanceAccess)
-            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
-        @else
-            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-        @endif
-            {{-- CALR Jobs --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="calrjobs">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
+        @php
+            $statusCards = [
+                [['data-scope' => 'calrjobs'], 'CALR Jobs', '📦', 'blue', $calrjobs, false, null, 'scope-filter', true],
+                [['data-scope' => 'onprogress'], 'On Progress', '⏳', 'yellow', $onProgress, false, null, 'scope-filter', true],
+                [['data-scope' => 'rejected'], 'Rejected', '⛔', 'red', $rejected, false, null, 'scope-filter', true],
+                [['data-scope' => 'revise'], 'Revise', '✏️', 'pink', $revise, false, null, 'scope-filter', true],
+                [['data-scope' => 'completed'], 'Completed', '✅', 'green', $completed, false, null, 'scope-filter', true],
+                [['data-scope' => 'all'], 'All', '🧾', 'all', $all, false, null, 'scope-filter', true],
+            ];
+            if ($isFinanceAccess) {
+                $statusCards[] = [['data-scope' => 'calrall'], 'CALR All', '📋', 'purple', $calrAll, false, null, 'scope-filter', true];
+                $statusCards[] = [['data-scope' => 'calrfinance'], 'CALR Finance', '💰', 'sky', $calrFinance, false, null, 'scope-filter', true];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">CALR Jobs</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $calrjobs }}</p>
-                </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="onprogress">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </button>
-
-            {{-- Rejected --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="rejected">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">❌</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rejected</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $rejected }}</p>
-                </div>
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="revise">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛠️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="completed">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- All --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="all">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-            @if ($isFinanceAccess)
-                <button type="button" class="scope-filter group block h-full" data-scope="calrall">
-                    <div class="scope-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-50 p-3 text-teal-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base"><i class="fa-solid fa-list" aria-hidden="true"></i></div>
-                        <div class="flex min-w-0 flex-grow flex-col">
-                            <p class="break-words text-sm font-medium leading-tight">CALR All</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $calrAll }}</p>
-                    </div>
-                </button>
-                {{-- CALR Finance --}}
-                <button type="button" class="scope-filter group block h-full" data-scope="calrfinance">
-                    <div
-                        class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col">
-                            <p class="break-words text-sm font-medium leading-tight">CALR Finance</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $calrFinance }}</p>
-                    </div>
-                </button>
-            @endif
-        </div>
-
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">CALR Non Purchase</h1>
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="CALR Non Purchase" title-id="pageTitle" subtitle="Settlement of cash advances against RFCA">
                 @if ($isFinanceAccess)
                     <div id="calrFinanceFilters" style="display: none;" class="flex-wrap items-center gap-3">
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400">
-                                <i class="fas fa-building text-xs" aria-hidden="true"></i>
-                            </span>
-                            <select id="calrFinanceCompany" aria-label="Company"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-8 text-sm font-medium text-gray-700 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        <div class="sppb-f relative w-44">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                            <select id="calrFinanceCompany" aria-label="Company">
                                 <option value="">All Company</option>
                                 @foreach ($cpnyList as $cpnyId)
                                     <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400">
-                                <i class="fas fa-check-circle text-xs" aria-hidden="true"></i>
-                            </span>
-                            <select id="calrFinanceStatus" aria-label="Finance Status"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-8 text-sm font-medium text-gray-700 shadow-sm focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        <div class="sppb-f relative w-56">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                            <select id="calrFinanceStatus" aria-label="Finance Status">
                                 <option value="">All Finance Status</option>
                                 <option value="waiting_user">Waiting User</option>
                                 <option value="finance_received">Finance Received</option>
@@ -156,18 +50,20 @@
                         </div>
                     </div>
                     <div id="calrAllStatusFilter" style="display: none;" class="items-center gap-2">
-                        <label for="calrAllStatus" class="text-sm text-gray-700 dark:text-gray-300">Status</label>
-                        <select id="calrAllStatus" class="rounded border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="R">Rejected</option>
-                            <option value="D">Revise</option>
-                            <option value="C">Completed</option>
-                            <option value="X">Cancel</option>
-                        </select>
+                        <div class="sppb-f relative w-44">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z" /></svg></span>
+                            <select id="calrAllStatus" aria-label="Status">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="R">Rejected</option>
+                                <option value="D">Revise</option>
+                                <option value="C">Completed</option>
+                                <option value="X">Cancel</option>
+                            </select>
+                        </div>
                     </div>
                 @endif
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="calrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -183,48 +79,49 @@
         </div>
     </div>
 
-    <div id="calrActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
-            <h2 id="calrActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">
-                Action
-            </h2>
+                <div id="calrActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                        <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-4 dark:border-gray-700">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <h2 id="calrActionTitle" class="text-base font-bold text-gray-800 dark:text-white">Action</h2>
+                        </div>
 
-            <div class="space-y-3 text-sm">
-                <div><strong>CALR ID:</strong> <span id="modalCalrId">-</span></div>
-                <div><strong>RFCA ID:</strong> <span id="modalRfcaId">-</span></div>
-                <div><strong>Keperluan:</strong> <span id="modalKeperluan">-</span></div>
-                <div><strong>Total Amount:</strong> <span id="modalAmount">-</span></div>
-                <div><strong id="modalUserLabel">User Receive:</strong> <span id="modalUserValue">-</span></div>
-                <div><strong id="modalDateLabel">Date Receive:</strong> <span id="modalDateValue">-</span></div>
+                        <div class="space-y-2 rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200 [&_strong]:mr-1 [&_strong]:text-[11px] [&_strong]:font-semibold [&_strong]:uppercase [&_strong]:tracking-wider [&_strong]:text-gray-500">
+                            <div><strong>CALR ID:</strong> <span id="modalCalrId">-</span></div>
+                            <div><strong>RFCA ID:</strong> <span id="modalRfcaId">-</span></div>
+                            <div><strong>Keperluan:</strong> <span id="modalKeperluan">-</span></div>
+                            <div><strong>Total Amount:</strong> <span id="modalAmount">-</span></div>
+                            <div><strong id="modalUserLabel">User Receive:</strong> <span id="modalUserValue">-</span></div>
+                            <div><strong id="modalDateLabel">Date Receive:</strong> <span id="modalDateValue">-</span></div>
 
-                <div id="modalMessageWrapper" class="hidden">
-                    <label id="modalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
-                        Message
-                    </label>
+                            <div id="modalMessageWrapper" class="hidden">
+                                <label id="modalMessageLabel" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                    Message
+                                </label>
 
-                    <textarea id="modalMessage" rows="4"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                        placeholder="Input message..."></textarea>
+                                <textarea id="modalMessage" rows="4"
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    placeholder="Input message..."></textarea>
 
-                    <p id="modalMessageHint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Message wajib diisi.
-                    </p>
+                                <p id="modalMessageHint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    Message wajib diisi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
+                            <button type="button" id="closeCalrActionModal"
+                                class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                Cancel
+                            </button>
+
+                            <button type="button" id="submitCalrActionBtn"
+                                class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500">
+                                Update
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-2">
-                <button type="button" id="closeCalrActionModal"
-                    class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
-                    Cancel
-                </button>
-
-                <button type="button" id="submitCalrActionBtn"
-                    class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-                    Update
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script>
         const currentUser = @json(auth()->user()->username ?? '');
@@ -292,7 +189,7 @@
             });
 
             let scope = 'calrjobs';
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
             let table;
 
             const titleMap = {
@@ -310,32 +207,32 @@
                 if (sc === 'calrjobs') {
                     return `
                         <th></th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Document ID</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Please Pay To</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
-                        <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
+                        <th class="px-4 py-3 text-left font-medium">Action</th>
+                        <th class="px-4 py-3 text-left font-medium">Document ID</th>
+                        <th class="px-4 py-3 text-left font-medium">Date</th>
+                        <th class="px-4 py-3 text-left font-medium">Company</th>
+                        <th class="px-4 py-3 text-left font-medium">Department</th>
+                        <th class="px-4 py-3 text-left font-medium">Please Pay To</th>
+                        <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                        <th class="px-4 py-3 text-right font-medium">Amount RFCA</th>
+                        <th class="px-4 py-3 text-left font-medium">Created By</th>
                     `;
                 }
 
                 return `
                     <th></th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CALR ID</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CALR Date</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">RFCA ID</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Settlement</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Diff</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-3 text-left font-medium">CALR ID</th>
+                    <th class="px-4 py-3 text-left font-medium">CALR Date</th>
+                    <th class="px-4 py-3 text-left font-medium">RFCA ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Company</th>
+                    <th class="px-4 py-3 text-left font-medium">Department</th>
+                    <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                    <th class="px-4 py-3 text-right font-medium">Amount RFCA</th>
+                    <th class="px-4 py-3 text-right font-medium">Settlement</th>
+                    <th class="px-4 py-3 text-right font-medium">Diff</th>
+                    <th class="px-4 py-3 text-left font-medium">Created By</th>
+                    <th class="px-4 py-3 text-left font-medium">Action</th>
+                    <th class="px-4 py-3 text-left font-medium">Status</th>
                 `;
             }
 
@@ -590,7 +487,7 @@
                             return `
                                 <div class="calr-action-wrap inline-block text-left">
                                     <button type="button"
-                                        class="btn-calr-action-menu inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        class="btn-calr-action-menu inline-flex h-8 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-medium text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
                                         Action
                                         <span>▾</span>
                                     </button>
@@ -643,7 +540,7 @@
                                     c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                                 };
 
-                                return `<span class="w-40 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${statusText}</span>`;
+                                { const fm = { 'Waiting User': ['bg-slate-50 text-slate-600 ring-slate-200', 'bg-slate-400'], 'Finance Received': ['bg-blue-50 text-blue-700 ring-blue-200', 'bg-blue-500'], 'Treasury Received': ['bg-green-50 text-green-700 ring-green-200', 'bg-green-500'] }; const [fc, fd] = fm[statusText] || fm['Waiting User']; return `<span class="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${fc}"><span class="h-1.5 w-1.5 rounded-full ${fd}"></span>${statusText}</span>`; }
                             }
 
                             return renderStatusBadge(data);
@@ -676,7 +573,7 @@
                 $table.find('thead').remove();
 
                 const theadHtml = `
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                    <thead class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row">${headerFor(sc)}</tr>
                     </thead>
                 `;
@@ -797,8 +694,8 @@
 
                 return `
                     <a href="${url}" target="_blank"
-                        class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">
-                        ${escapeHtml(label)}
+                        class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                        <span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
                     </a>
                 `;
             }
@@ -841,13 +738,13 @@
                     return `
                         <div class="inline-flex items-center gap-2">
                             <a href="${editUrl}" target="_blank" rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center rounded bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                                class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-amber-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:scale-95"
                                 title="Edit Revise">
-                                ${escapeHtml(label)}
+                                <span class="text-xs opacity-80"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${escapeHtml(label)}</span>
                             </a>
 
                             <a href="${showUrl}" target="_blank" rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-xs text-blue-600 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"
                                 title="View Detail">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
@@ -859,46 +756,14 @@
 
                 return `
                     <a href="${url}" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">
-                        ${escapeHtml(label)}
+                        class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                        <span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
                     </a>
                 `;
             }
 
             function renderStatusBadge(data) {
-                const map = {
-                    'D': {
-                        t: 'Revise',
-                        c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
-                    },
-                    'P': {
-                        t: 'On Progress',
-                        c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                    },
-                    'C': {
-                        t: 'Completed',
-                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                    },
-                    'X': {
-                        t: 'Cancel',
-                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                    },
-                    'R': {
-                        t: 'Rejected',
-                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                    },
-                };
-
-                const it = map[data] || {
-                    t: data || '-',
-                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                };
-
-                return `
-                    <span class="inline-block w-32 rounded px-3 py-1.5 text-center text-sm font-semibold ${it.c}">
-                        ${it.t}
-                    </span>
-                `;
+                return sppStatusBadge(data, { D: 'Revise' });
             }
 
             function formatMoney(value) {
@@ -921,6 +786,8 @@
 
             updateTitle(scope);
             rebuild(scope);
+
+            $('#calrFinanceCompany, #calrFinanceStatus, #calrAllStatus').select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
 
             $('#calrAllStatus').on('change', function() {
                 if (scope === 'calrall') {

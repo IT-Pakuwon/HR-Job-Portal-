@@ -89,10 +89,10 @@
 
     // Styled dropdowns (Select2) for the All-mode header filters
     window.sppInitFilters = function() {
-        $('#filterStatus, #filterCompany, #filterDepartment').each(function() {
+        $('#filterStatus, #filterCompany, #filterDepartment, #filterPoType, #filterBudgetStatus').each(function() {
             $(this).select2({
                 width: '100%',
-                minimumResultsForSearch: this.id === 'filterStatus' ? Infinity : 8,
+                minimumResultsForSearch: (this.id === 'filterStatus' || this.id === 'filterBudgetStatus') ? Infinity : 8,
                 dropdownCssClass: 'sppb-s2-dropdown'
             });
         });

@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-spp-form-select2 />
     <style>
         #loadingSpinnerContainer {
             display: none;
@@ -87,145 +89,127 @@
                 <input type="hidden" name="rfpnonpurchaseid" value="{{ $header->rfpnonpurchaseid }}">
 
                 {{-- HEADER --}}
-                <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                        {{-- <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
-                            Edit CALR Non Purchase
-                        </h2> --}}
-                        <header
-                            class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                            <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-                                <span
-                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                    EDIT ID
-                                </span>
-                                {{ $calr->calrnonpurchaseid }}
-                            </h1>                        
-                        </header>
-                    </div>
+                <div class="flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="-mx-6 -mt-6 flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">Edit CALR Non Purchase <span class="ml-1 inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700">{{ $calr->calrnonpurchaseid }}</span></h2><p class="text-xs text-gray-500 dark:text-gray-400">Update the settlement details and attachments.</p></div></div>
 
-                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 RCA ID
                             </label>
                             <input type="text" value="{{ $header->rfpnonpurchaseid }}" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Date
                             </label>
                             <input type="text"
                                 value="{{ $header->rfpnonpurchasedate ? \Carbon\Carbon::parse($header->rfpnonpurchasedate)->format('Y-m-d') : '-' }}"
                                 readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Company
                             </label>
                             <input type="text" value="{{ $header->cpny_id }}" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Department
                             </label>
                             <input type="text" value="{{ $header->department_id }}" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 User Peminta
                             </label>
                             <input type="text" value="{{ $header->user_peminta ?? '-' }}" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Group Biaya
                             </label>
                             <input type="text"
                                 value="{{ optional($header->groupbiaya)->groupbiayadescr ?? '-' }}"
                                 readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Please Pay To
                             </label>
                             <input type="text" value="{{ $header->pleasepayto ?? '-' }}" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700">
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Amount RCA
                             </label>
                             <input type="text" id="amountRfpDisplay"
                                 value="{{ number_format((float) ($header->amountrequestpayment ?? 0), 2, ',', '.') }}"
                                 readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-right text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-gray-100 cursor-default px-3 dark:bg-gray-700 text-right">
                             <input type="hidden" id="amountRfpValue" value="{{ (float) ($header->amountrequestpayment ?? 0) }}">
                         </div>
                         
 
                         <div class="flex flex-col gap-2 lg:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Keperluan
                             </label>
                             <textarea rows="3" readonly
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-3 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $header->keperluan }}</textarea>
+                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800">{{ $header->keperluan }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 {{-- DETAIL --}}
-                <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <details class="group" open>
-                        <summary
-                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                            <span>CALR Detail</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">
-                                See details &rarr;
-                            </span>
-                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">
-                                Hide details &darr;
-                            </span>
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span><span><span class="block text-base font-bold text-gray-800 dark:text-white">CALR Detail</span><span class="block text-xs text-gray-500 dark:text-gray-400">Compare settlement against the RFCA</span></span></span>
+                            <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                            <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                         </summary>
+                        <div class="px-6 pb-6 pt-5">
 
                         <div class="overflow-x-auto pt-4">
                             <table class="mb-4 w-full">
-                                <thead class="bg-gray-100/10">
+                                <thead class="bg-gray-50 dark:bg-gray-900/40">
                                     <tr>
-                                        <th class="w-12 border p-3 text-center">No</th>
-                                        <th class="req border p-3">Description</th>
-                                        <th class="w-[220px] border p-3 text-right">Amount DPP</th>
-                                        <th class="req w-[220px] border p-3 text-left">Tax</th>
-                                        <th class="req w-[220px] border p-3 text-right">Total Amount</th>
-                                        <th class="w-16 border p-3 text-center"></th>
+                                        <th class="w-12 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">No</th>
+                                        <th class="req border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Description</th>
+                                        <th class="w-[220px] text-right border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Amount DPP</th>
+                                        <th class="req w-[220px] text-left border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Tax</th>
+                                        <th class="req w-[220px] text-right border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Total Amount</th>
+                                        <th class="w-16 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center"></th>
                                     </tr>
                                 </thead>
 
                                 <tbody id="calrNonPurchDetailTable">
                                     @forelse ($details as $i => $d)
                                         <tr class="calr-detail-row">
-                                            <td class="border p-3 text-center row-no">{{ $i + 1 }}</td>
+                                            <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center row-no">{{ $i + 1 }}</td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <textarea name="description[]" rows="2"
-                                                    class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                    class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                                 placeholder="Input description..." required>{{ $d->keperluan_detail }}</textarea>
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <input type="text" name="amount_request_dpp[]"
                                                     value="{{ $d->amount_request_dpp !== null ? number_format((float) $d->amount_request_dpp, 2, ',', '.') : '' }}"
                                                     class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
@@ -234,7 +218,7 @@
                                                     value="{{ $d->amount_request_taxamt !== null ? (float) $d->amount_request_taxamt : 0 }}">
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <select name="taxcodeid[]"
                                                     class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                     required>
@@ -249,38 +233,36 @@
                                                 </select>
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <input type="text" name="price[]"
                                                     value="{{ number_format((float) ($d->amount_request_penyelesaian ?? 0), 2, ',', '.') }}"
-                                                    class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                                    class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                                     placeholder="0,00" required>
                                             </td>
 
-                                            <td class="border p-3 text-center">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                 <button type="button"
-                                                    class="removeCalrDetail rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-600 hover:border-red-700 hover:bg-red-400/30">
-                                                    🗑️
-                                                </button>
+                                                    class="removeCalrDetail h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr class="calr-detail-row">
-                                            <td class="border p-3 text-center row-no">1</td>
+                                            <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center row-no">1</td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <textarea name="description[]" rows="2"
-                                                    class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                    class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                                     placeholder="Input description..." required></textarea>
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <input type="text" name="amount_request_dpp[]"
                                                     class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                     placeholder="0,00" readonly>
                                                 <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <select name="taxcodeid[]"
                                                     class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                     required>
@@ -295,17 +277,15 @@
                                                 </select>
                                             </td>
 
-                                            <td class="border p-3">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                 <input type="text" name="price[]"
-                                                    class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                                    class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                                     placeholder="0,00" required>
                                             </td>
 
-                                            <td class="border p-3 text-center">
+                                            <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                 <button type="button"
-                                                    class="removeCalrDetail hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-600 hover:border-red-700 hover:bg-red-400/30">
-                                                    🗑️
-                                                </button>
+                                                    class="removeCalrDetail h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -328,7 +308,7 @@
                                     <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         Total Amount
                                     </span>
-                                    <span id="settlementDisplay" class="text-sm font-bold text-indigo-600">
+                                    <span id="settlementDisplay" class="text-sm font-bold text-blue-600">
                                         {{ number_format((float) ($calr->amountsettlement ?? 0), 2, ',', '.') }}
                                     </span>
                                 </div>
@@ -352,7 +332,7 @@
                         </div>
 
                         <button type="button" id="addCalrDetail"
-                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            class="mb-1 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd"
@@ -361,35 +341,33 @@
                             </svg>
                             Add Row
                         </button>
+                    </div>
                     </details>
                 </div>
 
                 {{-- ACTION --}}
                
-                <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <details class="group" open>
-                        <summary
-                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                            <span>Attachments</span>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                details &rarr;</span>
-                            <span
-                                class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                details &darr;</span>
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span><span><span class="block text-base font-bold text-gray-800 dark:text-white">Attachments</span><span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this request</span></span></span>
+                            <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                            <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                         </summary>
+                        <div class="px-6 pb-6 pt-5">
 
-                        <div id="attachmentsList" class="mt-6 flex flex-col gap-2">
+                        <div id="attachmentsList" class="flex flex-col gap-2 px-6 pt-5">
                             @forelse ($attachments as $att)
-                                <div class="attachment-row flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40"
+                                <div class="attachment-row flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/40"
                                     data-id="{{ $att->id }}">
                                     <div class="flex min-w-0 items-center gap-3">
                                         <div
-                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                                             📎</div>
                                         <div class="min-w-0">
                                             @if ($att->url)
                                                 <a href="{{ $att->url }}" target="_blank"
-                                                    class="block truncate font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                                                    class="block truncate font-medium text-blue-700 hover:underline dark:text-blue-300">
                                                     {{ $att->display_name }}
                                                 </a>
                                             @else
@@ -412,10 +390,8 @@
                                     </div>
 
                                     <button type="button"
-                                        class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
-                                        aria-label="Remove attachment">
-                                        🗑️
-                                    </button>
+                                        class="removeAttachment2 h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                        aria-label="Remove attachment"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                 </div>
                             @empty
                                 <div
@@ -429,30 +405,21 @@
                         <div id="attachmentsContainer" class="mt-6">
                             <div class="attachment-row flex items-center gap-2">
                                 <input type="file" name="attachments[]"
-                                    class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                    class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                 <button type="button"
-                                    class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                    🗑️
-                                </button>
+                                    class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                             </div>
                         </div>
 
                         <button type="button" id="addAttachment"
-                            class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Add Attachment
-                        </button>
+                            class="mt-4 flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Attachment</button>
+                    </div>
                     </details>
 
                     <div
-                        class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                        class="flex flex-row items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                         <button id="backBtn" onclick="history.back()"
-                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
 
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -466,7 +433,7 @@
                         <!-- Cancel Button-->
                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                             <button id="cancelBtn"
-                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                 <span id="cancelText">Cancel</span>
                                 <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -478,7 +445,7 @@
                                 </svg>
                             </button>
                             <button type="submit" id="submitBtn"
-                                class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Update Approval</span>
                                 <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -633,22 +600,22 @@
             function newRowTemplate(no) {
                 return `
                     <tr class="calr-detail-row">
-                        <td class="border p-3 text-center row-no">${no}</td>
+                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center row-no">${no}</td>
 
-                        <td class="border p-3">
+                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                             <textarea name="description[]" rows="2"
-                                class="descriptionField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                 placeholder="Input description..." required></textarea>
                         </td>
 
-                        <td class="border p-3">
+                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                             <input type="text" name="amount_request_dpp[]"
                                 class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
                                 placeholder="0,00" readonly>
                             <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
                         </td>
 
-                        <td class="border p-3">
+                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                             <select name="taxcodeid[]"
                                 class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 required>
@@ -656,17 +623,15 @@
                             </select>
                         </td>
 
-                        <td class="border p-3">
+                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                             <input type="text" name="price[]"
-                                class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                 placeholder="0,00" required>
                         </td>
 
-                        <td class="border p-3 text-center">
+                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                             <button type="button"
-                                class="removeCalrDetail rounded border border-red-700 bg-red-200/10 px-3 py-3 text-red-600 hover:border-red-700 hover:bg-red-400/30">
-                                🗑️
-                            </button>
+                                class="removeCalrDetail h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </td>
                     </tr>
                 `;
@@ -934,8 +899,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                    <button type="button" class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
             </div>
         `);
                 toggleDeleteButton();

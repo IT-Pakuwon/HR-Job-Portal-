@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-cs-form-styles />
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -23,22 +25,18 @@
                     <input type="hidden" name="prev_ponbr" value="{{ $docno ?? ($poHeader->ponbr ?? '') }}">
 
                     <div
-                        class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 text-xs shadow-sm dark:bg-gray-900">
-                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="font-bold text-gray-800 dark:text-white">
-                                @if ($doc === 'PO')
+                        class="flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white px-8 py-6 text-xs shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="-mx-8 -mt-6 flex items-center gap-3 border-b border-gray-100 px-8 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">@if ($doc === 'PO')
                                     Create CS Reuse for PO - {{ $docno }}
                                 @elseif ($doc === 'KONTRAK')
                                     Create CS for Kontrak - {{ $docno }}
                                 @else
                                     Create CS
-                                @endif
-                            </h2>
-                        </div>
+                                @endif</h2><p class="text-xs text-gray-500 dark:text-gray-400">Pick the vendors, add a note and review the request details.</p></div></div>
 
                         @php
-                            $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
-                            $valueClass = 'text-gray-600 dark:text-gray-400';
+                            $labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400';
+                            $valueClass = 'text-[13px] font-medium text-gray-800 dark:text-gray-200';
                         @endphp
 
                         <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 lg:grid-cols-3">
@@ -46,7 +44,7 @@
                                 <span class="{{ $labelClass }}">SPPB/J/K/T ID:</span>
                                 @if (!empty($sourceShowUrl))
                                     <a href="{{ $sourceShowUrl }}" target="_blank"
-                                        class="ml-1 text-indigo-600 underline hover:text-indigo-800">
+                                        class="ml-1 text-[13px] font-semibold text-blue-600 underline-offset-2 hover:underline">
                                         {{ $refnbr }}
                                     </a>
                                 @else
@@ -90,7 +88,7 @@
 
                         <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
                             <div class="flex flex-col gap-4">
-                                <div class="flex flex-col gap-2">
+                                <div class="sf-field flex flex-col gap-2">
                                     <span class="{{ $labelClass }}">Vendor:</span>
 
                                     <select id="vendorSelect"
@@ -105,10 +103,7 @@
 
                                 <div class="flex w-full flex-col gap-2">
                                     <span class="{{ $labelClass }}">Purpose:</span>
-
-                                    <div class="{{ $valueClass }} whitespace-pre-line break-words">
-                                        {{ $header->keperluan }}
-                                    </div>
+                                    <div class="whitespace-pre-line break-words rounded-xl border border-gray-100 bg-gray-50/70 px-4 py-3 text-[13px] leading-relaxed text-gray-800 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-200">{{ trim($header->keperluan ?? '') !== '' ? trim($header->keperluan) : '-' }}</div>
                                 </div>
                             </div>
 
@@ -121,22 +116,19 @@
                         </div>
                     </div>
 
-                    <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div class="p-4">
-                            <div
-                                class="border-b border-gray-200 pb-4 text-xs font-bold text-gray-800 dark:border-gray-700 dark:text-white">
-                                CS Detail
-                            </div>
+                            <div class="-mx-4 -mt-4 flex items-center gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">CS Detail</h2><p class="text-xs text-gray-500 dark:text-gray-400">Compare vendor prices per item</p></div></div>
                             <div class="mt-4 overflow-x-auto">
                                 <table id="cvTable"
-                                    class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200">
+                                    class="w-full min-w-max table-auto border text-xs text-gray-700 dark:text-gray-200">
                                     <thead>
                                         <tr class="bg-gray-100 dark:bg-gray-700">
-                                            <th class="w-64 border px-3 py-2">Inventory Descr</th>
-                                            <th class="w-20 border px-3 py-2 text-center">Qty</th>
-                                            <th class="w-20 border px-3 py-2 text-center">UOM</th>
-                                            <th class="w-40 border px-3 py-2 text-center">Note</th>
-                                            <th class="w-32 border px-3 py-2 text-center">Last Price</th>
+                                            <th class="min-w-[280px] border px-3 py-2 text-left!">Inventory Descr</th>
+                                            <th class="w-32 border px-3 py-2 text-center">Qty</th>
+                                            <th class="w-24 border px-3 py-2 text-center">UOM</th>
+                                            <th class="min-w-[240px] border px-3 py-2 text-center">Note</th>
+                                            <th class="w-48 border px-3 py-2 text-center">Last Price</th>
                                         </tr>
                                     </thead>
                                     <tbody id="cvBody">
@@ -158,7 +150,7 @@
                                                         </span>
 
                                                         @if (!empty($row->inventory_sub_type) || !empty($row->inventory_category))
-                                                            <div class="text-xs text-gray-400">
+                                                            <div class="w-fit rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
                                                                 {{ $row->inventory_sub_type ?? '-' }}
                                                                 @if (!empty($row->inventory_sub_type) && !empty($row->inventory_category))
                                                                     -
@@ -258,86 +250,76 @@
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                            <div
-                                class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments
-                                    {{ $doc }}</h3>
-                            </div>
+                        <div class="flex w-full flex-col gap-2 overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div class="-mx-4 -mt-4 flex items-center gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">Attachments
+                                    {{ $doc }}</h2><p class="text-xs text-gray-500 dark:text-gray-400">Files attached to the source document</p></div></div>
 
                             @if (($attachment ?? collect())->count())
-                                <div class="mt-4 overflow-x-auto">
+                                <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                                     <table class="w-full text-xs">
-                                        <thead class="text-gray-600 dark:text-gray-300">
-                                            <tr class="border-b border-gray-200 dark:border-gray-700">
-                                                <th class="p-3 text-left font-semibold">Filename</th>
-                                                <th class="p-3 text-left font-semibold">Created By</th>
-                                                <th class="p-3 text-left font-semibold">Date</th>
+                                        <thead>
+                                            <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                                <th class="px-4 py-3 text-left font-medium">Filename</th>
+                                                <th class="px-4 py-3 text-left font-medium">Created By</th>
+                                                <th class="px-4 py-3 text-left font-medium">Date</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-white/[0.06]">
                                             @foreach ($attachment as $at)
-                                                <tr
-                                                    class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                    <td class="px-3 py-2">
+                                                <tr class="transition hover:bg-blue-50/40 dark:hover:bg-white/[0.03]">
+                                                    <td class="px-4 py-3">
                                                         @if (!empty($at->url))
-                                                            <a href="{{ $at->url }}" target="_blank"
-                                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                                📎 {{ $at->display_name }}
+                                                            <a href="{{ $at->url }}" target="_blank" class="group/f inline-flex max-w-full items-center gap-3 font-semibold text-blue-700 dark:text-blue-300">
+                                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition group-hover/f:bg-blue-600 group-hover/f:text-white dark:bg-blue-500/10 dark:text-blue-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg></span>
+                                                                <span class="truncate group-hover/f:underline">{{ $at->display_name }}</span>
                                                             </a>
                                                         @else
-                                                            <span
-                                                                class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300">
-                                                                📎 {{ $at->display_name }}
+                                                            <span class="inline-flex items-center gap-3 text-gray-500 dark:text-gray-300" title="Signed URL tidak tersedia/expired">
+                                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400 dark:bg-white/5"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg></span>
+                                                                <span class="truncate">{{ $at->display_name }}</span>
+                                                                <em class="text-[11px] text-red-500">(link unavailable)</em>
                                                             </span>
-                                                            <span class="ml-2 text-xs text-red-500">(link
-                                                                unavailable)</span>
                                                         @endif
                                                     </td>
-                                                    <td class="px-3 py-2">{{ $at->created_by }}</td>
-                                                    <td class="px-3 py-2">{{ $at->created_at }}</td>
+                                                    <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+                                                        <span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>{{ $at->created_by }}</span>
+                                                    </td>
+                                                    <td class="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-gray-400">
+                                                        <span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{{ !empty($at->created_at) ? \Carbon\Carbon::parse($at->created_at)->format('d M Y, H:i') : '-' }}</span>
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
                                 </div>
                             @else
-                                <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                                <div class="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 px-4 py-8 text-center text-gray-400 dark:border-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    <p class="text-xs">No attachments on the source document.</p>
+                                </div>
                             @endif
                         </div>
 
-                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                            <div
-                                class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments CS</h3>
-                            </div>
+                        <div class="flex w-full flex-col gap-2 overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div class="-mx-4 -mt-4 flex items-center gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">Attachments CS</h2><p class="text-xs text-gray-500 dark:text-gray-400">Upload supporting files for this CS</p></div></div>
 
                             <div class="flex flex-col pt-6" id="attachmentsContainer">
                                 <div class="attachment-row flex items-center gap-2">
                                     <input type="file" name="attachments[]"
-                                        class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-xs text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-xs file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                     <button type="button"
-                                        class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                        🗑️
-                                    </button>
+                                        class="removeAttachment hidden inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                 </div>
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Add Attachment
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-xs font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Attachment
                             </button>
 
                             <div
                                 class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                                 <button id="backBtn" onclick="history.back()"
-                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -348,7 +330,7 @@
 
                                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                     <button type="button" id="saveBtn"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 w-full md:w-auto">
                                         <span id="saveText">Save CS</span>
                                         <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -450,8 +432,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
                     <div class="attachment-row flex items-center gap-2">
-                        <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                        <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                        <input type="file" name="attachments[]" class="mt-2 flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-xs text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-xs file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                        <button type="button" class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                     </div>
                 `);
                 toggleDeleteButton();
@@ -808,6 +790,7 @@
 
             $('#vendorSelect').select2({
                 width: '100%',
+                dropdownCssClass: 'sf-s2-dropdown',
                 theme: 'default',
                 placeholder: "Select",
                 allowClear: true

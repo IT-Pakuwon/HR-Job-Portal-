@@ -64,7 +64,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Month</label>
                             <select id="month" name="month"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">Select</option>
                                 @for ($m = 1; $m <= 12; $m++)
                                     <option value="{{ $m }}">{{ sprintf('%02d', $m) }}</option>
                                 @endfor

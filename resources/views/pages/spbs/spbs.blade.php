@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'spbs' ? 'HR' : '';
     @endphp
@@ -6,184 +8,42 @@
         @php
             $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || ($isAdmin ?? false);
         @endphp
-        <div
-            class="{{ $hasAllList ? 'xl:grid-cols-8' : 'xl:grid-cols-7' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, true],
+                [['data-status' => 'H'], 'Draft', '📝', 'pink', $draft, false],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'D'], 'Revise', '✏️', 'blue', $revise, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+                [['data-status' => 'TRACK'], 'SPB Tracking', '🧭', 'sky', $tracking, false],
+            ];
+            if ($hasAllList) {
+                $statusCards[] = [['data-mode' => 'all'], 'SPB All List', '📊', 'purple', $allListCount, false];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- All --}}
-            <button type="button" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-2 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-
-                    <!-- ICON -->
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                    <!-- TEXT WRAP -->
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All</p>
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Request SPB" title-id="pageTitle" :create-url="url('/createspbs')" create-id="createBtn">
+                {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
+                <div id="allFilters" class="hidden items-center gap-2 flex">
+                    <div class="sppb-f relative w-40">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                        <select id="filterStatus">
+                            <option value="">All Status</option>
+                            <option value="P">On Progress</option>
+                            <option value="C">Completed</option>
+                        </select>
                     </div>
-
-                    <!-- VALUE -->
-                    <p class="shrink-0 text-sm font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="status-filter group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-2 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
+                    <div class="sppb-f relative w-48">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                        <select id="filterDepartment">
+                            <option value="">All Department</option>
+                        </select>
                     </div>
-
-                    <p class="shrink-0 text-sm font-bold">{{ $onProgress }}</p>
                 </div>
-            </button>
-
-            {{-- Draft --}}
-            <button type="button" class="status-filter group block h-full" data-status="H">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-2 text-pink-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-lg active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Draft</p>
-                    </div>
-
-                    <p class="shrink-0 text-sm font-bold">{{ $draft }}</p>
-                </div>
-            </button>
-
-            {{-- Reject --}}
-            <button type="button" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-2 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Reject</p>
-                    </div>
-
-                    <p class="shrink-0 text-sm font-bold">{{ $reject }}</p>
-                </div>
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="status-filter group block h-full" data-status="D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-sm font-bold">{{ $revise }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-2 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-lg active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-sm font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- SPB Tracking --}}
-            <button type="button" class="status-filter group block h-full" data-status="TRACK">
-                <div
-                    class="status-card flex h-full items-center gap-2 rounded-lg border border-purple-700 bg-purple-200/20 p-2 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧭</div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">SPB Tracking</p>
-                    </div>
-                    <p class="shrink-0 text-sm font-bold">{{ $tracking }}</p>
-                </div>
-            </button>
-
-            {{-- SPB All List --}}
-            @if ($hasAllList)
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full" data-mode="all">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">SPB All List</p>
-                            </div>
-                            <p class="shrink-0 text-base font-bold">
-                                {{ $allListCount }}
-                            </p>
-
-                        </div>
-                    </a>
-                </button>
-            @endif
-
-
-
-        </div>
-
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Request SPB
-                </h2>
-
-                <div class="flex items-center gap-4">
-                    {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="flex hidden items-center gap-3">
-
-                        {{-- Status Filter --}}
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                                <i class="fas fa-check-circle text-xs"></i>
-                            </span>
-                            <select id="filterStatus"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <option value="">All Status</option>
-                                <option value="P">On Progress</option>
-                                <option value="C">Completed</option>
-                            </select>
-                        </div>
-
-                        {{-- Department Filter --}}
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                                <i class="fas fa-sitemap text-xs"></i>
-                            </span>
-                            <select id="filterDepartment"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <option value="">All Department</option>
-                            </select>
-                        </div>
-
-                    </div>
-                    <a id="createBtn" href="{{ url('/createspbs') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
 
@@ -695,49 +555,8 @@ error: function(err) {
                         {
                             data: 'spbid',
                             render: function(data, type, row) {
-                                // default: view
-                                let url = `/showspbs/${row.eid}`;
-                                let cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded  bg-gray-600 hover:bg-gray-700 ';
-
-                                const text = data || row.id;
-
-                                const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
-                                    row.created_by === currentUser);
-
-                                // icon view (mata)
-                                const viewBtn = `
-                                    <a href="/showspbs/${row.eid}" target="_blank"
-                                    class="inline-flex items-center justify-center rounded-full p-2
-                                            text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                                    aria-label="View" title="View">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                `;
-
-                                // Draft & owner → Edit
-                                if (isDraftOwner) {
-                                    url = `/editspbs/${row.eid}`;
-                                    cls =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-yellow-500 hover:bg-yellow-700';
-                                }
-
-                                return `
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <a href="${url}" class="${cls}">${text}</a>
-
-                                        ${isDraftOwner ? viewBtn : ''}
-
-                                        <button type="button"
-                                            class="tracking-btn inline-flex items-center justify-center rounded-full p-2
-                                                text-red-600 hover:text-red-700 hover:bg-red-50"
-                                            data-id="${row.eid}" data-doc="${text}" title="Tracking">
-                                            <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
-                                    </div>
-                                `;
+                                return sppDocCell(row, data || row.id, 'spbs', currentUser);
                             }
-
                         },
                         {
                             data: 'spbdate'
@@ -763,37 +582,7 @@ error: function(err) {
                             data: 'status',
                             className: 'text-left',
                             render: function(data) {
-                                const map = {
-                                    'D': {
-                                        t: 'Revise',
-                                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                                    },
-                                    'P': {
-                                        t: 'On Progress',
-                                        c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                    },
-                                    'C': {
-                                        t: 'Completed',
-                                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                    },
-                                    'X': {
-                                        t: 'Cancel',
-                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                    },
-                                    'R': {
-                                        t: 'Rejected',
-                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                    },
-                                    'H': {
-                                        t: 'Draft',
-                                        c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
-                                    },
-                                };
-                                const it = map[data] || {
-                                    t: data || '-',
-                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                                };
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                                return sppStatusBadge(data);
                             }
                         }
                     ],
@@ -1079,6 +868,7 @@ error: function(err) {
 
                 });
             });
+            sppInitFilters();
             $('#filterStatus').on('change', function() {
                 statusFilter = this.value;
                 if (dt) dt.ajax.reload();

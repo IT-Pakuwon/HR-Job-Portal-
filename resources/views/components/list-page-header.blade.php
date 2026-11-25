@@ -1,6 +1,6 @@
 {{-- Card header for list pages that are not SPP (Item Request, Stock/Nonstock Jobs, Inventory): icon badge + title + hint, optional Create button, extra controls in the slot.
      <x-list-page-header title="Item Request" subtitle="..." :create-url="url('/createitemreq')" title-id="pageTitle">filters here</x-list-page-header> --}}
-@props(['title', 'subtitle' => 'Create, track and manage your requests', 'createUrl' => null, 'titleId' => null, 'icon' => null])
+@props(['title', 'subtitle' => 'Create, track and manage your requests', 'createUrl' => null, 'titleId' => null, 'icon' => null, 'createId' => null])
 
 <div {{ $attributes->merge(['class' => 'flex flex-col gap-4 rounded-t-xl border-b border-gray-100 px-5 py-3.5 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between']) }}>
     <div class="flex items-center gap-3">
@@ -20,7 +20,7 @@
     <div class="flex flex-wrap items-center gap-3">
         {{ $slot }}
         @if ($createUrl)
-            <a href="{{ $createUrl }}" class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+            <a @if ($createId) id="{{ $createId }}" @endif href="{{ $createUrl }}" class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                 <i class="fa-solid fa-plus mr-2 text-xs"></i>Create
             </a>
         @endif

@@ -1,35 +1,24 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col gap-1">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header :title="$training->training_name" :subtitle="$training->training_id . ' · ' . $training->training_type . ($training->is_mandatory ? ' · Mandatory' : '')">
                 <a href="{{ route('mastertraining') }}"
-                    class="w-fit text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    &larr; Back to Master Training
+                    class="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>Back
                 </a>
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <div>
-                        <h1 class="text-base font-bold text-gray-800 dark:text-white">
-                            📅 {{ $training->training_name }}
-                        </h1>
-                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                            {{ $training->training_id }} &middot; {{ $training->training_type }}
-                            @if ($training->is_mandatory)
-                                &middot; Mandatory
-                            @endif
-                        </p>
-                    </div>
-                    <button id="addScheduleBtn"
-                        class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-                        + Add Schedule
-                    </button>
-                </div>
-            </div>
+                <button id="addScheduleBtn" type="button"
+                    class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                    <i class="fa-solid fa-plus mr-2 text-xs"></i>Add Schedule
+                </button>
+            </x-list-page-header>
+            <div class="flex flex-col gap-4 p-4">
 
             <div id="levelsWrapper" class="space-y-3">
                 <div id="levelsEmpty" class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                     No levels/schedules yet. Click "+ Add Schedule" to create the first one.
                 </div>
             </div>
+        </div>
         </div>
 
         {{-- Add/Edit Schedule Modal --}}
@@ -38,9 +27,12 @@
             <div class="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
 
                 <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                    <div>
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-regular fa-calendar-days"></i></span>
+                        <div>
                         <h2 id="scheduleModalTitle" class="text-base font-bold text-gray-900 dark:text-white">Add Schedule</h2>
                         <p id="scheduleModalSubtitle" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">One or more levels, one or more dates, shared quota.</p>
+                    </div>
                     </div>
                     <button type="button" id="closeScheduleModalX"
                         class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
@@ -88,7 +80,7 @@
                                 </label>
                                 <input type="text" id="training_detail_name" name="training_detail_name"
                                     placeholder="e.g. Batch 1 - Jakarta"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-white dark:focus:ring-white"
+                                    class="w-full rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 dark:border-gray-600 dark:bg-blue-600 dark:text-white dark:focus:border-white dark:focus:ring-white"
                                     required>
                             </div>
 
@@ -97,7 +89,7 @@
                                     Poster
                                 </label>
                                 <input type="file" id="training_poster" name="training_poster" accept="image/*"
-                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-700 hover:file:bg-gray-200 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:file:bg-gray-700 dark:file:text-gray-200">
+                                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-700 hover:file:bg-gray-200 dark:border-gray-600 dark:bg-blue-600 dark:text-white dark:file:bg-gray-700 dark:file:text-gray-200">
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional. One image, max 5MB.</p>
                                 <div id="posterPreviewWrapper" class="mt-2 hidden">
                                     <img id="posterPreview" src="" alt="Current poster" class="h-24 w-auto rounded-lg border border-gray-200 object-cover dark:border-gray-700">
@@ -160,20 +152,20 @@
                     </div>
 
                     <div class="flex items-center justify-between border-t border-gray-100 px-6 py-4 dark:border-gray-700">
-                        <button type="button" id="stepBackBtn" class="hidden rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        <button type="button" id="stepBackBtn" class="inline-flex items-center justify-center hidden rounded-lg border border-gray-300 h-10 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                             &larr; Back
                         </button>
                         <div class="ml-auto flex gap-2">
                             <button type="button" id="closeScheduleModal"
-                                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                class="inline-flex items-center justify-center rounded-lg border border-gray-300 h-10 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                                 Cancel
                             </button>
                             <button type="button" id="stepNextBtn"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 h-10 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none active:scale-95">
                                 Next &rarr;
                             </button>
                             <button type="submit" id="stepSaveBtn"
-                                class="hidden items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                                class="inline-flex items-center justify-center hidden items-center gap-1.5 rounded-lg bg-blue-600 h-10 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none active:scale-95">
                                 Save
                             </button>
                         </div>
@@ -188,12 +180,15 @@
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
         <div class="relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
             <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-regular fa-calendar-days"></i></span>
+                        <div>
                     <h2 class="text-base font-bold text-gray-900 dark:text-white">Reschedule</h2>
                     <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                         Registered participants keep their seat / waitlist spot and are notified of the new date.
                     </p>
                 </div>
+                    </div>
                 <button type="button" id="closeRescheduleModalX"
                     class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -206,39 +201,39 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">New Date</label>
                     <input type="date" id="reschedule_date"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        class="w-full rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white"
                         min="{{ now()->format('Y-m-d') }}" required>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Start</label>
                         <input type="time" id="reschedule_start_time"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                            class="w-full rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white"
                             required>
                     </div>
                     <div>
                         <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">End</label>
                         <input type="time" id="reschedule_end_time"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                            class="w-full rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white"
                             required>
                     </div>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Registration Deadline</label>
                     <input type="date" id="reschedule_deadline"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        class="w-full rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white"
                         min="{{ now()->format('Y-m-d') }}">
                     <p class="mt-1 text-xs text-gray-400">Leave as-is to keep the current deadline.</p>
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Reason</label>
                     <textarea id="reschedule_reason" rows="2"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white"
                         placeholder="Why is this schedule moving?" required></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" id="closeRescheduleModal"
-                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        class="inline-flex items-center justify-center rounded-lg border border-gray-300 h-10 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                         Cancel
                     </button>
                     <button type="submit"
@@ -255,12 +250,15 @@
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
         <div class="relative flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
             <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-regular fa-calendar-days"></i></span>
+                        <div>
                     <h2 class="text-base font-bold text-gray-900 dark:text-white">Edit Quota</h2>
                     <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                         A quota can't be set lower than the seats it already holds (pending, approved or offered). Companies nobody has registered under can be removed.
                     </p>
                 </div>
+                    </div>
                 <button type="button" id="closeQuotaModalX"
                     class="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -280,7 +278,7 @@
                 </div>
                 <div class="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
                     <button type="button" id="closeQuotaModal"
-                        class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        class="inline-flex items-center justify-center rounded-lg border border-gray-300 h-10 px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                         Cancel
                     </button>
                     <button type="submit"
@@ -673,7 +671,7 @@
             let $row = $(`
                 <div class="flex items-center gap-2" data-row-id="${rowId}">
                     <select class="quota-company w-full" name="quota_company"></select>
-                    <input type="number" min="1" class="quota-qty w-28 rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white" placeholder="Qty" value="${qty || ''}">
+                    <input type="number" min="1" class="quota-qty w-28 rounded-lg border border-gray-300 h-10 px-3 text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-blue-600 dark:text-white" placeholder="Qty" value="${qty || ''}">
                     <button type="button" class="removeQuotaRow rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-gray-700">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -1626,4 +1624,40 @@
             });
         });
     </script>
+    <style>
+        /* ---- shared look: blue focus, 40px fields, blue active pills/steps (same as the SPP forms) ---- */
+        #scheduleModal .select2-container--default .select2-selection--single,
+        #quotaModal .select2-container--default .select2-selection--single { height: 40px; border-color: #e5e7eb; border-radius: 0.5rem; }
+        #scheduleModal .select2-container--default .select2-selection--single .select2-selection__rendered,
+        #quotaModal .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 38px; color: #1f2937; }
+        #scheduleModal .select2-container--default .select2-selection--single .select2-selection__arrow,
+        #quotaModal .select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px; }
+        #scheduleModal .select2-container--default.select2-container--focus .select2-selection--single,
+        #quotaModal .select2-container--default.select2-container--focus .select2-selection--single,
+        #scheduleModal .select2-container--default.select2-container--open .select2-selection--single,
+        #quotaModal .select2-container--default.select2-container--open .select2-selection--single { border-color: var(--color-blue-500); box-shadow: 0 0 0 3px rgba(59, 130, 246, .14); }
+        #scheduleModal .select2-container--default .select2-results__option--highlighted[aria-selected],
+        #quotaModal .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--color-blue-600); color: #fff; }
+        #scheduleModal .select2-dropdown,
+        #quotaModal .select2-dropdown { border-color: #e2e8f0; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, .12); }
+        #scheduleModal .toggle-pill.is-active,
+        #quotaModal .toggle-pill.is-active { background-color: var(--color-blue-600); color: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+        #scheduleModal .toggle-pill:hover,
+        #quotaModal .toggle-pill:hover { background-color: #f1f5f9; }
+        #scheduleModal .toggle-pill.is-active:hover,
+        #quotaModal .toggle-pill.is-active:hover { background-color: var(--color-blue-600); }
+        .dark #scheduleModal .toggle-pill.is-active,
+        .dark #quotaModal .toggle-pill.is-active { background-color: var(--color-blue-600); color: #fff; }
+        .dark #scheduleModal .select2-container--default.select2-container--focus .select2-selection--single,
+        .dark #quotaModal .select2-container--default.select2-container--focus .select2-selection--single,
+        .dark #scheduleModal .select2-container--default.select2-container--open .select2-selection--single,
+        .dark #quotaModal .select2-container--default.select2-container--open .select2-selection--single { border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96, 165, 250, .2); }
+        .dark #scheduleModal .select2-dropdown,
+        .dark #quotaModal .select2-dropdown { border-color: #374151; }
+        #scheduleModal .step-circle.is-active, #scheduleModal .step-circle.is-done { background-color: var(--color-blue-600); border-color: var(--color-blue-600); color: #fff; }
+        #scheduleModal .step-label.is-active { color: var(--color-blue-600); }
+        .dark #scheduleModal .step-circle.is-active, .dark #scheduleModal .step-circle.is-done { background-color: var(--color-blue-600); border-color: var(--color-blue-600); color: #fff; }
+        .dark #scheduleModal .step-label.is-active { color: #93c5fd; }
+        .training-quill:focus-within { border-color: var(--color-blue-500) !important; box-shadow: 0 0 0 3px rgba(59, 130, 246, .14); }
+    </style>
 </x-app-layout>

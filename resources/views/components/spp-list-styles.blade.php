@@ -102,4 +102,23 @@
             .dt-pretty .dataTables_filter { margin-left: 0 !important; width: 100%; }
             .dt-pretty .dataTables_filter input { width: 100% !important; }
         }
+
+        /* ---- Legacy row buttons inside .dt-pretty tables (pages that still render grey/yellow doc links) ---- */
+        .dt-pretty td a.bg-gray-500, .dt-pretty td a.bg-gray-600, .dt-pretty td a.bg-gray-700, .dt-pretty td a.bg-slate-600 {
+            background: #eff6ff !important; color: #1d4ed8 !important; border: 1px solid #dbeafe; border-radius: 6px !important;
+            padding: 4px 12px !important; transition: all .2s ease;
+        }
+        .dt-pretty td a.bg-gray-500:hover, .dt-pretty td a.bg-gray-600:hover, .dt-pretty td a.bg-gray-700:hover, .dt-pretty td a.bg-slate-600:hover {
+            background: #2563eb !important; color: #fff !important; border-color: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 10px -3px rgba(37,99,235,.45);
+        }
+        .dt-pretty td a.bg-yellow-500, .dt-pretty td a.bg-amber-500 {
+            background: #fffbeb !important; color: #92400e !important; border: 1px solid #fde68a; border-radius: 6px !important;
+            padding: 4px 12px !important; transition: all .2s ease;
+        }
+        .dt-pretty td a.bg-yellow-500:hover, .dt-pretty td a.bg-amber-500:hover { background: #f59e0b !important; color: #fff !important; border-color: #f59e0b; }
+        .dt-pretty td button.bg-blue-500, .dt-pretty td button.bg-red-500, .dt-pretty td button.bg-amber-500 {
+            border-radius: 8px !important; box-shadow: 0 1px 2px rgba(0,0,0,.08); transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .dt-pretty td button.bg-blue-500:hover, .dt-pretty td button.bg-red-500:hover, .dt-pretty td button.bg-amber-500:hover { transform: translateY(-1px); box-shadow: 0 4px 10px -3px rgba(0,0,0,.3); }
+        .dt-pretty .dataTables_wrapper .dataTables_processing { background: transparent; }
 </style>

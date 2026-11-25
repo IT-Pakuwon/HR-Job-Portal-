@@ -1,26 +1,22 @@
 <x-app-layout>
+    <x-spp-list-styles />
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Last Order</h2>
-
-                    <div class="flex gap-2">
-                        <button type="button" data-tab="inv"
-                            class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:border-gray-600">
-                            Last Order Inventory
-                        </button>
-                        <button type="button" data-tab="bq"
-                            class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                            Last Order BQ
-                        </button>
-                    </div>
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Last Order" subtitle="Most recent purchase price per item">
+                <div class="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/5">
+                    <button type="button" data-tab="inv"
+                        class="tab-btn rounded-md px-4 py-1.5 text-sm font-semibold transition">
+                        Last Order Inventory
+                    </button>
+                    <button type="button" data-tab="bq"
+                        class="tab-btn rounded-md px-4 py-1.5 text-sm font-semibold transition">
+                        Last Order BQ
+                    </button>
                 </div>
-            </div>
+            </x-list-page-header>
 
             {{-- TAB Inventory --}}
             <div id="tab-inv" class="relative overflow-hidden">
@@ -164,7 +160,7 @@
                         className: 'text-left',
                         render: function(data) {
                             if (!data) return '';
-                            return `<div class="whitespace-normal break-words">${data}</div>`;
+                            return `<div class="w-full whitespace-normal break-words text-left">${data}</div>`;
                         }
                     },
                     {
@@ -232,7 +228,7 @@
                         className: 'text-left',
                         render: function(data) {
                             if (!data) return '';
-                            return `<div class="whitespace-normal break-words">${data}</div>`;
+                            return `<div class="w-full whitespace-normal break-words text-left">${data}</div>`;
                         }
                     },
                     {
@@ -389,14 +385,18 @@
                 bqTable.ajax.reload(null, false);
             });
 
+            // initial look of the tabs
+            $('.tab-btn').addClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
+            $('.tab-btn[data-tab="inv"]').addClass('bg-blue-600 text-white shadow-sm').removeClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
+
             // ===== Tabs =====
             $('.tab-btn').on('click', function() {
                 const tab = $(this).data('tab');
 
-                $('.tab-btn').removeClass('bg-gray-900 text-white')
-                    .addClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-white');
-                $(this).addClass('bg-gray-900 text-white')
-                    .removeClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-white');
+                $('.tab-btn').removeClass('bg-blue-600 text-white shadow-sm')
+                    .addClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
+                $(this).addClass('bg-blue-600 text-white shadow-sm')
+                    .removeClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
 
                 $('#tab-inv').toggleClass('hidden', tab !== 'inv');
                 $('#tab-bq').toggleClass('hidden', tab !== 'bq');

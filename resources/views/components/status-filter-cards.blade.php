@@ -50,14 +50,15 @@
         ['C', 'Completed', '✅', 'green', null],
     ];
 
-    $cols = [4 => 'xl:grid-cols-4', 5 => 'xl:grid-cols-5', 6 => 'xl:grid-cols-6', 7 => 'xl:grid-cols-7', 8 => 'xl:grid-cols-8'];
+    $cols = [4 => 'xl:grid-cols-4', 5 => 'xl:grid-cols-5', 6 => 'xl:grid-cols-6', 7 => 'xl:grid-cols-7', 8 => 'xl:grid-cols-8', 9 => 'xl:grid-cols-9', 10 => 'xl:grid-cols-10'];
     $n = is_array($custom) ? count($custom) : count($cards) + (!is_null($allList) ? 1 : 0) + (!is_null($wo) ? 1 : 0);
 @endphp
 
 <div {{ $attributes->merge(['class' => ($cols[$n] ?? 'xl:grid-cols-6') . ' grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3']) }}>
     @if (is_array($custom))
-        @foreach ($custom as [$attrs, $label, $icon, $tone, $value, $isActive])
-            @include('components.status-filter-card', ['attr' => collect($attrs)->map(fn ($v, $k) => $k . '="' . e($v) . '"')->implode(' '), 'label' => $label, 'icon' => $icon, 'tone' => $tone, 'value' => $value, 'idle' => $idle, 'selected' => $selected, 'activeClass' => $isActive ? ' active' : ''])
+        @foreach ($custom as $c)
+            @php [$attrs, $label, $icon, $tone, $value, $isActive] = $c; @endphp
+            @include('components.status-filter-card', ['attr' => collect($attrs)->map(fn ($v, $k) => $k . '="' . e($v) . '"')->implode(' '), 'label' => $label, 'icon' => $icon, 'tone' => $tone, 'value' => $value, 'idle' => $idle, 'selected' => $selected, 'activeClass' => ($isActive ? ' active' : '') . (isset($c[7]) ? ' ' . $c[7] : ''), 'valueId' => $c[6] ?? null, 'noFilter' => $c[8] ?? false])
         @endforeach
     @else
     @foreach ($cards as [$key, $label, $icon, $tone])

@@ -1,106 +1,23 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-
-            {{-- Calr Jobs --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="calrjobs">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Calr Jobs</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $calrjobs }}</p>
-                </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="onprogress">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </button>
-
-            {{-- Rejected --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="rejected">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">❌</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rejected</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $rejected }}</p>
-                </div>
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="revise">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛠️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="completed">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- All --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="all">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-        </div>
+        @php
+            $statusCards = [
+                [['data-scope' => 'calrjobs'], 'Calr Jobs', '📦', 'blue', $calrjobs, false, null, 'scope-filter'],
+                [['data-scope' => 'onprogress'], 'On Progress', '⏳', 'yellow', $onProgress, false, null, 'scope-filter'],
+                [['data-scope' => 'rejected'], 'Rejected', '❌', 'red', $rejected, false, null, 'scope-filter'],
+                [['data-scope' => 'revise'], 'Revise', '🛠️', 'blue', $revise, false, null, 'scope-filter'],
+                [['data-scope' => 'completed'], 'Completed', '✅', 'green', $completed, false, null, 'scope-filter'],
+                [['data-scope' => 'all'], 'All', '🧾', 'all', $all, false, null, 'scope-filter'],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
 
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Calr</h1>
-            </div>
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Calr" subtitle="Calr jobs, progress and completed documents" title-id="pageTitle"></x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="calrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -129,7 +46,7 @@
 
         $(function() {
             let scope = 'calrjobs';
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
             const $thead = $('#calrTable thead');
             let table;
 
@@ -147,29 +64,29 @@
                     // Jobs dari TrRfca + TrRfcaStep
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA ID</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Step</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Type</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-4 py-3 text-left font-medium">Action</th>
+                                <th class="px-4 py-3 text-left font-medium">RFCA ID</th>
+                                <th class="px-4 py-3 text-left font-medium">PO Nbr</th>
+                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                                <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                                <th class="px-4 py-3 text-left font-medium">RFCA Step</th>
+                                <th class="px-4 py-3 text-left font-medium">RFCA Type</th>
+                                <th class="px-4 py-3 text-left font-medium">Created By</th>
                             `;
                 }
                 // TrCalr scopes
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Calr ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Calr Date</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">CS ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left font-medium">Calr ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Calr Date</th>
+                            <th class="px-4 py-3 text-left font-medium">RFCA ID</th>
+                            <th class="px-4 py-3 text-left font-medium">CS ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                            <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                            <th class="px-4 py-3 text-left font-medium">Created By</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         `;
             }
 
@@ -261,30 +178,30 @@
                             const map = {
                                 'D': {
                                     t: 'Revise',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
+                                    c: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30'
                                 },
                                 'P': {
                                     t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
+                                    c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'
                                 },
                                 'C': {
                                     t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                    c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                 },
                                 'X': {
                                     t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                 },
                                 'R': {
                                     t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                 },
                             };
                             const it = map[data] || {
                                 t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                             };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                         }
                     },
                 ];
@@ -358,7 +275,7 @@
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
-                            text: '↓ Excel',
+                            text: '<i class="fa-solid fa-file-excel"></i> Excel',
                             title: 'List_CALR',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
@@ -370,7 +287,7 @@
                         },
                         {
                             extend: 'csvHtml5',
-                            text: '↓ CSV',
+                            text: '<i class="fa-solid fa-file-csv"></i> CSV',
                             title: 'List_CALR',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
@@ -400,7 +317,7 @@
                 const url = `{{ route('calr.create') }}` + `?rfca=${encodeURIComponent(row.rfca_eid ?? '')}`;
                 return `
                             <a href="${url}"
-                            class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-sm font-bold text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90">
                                 <i class="fas fa-plus"></i>
                             </a>`;
             }
@@ -417,9 +334,7 @@
                 const url = `/showrfca/${encodeURIComponent(hash)}`;
                 return `
                             <a href="${url}" target="_blank"
-                            class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
-                            ${label}
-                            </a>`;
+                            class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
 
@@ -427,7 +342,7 @@
                 const text = row.ponbr ?? '';
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -436,7 +351,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -457,11 +372,11 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editcalrs/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-amber-800 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300" title="Edit (Revise)"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${label}</span></a>`;
                 }
 
                 const url = `/showcalr/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
             // init

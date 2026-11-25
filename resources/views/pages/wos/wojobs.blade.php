@@ -1,148 +1,52 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'wos' ? 'HR' : '';
     @endphp
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 {{ $isAdmin ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }}">
+        @php
+            $statusCards = [
+                [['data-job' => 'H'], 'WO List', '🕒', 'blue', $wojobs, true, null, 'job-filter', true],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, false],
+                [['data-status' => 'X'], 'Cancel', '⛔', 'red', $cancel, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+            ];
+            if ($isAdmin) {
+                $statusCards[] = [[], 'WO Jobs All', '🌐', 'purple', $adminAll, false, null, 'admin-all-filter', true];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- On Hold --}}
-            <button type="button" class="job-filter group block h-full" data-job="H">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🕒</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">WO List</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $wojobs }}</p>
-                </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="status-filter group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </button>
-
-            {{-- Cancel --}}
-            <button type="button" class="status-filter group block h-full" data-status="X">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Cancel</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $cancel }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- All --}}
-            <button type="button" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-            {{-- WO Jobs All — admin only --}}
-            @if($isAdmin)
-            <button type="button" class="admin-all-filter group block h-full">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium leading-tight">WO Jobs All</p>
-                        <p class="text-[10px] font-normal opacity-70">All Companies</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $adminAll }}</p>
-                </div>
-            </button>
-            @endif
-        </div>
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-col gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
-
-                <!-- LEFT -->
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    WO Jobs List
-                </h2>
-
-                <!-- RIGHT: prettier filters -->
-                <div class="flex flex-wrap items-center gap-2">
-
-                    {{-- Date range group --}}
-                    <div class="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-700">
-                        <svg class="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <input type="date" id="filterDateFrom"
-                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
-                        <span class="text-xs text-gray-400">–</span>
-                        <input type="date" id="filterDateTo"
-                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
-                    </div>
-
-                    {{-- Business Unit (Select2) --}}
-                    <div style="min-width:200px;">
-                        <select id="filterBusinessUnit">
-                            <option value="">All Business Unit</option>
-                        </select>
-                    </div>
-
-                    {{-- Reset --}}
-                    <button id="resetFilters" type="button"
-                        class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        </svg>
-                        Reset
-                    </button>
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="WO Jobs List" subtitle="Work orders assigned for execution">
+                {{-- Date range group --}}
+                <div class="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-slate-50 px-3 transition focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-200 dark:border-gray-600 dark:bg-white/5">
+                    <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <input type="date" id="filterDateFrom" class="w-32 border-0 bg-transparent p-0 text-[13px] text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
+                    <span class="text-xs text-gray-400">&ndash;</span>
+                    <input type="date" id="filterDateTo" class="w-32 border-0 bg-transparent p-0 text-[13px] text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
                 </div>
 
-            </div>
+                {{-- Business Unit (Select2) --}}
+                <div class="sppb-f relative w-52">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                    <select id="filterBusinessUnit">
+                        <option value="">All Business Unit</option>
+                    </select>
+                </div>
+
+                {{-- Reset --}}
+                <button id="resetFilters" type="button"
+                    class="inline-flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Reset
+                </button>
+            </x-list-page-header>
+
             <div class="relative overflow-hidden">
                 <table id="wosTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
@@ -262,21 +166,7 @@
                     {
                         data: 'woid',
                         render: function(data, type, row) {
-                            let url = `/showwos/${row.eid}`;
-                            let cls =
-                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700  text-sm ';
-                            const text = data || row.eid;
-
-                            if (row.status === 'D' && row.created_by === currentUser) {
-                                url = `/editwos/${row.eid}`;
-                                cls =
-                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700  text-sm ';
-                            }
-
-                            return `
-                                        <a href="${url}" class="${cls}">${text}</a>
-                                    `;
-
+                            return sppDocCell(row, data || row.eid, 'wos', currentUser, true);
                         }
                     },
                     {
@@ -332,33 +222,7 @@
                         className: 'text-left',
                         render: function(data, type, row) {
                             // map dok-status (boleh dibiarkan)
-                            const map = {
-                                'H': {
-                                    t: 'Hold',
-                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return sppStatusBadge(data === 'H' ? 'Hold' : data);
                         }
                     }
                     // Jika ingin menampilkan job status juga, tambah 1 kolom lagi render dari row.status_pekerjaan
@@ -378,6 +242,7 @@
                     placeholder: 'All Business Unit',
                     allowClear: true,
                     width: '100%',
+                    dropdownCssClass: 'sppb-s2-dropdown',
                 });
                 // trigger table reload on change
                 $buSelect.off('change.bu').on('change.bu', function() {

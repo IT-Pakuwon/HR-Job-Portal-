@@ -2325,14 +2325,14 @@
                 // init dengan dropdownParent = modal (wajib biar dropdown muncul di atas modal)
                 $selLoc.select2({
                     dropdownParent: $lokasiModal,
-                    placeholder: '-- choose --',
+                    placeholder: 'Select',
                     allowClear: true,
                     width: '100%'
                 });
 
                 $selSub.select2({
                     dropdownParent: $lokasiModal,
-                    placeholder: '-- choose --',
+                    placeholder: 'Select',
                     allowClear: true,
                     width: '100%'
                 });

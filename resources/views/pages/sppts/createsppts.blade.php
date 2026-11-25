@@ -558,7 +558,7 @@
                                             class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1.5 block text-xs text-gray-400 dark:text-gray-500">Wajib
                                             memilih Location.</small>
@@ -571,7 +571,7 @@
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">Select</option>
                                         </select>
                                         <small class="mt-1.5 block text-xs text-gray-400 dark:text-gray-500">Wajib
                                             memilih sub location.</small>
@@ -2204,14 +2204,14 @@
                 // init dengan dropdownParent = modal (wajib biar dropdown muncul di atas modal)
                 $selLoc.select2({
                     dropdownParent: $lokasiModal,
-                    placeholder: '-- choose --',
+                    placeholder: 'Select',
                     allowClear: true,
                     width: '100%'
                 });
 
                 $selSub.select2({
                     dropdownParent: $lokasiModal,
-                    placeholder: '-- choose --',
+                    placeholder: 'Select',
                     allowClear: true,
                     width: '100%'
                 });
@@ -2361,8 +2361,8 @@
                 }
 
                 // reset dropdown
-                $selLoc.empty().append('<option value="">-- choose --</option>');
-                $selSub.empty().append('<option value="">-- choose --</option>');
+                $selLoc.empty().append('<option value="">Select</option>');
+                $selSub.empty().append('<option value="">Select</option>');
 
                 // load locations
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
@@ -2398,7 +2398,7 @@
             $selLoc.on('change', function() {
                 const cpny = $('select[name="cpnyid"]').val();
                 const loc = $(this).val();
-                $selSub.empty().append('<option value="">-- choose --</option>');
+                $selSub.empty().append('<option value="">Select</option>');
 
                 if (!loc) return;
 
@@ -2445,8 +2445,8 @@
             $('select[name="cpnyid"]').on('change', function() {
                 if ($lokasiModal.is(':visible')) {
                     // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">-- choose --</option>');
-                    $selSub.empty().append('<option value="">-- choose --</option>');
+                    $selLoc.empty().append('<option value="">Select</option>');
+                    $selSub.empty().append('<option value="">Select</option>');
                     if (currentLocRow) openLokasiModal(currentLocRow);
                 }
             });

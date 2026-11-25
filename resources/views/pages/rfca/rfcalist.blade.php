@@ -1,130 +1,23 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
-
-            {{-- Rfca Jobs --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="rfcajobs">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rfca Jobs</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $rfcajobs }}</p>
-                </div>
-            </button>
-
-            {{-- Purchasing Submit --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="purchasingsubmit">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Purchasing Submit</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $purchasingSubmit }}</p>
-                </div>
-            </button>
-
-            {{-- Finance Received --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="financereceived">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Finance Received</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $financeReceived }}</p>
-                </div>
-            </button>
-
-            {{-- Treasury Payment --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="treasurypayment">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Treasury Payment</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $treasuryPayment }}</p>
-                </div>
-            </button>
-
-            {{-- Purchasing CALR --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="purchasingcalr">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Purchasing CALR</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $purchasingCalr }}</p>
-                </div>
-            </button>
-
-            {{-- Rfca Completed --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="completed">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rfca Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- Rfca All --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="all">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rfca All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-        </div>
+        @php
+            $statusCards = [
+                [['data-scope' => 'rfcajobs'], 'Rfca Jobs', '📋', 'blue', $rfcajobs, false, null, 'scope-filter'],
+                [['data-scope' => 'purchasingsubmit'], 'Purchasing Submit', '📦', 'purple', $purchasingSubmit, false, null, 'scope-filter'],
+                [['data-scope' => 'financereceived'], 'Finance Received', '📋', 'sky', $financeReceived, false, null, 'scope-filter'],
+                [['data-scope' => 'treasurypayment'], 'Treasury Payment', '💰', 'yellow', $treasuryPayment, false, null, 'scope-filter'],
+                [['data-scope' => 'purchasingcalr'], 'Purchasing CALR', '📋', 'purple', $purchasingCalr, false, null, 'scope-filter'],
+                [['data-scope' => 'completed'], 'Rfca Completed', '✅', 'green', $completed, false, null, 'scope-filter'],
+                [['data-scope' => 'all'], 'Rfca All', '📋', 'all', $all, false, null, 'scope-filter'],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Rfca</h1>
-
-                <div id="rfcaTypeFilterWrap" class="flex items-center gap-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Rfca Type</span>
-                    <input type="hidden" id="rfcaTypeFilter" value="">
-                    <div class="inline-flex items-center gap-0.5 rounded-full bg-gray-100 p-0.5 dark:bg-white/10" role="group" aria-label="Filter by Rfca Type">
-                        <button type="button" data-type="" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">All</button>
-                        <button type="button" data-type="RFCA" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFCA</button>
-                        <button type="button" data-type="RFP" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFP</button>
-                    </div>
-                </div>
-            </div>
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Rfca" subtitle="Rfca jobs, submissions and payments" title-id="pageTitle"></x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="rfcaTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -152,7 +45,7 @@
 
         $(function() {
             let scope = 'rfcajobs';
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
             const $thead = $('#rfcaTable thead');
             let table;
 
@@ -170,16 +63,16 @@
             function headerFor(sc) {
                 return `
                     <th></th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca ID</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Date</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">PO Nbr</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CS ID</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Type</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
+                    <th class="px-4 py-3 text-left font-medium">Rfca ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Rfca Date</th>
+                    <th class="px-4 py-3 text-left font-medium">PO Nbr</th>
+                    <th class="px-4 py-3 text-left font-medium">SPPB/J/K/T</th>
+                    <th class="px-4 py-3 text-left font-medium">CS ID</th>
+                    <th class="px-4 py-3 text-left font-medium">Company</th>
+                    <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                    <th class="px-4 py-3 text-left font-medium">Created By</th>
+                    <th class="px-4 py-3 text-left font-medium">Rfca Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Action</th>
                 `;
             }
 
@@ -325,7 +218,7 @@
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
-                            text: '↓ Excel',
+                            text: '<i class="fa-solid fa-file-excel"></i> Excel',
                             title: 'List_RFCA',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
@@ -337,7 +230,7 @@
                         },
                         {
                             extend: 'csvHtml5',
-                            text: '↓ CSV',
+                            text: '<i class="fa-solid fa-file-csv"></i> CSV',
                             title: 'List_RFCA',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
@@ -382,7 +275,7 @@
                 const text = row.ponbr ?? '';
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -391,7 +284,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -412,11 +305,11 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editrfcas/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-amber-800 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300" title="Edit (Revise)"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${label}</span></a>`;
                 }
 
                 const url = row.showrfca_url || `/showrfca/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
             function renderActionButton(row) {

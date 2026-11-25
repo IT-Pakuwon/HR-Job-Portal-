@@ -1,15 +1,9 @@
 <x-app-layout>
+    <x-spp-list-styles />
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm dark:bg-gray-800">
-            <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-linear-to-br from-rose-500 to-orange-400 text-xl shadow-sm">
-                    🎟️
-                </div>
-                <div>
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">Training Attendance</h1>
-                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Check attendees in on the event day, then review who showed up.</p>
-                </div>
-            </div>
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Training Attendance" subtitle="Check attendees in on the event day, then review who showed up." />
+            <div class="flex flex-col gap-5 p-5">
 
             {{-- Tabs --}}
             <div class="flex w-full flex-wrap gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/60">
@@ -26,11 +20,11 @@
 
             {{-- Shared event picker (not shown on the Training Report tab, which is cross-event) --}}
             <div id="eventPickerBlock">
-                <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-rose-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-rose-900/10">
+                <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4 dark:border-gray-700 dark:bg-gray-800/40">
                     <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🗓️ Event</label>
-                    <select id="eventSelect" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <div class="sppb-f relative"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span><select id="eventSelect">
                         <option value="">Select an event…</option>
-                    </select>
+                    </select></div>
                     <div id="eventMeta" class="mt-3 hidden flex-col gap-3"></div>
                 </div>
 
@@ -43,14 +37,14 @@
             {{-- Attendance List --}}
             <div id="tab-checkin" class="tab-panel space-y-3">
                 <div id="checkinArea" class="hidden space-y-3">
-                    <div class="rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/40 p-4 text-center dark:border-gray-600 dark:bg-gray-900/30">
+                    <div class="rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 p-4 text-center dark:border-blue-500/30 dark:bg-blue-500/5">
                         <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📷 Scan Barcode</label>
                         <div class="flex gap-2">
                             <textarea id="scanInput" rows="1" autocomplete="off"
                                 placeholder="Click here, then scan — or type the code and click Check In"
-                                class="w-full resize-none overflow-hidden rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-sm text-gray-800 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white"></textarea>
+                                class="min-h-10 w-full resize-none overflow-hidden rounded-lg border border-gray-300 bg-white px-3 py-2 text-center text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-white"></textarea>
                             <button type="button" id="scanSubmitBtn"
-                                class="flex-none rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-black hover:shadow active:scale-[0.98] dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
+                                class="flex-none rounded-lg bg-blue-600 h-10 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 hover:shadow active:scale-[0.98]">
                                 Check In
                             </button>
                             <button type="button" id="openQrScannerBtn" title="Scan with camera"
@@ -80,21 +74,20 @@
                         </div>
                     </div>
 
-                    <input type="text" id="searchName" placeholder="🔎 Search by name…"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                    <div class="relative w-full"><i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i><input type="text" id="searchName" placeholder="Search by name…" class="h-10 w-full rounded-full border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></div>
 
-                    <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+                    <div class="overflow-hidden rounded-xl border border-gray-100 shadow-sm dark:border-white/[0.06]">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                    <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                        <th class="py-2.5 px-4">Doc ID</th>
-                                        <th class="py-2.5 px-4">Name</th>
-                                        <th class="py-2.5 px-4">Company</th>
-                                        <th class="py-2.5 px-4">Department</th>
-                                        <th class="py-2.5 px-4">Time</th>
-                                        <th class="py-2.5 px-4">Status</th>
-                                        <th class="py-2.5 px-4">Late / Not Late</th>
+                                <thead class="bg-gray-50/70 dark:bg-white/[0.02]">
+                                    <tr class="text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+                                        <th class="px-4 py-3">Doc ID</th>
+                                        <th class="px-4 py-3">Name</th>
+                                        <th class="px-4 py-3">Company</th>
+                                        <th class="px-4 py-3">Department</th>
+                                        <th class="px-4 py-3">Time</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Late / Not Late</th>
                                     </tr>
                                 </thead>
                                 <tbody id="rosterBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -110,31 +103,25 @@
 
             {{-- Training Report (cross-event, ignores the Event picker above) --}}
             <div id="tab-report" class="tab-panel hidden space-y-3">
-                <div class="rounded-2xl border border-gray-200 bg-linear-to-br from-gray-50 to-indigo-50/30 p-4 dark:border-gray-700 dark:from-gray-800/40 dark:to-indigo-900/10">
+                <div class="rounded-xl border border-gray-100 bg-gray-50/60 p-4 dark:border-white/10 dark:bg-white/[0.02]">
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <div>
                             <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📅 From</label>
-                            <input type="date" id="reportDateFrom" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                            <input type="date" id="reportDateFrom" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         </div>
                         <div>
                             <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">📅 To</label>
-                            <input type="date" id="reportDateTo" class="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                            <input type="date" id="reportDateTo" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                         </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🎓 Training</label>
-                            <select id="reportTrainingSelect" class="reportSelect2 w-full">
+                        <div class="sppb-f relative self-end"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg></span><select id="reportTrainingSelect" class="reportSelect2">
                                 <option value="">All trainings</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">🏢 Company</label>
-                            <select id="reportCompanySelect" class="reportSelect2 w-full">
+                        <div class="sppb-f relative self-end"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span><select id="reportCompanySelect" class="reportSelect2">
                                 <option value="">All companies</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">👥 Department</label>
-                            <select id="reportDepartmentSelect" class="reportSelect2 w-full">
+                        <div class="sppb-f relative self-end"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span><select id="reportDepartmentSelect" class="reportSelect2">
                                 <option value="">All departments</option>
                             </select>
                         </div>
@@ -171,13 +158,12 @@
                 </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <input type="text" id="reportSearch" placeholder="🔎 Search employee by name…"
-                        class="w-full flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 sm:w-auto">
+                    <div class="relative w-full flex-1 sm:w-auto"><i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i><input type="text" id="reportSearch" placeholder="Search employee by name…" class="h-10 w-full rounded-full border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></div>
                     <div class="flex flex-none items-center gap-2">
                         <a id="reportExportBtn" href="#" class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 active:scale-[0.98] dark:border-gray-600 dark:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-900/20">⬇ Export</a>
                         <label class="flex flex-none items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
                             Show
-                            <select id="reportPerPage" class="min-w-17 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm font-semibold text-gray-700 shadow-sm focus:border-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                            <select id="reportPerPage" class="h-10 min-w-17 rounded-lg border border-gray-200 bg-white px-3 text-center text-sm font-semibold text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
                                 <option value="10">10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
@@ -188,18 +174,18 @@
                     </div>
                 </div>
 
-                <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700">
+                <div class="overflow-hidden rounded-xl border border-gray-100 shadow-sm dark:border-white/[0.06]">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                    <th class="py-2.5 px-4">NPK</th>
-                                    <th class="py-2.5 px-4">Name</th>
-                                    <th class="py-2.5 px-4">Company</th>
-                                    <th class="py-2.5 px-4">Department</th>
-                                    <th class="py-2.5 px-4">Trainings</th>
-                                    <th class="py-2.5 px-4">Total Stars</th>
-                                    <th class="py-2.5 px-4"></th>
+                            <thead class="bg-gray-50/70 dark:bg-white/[0.02]">
+                                <tr class="text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">
+                                    <th class="px-4 py-3">NPK</th>
+                                    <th class="px-4 py-3">Name</th>
+                                    <th class="px-4 py-3">Company</th>
+                                    <th class="px-4 py-3">Department</th>
+                                    <th class="px-4 py-3">Trainings</th>
+                                    <th class="px-4 py-3">Total Stars</th>
+                                    <th class="px-4 py-3"></th>
                                 </tr>
                             </thead>
                             <tbody id="reportEmployeeBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
@@ -245,6 +231,7 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
@@ -254,20 +241,6 @@
     <script src="{{ asset('assets/js/card-chart/bar-chart.js') }}?v={{ filemtime(public_path('assets/js/card-chart/bar-chart.js')) }}"></script>
     <script src="{{ asset('assets/js/card-chart/donut-chart.js') }}?v={{ filemtime(public_path('assets/js/card-chart/donut-chart.js')) }}"></script>
     <style>
-        .select2-container--default .select2-selection--single {
-            height: 34px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 2px 0;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            font-size: 13px;
-            line-height: 26px;
-            color: #111827;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 32px;
-        }
         .select2-container {
             width: 100% !important;
         }
@@ -303,8 +276,8 @@
         }
         .tabBtn.active {
             background: #ffffff;
-            color: #111827;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+            color: #1d4ed8;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.10);
         }
         .dark .tabBtn.active {
             background: #374151;
@@ -462,7 +435,7 @@
                 if ($select.data('select2')) {
                     $select.select2('destroy');
                 }
-                $select.select2({ width: '100%', minimumResultsForSearch: 0 });
+                $select.select2({ width: '100%', minimumResultsForSearch: 0, dropdownCssClass: 'sppb-s2-dropdown' });
 
                 if (prev && events.some((e) => String(e.id) === String(prev))) {
                     $select.val(prev).trigger('change.select2');
@@ -636,14 +609,14 @@
                         : '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">✅ Not Late</span>';
 
                 $body.append(`
-                    <tr class="rosterRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-id="${r.id}">
-                        <td class="py-2.5 px-4 font-mono text-xs text-gray-500 dark:text-gray-400">${r.docid}</td>
-                        <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">${timeHtml}</td>
-                        <td class="py-2.5 px-4">${statusHtml}</td>
-                        <td class="py-2.5 px-4">${lateHtml}</td>
+                    <tr class="rosterRow cursor-pointer transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]" data-id="${r.id}">
+                        <td class="px-4 py-3"><span class="inline-flex min-w-[130px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-regular fa-file-lines text-xs opacity-80"></i>${r.docid}</span></td>
+                        <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">${timeHtml}</td>
+                        <td class="px-4 py-3">${statusHtml}</td>
+                        <td class="px-4 py-3">${lateHtml}</td>
                     </tr>
                 `);
             });
@@ -1180,7 +1153,7 @@
                 const $dept = $('#reportDepartmentSelect');
                 (res.departments || []).forEach((d) => $dept.append(new Option(d.name, d.id)));
 
-                $('.reportSelect2').select2({ width: '100%', minimumResultsForSearch: 0 });
+                $('.reportSelect2').select2({ width: '100%', minimumResultsForSearch: 0, dropdownCssClass: 'sppb-s2-dropdown' });
             });
         }
 
@@ -1313,14 +1286,14 @@
 
             pageRows.forEach((r) => {
                 $body.append(`
-                    <tr class="reportEmployeeRow cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700/40" data-username="${r.username}">
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.npk ?? '-'}</td>
-                        <td class="py-2.5 px-4 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
-                        <td class="py-2.5 px-4 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
-                        <td class="py-2.5 px-4"><span class="metaBadge">🎓 ${r.sessions_count}</span></td>
-                        <td class="py-2.5 px-4"><span class="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">⭐ ${r.total_stars}</span></td>
-                        <td class="py-2.5 px-4 text-right text-xs font-semibold text-indigo-600 dark:text-indigo-400">View list →</td>
+                    <tr class="reportEmployeeRow cursor-pointer transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]" data-username="${r.username}">
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.npk ?? '-'}</td>
+                        <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
+                        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>
+                        <td class="px-4 py-3"><span class="metaBadge">🎓 ${r.sessions_count}</span></td>
+                        <td class="px-4 py-3"><span class="inline-flex items-center gap-1 text-sm font-semibold text-amber-500">⭐ ${r.total_stars}</span></td>
+                        <td class="px-4 py-3 text-right text-xs font-semibold text-indigo-600 dark:text-indigo-400">View list →</td>
                     </tr>
                 `);
             });
@@ -1399,4 +1372,13 @@
 
         loadEvents(false);
     </script>
+    <style>
+        /* ---- shared look: 40px blue Select2, flat event cards (no gradients) ---- */
+        .statCard { border-radius: 0.75rem; border-color: #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+        .eventStat { border-radius: 0.75rem; }
+        .eventStat--blue { background: #eff6ff; border-color: #bfdbfe; }
+        .eventStat--green { background: #f0fdf4; border-color: #bbf7d0; }
+        .eventStat--amber { background: #fffbeb; border-color: #fde68a; }
+        .eventProgressBar { background: #22c55e; }
+    </style>
 </x-app-layout>

@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     {{-- Select2 CDN --}}
     {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
@@ -10,48 +12,33 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Header + Filters --}}
-        <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <!-- TOP HEADER -->
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 sm:flex-row sm:items-center sm:justify-between dark:border-white/[0.06]">
-
-                <!-- Title -->
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Purchasing Assignment
-                </h2>
-
-                <!-- Filter -->
-                <div class="flex items-center gap-2">
-                    <div class="relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                            <i class="fas fa-file-alt text-xs"></i>
-                        </span>
-                        <select id="docFilter"
-                            class="min-w-[140px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                            <option value="">All Doc Type</option>
-                            <option value="SPPB">SPPB</option>
-                            <option value="SPPJ">SPPJ</option>
-                            <option value="SPPK">SPPK</option>
-                            <option value="SPPT">SPPT</option>
-                        </select>
-                    </div>
+            <x-list-page-header title="Purchasing Assignment" subtitle="Assign canvass jobs to purchasers or transfer them">
+                <div class="sppb-f relative w-44">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
+                    <select id="docFilter">
+                        <option value="">All Doc Type</option>
+                        <option value="SPPB">SPPB</option>
+                        <option value="SPPJ">SPPJ</option>
+                        <option value="SPPK">SPPK</option>
+                        <option value="SPPT">SPPT</option>
+                    </select>
                 </div>
-            </div>
+            </x-list-page-header>
 
             <!-- TABS + ACTION -->
-            <div class="flex flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
 
                 <!-- Tabs -->
-                <div class="flex gap-2">
+                <div class="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/5">
                     <button type="button" data-tab="assign"
-                        class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:border-gray-700">
+                        class="tab-btn rounded-md px-4 py-1.5 text-sm font-semibold transition">
                         Assign List
                     </button>
 
                     <button type="button" data-tab="transfer"
-                        class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-white dark:border-gray-700">
+                        class="tab-btn rounded-md px-4 py-1.5 text-sm font-semibold transition">
                         Transfer Jobs
                     </button>
                 </div>
@@ -59,18 +46,16 @@
                 <!-- Actions -->
                 <div class="flex gap-2">
                     <button id="btnAssignPurchasing"
-                        class="tab-action assign-action hidden rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                        Assign Purchasing
+                        class="tab-action assign-action hidden inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        <i class="fa-solid fa-plus mr-2 text-xs"></i>Assign Purchasing
                     </button>
 
                     <button id="btnTransferJobs"
-                        class="tab-action transfer-action hidden rounded-xl bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+                        class="tab-action transfer-action hidden inline-flex h-10 items-center rounded-lg bg-amber-500 px-5 text-sm font-medium text-white transition hover:bg-amber-600">
                         <i class="fas fa-exchange-alt pr-2"></i>Transfer Jobs
                     </button>
                 </div>
             </div>
-
-
 
             {{-- TAB: Assign List --}}
             <div id="tab-assign" class="relative overflow-hidden">
@@ -164,7 +149,7 @@
                 };
                 const base = map[row.doc_type] || '#';
                 const url = `/${base}/${row.eid}`;
-                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700  text-sm  font-semibold">${text}</a>`;
+                return `<a href="${url}" class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-regular fa-file-lines text-xs opacity-80"></i><span>${text}</span></a>`;
             }
 
             // Assign List datatable
@@ -432,6 +417,7 @@
             });
 
             // Filter change -> reload table aktif saja (biar lebih cepat)
+            $('#docFilter').select2({ width: '100%', minimumResultsForSearch: Infinity, dropdownCssClass: 'sppb-s2-dropdown' });
             $('#docFilter').on('change', function() {
                 docTypeFilter = $(this).val() || '';
                 if (activeTab === 'assign') table.ajax.reload(null, true);
@@ -443,12 +429,12 @@
 
                 // Tabs style
                 $('.tab-btn')
-                    .removeClass('bg-gray-900 text-white')
-                    .addClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-white');
+                    .removeClass('bg-blue-600 text-white shadow-sm')
+                    .addClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
 
                 $(`.tab-btn[data-tab="${tab}"]`)
-                    .addClass('bg-gray-900 text-white')
-                    .removeClass('bg-white dark:bg-gray-800 text-gray-700 dark:text-white');
+                    .addClass('bg-blue-600 text-white shadow-sm')
+                    .removeClass('text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white');
 
                 // Tab content
                 $('#tab-assign').toggleClass('hidden', tab !== 'assign');

@@ -640,11 +640,11 @@
         </div>
 
         {{-- Finance Action Modal (Progress Steps) --}}
-        <div id="rfpProgressActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
-                <h2 id="progressActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Action</h2>
+        <div id="rfpProgressActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                <h2 id="progressActionTitle" class="mb-4 border-b border-gray-100 pb-3 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Action</h2>
 
-                <div class="space-y-3 text-sm">
+                <div class="space-y-2 rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200 [&_strong]:mr-1 [&_strong]:text-[11px] [&_strong]:font-semibold [&_strong]:uppercase [&_strong]:tracking-wider [&_strong]:text-gray-500">
                     <div><strong>RFP ID:</strong> {{ $rfp->rfp_id }}</div>
                     <div><strong>Keperluan:</strong> {{ $rfp->keperluan ?: '-' }}</div>
                     <div><strong>Amount:</strong> Rp {{ number_format((float) $rfp->rfp_amount, 2, ',', '.') }}</div>
@@ -652,22 +652,22 @@
                     <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>
 
                     <div id="progressModalMessageWrapper" class="hidden">
-                        <label id="progressModalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                        <label id="progressModalMessageLabel" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             Message
                         </label>
                         <textarea id="progressModalMessage" rows="4"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             placeholder="Input message..."></textarea>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-2">
+                <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
                     <button type="button" id="closeProgressActionModal"
-                        class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                        class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         Cancel
                     </button>
                     <button type="button" id="submitProgressActionBtn"
-                        class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                        class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500">
                         Update
                     </button>
                 </div>
@@ -683,31 +683,31 @@
             </div>
         </div>
 
-        <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
-                <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+        <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                <h2 class="mb-4 border-b border-gray-100 pb-3 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Reject</h2>
+                <textarea id="rejectReason" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder="Enter rejection reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                    <button id="cancelRejectBtn" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         Cancel
                     </button>
-                    <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                    <button id="confirmRejectBtn" class="inline-flex h-10 items-center rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600">
                         Reject
                     </button>
                 </div>
             </div>
         </div>
 
-        <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
-                <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+        <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                <h2 class="mb-4 border-b border-gray-100 pb-3 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Revise Task</h2>
+                <textarea id="reviseReason" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     placeholder="Enter revise reason..."></textarea>
 
                 <div class="mt-4 flex justify-between">
-                    <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                    <button id="cancelReviseBtn" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         Cancel
                     </button>
                     <button id="confirmReviseBtn" class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">

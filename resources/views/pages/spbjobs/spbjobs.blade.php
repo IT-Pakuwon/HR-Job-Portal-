@@ -1,216 +1,33 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
-
-            {{-- 1. Issue New Jobs (TrSPB) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="issuejobsnew">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🆕</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB Open
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $issuejobsnew }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- 2. Issue Jobs (TrSPB) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="issuejobs">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                Issue Partial
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $issuejobs }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- 3. SPPB Jobs (TrSPB) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="onprogress">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📑</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPPB Jobs
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $sppbjobs }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- 4. Issue On Progress (TrIssue) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="issueprogress">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                Issue On Progress
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $issueprogress }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- 5. SPPB On Progress (TrIssue) --}}
-            {{-- <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="sppbprogress">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📌</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPPB On Progress
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $sppbprogress }}</p>
-                    </div>
-                </a>
-            </button> --}}
-
-            {{-- 6. SPB In Progress --}}
-            {{-- <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="spbprogress">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB On Progress
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $spbprogress }}</p>
-                    </div>
-                </a>
-            </button> --}}
-
-            {{-- 7. SPB All (Completed + On Progress) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="spball">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB Summary
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $spball }}</p>
-                    </div>
-                </a>
-            </button>
-
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="woflow">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-sky-700 bg-sky-200/20 p-3 text-sky-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-sky-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB by WO
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $woflow }}</p>
-                    </div>
-                </a>
-            </button>
-            <button type="button" class="text-left">
-                <a href="#" class="scope-filter group block h-full" data-scope="spbflow">
-                    <div
-                        class="scope-card flex items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔁</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB → SPPB
-                            </p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $spbflow }}</p>
-                    </div>
-                </a>
-            </button>
-        </div>
+        @php
+            $statusCards = [
+                [['data-scope' => 'issuejobsnew'], 'SPB Open', '🆕', 'blue', $issuejobsnew, false, null, 'scope-filter'],
+                [['data-scope' => 'issuejobs'], 'Issue Partial', '📦', 'purple', $issuejobs, false, null, 'scope-filter'],
+                [['data-scope' => 'onprogress'], 'SPPB Jobs', '📑', 'sky', $sppbjobs, false, null, 'scope-filter'],
+                [['data-scope' => 'issueprogress'], 'Issue On Progress', '⏳', 'yellow', $issueprogress, false, null, 'scope-filter'],
+                [['data-scope' => 'sppbprogress'], 'SPPB On Progress', '📌', 'yellow', $sppbprogress, false, null, 'scope-filter'],
+                [['data-scope' => 'spbprogress'], 'SPB On Progress', '📦', 'yellow', $spbprogress, false, null, 'scope-filter'],
+                [['data-scope' => 'spball'], 'SPB Summary', '📊', 'all', $spball, false, null, 'scope-filter'],
+                [['data-scope' => 'woflow'], 'SPB by WO', '🛠️', 'all', $woflow, false, null, 'scope-filter'],
+                [['data-scope' => 'spbflow'], 'SPB → SPPB', '🔁', 'purple', $spbflow, false, null, 'scope-filter'],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-
-                <h2 class="whitespace-nowrap text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Issue
-                </h2>
-
-                <div class="flex flex-wrap items-center gap-2">
-
-                    {{-- Date range group --}}
-                    <div class="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-700">
-                        <svg class="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <input type="date" id="dateFrom"
-                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
-                        <span class="text-xs text-gray-400">–</span>
-                        <input type="date" id="dateTo"
-                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
-                    </div>
-
-                    <button id="filterDate" type="button"
-                        class="flex items-center gap-1.5 rounded-lg border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V19l-4 2v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                        </svg>
-                        Filter
-                    </button>
-
-                    {{-- Reset --}}
-                    <button id="resetDate" type="button"
-                        class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        </svg>
-                        Reset
-                    </button>
-
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Issue" subtitle="SPB jobs, issues and SPPB flow" title-id="pageTitle">
+                <div class="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 shadow-sm dark:border-gray-600 dark:bg-gray-800">
+                    <i class="fa-regular fa-calendar text-xs text-gray-400"></i>
+                    <input type="date" id="dateFrom" class="w-32 border-0 bg-transparent p-0 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
+                    <span class="text-xs text-gray-400">–</span>
+                    <input type="date" id="dateTo" class="w-32 border-0 bg-transparent p-0 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
                 </div>
-            </div>
+                <button id="filterDate" type="button" class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500"><i class="fa-solid fa-filter text-xs"></i>Filter</button>
+                <button id="resetDate" type="button" class="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"><i class="fas fa-rotate-right text-xs"></i>Reset</button>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="issueTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -230,7 +47,7 @@
 
         $(function() {
             let scope = 'issuejobsnew';
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
             const $thead = $('#issueTable thead');
             const dtControlColumn = {
                 data: null,
@@ -286,53 +103,53 @@
         <th></th>
 
         ${!hideAction ? `
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 Action
                                 </th>` : ``}
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         SPB ID
         </th>
 
         ${isWoFlow ? `
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 WO ID
                                 </th>` : ``}
 
         ${isSpbFlow ? `
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 SPPB ID
                                 </th>` : ``}
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         SPB Date
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Company
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Department
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Keperluan
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Created By
         </th>
 
         ${isSpbAll ? `
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 Status SPB
                                 </th>
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 Status Issue
                                 </th>
                                 ` : !hideStatus ? `
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left font-medium">
                                 ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
                                 </th>` : ``}
         `;
@@ -346,31 +163,31 @@
                     return `
         <th></th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Issue ID
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Issue Date
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Issue Type
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         SPB ID
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Company
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Created By
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Status
         </th>
         `;
@@ -382,31 +199,31 @@
                 return `
         <th></th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         SPPB ID
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         SPPB Date
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Company
         </th>
 
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-center font-medium">
         Department
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Request Type
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Description
         </th>
 
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        <th class="px-4 py-3 text-left font-medium">
         Status
         </th>
         `;
@@ -424,9 +241,7 @@
                 return `
     <a href="${url}"
        target="_blank"
-       class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
-       ${label}
-    </a>
+       class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>
     `;
             }
 
@@ -436,7 +251,7 @@
                 if (!label) return '';
                 const url =
                     `/showsppbs/${encodeURIComponent(hash ?? '')}`; // sesuaikan dengan route detail SPPB-mu
-                return `<a href="${url}" target="_blank" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
             function renderIssueLinkCell(_value, _type, row) {
@@ -455,28 +270,28 @@
                 const isOwner = creator === (currentUser ?? '');
                 if (isRevise && isOwner) {
                     const url = `/editissues/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-amber-800 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${label}</span></a>`;
                 }
                 const url = `/showissue/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
             // function renderPlusCreate(row) {
             //     const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-            //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+            //     return `<a href="${url}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-sm font-bold text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90">
         //         <i class="fas fa-plus"></i>
         //     </a>`;
             // }
             function renderIssueCreate(row) {
                 const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+                return `<a href="${url}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-sm font-bold text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90">
                                                     <i class="fas fa-plus"></i>
                                                 </a>`;
             }
 
             function renderSppbCreate(row) {
                 const url = `{{ route('sppb.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
+                return `<a href="${url}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-100 bg-amber-50 text-sm font-bold text-amber-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-600 hover:bg-amber-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90">
                                                     <i class="fas fa-plus"></i>
                                                 </a>`;
             }
@@ -533,9 +348,7 @@
 
                                 return `<a href="/showwos/${encodeURIComponent(data)}"
                         target="_blank"
-                        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
-                        ${row.woid}
-                    </a>`;
+                        class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${row.woid}</span></a>`;
                             }
                         });
                     }
@@ -554,9 +367,7 @@
 
                                 return `<a href="/showsppbs/${encodeURIComponent(hash)}"
                         target="_blank"
-                        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                        ${data}
-                    </a>`;
+                        class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${data}</span></a>`;
                             }
                         });
                     }
@@ -594,32 +405,32 @@
                                     const map = {
                                         C: {
                                             t: 'Completed',
-                                            c: 'bg-green-200/60 text-green-800'
+                                            c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                         },
                                         P: {
                                             t: 'On Progress',
-                                            c: 'bg-orange-200/60 text-orange-800'
+                                            c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'
                                         },
                                         D: {
                                             t: 'Revise',
-                                            c: 'bg-gray-200/60 text-gray-700'
+                                            c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                         },
                                         X: {
                                             t: 'Cancel',
-                                            c: 'bg-red-200/60 text-red-800'
+                                            c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                         },
                                         R: {
                                             t: 'Rejected',
-                                            c: 'bg-red-200/60 text-red-800'
+                                            c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                         }
                                     };
 
                                     const it = map[data] ?? {
                                         t: data ?? '-',
-                                        c: 'bg-gray-200/60 text-gray-700'
+                                        c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                     };
 
-                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
+                                    return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                                 }
                             });
 
@@ -631,28 +442,28 @@
                                     const map = {
                                         Open: {
                                             t: 'Open',
-                                            c: 'bg-gray-200/60 text-gray-700'
+                                            c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                         },
                                         Partial: {
                                             t: 'Partial',
-                                            c: 'bg-amber-200/60 text-amber-800'
+                                            c: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30'
                                         },
                                         Completed: {
                                             t: 'Completed',
-                                            c: 'bg-green-200/60 text-green-800'
+                                            c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                         },
                                         Full: {
                                             t: 'Full',
-                                            c: 'bg-green-200/60 text-green-800'
+                                            c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                         }
                                     };
 
                                     const it = map[data] ?? {
                                         t: data ?? '-',
-                                        c: 'bg-gray-200/60 text-gray-700'
+                                        c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                     };
 
-                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
+                                    return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                                 }
                             });
 
@@ -665,23 +476,23 @@
                                     const map = {
                                         C: {
                                             t: 'Completed',
-                                            c: 'bg-green-200/60 text-green-800'
+                                            c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                         },
                                         P: {
                                             t: 'On Progress',
-                                            c: 'bg-orange-200/60 text-orange-800'
+                                            c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'
                                         },
                                         D: {
                                             t: 'Revise',
-                                            c: 'bg-gray-200/60 text-gray-700'
+                                            c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                         },
                                         X: {
                                             t: 'Cancel',
-                                            c: 'bg-red-200/60 text-red-800'
+                                            c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                         },
                                         R: {
                                             t: 'Rejected',
-                                            c: 'bg-red-200/60 text-red-800'
+                                            c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                         }
                                     };
 
@@ -703,10 +514,10 @@
 
                                     const it = map[statusValue] ?? {
                                         t: statusValue ?? '-',
-                                        c: 'bg-gray-200/60 text-gray-700'
+                                        c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                     };
 
-                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
+                                    return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                                 }
                             });
 
@@ -753,32 +564,32 @@
                                 const map = {
                                     D: {
                                         t: 'Revise',
-                                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                        c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                     },
                                     P: {
                                         t: 'On Progress',
-                                        c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
+                                        c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'
                                     },
                                     C: {
                                         t: 'Completed',
-                                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                        c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                     },
                                     X: {
                                         t: 'Cancel',
-                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                        c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                     },
                                     R: {
                                         t: 'Rejected',
-                                        c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                        c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                     }
                                 };
 
                                 const it = map[data] ?? {
                                     t: data ?? '-',
-                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                    c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                                 };
 
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                                return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                             }
                         }
                     ];
@@ -819,32 +630,32 @@
                             const map = {
                                 D: {
                                     t: 'Revise',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
+                                    c: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30'
                                 },
                                 P: {
                                     t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
+                                    c: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'
                                 },
                                 C: {
                                     t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                    c: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'
                                 },
                                 X: {
                                     t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                 },
                                 R: {
                                     t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    c: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30'
                                 }
                             };
 
                             const it = map[data] ?? {
                                 t: data ?? '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                c: 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30'
                             };
 
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return `<span class="inline-flex min-w-[116px] items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${it.c}">${it.t}</span>`;
                         }
                     }
                 ];
@@ -966,7 +777,7 @@
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
-                            text: '↓ Excel',
+                            text: '<i class="fa-solid fa-file-excel"></i> Excel',
                             title: 'SPB_Jobs',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
@@ -978,7 +789,7 @@
                         },
                         {
                             extend: 'csvHtml5',
-                            text: '↓ CSV',
+                            text: '<i class="fa-solid fa-file-csv"></i> CSV',
                             title: 'SPB_Jobs',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {

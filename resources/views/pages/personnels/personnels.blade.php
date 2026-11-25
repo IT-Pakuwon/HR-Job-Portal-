@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $isHcbp = auth()->user()->hasRole('HCBPACCESS');
         $isSby = ($group_cpny_id ?? '') === 'SBY';
@@ -16,296 +18,115 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         {{-- <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"> --}}
 
-            <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-{{ $xlCols }}">
-
-            {{-- All Status --}}
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </a>
-
-            {{-- On Progress --}}
-            <a href="#" class="status-filter group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </a>
-
-            {{-- Reject --}}
-            <a href="#" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Reject</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                </div>
-            </a>
-
-            {{-- Revise --}}
-            <a href="#" class="status-filter group block h-full" data-status="D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </a>
-
-            {{-- Draft --}}
-            @if($isSby)
-            <a href="#" class="status-filter group block h-full" data-status="H">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Draft</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
-                </div>
-            </a>
-            @endif
-
-            {{-- Completed --}}
-            <a href="#" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </a>
-
-            {{-- Cancel --}}
-            <a href="#" class="status-filter group block h-full" data-status="X">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚫</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Cancel</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $cancel }}</p>
-                </div>
-            </a>
-            @if($isHcbp)
-            <a href="#" class="status-filter group block h-full" data-hcbp="1">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">HCBP All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $hcbpAll }}</p>
-                </div>
-            </a>
-            @endif
-        </div>
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Personnel
-                    Requisition Form</h2>
-                <div class="flex flex-row items-center gap-2">
-                    @if(auth()->user()->hasRole('HCBPACCESS'))
-                    <div class="flex items-center gap-2" id="hcbpFilters" style="display:none;">
-
-                        <select id="filterStatus" class="border rounded px-3 py-2 text-sm">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="R">Reject</option>
-                            <option value="D">Revise</option>
-                            <option value="C">Completed</option>
-                            <option value="X">Cancel</option>
-                            @if($isSby)
-                            <option value="H">Draft</option>
-                            @endif
-                        </select>
-
-                        <select id="filterDept" class="border rounded px-3 py-2 text-sm">
-                            <option value="">All Department</option>
-                            @foreach($departments ?? [] as $dept)
-                                <option value="{{ $dept->department_id }}">{{ $dept->department_name }}</option>
+            @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, true],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'D'], 'Revise', '✏️', 'blue', $revise, false],
+            ];
+            if ($isSby) {
+                $statusCards[] = [['data-status' => 'H'], 'Draft', '📝', 'pink', $draft, false];
+            }
+            $statusCards[] = [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false];
+            $statusCards[] = [['data-status' => 'X'], 'Cancel', '🚫', 'red', $cancel, false];
+            if ($isHcbp) {
+                $statusCards[] = [['data-hcbp' => '1'], 'HCBP All', '🌐', 'purple', $hcbpAll, false];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            @php $hasAllDeptAccessFlag = $hasAllDeptAccess ?? false; @endphp
+            <x-list-page-header title="Personnel Requisition Form" subtitle="Create, track and manage personnel requisitions" :create-url="url('/createpersonnels')">
+            <div id="allDeptFilterWrap" class="{{ ($hasAllDeptAccessFlag) ? '' : 'hidden' }}">
+                <div class="flex flex-wrap items-center gap-3">
+                    @if($hasAllDeptAccessFlag)
+                    <div class="sppb-f relative w-full sm:w-48">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                        <select id="filterCompanyAllDept">
+                            <option value="">All Company</option>
+                            @foreach($filterCompanies as $company)
+                                <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
                             @endforeach
                         </select>
-
-                        {{-- APPLY --}}
-                        <button id="applyFilter"
-                            class="bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700">
-                            Apply
-                        </button>
-
-                        {{-- RESET --}}
-                        <button id="resetFilter"
-                            class="bg-gray-500 text-white px-3 py-2 rounded text-sm hover:bg-gray-600">
-                            Reset
-                        </button>
-
+                    </div>
+                    <div class="sppb-f relative w-full sm:w-48">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                        <select id="filterDivisionAllDept">
+                            <option value="">All Division</option>
+                            @foreach($filterDivisions as $division)
+                                <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="sppb-f relative w-full sm:w-48">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                        <select id="filterDepartmentAllDept">
+                            <option value="">All Department</option>
+                            @foreach($filterDepartments as $department)
+                                <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     @endif
-                    <a href="{{ url('/createpersonnels') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-            </div>
-
-            @php $hasAllDeptAccessFlag = $hasAllDeptAccess ?? false; @endphp
-            <div id="allDeptFilterWrap" class="pill-filter-bar {{ $hasAllDeptAccessFlag ? '' : 'hidden' }} border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
-                <div class="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-slate-50/60 shadow-sm sm:flex-row sm:items-stretch dark:border-slate-700/60 dark:bg-slate-800/40">
-                    <div class="flex flex-1 flex-wrap items-stretch divide-y divide-slate-200 sm:flex-nowrap sm:divide-x sm:divide-y-0 dark:divide-slate-700/60">
-                        @if($hasAllDeptAccessFlag)
-                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
-                            <svg class="h-4 w-4 shrink-0 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                            </svg>
-                            <select id="filterCompanyAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                <option value="">All Company</option>
-                                @foreach($filterCompanies as $company)
-                                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
-                            <svg class="h-4 w-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <select id="filterDivisionAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                <option value="">All Division</option>
-                                @foreach($filterDivisions as $division)
-                                    <option value="{{ $division->division_id }}">{{ $division->division_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="flex flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
-                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                            </svg>
-                            <select id="filterDepartmentAllDept" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                <option value="">All Department</option>
-                                @foreach($filterDepartments as $department)
-                                    <option value="{{ $department->department_id }}" data-division="{{ $department->division_id }}">{{ $department->department_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
-                        {{-- Job Posting Status — only relevant (and shown) while the Completed tab is active --}}
-                        <div id="jobPostingStatusSegment" class="hidden flex-1 min-w-[180px] items-center gap-2 px-3 py-2">
-                            <svg class="h-4 w-4 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <select id="filterJobPostingStatus" class="w-full min-w-0 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                <option value="">All Job Posting Status</option>
-                                <option value="P">Posted</option>
-                                <option value="C">Closed</option>
-                                <option value="U">Unposted</option>
-                                <option value="H">Hold</option>
-                                <option value="X">Cancelled</option>
-                                <option value="NOTPOSTED">Not Posted</option>
-                            </select>
-                        </div>
+                    {{-- Job Posting Status - only relevant (and shown) while the Completed tab is active --}}
+                    <div id="jobPostingStatusSegment" class="sppb-f relative w-full sm:w-48">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                        <select id="filterJobPostingStatus">
+                            <option value="">All Job Posting Status</option>
+                            <option value="P">Posted</option>
+                            <option value="C">Closed</option>
+                            <option value="U">Unposted</option>
+                            <option value="H">Hold</option>
+                            <option value="X">Cancelled</option>
+                            <option value="NOTPOSTED">Not Posted</option>
+                        </select>
                     </div>
-                    <div class="flex items-center justify-end border-t border-slate-200 px-2 py-2 sm:border-l sm:border-t-0 dark:border-slate-700/60">
-                        <button type="button" id="resetAllDeptFilters"
-                            class="flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700/60 dark:hover:text-slate-200">
-                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
-                            </svg>
-                            Reset
+                    <button type="button" id="resetAllDeptFilters"
+                        class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        <i class="fas fa-rotate-right mr-2 text-xs"></i>Reset
+                    </button>
+                </div>
+            </div>
+                @if(auth()->user()->hasRole('HCBPACCESS'))
+                    <div class="flex flex-wrap items-center gap-2" id="hcbpFilters" style="display:none;">
+                        <div class="sppb-f relative w-44">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                            <select id="filterStatus">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="R">Reject</option>
+                                <option value="D">Revise</option>
+                                <option value="C">Completed</option>
+                                <option value="X">Cancel</option>
+                                @if($isSby)
+                                <option value="H">Draft</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="sppb-f relative w-56">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                            <select id="filterDept">
+                                <option value="">All Department</option>
+                                @foreach($departments ?? [] as $dept)
+                                    <option value="{{ $dept->department_id }}">{{ $dept->department_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button id="applyFilter" type="button"
+                            class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-md active:translate-y-0">
+                            Apply
+                        </button>
+                        <button id="resetFilter" type="button"
+                            class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <i class="fas fa-rotate-right mr-2 text-xs"></i>Reset
                         </button>
                     </div>
-                </div>
-            </div>
+                @endif
+            </x-list-page-header>
 
             <style>
-                #jobPostingStatusSegment { display: flex; }
                 #jobPostingStatusSegment.hidden { display: none; }
-                .pill-filter-bar .select2-container { width: 100% !important; }
-                .pill-filter-bar .select2-selection--single {
-                    height: 28px; display: flex; align-items: center;
-                    border: none !important; background: transparent !important;
-                    padding: 0 1.25rem 0 0; font-size: 0.75rem;
-                }
-                .pill-filter-bar .select2-container--open .select2-selection--single { box-shadow: none; }
-                .pill-filter-bar .select2-selection__rendered {
-                    padding: 0; line-height: 28px; color: #334155; font-weight: 600;
-                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                }
-                .pill-filter-bar .select2-selection__arrow { height: 28px; right: 0; }
-                .pill-filter-bar .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
-                .pill-filter-bar .select2-selection--single .select2-selection__clear {
-                    position: absolute !important; right: 18px !important;
-                    top: 50% !important; transform: translateY(-50%) !important;
-                    margin: 0 !important; font-size: 15px !important;
-                    font-weight: 400 !important; color: #94a3b8 !important;
-                    z-index: 1;
-                }
-                .pill-filter-bar .select2-selection--single .select2-selection__clear:hover { color: #ef4444 !important; }
-                .pill-filter-bar .select2-dropdown {
-                    border-radius: 0.75rem; border: 1px solid #e2e8f0;
-                    overflow: hidden; margin-top: 4px;
-                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
-                }
-                .pill-filter-bar .select2-search__field {
-                    border-radius: 0.5rem; border: 1px solid #e2e8f0;
-                    padding: 0.375rem 0.5rem; font-size: 0.75rem; outline: none;
-                }
-                .pill-filter-bar .select2-search__field:focus {
-                    border-color: #56b1f3; box-shadow: 0 0 0 3px rgba(86, 177, 243,0.12);
-                }
-                .pill-filter-bar .select2-results__option { font-size: 0.75rem; padding: 0.5rem 0.75rem; transition: background .1s; }
-                .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #e3f3ff; color: #1c71ae; }
-                .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #d1ecff; color: #124d79; font-weight: 600; }
-
-                .dark .pill-filter-bar .select2-selection__rendered { color: #e2e8f0; }
-                .dark .pill-filter-bar .select2-selection__arrow b { border-color: #64748b transparent transparent transparent; }
-                .dark .pill-filter-bar .select2-dropdown { background-color: #1e293b; border-color: #475569; }
-                .dark .pill-filter-bar .select2-search__field { background-color: #334155; border-color: #475569; color: #e2e8f0; }
-                .dark .pill-filter-bar .select2-results__option { color: #e2e8f0; }
-                .dark .pill-filter-bar .select2-results__option--highlighted[aria-selected] { background-color: #1c71ae; color: #fff; }
-                .dark .pill-filter-bar .select2-results__option[aria-selected="true"] { background-color: #124d79; color: #fff; }
-                .dark .pill-filter-bar .select2-search__field:focus { border-color: #56b1f3; }
             </style>
 
             <div class="relative overflow-hidden">
@@ -358,6 +179,10 @@
         var currentUser = "{{ auth()->user()->username }}";
         var personnelsTable;
         $(document).ready(function() {
+            // HCBP header dropdowns use the shared Select2 skin
+            $('#filterStatus, #filterDept').each(function() {
+                $(this).select2({ width: '100%', minimumResultsForSearch: this.id === 'filterStatus' ? Infinity : 8, dropdownCssClass: 'sppb-s2-dropdown' });
+            });
             const hasAllDeptAccess = @json($hasAllDeptAccess ?? false);
 
             function appendAllDeptFilters(url) {
@@ -391,8 +216,7 @@
             $('#filterJobPostingStatus').select2({
                 placeholder: 'All Job Posting Status',
                 width: '100%',
-                allowClear: true,
-                dropdownParent: $('#allDeptFilterWrap')
+                dropdownCssClass: 'sppb-s2-dropdown'
             });
             $('#filterJobPostingStatus').on('change', reloadAllDeptFilters);
 
@@ -411,20 +235,17 @@
                 $('#filterCompanyAllDept').select2({
                     placeholder: 'All Company',
                     width: '100%',
-                    allowClear: true,
-                    dropdownParent: $('#allDeptFilterWrap')
+                    dropdownCssClass: 'sppb-s2-dropdown'
                 });
                 $('#filterDivisionAllDept').select2({
                     placeholder: 'All Division',
                     width: '100%',
-                    allowClear: true,
-                    dropdownParent: $('#allDeptFilterWrap')
+                    dropdownCssClass: 'sppb-s2-dropdown'
                 });
                 $('#filterDepartmentAllDept').select2({
                     placeholder: 'All Department',
                     width: '100%',
-                    allowClear: true,
-                    dropdownParent: $('#allDeptFilterWrap')
+                    dropdownCssClass: 'sppb-s2-dropdown'
                 });
 
                 // cache the full, group-scoped department list once so the division
@@ -501,7 +322,7 @@
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'list_PO',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -513,7 +334,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'list_PO',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -570,7 +391,7 @@
                             const showUrl = `/showpersonnels/${row.eid}`;
                             let mainUrl = showUrl;
                             let buttonClass =
-                                'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700';
+                                'group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white';
                             const buttonText = row.docid;
 
                             const isReviseOwner = (row.status === 'D' || row.status === 'H') && row.created_user === currentUser;
@@ -578,12 +399,12 @@
                             if (isReviseOwner) {
                                 mainUrl = `/editpersonnels/${row.eid}`;
                                 buttonClass =
-                                    'inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-yellow-500 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-yellow-700';
+                                    'group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-amber-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300';
                             }
 
                             const canCopyTemplate = row.status === 'C' && row.group_cpny_id === 'SBY';
                             const copyBtnHtml = canCopyTemplate ? `
-                                <button type="button" class="copyTemplateBtn inline-flex h-9 w-9 items-center justify-center rounded bg-teal-500 text-white transition-colors duration-200 hover:bg-teal-600"
+                                <button type="button" class="copyTemplateBtn inline-flex h-8 w-8 items-center justify-center rounded-md border border-teal-100 bg-teal-50 text-teal-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90"
                                     title="Copy Template" data-eid="${row.eid}">
                                     <i class="fas fa-copy text-sm"></i>
                                 </button>
@@ -592,12 +413,10 @@
                             if (isReviseOwner) {
                                 return `
                                     <div class="flex items-center gap-2">
-                                        <a href="${mainUrl}" class="${buttonClass}">
-                                            ${buttonText}
-                                        </a>
+                                        <a href="${mainUrl}" class="${buttonClass}" title="${isReviseOwner ? 'Edit' : 'Open'}"><span class="text-xs opacity-80"><i class="${isReviseOwner ? 'fa-solid fa-pen text-[10px]' : 'fa-regular fa-file-lines'}"></i></span><span>${buttonText}</span></a>
 
                                         <a href="${showUrl}"
-                                        class="inline-flex h-9 w-9 items-center justify-center rounded bg-sky-500 text-white transition-colors duration-200 hover:bg-sky-600"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90"
                                         title="View">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
@@ -608,9 +427,7 @@
 
                             return `
                                 <div class="flex items-center gap-2">
-                                    <a href="${mainUrl}" class="${buttonClass}">
-                                        ${buttonText}
-                                    </a>
+                                    <a href="${mainUrl}" class="${buttonClass}" title="Open"><span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${buttonText}</span></a>
                                     ${copyBtnHtml}
                                 </div>
                             `;
@@ -667,40 +484,7 @@
                         data: 'status',
                         className: 'no-pointer',
                         render: function(data) {
-                            let statusText = "";
-                            let badgeClass = "";
-
-                            if (data === 'D') {
-                                statusText = "Revise";
-                                badgeClass =
-                                    "w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'P') {
-                                statusText = "On Progress";
-                                badgeClass =
-                                    "w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'C') {
-                                statusText = "Completed";
-                                badgeClass =
-                                    "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'H') {
-                                statusText = "Draft";
-                                badgeClass =
-                                    "w-32 bg-slate-200/60 text-slate-800 dark:bg-slate-300/40 dark:text-slate-900 pointer-events-none border border-slate-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'X') {
-                                statusText = "Cancel";
-                                badgeClass =
-                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'R') {
-                                statusText = "Rejected";
-                                badgeClass =
-                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else {
-                                statusText = data ?? "-";
-                                badgeClass =
-                                    "w-32 bg-gray-200/60 text-gray-700 dark:bg-gray-300/40 dark:text-gray-900 pointer-events-none border border-gray-500/40 font-semibold px-4 py-2 text-center rounded";
-                            }
-
-                            return `<span class="${badgeClass}">${statusText}</span>`;
+                            return sppStatusBadge(data);
                         }
                     },
                     {
@@ -712,32 +496,32 @@
 
                            if (!data) {
                                 text = 'Not Posted';
-                                cls = 'bg-gray-200 text-gray-700';
+                                cls = 'bg-slate-50 text-slate-600 ring-slate-200';
                             } else if (data === 'U') {
                                 text = 'Unposted';
-                                cls = 'bg-gray-200 text-gray-600';
+                                cls = 'bg-slate-50 text-slate-600 ring-slate-200';
                             } else if (data === 'P') {
                                 text = 'Posted';
-                                cls = 'bg-blue-200 text-blue-800';
+                                cls = 'bg-blue-50 text-blue-700 ring-blue-200';
                             } else if (data === 'C') {
                                 text = 'Closed';
-                                cls = 'bg-green-200 text-green-800';
+                                cls = 'bg-green-50 text-green-700 ring-green-200';
                             } else if (data === 'X') {
                                 text = 'Cancelled';
-                                cls = 'bg-red-200 text-red-800';
+                                cls = 'bg-rose-50 text-rose-700 ring-rose-200';
                             } else if (data === 'H') {
                                 text = 'Hold';
-                                cls = 'bg-orange-200 text-orange-800';
+                                cls = 'bg-orange-50 text-orange-700 ring-orange-200';
                                 const reason = row.jobposting_reason ?? null;
                                 const reasonIcon = reason
                                     ? ` <span class="jp-reason-icon cursor-pointer ml-1 align-middle" title="${reason}" data-reason="${reason}">ℹ️</span>`
                                     : '';
-                                return `<span class="px-2 py-1 rounded ${cls}">${text}${reasonIcon}</span>`;
+                                return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${cls}">${text}${reasonIcon}</span>`;
                             } else {
                                 text = data;
-                                cls = 'bg-gray-200 text-gray-700';
+                                cls = 'bg-slate-50 text-slate-600 ring-slate-200';
                             }
-                            return `<span class="px-2 py-1 rounded ${cls}">${text}</span>`;
+                            return `<span class="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${cls}">${text}</span>`;
                         }
                     },
                     {
@@ -1003,6 +787,8 @@
             // Filter status akan memfilter data di personnelsTable
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
+                $('.status-filter').removeClass('active');
+                $(this).addClass('active');
 
                 let selectedStatus = $(this).data('status');
                 let isHcbp = $(this).data('hcbp');
@@ -1054,8 +840,8 @@
 
             $('#resetFilter').on('click', function() {
 
-                $('#filterStatus').val('');
-                $('#filterDept').val('');
+                $('#filterStatus').val('').trigger('change.select2');
+                $('#filterDept').val('').trigger('change.select2');
 
                 setJobPostingFilterVisible('');
 

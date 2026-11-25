@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-list-styles />
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
@@ -31,7 +32,7 @@
 
         /* Filter panel — make select2 fields look like the bordered text inputs beside them */
         select.app-filter-field + .select2-container .select2-selection--single {
-            height: 38px; display: flex; align-items: center;
+            height: 40px; display: flex; align-items: center;
             border-radius: 0.5rem; border: 1px solid #e2e8f0 !important;
             background-color: #fff; padding: 0 1.75rem 0 0.75rem;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -43,7 +44,7 @@
         select.app-filter-field + .select2-container .select2-selection__rendered {
             padding: 0; line-height: 1; color: #334155; font-size: 0.875rem;
         }
-        select.app-filter-field + .select2-container .select2-selection__arrow { height: 38px; right: 8px; }
+        select.app-filter-field + .select2-container .select2-selection__arrow { height: 40px; right: 8px; }
         select.app-filter-field + .select2-container .select2-selection__placeholder { color: #94a3b8; }
 
         .dark select.app-filter-field + .select2-container .select2-selection--single {
@@ -76,89 +77,19 @@
     <div class="max-w-9xl mx-auto p-2">
 
         {{-- Filter Cards --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-8">
-
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="is_read_N">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Unchecked</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $unchecked }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="is_read_Y">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Checked</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $checked }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="R">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✕</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Rejected</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="mapping">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔗</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Mapping</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $mapped }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="unmapping">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔓</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Unmapping</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $unmapped }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="tagged">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-fuchsia-700 bg-fuchsia-200/20 p-3 text-fuchsia-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-fuchsia-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏷️</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Tagged</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $tagged }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="untagged">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔖</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Untagged</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ $untagged }}</p>
-                </div>
-            </a>
-
-        </div>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, true],
+                [['data-status' => 'is_read_N'], 'Unchecked', '⏳', 'blue', $unchecked, false],
+                [['data-status' => 'is_read_Y'], 'Checked', '✏️', 'all', $checked, false],
+                [['data-status' => 'R'], 'Rejected', '✕', 'red', $reject, false],
+                [['data-status' => 'mapping'], 'Mapping', '🔗', 'purple', $mapped, false],
+                [['data-status' => 'unmapping'], 'Unmapping', '🔓', 'pink', $unmapped, false],
+                [['data-status' => 'tagged'], 'Tagged', '🏷️', 'sky', $tagged, false],
+                [['data-status' => 'untagged'], 'Untagged', '🔖', 'yellow', $untagged, false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         <div id="applicantFiltersCard"
             class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
@@ -185,7 +116,7 @@
                 {{-- Division / Department Filter --}}
                 <div class="mb-3 flex flex-col gap-3 sm:flex-row">
                     <div class="flex-1">
-                        <label for="filterDivision" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Division</label>
+                        <label for="filterDivision" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">Division</label>
                         <select id="filterDivision" class="app-filter-field w-full" style="width:100%">
                             <option value="">Filter by Division</option>
                             @foreach($divisions as $div)
@@ -194,7 +125,7 @@
                         </select>
                     </div>
                     <div class="flex-1">
-                        <label for="filterDepartment" class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Department</label>
+                        <label for="filterDepartment" class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">Department</label>
                         <select id="filterDepartment" class="app-filter-field w-full" style="width:100%">
                             <option value="">Filter by Department</option>
                         </select>
@@ -207,14 +138,10 @@
         </div>
 
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Self Register
-                    Applicant</h2>
-            </div>
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Self Register Applicant" subtitle="Applicants who registered themselves - check, map and tag them" />
 
-            <div class="relative mt-4 overflow-hidden">
+            <div class="relative overflow-hidden">
                 <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -488,11 +415,11 @@
             ];
 
             const $filters = $('#applicantsFilters');
-            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
+            const filterFieldClass = 'app-filter-field w-full rounded-lg border border-slate-200 bg-white h-10 px-3 text-sm shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
 
             columnFilters.forEach(col => {
                 const $wrap = $(`<div class="flex flex-col gap-1 ${col.span || 'flex-1 min-w-[140px]'}"></div>`);
-                $wrap.append(`<label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${col.placeholder}</label>`);
+                $wrap.append(`<label class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">${col.placeholder}</label>`);
 
                 const $el = $(`
                     <input type="text"
@@ -553,7 +480,7 @@
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'Applicant_List',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -565,7 +492,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'Applicant_List',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -606,10 +533,7 @@
                         data: 'docid',
                         name: 'docid',
                         render: function(data, type, row) {
-                            return `<a href="/showselfregister/${row.eid}" target="_blank"
-                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded  bg-gray-600 hover:bg-gray-700 ">
-                                ${data}
-                            </a>`;
+                            return `<a href="/showselfregister/${row.eid}" target="_blank" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white" title="Open"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${data}</span></a>`;
                         }
                     },
                     {

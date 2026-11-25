@@ -473,32 +473,32 @@
         </div>
     </div>
 
-    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
-            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+    <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+            <h2 class="mb-4 border-b border-gray-100 pb-3 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Reject</h2>
+            <textarea id="rejectReason" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
             <div class="mt-4 flex justify-between">
-                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                <button id="cancelRejectBtn" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                     Cancel
                 </button>
-                <button id="confirmRejectBtn" class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600">
+                <button id="confirmRejectBtn" class="inline-flex h-10 items-center rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600">
                     Reject
                 </button>
             </div>
         </div>
     </div>
-    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
-            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+    <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+            <h2 class="mb-4 border-b border-gray-100 pb-3 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Revise Task</h2>
+            <textarea id="reviseReason" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
             <div class="mt-4 flex justify-between">
-                <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                <button id="cancelReviseBtn" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500">
                     Revise
                 </button>
             </div>

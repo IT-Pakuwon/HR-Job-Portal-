@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-wh-form-styles />
     @php
         $isEditMode = ($formMode ?? 'create') === 'edit';
         $isKontrak = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK';
@@ -85,10 +86,10 @@
     <div class="max-w-9xl mx-auto w-full p-2">        
         <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <main class="flex flex-col gap-6 xl:col-span-8">
-                <section class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                    <header class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">
-                            <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <header class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
+                            <span class="mr-2 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
                                 {{ $pageTitle }}
                             </span>
                             {{ $rfp->rfp_id }}
@@ -119,7 +120,7 @@
                         </div>
 
                         @if ($showIrNote || $showPurpose)
-                            <div class="mt-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
                                 <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
                                     {{ $showIrNote ? 'IR Note' : 'Purpose' }}
                                 </div>
@@ -134,8 +135,8 @@
 
             <aside class="xl:col-span-4">
                 <div class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                    <header class="border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                    <header class="border-b border-gray-100 px-5 py-4 dark:border-gray-700">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
                             Attachment
                         </h2>
                     </header>
@@ -144,7 +145,7 @@
                         <div class="space-y-3">
                             @forelse ($stagingAttachments as $attachment)
                                 <a href="{{ $attachment->url ?: '#' }}" target="_blank"
-                                    class="block rounded-lg border border-gray-200 p-3 text-sm transition hover:border-indigo-300 hover:bg-indigo-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                    class="block rounded-xl border border-gray-100 p-3 text-sm transition hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-700 dark:hover:bg-gray-700">
                                     <div class="font-semibold text-gray-800 dark:text-gray-100">
                                         {{ $attachment->display_name ?: '-' }}
                                     </div>                                    
@@ -163,38 +164,38 @@
                 @csrf
                 <input type="hidden" name="cpnyid" value="{{ $rfp->cpny_id }}">
                 @if ($isKontrak)
-                <section class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                    <header class="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-700 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <header class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
                             Detail Kontrak Budget
                         </h2>
                         <div class="flex flex-wrap items-center gap-2">
-                            <span id="budgetRowCount" class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
+                            <span id="budgetRowCount" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
                                 {{ $budgets->count() }} row
                             </span>
                             <button type="button" id="addKontrakBudget"
-                                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span class="text-base leading-none">+</span>
                                 Add Budget
                             </button>
                         </div>
                     </header>
 
-                    <div class="overflow-x-auto p-4">
+                    <div class="overflow-x-auto p-4"><div class="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
                         <table class="min-w-[1300px] w-full text-left text-sm">
-                            <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                            <thead class="border-b border-gray-100 bg-gray-50/70 dark:border-white/[0.06] dark:bg-white/[0.02]">
                                 <tr>
-                                    <th class="p-3">No</th>
-                                    <th class="p-3">Perpost</th>
-                                    <th class="p-3">Budget Company</th>
-                                    <th class="p-3">Business Unit</th>
-                                    <th class="p-3">Department Fin</th>
-                                    <th class="p-3">Account</th>
-                                    <th class="p-3">Activity</th>
-                                    <th class="p-3">Activity Description</th>
-                                    <th class="p-3 text-right">Amount</th>
-                                    <th class="p-3 text-right">Remaining Budget</th>
-                                    <th class="p-3 text-center">Action</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">No</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Perpost</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Budget Company</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Business Unit</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Department Fin</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Account</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Activity</th>
+                                    <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Activity Description</th>
+                                    <th class="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Amount</th>
+                                    <th class="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Remaining Budget</th>
+                                    <th class="px-4 py-3 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="kontrakBudgetTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -204,47 +205,45 @@
                                         $amountBudget = (float) ($rfp->rfp_base_amount ?? 0);
                                     @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                        <td class="budget-row-no p-3">{{ $i + 1 }}</td>
-                                        <td class="p-3">
+                                        <td class="budget-row-no px-4 py-3">{{ $i + 1 }}</td>
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_perpost ?: '-' }}
                                             <input type="hidden" name="budget_perpost[]" value="{{ $budget->budget_perpost }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_cpny_id ?: '-' }}
                                             <input type="hidden" name="budget_cpny_id[]" value="{{ $budget->budget_cpny_id }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_business_unit_id ?: '-' }}
                                             <input type="hidden" name="budget_business_unit_id[]" value="{{ $budget->budget_business_unit_id }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_department_fin_id ?: '-' }}
                                             <input type="hidden" name="budget_department_fin_id[]" value="{{ $budget->budget_department_fin_id }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_account_id ?: '-' }}
                                             <input type="hidden" name="budget_account_id[]" value="{{ $budget->budget_account_id }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_activity_id ?: '-' }}
                                             <input type="hidden" name="budget_activity_id[]" value="{{ $budget->budget_activity_id }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             {{ $budget->budget_activity_descr ?: '-' }}
                                             <input type="hidden" name="budget_activity_descr[]" value="{{ $budget->budget_activity_descr }}">
                                         </td>
-                                        <td class="p-3">
+                                        <td class="px-4 py-3">
                                             <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="{{ number_format($amountBudget, 2, ',', '.') }}"
-                                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                                class="budget-amount-input wh-qty w-44!">
                                         </td>
-                                        <td class="p-3 text-right">
+                                        <td class="px-4 py-3 text-right">
                                             {{ $formatMoney($remainingBudget) }}
                                         </td>
-                                        <td class="p-3 text-center">
+                                        <td class="px-4 py-3 text-center">
                                             <button type="button"
-                                                class="deleteKontrakBudgetRow rounded border border-red-500 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50">
-                                                Delete
-                                            </button>
+                                                class="deleteKontrakBudgetRow inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90" title="Delete row"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                         </td>
                                     </tr>
                                 @empty
@@ -256,15 +255,15 @@
                                 @endforelse
                             </tbody>
                         </table>
-                    </div>
+                    </div></div>
 
-                    <div class="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
+                    <div class="flex items-center justify-between border-t border-gray-100 p-4 dark:border-gray-700">
                         <button type="button" id="cancelRfpBtn"
-                            class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                             Cancel RFP
                         </button>
                         <button type="submit" id="submitBtn"
-                            class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <span id="btnText">Submit Approval</span>
                             <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -276,14 +275,14 @@
                     </div>
                 </section>
                 @else
-                    <section class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
+                    <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div class="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
                             <button type="button" id="cancelRfpBtn"
-                                class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                 Cancel RFP
                             </button>
                             <button type="submit" id="submitBtn"
-                                class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -299,22 +298,20 @@
         </div>
 
         @if ($isKontrak)
-        <div id="kontrakBudgetModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-            <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
-                    <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
+        <div id="kontrakBudgetModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                <div class="mb-4 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Budget</h3>
                     <button type="button" id="closeKontrakBudgetModal"
-                        class="rounded px-3 py-1 text-xl leading-none hover:bg-gray-100 dark:hover:bg-gray-700">
-                        &times;
-                    </button>
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
 
                 <div class="mb-3 flex flex-col gap-2 text-sm md:flex-row md:items-center">
                     <div class="flex items-center gap-2">
                         <input id="kontrakBudgetSearch" type="text" placeholder="Search code/name..."
-                            class="w-64 rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            class="h-10 w-64 rounded-full border border-gray-200 bg-white px-4 text-sm text-gray-700 shadow-sm placeholder:text-gray-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                         <button id="kontrakBudgetRefresh" type="button"
-                            class="rounded border px-3 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                             &#8635;
                         </button>
                     </div>
@@ -325,14 +322,14 @@
 
                 <div class="max-h-[60vh] overflow-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="sticky top-0 bg-gray-50 text-gray-600 dark:bg-gray-900 dark:text-gray-300">
+                        <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                             <tr>
-                                <th class="border p-2 dark:border-gray-700">Account ID</th>
-                                <th class="border p-2 dark:border-gray-700">Account Descr</th>
-                                <th class="border p-2 dark:border-gray-700">Activity</th>
-                                <th class="border p-2 dark:border-gray-700">Budget Descr</th>
-                                <th class="border p-2 dark:border-gray-700">Remaining Budget</th>
-                                <th class="w-24 border p-2 text-center dark:border-gray-700">Action</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Account ID</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Account Descr</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Activity</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Budget Descr</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Remaining Budget</th>
+                                <th class="w-24 px-4 py-3 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Action</th>
                             </tr>
                         </thead>
                         <tbody id="kontrakBudgetLookupBody"></tbody>
@@ -342,8 +339,8 @@
                 <div class="mt-3 flex items-center justify-between text-sm">
                     <span id="kontrakBudgetCount" class="opacity-80"></span>
                     <div class="space-x-2">
-                        <button id="kontrakBudgetPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                        <button id="kontrakBudgetNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                        <button id="kontrakBudgetPrev" type="button" class="inline-flex h-9 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
+                        <button id="kontrakBudgetNext" type="button" class="inline-flex h-9 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                     </div>
                 </div>
             </div>
@@ -510,18 +507,18 @@
 
                         return `
                             <tr>
-                                <td class="border p-2 dark:border-gray-700">${escapeHtml(id)}</td>
-                                <td class="border p-2 dark:border-gray-700">${escapeHtml(accDescr)}</td>
-                                <td class="border p-2 dark:border-gray-700">${escapeHtml(actDescrLabel)}</td>
-                                <td class="border p-2 dark:border-gray-700">${escapeHtml(actDescr)}</td>
-                                <td class="border p-2 dark:border-gray-700">
+                                <td class="border-b border-gray-100 px-4 py-3 dark:border-gray-700">${escapeHtml(id)}</td>
+                                <td class="border-b border-gray-100 px-4 py-3 dark:border-gray-700">${escapeHtml(accDescr)}</td>
+                                <td class="border-b border-gray-100 px-4 py-3 dark:border-gray-700">${escapeHtml(actDescrLabel)}</td>
+                                <td class="border-b border-gray-100 px-4 py-3 dark:border-gray-700">${escapeHtml(actDescr)}</td>
+                                <td class="border-b border-gray-100 px-4 py-3 dark:border-gray-700">
                                     <div class="font-semibold">${remaining}</div>
                                     <div class="text-sm opacity-70">Available: ${available}</div>
                                     <div class="text-sm opacity-70">Used: ${used}</div>
                                 </td>
-                                <td class="border p-2 text-center dark:border-gray-700">
+                                <td class="border-b border-gray-100 px-4 py-3 text-center dark:border-gray-700">
                                     <button type="button"
-                                        class="chooseKontrakBudget rounded border px-2 py-1 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                                        class="chooseKontrakBudget inline-flex h-8 items-center rounded-md border border-blue-100 bg-blue-50 px-3 text-sm font-medium text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0"
                                         data-account-id="${escapeHtml(id)}"
                                         data-account-descr="${escapeHtml(accDescr)}"
                                         data-activity-id="${escapeHtml(actId)}"
@@ -601,46 +598,44 @@
                 $('#kontrakBudgetTableBody').append(`
                     <tr class="kontrak-budget-row hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="budget-row-no p-3"></td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('perpost') || '-')}
                             <input type="hidden" name="budget_perpost[]" value="${escapeHtml($btn.data('perpost') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('cpny-id') || '-')}
                             <input type="hidden" name="budget_cpny_id[]" value="${escapeHtml($btn.data('cpny-id') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('business-unit-id') || '-')}
                             <input type="hidden" name="budget_business_unit_id[]" value="${escapeHtml($btn.data('business-unit-id') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('department-fin-id') || '-')}
                             <input type="hidden" name="budget_department_fin_id[]" value="${escapeHtml($btn.data('department-fin-id') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('account-id') || '-')}
                             <input type="hidden" name="budget_account_id[]" value="${escapeHtml($btn.data('account-id') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('activity-id') || '-')}
                             <input type="hidden" name="budget_activity_id[]" value="${escapeHtml($btn.data('activity-id') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             ${escapeHtml($btn.data('activity-descr') || '-')}
                             <input type="hidden" name="budget_activity_descr[]" value="${escapeHtml($btn.data('activity-descr') || '')}">
                         </td>
-                        <td class="p-3">
+                        <td class="px-4 py-3">
                             <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="${escapeHtml(formatNumber(amountBudget, 2))}"
-                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="budget-amount-input wh-qty w-44!">
                         </td>
-                        <td class="p-3 text-right">
+                        <td class="px-4 py-3 text-right">
                             ${formatCurrency(remainingBudget)}
                         </td>
-                        <td class="p-3 text-center">
+                        <td class="px-4 py-3 text-center">
                             <button type="button"
-                                class="deleteKontrakBudgetRow rounded border border-red-500 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50">
-                                Delete
-                            </button>
+                                class="deleteKontrakBudgetRow inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90" title="Delete row"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </td>
                     </tr>
                 `);

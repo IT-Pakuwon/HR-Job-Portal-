@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-spp-form-select2 />
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -10,23 +12,21 @@
                             Creating a WO from complaint <b>{{ $complaint['nbr'] }}</b>. The complaint becomes "Transferred to WO" once this WO is saved.
                         </div>
                     @endif
-                    <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <!-- Header -->
-                        <div class="mb-2 flex items-center justify-between border-b pb-3 dark:border-gray-700">
-                            <h2 class="text-base font-bold text-gray-800 dark:text-white">📄 Create WO</h2>
-                        </div>
+                        <div class="-mx-6 -mt-6 flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">Create WO</h2><p class="text-xs text-gray-500 dark:text-gray-400">Fill in the work order details and attach the supporting files.</p></div></div>
 
                         <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
                             <!-- Company -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                                 @if (!empty($complaint['cpny']))
                                     {{-- disabled selects are not submitted, so the locked value travels in a hidden input --}}
                                     <input type="hidden" name="cpnyid" value="{{ $complaint['cpny'] }}">
                                 @endif
                                 <select name="cpnyid" id="cpnyid" required @disabled(!empty($complaint['cpny']))
-                                    class="{{ !empty($complaint['cpny']) ? 'cursor-not-allowed bg-gray-100 opacity-70 ' : '' }}w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="{{ !empty($complaint['cpny']) ? 'cursor-not-allowed bg-gray-100 opacity-70 ' : '' }}sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     @php $lockCpny = strtoupper(trim($complaint['cpny'] ?? '')); @endphp
                                     @foreach ($usercpny as $p)
                                         {{-- From a complaint: company follows the complaint's site and cannot be changed --}}
@@ -39,11 +39,11 @@
                                 </select>
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Business
                                     Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
@@ -51,11 +51,10 @@
 
 
                             <!-- Department -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                                 <select name="departementid" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}"
                                             {{ $p->department_id == $userdept2->department_id ? 'selected' : '' }}>
@@ -66,21 +65,21 @@
                             </div>
 
                             <!-- WO Type -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WO Type</label>
                                 <select name="wotype" id="wotype" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    <option value="">Select</option>
                                 </select>
                             </div>
 
                             <!-- WO Request -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WO
                                     Request</label>
                                 <select name="worequest" id="worequest" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    <option value="">Select</option>
                                 </select>
                             </div>
                         </div>
@@ -88,39 +87,35 @@
                         <!-- Row 2 -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                             <!-- Jenis Pekerjaan -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jenis
                                     Pekerjaan</label>
-                                <div class="flex gap-2">
+                                <div class="flex items-stretch">
                                     <input id="jenis_pekerjaan_display" readonly
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                                         placeholder="Pilih Worktype & Subworktype">
                                     {{-- <button id="btnJenisPekerjaan" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                        class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Pilih</button> --}}
                                     <button type="button" id="btnJenisPekerjaan"
-                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                        title="Lookup">
-                                        🔎
-                                    </button>
+                                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-500 transition hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
 
                             <!-- Lokasi -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
-                                <div class="flex gap-2">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Lokasi</label>
+                                <div class="flex items-stretch">
                                     <input id="lokasi_display" readonly
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                                         placeholder="Pilih Location & Sub Location">
                                     {{-- <button id="btnLokasi" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                        class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Pilih</button> --}}
                                     <button type="button" id="btnLokasi"
-                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                        title="Lookup">
-                                        🔎
-                                    </button>
+                                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-500 transition hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                 </div>
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
@@ -131,39 +126,39 @@
                         <!-- Row 3 -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <!-- Perpost -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Perpost</label>
                                 <select id="perpost" name="perpost"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     @php $year = now()->year; @endphp
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
                             </div>
                             <!-- PIC Requester -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PIC
                                     Requester</label>
                                 <input type="text" name="picrequester" id="picrequester"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     value="{{ auth()->user()->username }}" required>
                             </div>
 
                             <!-- Biaya WO -->
-                            <div class="flex flex-col gap-2">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Biaya WO</label>
                                 <input type="text" name="biaya_wo" id="biaya_wo" inputmode="decimal"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     placeholder="0,00">
                                 <small id="biaya_wo_error" class="text-red-600" style="display:none;"></small>
                             </div>
 
                             <!-- Budget -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Budget</label>
                                 <select name="wobudget" id="wobudget" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                    <option value="">Select</option>
                                     <option value="Pemberi Kerja">Pemberi Kerja</option>
                                     <option value="Penerima Kerja">Penerima Kerja</option>
                                 </select>
@@ -174,18 +169,16 @@
 
                         <!-- COA -->
                         <div id="coaGroup">
-                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
-                            <div class="flex gap-2">
+                            <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">COA</label>
+                            <div class="flex items-stretch">
                                 <input type="text" id="budget_display" readonly
-                                    class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="h-10 min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                                     placeholder="Pilih Budget">
                                 {{-- <button id="btnBudget" type="button"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+                                    class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Pilih</button> --}}
                                 <button type="button" id="btnBudget"
-                                    class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                    title="Lookup">
-                                    🔎
-                                </button>
+                                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-500 transition hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                             </div>
 
                             <!-- hidden -->
@@ -197,111 +190,111 @@
                         </div>
 
                         <!-- Description -->
-                        <div>
-                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                            <textarea name="keperluan" id="keperluan" rows="3" required
-                                class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $complaint['text'] ?? '' }}</textarea>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</label>
+                            <textarea name="keperluan" id="keperluan" rows="2" required
+                                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">{{ $complaint['text'] ?? '' }}</textarea>
                         </div>
                     </div>
 
 
                     <!-- Modal -->
                     <div id="modalJenisPekerjaan"
-                        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
-                            <div class="mb-4 flex items-center justify-between">
-                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
+                        class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-[95vw] max-w-2xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
                                 </h3>
                                 <button type="button" id="closeJenisPekerjaan"
-                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kiri: Worktype -->
                                 <div>
                                     <label
-                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
+                                        class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Worktype</label>
                                     <select id="modal_worktypeid"
-                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        class="sf-select mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
 
                                 <!-- Kanan: Subworktype (dependent) -->
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sub
                                         Worktype</label>
                                     <select id="modal_subworktypeid"
-                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        class="sf-select mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="mt-6 flex justify-end gap-3">
+                            <div class="-mx-6 -mb-6 mt-6 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                                 <button type="button" id="cancelJenisPekerjaan"
-                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
                                 <button type="button" id="saveJenisPekerjaan"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                                    class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Save</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Modal Lokasi -->
-                    <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
-                            <div class="mb-4 flex items-center justify-between">
-                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                    <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-[95vw] max-w-2xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Pilih Lokasi</h3>
                                 <button type="button" id="closeLokasi"
-                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kiri: Location -->
                                 <div>
                                     <label
-                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</label>
                                     <select id="modal_location_id"
-                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        class="sf-select mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
 
                                 <!-- Kanan: Sub Location (dependent) -->
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sub
                                         Location</label>
                                     <select id="modal_sub_location_id"
-                                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        class="sf-select mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                        <option value="">Select</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="mt-6 flex justify-end gap-3">
+                            <div class="-mx-6 -mb-6 mt-6 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                                 <button type="button" id="cancelLokasi"
-                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
                                 <button type="button" id="saveLokasi"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                                    class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Save</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- ===== Modal Lookup COA ===== -->
                     <div id="coaModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="coaRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <div class="ml-auto flex items-center gap-3">
                                     <span>Company: <b id="coaCpnyBadge"></b></span>
                                     <span>Dept: <b id="coaDeptBadge"></b></span>
@@ -309,27 +302,27 @@
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Account ID</th>
-                                            <th class="border p-2">Activity</th>
-                                            <th class="border p-2">Remaining Budget</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Account ID</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Activity</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Remaining Budget</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="coaTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="coaPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="coaNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -339,18 +332,14 @@
 
 
                     {{-- ===== Attachment ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <details class="group" open>
-                            <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                    details &rarr;</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                    details &darr;</span>
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <span class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span><span><span class="req block text-base font-bold text-gray-800 dark:text-white">Attachments</span><span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this work order</span></span></span>
+                                <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                             </summary>
-                            <div class="flex flex-col pt-6">
+                            <div class="flex flex-col px-6 pt-5">
                                 @if (!empty($complaint['files']))
                                     <div class="mb-4 rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm dark:border-violet-500/30 dark:bg-violet-500/10">
                                         <p class="mb-2 font-semibold text-violet-800 dark:text-violet-200">
@@ -367,28 +356,21 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                         <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
-                                        </button>
+                                            class="removeAttachment hidden inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                     </div>
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg> Add Attachment
+                                class="mx-6 mb-6 mt-4 flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" style="width: calc(100% - 3rem);"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg> Add Attachment
                             </button>
                         </details>
 
                         <div
-                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            class="flex flex-row items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -401,7 +383,7 @@
 
                             <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -456,13 +438,14 @@
 
             // ====== Load Categories (wotype & worequest) ======
             function loadCategories($select, categoryid) {
-                $select.empty().append('<option value="">-- choose --</option>');
+                $select.empty().append('<option value="">Select</option>');
                 $.getJSON(`/wos/ajax/categories/${encodeURIComponent(categoryid)}?doctype=WO`)
                     .done(function(list) {
                         list.forEach(function(it) {
                             // value & text sama = category_name
                             $select.append(new Option(it.text, it.text));
                         });
+                        $select.trigger('change.select2');
                         @if (!empty($complaint))
                             // From a complaint: WO Request is always "Tenant" (only that option is left, so it is still submitted).
                             if (categoryid === 'worequest') {
@@ -473,6 +456,7 @@
                                 $select.val(v).prop('disabled', true).addClass('cursor-not-allowed bg-gray-100 opacity-70');
                                 // disabled selects are not submitted, so the value travels in a hidden input
                                 $select.after($('<input type="hidden" name="worequest">').val(v));
+                                $select.trigger('change.select2');
                             }
                         @endif
                     })
@@ -480,6 +464,12 @@
                         toastr.error('Gagal memuat data kategori.');
                     });
             }
+
+// styled dropdowns (Select2); refreshed via change.select2 after options are loaded
+            $("#wotype, #worequest, #wobudget").each(function() {
+                $(this).parent().addClass("sf-field");
+                $(this).select2({ width: "100%", minimumResultsForSearch: 8, dropdownCssClass: "sf-s2-dropdown" });
+            });
 
             loadCategories($('#wotype'), 'wotype');
             loadCategories($('#worequest'), 'worequest');
@@ -499,8 +489,8 @@
                 const params = $.param({
                     departementid: $dept.val() || ''
                 });
-                $('#modal_worktypeid').empty().append('<option value="">-- choose --</option>');
-                $('#modal_subworktypeid').empty().append('<option value="">-- choose --</option>');
+                $('#modal_worktypeid').empty().append('<option value="">Select</option>');
+                $('#modal_subworktypeid').empty().append('<option value="">Select</option>');
                 $.getJSON(`/wos/ajax/worktypes?${params}`, function(list) {
                     list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it
                         .value)));
@@ -514,7 +504,7 @@
             // $('#modal_worktypeid').on('change', function(){
             //     const wt = $(this).val();
             //     const $sub = $('#modal_subworktypeid');
-            //     $sub.empty().append('<option value="">-- choose --</option>');
+            //     $sub.empty().append('<option value="">Select</option>');
             //     if (!wt) return;
             //     $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}`, function(list){
             //     list.forEach(it => $sub.append(new Option(it.text, it.value)));
@@ -524,7 +514,7 @@
             $('#modal_worktypeid').on('change', function() {
                 const wt = $(this).val();
                 const $sub = $('#modal_subworktypeid');
-                $sub.empty().append('<option value="">-- choose --</option>');
+                $sub.empty().append('<option value="">Select</option>');
                 if (!wt) return;
 
                 const doctype = 'WO'; // kirim dari view
@@ -565,8 +555,8 @@
             function ensureSelect2() {
                 if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
                 if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
-                $selLoc.select2({ dropdownParent: $modal, width: '100%', placeholder: '-- choose --', allowClear: true });
-                $selSub.select2({ dropdownParent: $modal, width: '100%', placeholder: '-- choose --', allowClear: true });
+                $selLoc.select2({ dropdownParent: $modal, width: '100%', placeholder: 'Select', allowClear: true });
+                $selSub.select2({ dropdownParent: $modal, width: '100%', placeholder: 'Select', allowClear: true });
             }
 
             function fillSelect($sel, list, selectedVal) {
@@ -803,8 +793,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                    <button type="button" class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
             </div>
         `);
                 toggleDeleteButton();
@@ -986,7 +976,7 @@
 
             // Load COA from API
             function loadCoa() {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 $.getJSON("{{ route('coa.byDeptWo') }}", {
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
@@ -1014,15 +1004,15 @@
 
                             return `
                     <tr>
-                    <td class="border p-2">${id}</td>
-                    <td class="border p-2">${actDetail}</td>
-                    <td class="border p-2">
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${id}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${actDetail}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">
                         <div class="font-semibold">${remaining}</div>
                         <div class=" text-sm  opacity-70">Available : ${available}</div>
                         <div class=" text-sm  opacity-70">Used: ${used}</div>
                     </td>
-                    <td class="border p-2 text-center">
-                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
+                        <button type="button" class="chooseCoa inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                 data-id="${id}"
                                 data-activity_id="${actId}"
                                 data-business_unit_id="${buId}"
@@ -1036,7 +1026,7 @@
                 `;
                         }).join('');
 
-                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $coaTbody.html(rows || '<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                         coaState.total = res.total || 0;
                         const shown = rows ? (res.data || []).length : 0;
                         $coaCount.text(`Showing ${shown} of ${coaState.total} items`);
@@ -1047,7 +1037,7 @@
                     })
                     .fail(function() {
                         $coaTbody.html(
-                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);

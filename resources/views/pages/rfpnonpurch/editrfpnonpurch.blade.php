@@ -1,17 +1,14 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-spp-form-select2 />
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="rfpnonpurchForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
-                                Edit {{ $rfpnonpurch->rfpnonpurchase_type }} Non Purchase
-                                <span class="text-indigo-600">{{ $rfpnonpurch->rfpnonpurchaseid }}</span>
-                            </h2>
-                        </div>
+                    <div class="flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="-mx-6 -mt-6 flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span><div><h2 class="text-base font-bold text-gray-800 dark:text-white">Edit {{ $rfpnonpurch->rfpnonpurchase_type }} Non Purchase <span class="font-semibold text-blue-600">{{ $rfpnonpurch->rfpnonpurchaseid }}</span></h2><p class="text-xs text-gray-500 dark:text-gray-400">Fill in the details and attach the supporting files.</p></div></div>
 
                         @php
                             $selectedKepada = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_kepada ?? '')));
@@ -24,10 +21,10 @@
                             {{-- Row 1: always visible --}}
 
                             {{-- Company --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="req headerCpnySelect sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $rfpnonpurch->cpny_id ? 'selected' : '' }}>
@@ -38,10 +35,10 @@
                             </div>
 
                             {{-- Department --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                                 <select name="departementid" id="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}" {{ $p->department_id == $rfpnonpurch->department_id ? 'selected' : '' }}>
@@ -52,20 +49,20 @@
                             </div>
 
                             {{-- Business Unit --}}
-                            <div class="flex flex-col gap-2" id="businessUnitBox">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                            <div class="flex flex-col gap-1.5" id="businessUnitBox">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
 
                             {{-- Type Payment --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Type Payment</label>
                                 <select name="rfpnonpurchase_type" id="rfpnonpurchase_type"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     required>
                                     <option value="">Select Type</option>
                                     <option value="RFP" {{ $rfpnonpurch->rfpnonpurchase_type == 'RFP' ? 'selected' : '' }}>RFP</option>
@@ -74,10 +71,10 @@
                             </div>
 
                             {{-- Group Biaya --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Group Biaya</label>
                                 <select name="groupbiaya_id" id="groupbiaya_id"
-                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     required>
                                     <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
@@ -91,45 +88,45 @@
                             </div>
 
                             {{-- Tanggal Diperlukan --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Tanggal Diperlukan
                                 </label>
                                 <input type="date" name="datediperlukan" id="datediperlukan" required
                                     value="{{ $rfpnonpurch->datediperlukan ? \Carbon\Carbon::parse($rfpnonpurch->datediperlukan)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
                             {{-- Row 2: conditional + Kepada + Tembusan --}}
 
                             {{-- Amount Request Payment (conditional: RCA) --}}
                             <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Amount Request Payment
                                 </label>
                                 <input type="text" name="amountrequestpayment" id="amountrequestpayment"
                                     value="{{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800 text-right"
                                     placeholder="0,00">
                             </div>
 
                             {{-- Tanggal Realisasi (conditional: RCA) --}}
                             <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Tanggal Realisasi
                                 </label>
                                 <input type="date" name="datepenyelesaian" id="datepenyelesaian"
                                     value="{{ $rfpnonpurch->datepenyelesaian ? \Carbon\Carbon::parse($rfpnonpurch->datepenyelesaian)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
                             {{-- Kepada (always, dynamic col-span) --}}
-                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div id="kepadaBox" class="flex flex-col gap-1.5" style="grid-column: span 2">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Kepada
                                 </label>
                                 <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="user-select2 sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     multiple>
                                     @foreach ($kepada as $u)
                                         <option value="{{ $u->username }}" {{ in_array($u->username, $selectedKepada) ? 'selected' : '' }}>
@@ -140,12 +137,12 @@
                             </div>
 
                             {{-- Tembusan (always, dynamic col-span) --}}
-                            <div id="tembusanBox" class="flex flex-col gap-2" style="grid-column: span 2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div id="tembusanBox" class="flex flex-col gap-1.5" style="grid-column: span 2">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Tembusan
                                 </label>
                                 <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="user-select2 sf-select h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800"
                                     multiple>
                                     @foreach ($tembusan as $u)
                                         <option value="{{ $u->username }}" {{ in_array($u->username, $selectedTembusan) ? 'selected' : '' }}>
@@ -160,46 +157,46 @@
                         <div id="depositFieldsBox"
                             class="hidden mt-4 grid min-w-[1200px] grid-cols-6 gap-4 overflow-x-auto">
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Customer Name</label>
                                 <input type="text" name="customername" id="customername"
                                     value="{{ $rfpnonpurch->customername }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Store Name</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Store Name</label>
                                 <input type="text" name="storename" id="storename"
                                     value="{{ $rfpnonpurch->storename }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit ID</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Unit ID</label>
                                 <input type="text" name="unitid" id="unitid"
                                     value="{{ $rfpnonpurch->unitid }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transfer To</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Transfer To</label>
                                 <input type="text" name="transferto" id="transferto"
                                     value="{{ $rfpnonpurch->transferto }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Bank Name</label>
                                 <input type="text" name="bankname" id="bankname"
                                     value="{{ $rfpnonpurch->bankname }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Account</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Bank Account</label>
                                 <input type="text" name="bankacct" id="bankacct"
                                     value="{{ $rfpnonpurch->bankacct }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                    class="h-10 w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 dark:bg-gray-800">
                             </div>
                         </div>
 
@@ -207,35 +204,38 @@
                         <div class="grid grid-cols-2 gap-4">
 
                             {{-- Dibayarkan Kepada --}}
-                            <div id="dibayarkanKepadaBox" class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div id="dibayarkanKepadaBox" class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Dibayarkan Kepada
                                 </label>
                                 <textarea name="pleasepayto" id="pleasepayto" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                     placeholder="Input nama / detail penerima pembayaran...">{{ $rfpnonpurch->pleasepayto }}</textarea>
                             </div>
 
                             {{-- Keperluan --}}
-                            <div id="headerKeperluanBox" class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div id="headerKeperluanBox" class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Keperluan
                                 </label>
                                 <textarea name="keperluan" id="keperluan" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                    class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                     placeholder="Input keperluan...">{{ $rfpnonpurch->keperluan }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <div id="detailSection" class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-xl p-4">
+                    <div id="detailSection" class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="flex w-full flex-col">
                             <details class="group" open>
-                                <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:text-gray-200 dark:border-gray-700">
-                                    <span>Detail</span>
-                                </summary>
+                                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span><span><span class="block text-base font-bold text-gray-800 dark:text-white">Detail</span><span class="block text-xs text-gray-500 dark:text-gray-400">Line items for this request</span></span></span>
+                            <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                            <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
+                        </summary>
+                        <div class="px-6 pb-6 pt-5">
 
-                                <div class="flex h-auto flex-col justify-start">
+                                <div class="flex h-auto flex-col justify-start px-6 pb-6 pt-5">
                                     <div class="overflow-x-auto">
                                         <table class="mb-4 mt-3 w-full table-fixed">
                                             <colgroup>
@@ -248,30 +248,30 @@
                                                 <col class="w-[70px]">
                                             </colgroup>
 
-                                            <thead class="bg-gray-100/10">
+                                            <thead class="bg-gray-50 dark:bg-gray-900/40">
                                                 <tr>
-                                                    <th class="border p-3 text-center">No</th>
-                                                    <th id="detailDescrHeader" class="req border p-3 text-left">Description</th>
-                                                    <th class="rfp-tax-col border p-3 text-right">Amount DPP</th>
-                                                    <th class="rfp-tax-col req border p-3 text-left">Tax</th>
-                                                    <th class="req border p-3 text-right">Total Amount</th>
-                                                    <th class="req border p-3 text-left budget-col">Budget</th>
-                                                    <th class="border p-3 text-center"></th>
+                                                    <th class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">No</th>
+                                                    <th id="detailDescrHeader" class="req text-left border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Description</th>
+                                                    <th class="text-right border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Amount DPP</th>
+                                                    <th class="req text-left border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Tax</th>
+                                                    <th class="req text-right border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Total Amount</th>
+                                                    <th class="req text-left border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Budget</th>
+                                                    <th class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center"></th>
                                                 </tr>
                                             </thead>
 
                                             <tbody id="rfpnonpurchTable">
                                                 @forelse($rfpnonpurchasedetail as $i => $d)
                                                     <tr class="rfpnonpurch-row">
-                                                        <td class="border p-3 text-center align-middle">{{ $i + 1 }}</td>
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">{{ $i + 1 }}</td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <textarea name="rfpnonpurchase_descr[]" rows="2"
-                                                                class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                                                 placeholder="Input description...">{{ strtoupper($rfpnonpurch->rfpnonpurchase_type) === 'RCA' ? ($d->keperluan_detail ?: $rfpnonpurch->keperluan) : $d->keperluan_detail }}</textarea>
                                                         </td>
 
-                                                        <td class="rfp-tax-col border p-3">
+                                                        <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text" name="amount_request_dpp[]"
                                                                 value="{{ $d->amount_request_dpp !== null ? number_format((float) $d->amount_request_dpp, 2, ',', '.') : '' }}"
                                                                 class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
@@ -280,7 +280,7 @@
                                                                 value="{{ $d->amount_request_taxamt !== null ? (float) $d->amount_request_taxamt : 0 }}">
                                                         </td>
 
-                                                        <td class="rfp-tax-col border p-3">
+                                                        <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <select name="taxcodeid[]"
                                                                 class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                                 required>
@@ -295,14 +295,14 @@
                                                             </select>
                                                         </td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text" name="price[]"
                                                                 value="{{ number_format((float) $d->amount_request, 2, ',', '.') }}"
-                                                                class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                                                class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                                                 placeholder="0,00">
                                                         </td>
 
-                                                        <td class="border p-3 budget-col">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 budget-col">
                                                             <div class="flex items-center gap-2">
                                                                 <input type="hidden" name="activity_id[]" value="{{ $d->budget_activity_id }}" class="activityIdField">
                                                                 <input type="hidden" name="business_unit_id_detail[]" value="{{ $d->budget_business_unit_id }}" class="businessUnitIdField">
@@ -316,36 +316,34 @@
                                                                     placeholder="Select Budget..." readonly>
 
                                                                 <button type="button"
-                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
+                                                                    class="openCoaModal shrink-0 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                    title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                             </div>
                                                         </td>
 
-                                                        <td class="border p-3 text-center align-middle">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">
                                                             <button type="button"
-                                                                class="removeImBudgetNonPurch rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">
-                                                                🗑️
-                                                            </button>
+                                                                class="removeImBudgetNonPurch h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                                         </td>
                                                     </tr>
                                                 @empty
                                                     <tr class="rfpnonpurch-row">
-                                                        <td class="border p-3 text-center align-middle">1</td>
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">1</td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <textarea name="rfpnonpurchase_descr[]" rows="2"
-                                                                class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                                                                 placeholder="Input description..."></textarea>
                                                         </td>
 
-                                                        <td class="rfp-tax-col border p-3">
+                                                        <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text" name="amount_request_dpp[]"
                                                                 class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
                                                                 placeholder="0,00" readonly>
                                                             <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
                                                         </td>
 
-                                                        <td class="rfp-tax-col border p-3">
+                                                        <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <select name="taxcodeid[]"
                                                                 class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                                                 required>
@@ -360,13 +358,13 @@
                                                             </select>
                                                         </td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text" name="price[]"
-                                                                class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                                                class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                                                 placeholder="0,00">
                                                         </td>
 
-                                                        <td class="border p-3 budget-col">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 budget-col">
                                                             <div class="flex items-center gap-2">
                                                                 <input type="hidden" name="activity_id[]" class="activityIdField">
                                                                 <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
@@ -379,27 +377,25 @@
                                                                     placeholder="Select Budget..." readonly>
 
                                                                 <button type="button"
-                                                                    class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                    title="Lookup">🔎</button>
+                                                                    class="openCoaModal shrink-0 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                    title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                             </div>
                                                         </td>
 
-                                                        <td class="border p-3 text-center align-middle">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">
                                                             <button type="button"
-                                                                class="removeImBudgetNonPurch hidden rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">
-                                                                🗑️
-                                                            </button>
+                                                                class="removeImBudgetNonPurch h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                                         </td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>
 
                                             <tfoot>
-                                                <tr class="border-t-2 border-indigo-200 bg-indigo-50/60 dark:bg-indigo-900/20">
-                                                    <td colspan="4" class="grandTotalLabelCell p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
+                                                <tr class="border-t-2 border-blue-200 bg-blue-50/60 dark:bg-blue-900/20">
+                                                    <td colspan="4" class="grandTotalLabelCell p-3 text-right text-xs font-semibold uppercase tracking-widest text-blue-400 dark:text-blue-400">
                                                         Grand Total
                                                     </td>
-                                                    <td class="grandTotalAmountCell whitespace-nowrap p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
+                                                    <td class="grandTotalAmountCell whitespace-nowrap p-3 text-right text-base font-extrabold tabular-nums text-blue-700 dark:text-blue-200">
                                                         <span id="grandTotalDisplay">{{ number_format((float) $rfpnonpurchasedetail->sum('amount_request'), 2, ',', '.') }}</span>
                                                         <input type="hidden" name="grand_total" id="grandTotalInput" value="{{ $rfpnonpurchasedetail->sum('amount_request') }}">
                                                     </td>
@@ -411,25 +407,26 @@
                                     </div>
 
                                     <button type="button" id="addImBudgetNonPurch"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                                        class="mb-1 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         + Add Row
                                     </button>
                                 </div>
-                            </details>
+                            </div>
+                    </details>
                         </div>
                     </div>
 
-                    <div id="coaModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200">Select Budget</h3>
-                                <button type="button" id="closeCoaModal" class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                    <div id="coaModal" class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Budget</h3>
+                                <button type="button" id="closeCoaModal" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:bg-gray-800 dark:border-gray-700">
-                                <button id="coaRefresh" type="button" class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                <button id="coaRefresh" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <div class="ml-auto flex items-center gap-3">
                                     <span>Company: <b id="coaCpnyBadge"></b></span>
                                     <span>Dept: <b id="coaDeptBadge"></b></span>
@@ -437,39 +434,42 @@
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Account ID</th>
-                                            <th class="border p-2">Account Descr</th>
-                                            <th class="border p-2">Activity</th>
-                                            <th class="border p-2">Budget Descr</th>
-                                            <th class="border p-2">Remaining Budget</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Account ID</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Account Descr</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Activity</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Budget Descr</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Remaining Budget</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="coaTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="coaPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="coaNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="coaPrev" type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
+                                    <button id="coaNext" type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:text-gray-200 dark:border-gray-700">
-                                <span class="req">Attachments</span>
-                            </summary>
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span><span><span class="block text-base font-bold text-gray-800 dark:text-white"><span class="req">Attachments</span></span><span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this request</span></span></span>
+                            <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                            <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
+                        </summary>
+                        
 
-                            <div class="flex flex-col pt-6">
+                            <div class="flex flex-col px-6 pt-5">
                                 @if($attachments->count())
                                     <div class="mb-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                                         <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Existing Attachments</div>
@@ -480,7 +480,7 @@
                                                 <div>
                                                     @if ($att->url)
                                                         <a href="{{ $att->url }}" target="_blank"
-                                                            class="font-semibold text-indigo-600 hover:underline">
+                                                            class="font-semibold text-blue-600 hover:underline">
                                                             📎 {{ $att->display_name }}
                                                         </a>
                                                     @else
@@ -493,10 +493,8 @@
                                                 </div>
 
                                                 <button type="button"
-                                                    class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
-                                                    aria-label="Remove attachment">
-                                                    🗑️
-                                                </button>
+                                                    class="removeAttachment2 h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    aria-label="Remove attachment"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                             </div>
                                         @endforeach
                                         </div>
@@ -506,18 +504,19 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                         <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 hover:bg-red-200">🗑️</button>
+                                            class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                     </div>
                                 </div>
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                                class="mt-4 flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 + Add Attachment
                             </button>
-                        </details>
+                        
+                    </details>
 
                         <div class="mt-4 flex flex-row justify-between gap-4 md:items-center md:justify-between">
                             <button type="button" id="backBtn" onclick="history.back()"
@@ -699,22 +698,22 @@
         function newRowTemplate(no) {
             return `
                 <tr class="rfpnonpurch-row">
-                    <td class="border p-3 text-center align-middle">${no}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">${no}</td>
 
-                    <td class="border p-3">
+                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                         <textarea name="rfpnonpurchase_descr[]" rows="2"
-                            class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                            class="w-full rounded-lg border border-gray-300 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:text-gray-100 bg-white px-3 py-2.5 dark:bg-gray-800"
                             placeholder="Input description..."></textarea>
                     </td>
 
-                    <td class="rfp-tax-col border p-3">
+                    <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                         <input type="text" name="amount_request_dpp[]"
                             class="amountDppField w-full border-none bg-gray-100 p-2 text-right focus:outline-none focus:ring-0 dark:bg-gray-900"
                             placeholder="0,00" readonly>
                         <input type="hidden" name="amount_request_taxamt[]" class="taxAmountField" value="0">
                     </td>
 
-                    <td class="rfp-tax-col border p-3">
+                    <td class="rfp-tax-col border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                         <select name="taxcodeid[]"
                             class="taxCodeField w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             required>
@@ -722,13 +721,13 @@
                         </select>
                     </td>
 
-                    <td class="border p-3">
+                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                         <input type="text" name="price[]"
-                            class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                            class="priceField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                             placeholder="0,00">
                     </td>
 
-                    <td class="border p-3 budget-col">
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 budget-col">
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="activity_id[]" class="activityIdField">
                             <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
@@ -741,16 +740,14 @@
                                 placeholder="Select Budget..." readonly>
 
                             <button type="button"
-                                class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Lookup">🔎</button>
+                                class="openCoaModal shrink-0 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                         </div>
                     </td>
 
-                    <td class="border p-3 text-center align-middle">
+                    <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700 text-center align-middle">
                         <button type="button"
-                            class="removeImBudgetNonPurch rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">
-                            🗑️
-                        </button>
+                            class="removeImBudgetNonPurch h-9 w-9 inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                     </td>
                 </tr>
             `;
@@ -1212,7 +1209,7 @@
             }
 
             function loadCoa() {
-                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
 
                 $.getJSON("{{ route('coa.nonpurch.byDept') }}", {
                     search: coaState.search,
@@ -1238,18 +1235,18 @@
 
                         return `
                             <tr>
-                                <td class="border p-2">${escapeHtml(id)}</td>
-                                <td class="border p-2">${escapeHtml(accDescr)}</td>
-                                <td class="border p-2">${escapeHtml(actDescrLabel)}</td>
-                                <td class="border p-2">${escapeHtml(actDescr)}</td>
-                                <td class="border p-2">
+                                <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${escapeHtml(id)}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${escapeHtml(accDescr)}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${escapeHtml(actDescrLabel)}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">${escapeHtml(actDescr)}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 dark:border-gray-700">
                                     <div class="font-semibold">${remaining}</div>
                                     <div class="text-sm opacity-70">Available: ${available}</div>
                                     <div class="text-sm opacity-70">Used: ${used}</div>
                                 </td>
-                                <td class="border p-2 text-center">
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
                                     <button type="button"
-                                        class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        class="chooseCoa inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                         data-id="${escapeHtml(id)}"
                                         data-activity_id="${escapeHtml(actId)}"
                                         data-business_unit_id="${escapeHtml(buId)}"
@@ -1263,7 +1260,7 @@
                         `;
                     }).join('');
 
-                    $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
+                    $coaTbody.html(rows || '<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                     coaState.total = res.total || 0;
                     $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
 
@@ -1271,7 +1268,7 @@
                     $('#coaPrev').prop('disabled', coaState.page <= 1);
                     $('#coaNext').prop('disabled', coaState.page >= maxPage);
                 }).fail(function () {
-                    $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                    $coaTbody.html('<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>');
                     $coaCount.text('');
                     $('#coaPrev, #coaNext').prop('disabled', true);
                 });
@@ -1515,9 +1512,9 @@
                 $('#attachmentsContainer').append(`
                     <div class="attachment-row mt-2 flex items-center gap-2">
                         <input type="file" name="attachments[]"
-                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                         <button type="button"
-                            class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 hover:bg-red-200">🗑️</button>
+                            class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                     </div>
                 `);
 

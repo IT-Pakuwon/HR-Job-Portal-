@@ -13,11 +13,12 @@
         const searchableCategories = typeof $.fn.select2 === 'function';
 
         if (searchableCategories) {
-            categoryFilter.select2({ width: '100%' });
-            $('#masterBqTypeFilter').select2({ width: '100%', minimumResultsForSearch: Infinity });
+            categoryFilter.select2({ width: '100%', dropdownCssClass: 'sppb-s2-dropdown' });
+            $('#masterBqTypeFilter').select2({ width: '100%', minimumResultsForSearch: Infinity, dropdownCssClass: 'sppb-s2-dropdown' });
             formCategory.select2({
                 width: '100%',
                 dropdownParent: $(dialog),
+                dropdownCssClass: 'sf-s2-dropdown',
                 placeholder: 'Select Category'
             });
             // A hidden Select2 field cannot receive native validation focus.

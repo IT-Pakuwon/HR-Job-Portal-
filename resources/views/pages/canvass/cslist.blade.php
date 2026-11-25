@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-list-styles />
     @php
         $currentPage = Route::currentRouteName() == 'cslist.index' ? 'CS' : '';
     @endphp
@@ -26,100 +27,31 @@
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
-            {{-- My CS --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="my">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                        <span class="text-base group-hover:animate-pulse">📄</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-sm font-medium">My CS</p>
-                            <p class="text-right text-base font-extrabold">{{ $my }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
+        @php
+            $statusCards = [
+                [['data-scope' => 'my'], 'My CS', '📄', 'all', $my, false, null, 'scope-filter'],
+                [['data-scope' => 'onprogress'], 'On Progress', '⏳', 'yellow', $onProgress, false, null, 'scope-filter'],
+                [['data-scope' => 'rejected'], 'Reject', '⛔', 'red', $reject, false, null, 'scope-filter'],
+                [['data-scope' => 'completed'], 'Completed', '✅', 'green', $completed, false, null, 'scope-filter'],
+                [['data-scope' => 'all'], 'All CS', '🧾', 'purple', $all, false, null, 'scope-filter'],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- On Progress --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="onprogress">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                        <span class="text-base group-hover:animate-pulse">⏳</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-sm font-medium">On Progress</p>
-                            <p class="text-right text-base font-extrabold">{{ $onProgress }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Rejected --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="rejected">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                        <span class="text-base group-hover:animate-pulse">⛔️</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-sm font-medium">Reject</p>
-                            <p class="text-right text-base font-extrabold">{{ $reject }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="completed">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                        <span class="text-base group-hover:animate-pulse">✅</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-sm font-medium">Completed</p>
-                            <p class="text-right text-base font-extrabold">{{ $completed }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
-
-            {{-- All CS --}}
-            <button>
-                <a href="#" class="scope-filter group block" data-scope="all">
-                    <div
-                        class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-base group-hover:animate-pulse">🧾</span>
-                        <div class="flex flex-grow items-center justify-between">
-                            <p class="text-sm font-medium">All CS</p>
-                            <p class="text-right text-base font-extrabold">{{ $all }}</p>
-                        </div>
-                    </div>
-                </a>
-            </button>
-        </div>
-
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
-            </div>
-            <div class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-2 lg:grid-cols-12">
-                <div class="lg:col-span-3">
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Company</label>
-                    <select id="filterCpny"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Canvass Sheet (CS)" title-id="pageTitle" subtitle="Track canvass sheets and their approval progress">
+                <div class="sppb-f relative w-44">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                    <select id="filterCpny">
                         <option value="">All Company</option>
                         @foreach ($companies ?? [] as $c)
                             <option value="{{ $c }}">{{ $c }}</option>
                         @endforeach
                     </select>
                 </div>
-
-                <div id="statusFilterWrapper" class="hidden lg:col-span-3">
-                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Status</label>
-                    <select id="filterStatus"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                <div id="statusFilterWrapper" class="sppb-f relative hidden w-44">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                    <select id="filterStatus">
                         <option value="">All Status</option>
                         <option value="H">Hold</option>
                         <option value="D">Revise</option>
@@ -129,10 +61,9 @@
                         <option value="X">Canceled</option>
                     </select>
                 </div>
-            </div>
+            </x-list-page-header>
 
-
-            <div class="relative mt-4 overflow-hidden">
+            <div class="relative overflow-hidden">
                 <table id="csTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -188,7 +119,7 @@
                 all: 'Canvass Sheet - All CS',
             };
 
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
 
             function updateTitle(sc) {
                 $title.text(titleMap[sc] ?? 'Canvass Sheet');
@@ -205,7 +136,7 @@
                 } else {
                     $('#statusFilterWrapper').addClass('hidden');
                     statusFilter = '';
-                    $('#filterStatus').val('');
+                    $('#filterStatus').val('').trigger('change.select2');
                     localStorage.removeItem('csFilterStatus');
                 }
             }
@@ -215,6 +146,7 @@
             highlightActive(scope);
             $('#filterCpny').val(cpnyId);
             $('#filterStatus').val(statusFilter);
+            $('#filterCpny, #filterStatus').select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
             toggleStatusFilter(scope);
 
             const table = $('#csTable').DataTable({
@@ -469,10 +401,14 @@
                 return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
             }
 
+            function csDocBtn(url, text) {
+                return `<a href="${url}" target="_blank" title="Open" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
+            }
+
             function renderCSBtn(_v, row) {
                 const url = `/showcs/${row.eid}`;
                 const text = row.csid || row.eid;
-                return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 " target="_blank">${text}</a>`;
+                return csDocBtn(url, text);
             }
 
             const showMap = {
@@ -489,7 +425,7 @@
                 const src_eid = row.sppbjkid_eid;
                 if (!prefix || !base || !src_eid) return docNo;
                 const url = `/${base}/${src_eid}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700" target="_blank">${docNo}</a>`;
+                return csDocBtn(url, docNo);
             }
 
             function renderDays(v, row) {
@@ -523,7 +459,7 @@
             };
 
             // 2) Helper untuk set judul
-            const $title = $('h1.text-base.font-extrabold'); // selector h1 kamu
+            const $title = $('#pageTitle'); // selector h1 kamu
             function updateTitle(sc) {
                 const label = titleMap[sc] ?? 'Canvass Sheet';
                 $title.text(label);
