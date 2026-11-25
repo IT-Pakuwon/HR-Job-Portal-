@@ -3694,6 +3694,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vms/purchase-orders/{type}/{id}', [\App\Http\Controllers\Vms\PurchaseOrderController::class, 'show'])->whereIn('type', ['po', 'spk', 'kontrak'])->whereNumber('id')->name('vms.purchase-orders.show');
     Route::get('/vms/vendors', [\App\Http\Controllers\Vms\VendorController::class, 'index'])->name('vms.vendors.index');
     Route::get('/vms/vendors/tab/{tab}/json', [\App\Http\Controllers\Vms\VendorController::class, 'json'])->name('vms.vendors.json');
+    Route::get('/vms/vendors/{id}/company-profile', [\App\Http\Controllers\Vms\VendorController::class, 'companyProfile'])->whereNumber('id')->name('vms.vendors.company-profile');
     Route::get('/vms/vendors/{id}/registration', [\App\Http\Controllers\Vms\VendorController::class, 'registration'])->whereNumber('id')->name('vms.vendors.registration');
     Route::post('/vms/vendors/{id}/registration', [\App\Http\Controllers\Vms\VendorController::class, 'decideRegistration'])->whereNumber('id')->name('vms.vendors.registration.decide');
     Route::get('/vms/vendors/{id}/incomplete', [\App\Http\Controllers\Vms\VendorController::class, 'incomplete'])->whereNumber('id')->name('vms.vendors.incomplete');

@@ -71,7 +71,7 @@ class VendorDirectory
             $this->attachReviewCounts($rows);
         }
         foreach ($rows as $row) {
-            $row->setAttribute('profile_url', $this->fileUrl('company_profile', $row->company_profile));
+            $row->setAttribute('profile_url', $this->profileUrl((int) $row->vendor_id, $row->company_profile));
         }
 
         return $rows;
@@ -109,6 +109,15 @@ class VendorDirectory
                 $row->setAttribute($field, $count ? (int) $count->{$field} : null);
             }
         }
+    }
+
+    public function profileUrl(int $vendorId, ?string $filename): ?string
+    {
+        if (! $filename || str_contains($filename, '..') || str_contains($filename, '/') || str_contains($filename, '\\')) {
+            return null;
+        }
+
+        return route('vms.vendors.company-profile', $vendorId);
     }
 
     public function fileUrl(string $folder, ?string $filename): ?string
@@ -170,6 +179,6 @@ class VendorDirectory
         }
         $history = $db->table('vendor_internal_activity as a')->leftJoin('admin as u', 'u.id', '=', 'a.created_by')->where('a.vendor_id', $id)->orderByDesc('a.id')->get(['a.activity', 'a.notes', 'a.created_at', 'u.name', 'u.username']);
 
-        return compact('vendor', 'approval', 'basic', 'npwp', 'banks', 'documents', 'history') + ['profileUrl' => $this->fileUrl('company_profile', $vendor->company_profile)];
+        return compact('vendor', 'approval', 'basic', 'npwp', 'banks', 'documents', 'history') + ['profileUrl' => $this->profileUrl((int) $vendor->vendor_id, $vendor->company_profile)];
     }
 }

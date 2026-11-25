@@ -43,7 +43,7 @@ class RegistrationReview
         $vendor = Vendor::select(self::COLUMNS)->findOrFail($id);
         $this->pending($vendor);
 
-        return $vendor->toArray() + ['review_token' => $this->token($vendor), 'profile_url' => $directory->fileUrl('company_profile', $vendor->company_profile),
+        return $vendor->toArray() + ['review_token' => $this->token($vendor), 'profile_url' => $directory->profileUrl((int) $vendor->vendor_id, $vendor->company_profile),
             'tags' => DB::connection('mysql7')->table('vendor_tag as v')->join('master_tag as t', 't.id', '=', 'v.id_tag')->where('v.id_vendor', $id)->pluck('t.nama_tag')];
     }
 

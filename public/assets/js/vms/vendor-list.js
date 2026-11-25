@@ -17,7 +17,7 @@
     }
     function columns(tab) {
         let result;
-        if(tab === 'new') result = [{data:'vendor_nama',render:(value,type,row) => type === 'display' ? `<div class="vms-vendor-company"><span>${esc(value)}</span>${row.profile_url ? `<a class="vms-vendor-pdf" href="${esc(row.profile_url)}" target="_blank" rel="noopener noreferrer" title="Company Profile PDF" aria-label="Company profile ${esc(value)}"><i class="fas fa-file-pdf" aria-hidden="true"></i></a>` : ''}</div>` : value},cell('username'),cell('email'),cell('created_at')];
+        if(tab === 'new') result = [{data:'vendor_nama',className:'vms-registration-company',render:(value,type) => type === 'display' ? `<div class="vms-vendor-company"><span>${esc(value)}</span></div>` : value},cell('username'),cell('email'),cell('created_at')];
         if(tab === 'incomplete') result = [cell('vendor_nama'),{data:'step',render:(value,type) => {
             const labels={1:'Company Information',2:'NPWP & Bank Section',3:'Upload Document',4:'Integrity Clause',5:'Finish'};
             const step = Number(value),label=labels[step] || 'Belum diisi';
