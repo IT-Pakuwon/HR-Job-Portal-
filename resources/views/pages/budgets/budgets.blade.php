@@ -1,152 +1,50 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'budgets' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        {{-- STATUS CARDS (On Progress is the default filter, see currentStatus below) --}}
+        @php
+            $budgetIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>';
+            $statusCards = [
+                [['data-status' => 'ALL'], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, true],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'D'], 'Revise / Draft', '✏️', 'blue', $revise, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- All Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="ALL">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- On Progress Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">On Progress</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Reject Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Reject</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise / Draft Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-
-        </div>
-
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-
-                {{-- LEFT SIDE: Title --}}
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Budget
-                </h2>
-
-                {{-- RIGHT SIDE: Filters + Button --}}
-                <div class="flex flex-wrap items-end gap-4">
-
-                    {{-- Business Unit --}}
-                    <div class="flex flex-col">
-                        <label class="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                            Business Unit
-                        </label>
-                        <select id="filterBusinessUnit"
-                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700">
-                            <option value="">All</option>
-                            @foreach ($businessUnits as $bu)
-                                <option value="{{ $bu->business_unit_id }}">
-                                    {{ $bu->business_unit_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Department --}}
-                    <div class="flex flex-col">
-                        <label class="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                            Department
-                        </label>
-                        <select id="filterDepartment"
-                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700">
-                            <option value="">All</option>
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->department_fin_id }}">
-                                    {{ $dept->department_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Button --}}
-                    <a href="{{ url('/createbudgets') }}"
-                        class="inline-flex items-center rounded-lg bg-blue-600 px-5 h-10 text-sm font-medium text-white transition hover:bg-blue-500">
-                        <i class="fas fa-plus pr-2"></i>Import Budget
-                    </a>
-
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Budget" subtitle="Import, track and manage your budgets" :icon="$budgetIcon">
+                <div class="sppb-f relative w-56">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></span>
+                    <select id="filterBusinessUnit">
+                        <option value="">All Business Unit</option>
+                        @foreach ($businessUnits as $bu)
+                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
-            </div>
+                <div class="sppb-f relative w-56">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                    <select id="filterDepartment">
+                        <option value="">All Department</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->department_fin_id }}">{{ $dept->department_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <a href="{{ url('/createbudgets') }}"
+                    class="inline-flex h-10 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                    <i class="fas fa-plus pr-2"></i>Import Budget
+                </a>
+            </x-list-page-header>
 
             <div class="relative overflow-x-hidden">
                 <table id="budgetsTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm rtl:text-right">
@@ -166,7 +64,7 @@
                                 Business Unit</th>
                             <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Departement</th>
-                            <th scope="col" class="px-4 py-3 text-left font-medium">
+                            <th scope="col" class="px-4 py-3 text-right font-medium">
                                 Total Budget</th>
                             <th scope="col" class="px-4 py-3 text-left font-medium">
                                 Status</th>
@@ -218,7 +116,7 @@
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'List Budget',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -230,7 +128,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'List Budget',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -263,21 +161,7 @@
                     {
                         data: 'id',
                         render: function(data, type, row) {
-                            // let url = `/showbudgets/${row.id}`;
-                            let url = `/showbudgets/${row.eid}`;
-                            let buttonClass =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-                            let buttonText = row.budget_id;
-
-                            // **Cek apakah user yang login sama dengan created_user dan status = D**
-                            if (row.status === 'D' && row.created_by === currentUser) {
-                                // url = `/editbudgets/${row.id}`;
-                                url = `/editbudgets/${row.eid}`;
-                                buttonClass =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                            }
-
-                            return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
+                            return sppDocCell(row, row.budget_id, 'budgets', currentUser, true, ['D']);
                         }
                     },
                     {
@@ -302,7 +186,7 @@
                     },
                     {
                         data: 'totalbudget',
-                        className: 'no-pointer text-middle',
+                        className: 'no-pointer text-right tabular-nums',
                         render: function(data) {
                             return Number(data).toLocaleString('id-ID');
                         }
@@ -311,36 +195,7 @@
                         data: 'status',
                         className: 'no-pointer',
                         render: function(data) {
-                            let statusText = "";
-                            let badgeClass = "";
-
-                            if (data === 'D') {
-                                statusText = "Revise";
-                                badgeClass =
-                                    "w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'P') {
-                                statusText = "On Progress";
-                                badgeClass =
-                                    "w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'C') {
-                                statusText = "Completed";
-                                badgeClass =
-                                    "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'X') {
-                                statusText = "Cancel";
-                                badgeClass =
-                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'R') {
-                                statusText = "Rejected";
-                                badgeClass =
-                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
-                            } else {
-                                statusText = data ?? "-";
-                                badgeClass =
-                                    "w-32 bg-gray-200/60 text-gray-700 dark:bg-gray-300/40 dark:text-gray-900 pointer-events-none border border-gray-500/40 font-semibold px-4 py-2 text-center rounded";
-                            }
-
-                            return `<span class="${badgeClass}">${statusText}</span>`;
+                            return sppStatusBadge(data);
                         }
                     }
                 ]
@@ -352,6 +207,12 @@
                 currentStatus = $(this).data('status') || 'ALL';
 
                 table.ajax.reload();
+            });
+
+            $('#filterBusinessUnit, #filterDepartment').select2({
+                width: '100%',
+                minimumResultsForSearch: 8,
+                dropdownCssClass: 'sppb-s2-dropdown'
             });
 
             $('#filterBusinessUnit, #filterDepartment').on('change', function() {

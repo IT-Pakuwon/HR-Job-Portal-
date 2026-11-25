@@ -1,97 +1,6 @@
 <x-app-layout>
-    <style>
-        /* ---- Status filter cards: same look + selected state as the shared status cards ---- */
-        .sppb-cards .status-filter .status-card {
-            --c: 71, 85, 105;
-            padding: .75rem !important; font-size: .875rem; font-weight: 500; border-radius: .6rem;
-            background: rgba(var(--c), .09) !important; border: 1px solid rgba(var(--c), .38) !important; color: rgb(var(--c)) !important;
-            transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease;
-        }
-        .sppb-cards .status-filter[data-status="P"] .status-card { --c: 234, 88, 12; }
-        .sppb-cards .status-filter[data-status="H"] .status-card { --c: 219, 39, 119; }
-        .sppb-cards .status-filter[data-status="R"] .status-card { --c: 220, 38, 38; }
-        .sppb-cards .status-filter[data-status="D"] .status-card { --c: 217, 119, 6; }
-        .sppb-cards .status-filter[data-status="C"] .status-card { --c: 22, 163, 74; }
-        .sppb-cards .status-filter[data-mode="all"] .status-card { --c: 147, 51, 234; }
-        .sppb-cards .status-filter[data-mode="wo"] .status-card { --c: 2, 132, 199; }
-        .sppb-cards .status-filter:hover .status-card { background: rgba(var(--c), .16) !important; box-shadow: 0 6px 16px -6px rgba(var(--c), .45); }
-        .sppb-cards .status-filter.active .status-card {
-            background: rgba(var(--c), .18) !important; border: 2px solid rgb(var(--c)) !important;
-            padding: calc(.75rem - 1px) !important; font-weight: 700; transform: translateY(-1px);
-            box-shadow: 0 4px 14px -4px rgba(var(--c), .55);
-        }
-        .sppb-cards .status-filter.active .status-card p { font-weight: 700; }
-
-        /* ---- Prettier DataTables toolbar/footer (scoped: add class "dt-pretty" to a card to use) ---- */
-        .dt-pretty .dt-toolbar {
-            padding: 14px 18px; margin: 0 !important; gap: 10px !important;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .dt-pretty .dataTables_length, .dt-pretty .dataTables_filter { padding: 0 !important; }
-        .dt-pretty .dataTables_length label {
-            display: flex; align-items: center; gap: 4px; margin: 0; height: 38px; padding: 0 14px 0 16px;
-            font-size: 13px; color: #6b7280; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
-            transition: border-color .15s, box-shadow .15s;
-        }
-        .dt-pretty .dataTables_length label:hover { border-color: #cbd5e1; }
-        .dt-pretty .dataTables_length label:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .14); }
-        .dt-pretty .dataTables_length select {
-            -webkit-appearance: none; appearance: none; height: 30px; min-width: 0;
-            padding: 0 24px 0 8px !important; font-size: 14px; font-weight: 700; color: #2563eb;
-            background-color: transparent !important; border: 0 !important; border-radius: 8px !important;
-            cursor: pointer; outline: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239ca3af'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important; background-position: right 4px center !important; background-size: 16px !important;
-        }
-
-        /* Export buttons: soft tinted outline, fill on hover */
-        .dt-pretty .dt-buttons { margin: 0 0 0 6px !important; gap: 8px; }
-        .dt-pretty .dt-button {
-            height: 38px; padding: 0 16px !important; border-radius: 10px !important;
-            border: 1px solid transparent !important; box-shadow: none !important;
-            font-size: 13px !important; font-weight: 600 !important; gap: 8px !important;
-        }
-        .dt-pretty .dt-button.buttons-excel { background: #f0fdf4 !important; color: #15803d !important; border-color: #bbf7d0 !important; }
-        .dt-pretty .dt-button.buttons-excel:hover { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
-        .dt-pretty .dt-button.buttons-csv { background: #f0f9ff !important; color: #0369a1 !important; border-color: #bae6fd !important; }
-        .dt-pretty .dt-button.buttons-csv:hover { background: #0284c7 !important; color: #fff !important; border-color: #0284c7 !important; }
-
-        /* Search: soft pill, expands + icon turns blue on focus */
-        .dt-pretty .dataTables_wrapper .dataTables_filter input {
-            height: 38px !important; width: 18rem !important; padding: 0 16px 0 42px !important;
-            border-radius: 9999px !important; font-size: 13px !important;
-            background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; box-shadow: none !important;
-            background-position: 15px center !important; background-size: 16px !important;
-            transition: width .25s ease, background-color .15s, border-color .15s, box-shadow .15s !important;
-        }
-        .dt-pretty .dataTables_wrapper .dataTables_filter input::placeholder { color: #94a3b8; }
-        .dt-pretty .dataTables_wrapper .dataTables_filter input:hover { background-color: #fff !important; border-color: #cbd5e1 !important; }
-        .dt-pretty .dataTables_wrapper .dataTables_filter input:focus {
-            width: 24rem !important; background-color: #fff !important; border-color: #3b82f6 !important;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, .14) !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
-        }
-        .dark .dt-pretty .dataTables_wrapper .dataTables_filter input { background-color: rgba(255, 255, 255, .04) !important; border-color: rgba(255, 255, 255, .12) !important; }
-        .dark .dt-pretty .dataTables_wrapper .dataTables_filter input:focus { background-color: rgba(255, 255, 255, .07) !important; border-color: #60a5fa !important; box-shadow: 0 0 0 3px rgba(96, 165, 250, .2) !important; }
-        .dt-pretty .dataTables_info { padding: 14px 18px !important; font-size: 12px; color: #6b7280; }
-        .dt-pretty .dataTables_paginate { padding: 8px 18px !important; }
-        .dt-pretty .dataTables_wrapper > .dataTables_info,
-        .dt-pretty .dataTables_wrapper > .dataTables_paginate { border-top: 1px solid #f1f5f9; }
-
-        .dark .dt-pretty .dt-toolbar { border-bottom-color: rgba(255, 255, 255, .06); }
-        .dark .dt-pretty .dataTables_length label { color: #9ca3af; background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .12); }
-        .dark .dt-pretty .dataTables_length select { color: #93c5fd; }
-        .dark .dt-pretty .dataTables_length select option { color: #111827; }
-        .dark .dt-pretty .dt-button.buttons-excel { background: rgba(22, 163, 74, .12) !important; color: #86efac !important; border-color: rgba(134, 239, 172, .25) !important; }
-        .dark .dt-pretty .dt-button.buttons-csv { background: rgba(2, 132, 199, .12) !important; color: #7dd3fc !important; border-color: rgba(125, 211, 252, .25) !important; }
-        .dark .dt-pretty .dataTables_wrapper > .dataTables_info,
-        .dark .dt-pretty .dataTables_wrapper > .dataTables_paginate { border-top-color: rgba(255, 255, 255, .06); }
-        @media (max-width: 640px) {
-            .dt-pretty .dt-toolbar { flex-wrap: wrap; }
-            .dt-pretty .dataTables_filter { margin-left: 0 !important; width: 100%; }
-            .dt-pretty .dataTables_filter input { width: 100% !important; }
-        }
-    </style>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
     @endphp
@@ -110,217 +19,13 @@
             }
         @endphp
 
-        <div class="sppb-cards xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-
-
-            {{-- All Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- On Progress Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">On Progress</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Draft Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="H">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Draft</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Reject Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Reject</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-            {{-- SPPB All List --}}
-            {{-- <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-mode="all">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">SPPB All List</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">
-                            {{ $allListCount }}
-                        </p>
-
-                    </div>
-                </a>
-            </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS') || auth()->user()->hasRole('FAACCESS') || auth()->user()->hasRole('FINACCESS'))
-                {{-- SPPB All List --}}
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full" data-mode="all">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">SPPB All List</p>
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold">
-                                {{ $allListCount }}
-                            </p>
-                        </div>
-                    </a>
-                </button>
-            @endif
-
-            @if (auth()->user()->hasRole('WHSACCESS'))
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full" data-mode="wo">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border border-sky-700 bg-sky-200/20 p-3 text-sky-600 hover:-translate-y-1 hover:bg-sky-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">WO → SPPB</p>
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold">
-                                {{ $woSppbCount ?? 0 }}
-                            </p>
-                        </div>
-                    </a>
-                </button>
-            @endif
-        </div>
+        <x-status-filter-cards prefix="SPPB"
+            :counts="['' => $all, 'P' => $onProgress, 'H' => $draft, 'R' => $reject, 'D' => $revise, 'C' => $completed]"
+            :all-list="(auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS') || auth()->user()->hasRole('FAACCESS') || auth()->user()->hasRole('FINACCESS')) ? $allListCount : null"
+            :wo="auth()->user()->hasRole('WHSACCESS') ? ($woSppbCount ?? 0) : null" />
 
         <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-
-            <div class="flex flex-col gap-4 rounded-t-xl border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-5 py-3.5 dark:border-white/[0.06] dark:from-white/[0.03] dark:to-transparent lg:flex-row lg:items-center lg:justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                    </span>
-                    <div>
-                        <h2 id="pageTitle" class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100">
-                            Request SPPB
-                        </h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Create, track and manage your requests</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="hidden items-center gap-2 flex">
-
-                        {{-- Status Filter --}}
-                        <select id="filterStatus"
-                            class="h-10 cursor-pointer rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-white/[0.12] dark:bg-[#0f172a] dark:text-gray-300">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="C">Completed</option>
-                        </select>
-
-                        {{-- Company Filter --}}
-                        <select id="filterCompany"
-                            class="h-10 cursor-pointer rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-white/[0.12] dark:bg-[#0f172a] dark:text-gray-300">
-                            <option value="">All Company</option>
-                        </select>
-
-                        {{-- Department Filter --}}
-                        <select id="filterDepartment"
-                            class="h-10 cursor-pointer rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-white/[0.12] dark:bg-[#0f172a] dark:text-gray-300">
-                            <option value="">All Department</option>
-                        </select>
-
-                    </div>
-
-                    <a id="createBtn" href="{{ url('/createsppbs') }}"
-                        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 px-5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 ring-1 ring-inset ring-white/10 transition hover:-translate-y-px hover:from-blue-500 hover:to-blue-700 hover:shadow-lg hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-blue-300 active:translate-y-0">
-                        <i class="fa-solid fa-plus text-xs"></i>Create
-                    </a>
-                </div>
-            </div>
+            <x-spp-list-header title="Request SPPB" :create-url="url('/createsppbs')" />
 
             <div class="relative overflow-hidden">
                 <table id="sppbsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -330,8 +35,8 @@
                             <th class="px-4 py-3 text-left font-medium">Doc ID</th>
                             <th id="thWoId" class="hidden px-4 py-3 text-left font-medium">WO ID</th>
                             <th class="px-4 py-3 text-left font-medium">Date</th>
-                            <th class="px-4 py-3 text-left font-medium">Company</th>
-                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-center! font-medium">Company</th>
+                            <th class="px-4 py-3 text-center! font-medium">Department</th>
                             <th class="px-4 py-3 text-left font-medium">Request Type</th>
                             <th class="px-4 py-3 text-left font-medium">Description</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -1171,7 +876,7 @@
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {
             // simpan status filter global
-            let statusFilter = 'P';
+            let statusFilter = 'P'; // default = On Progress
             let mode = 'normal';
             let deptFilter = '';
             let cpnyFilter = '';
@@ -1273,6 +978,7 @@
                             if (cpnyFilter) {
                                 cpnySelect.val(cpnyFilter);
                             }
+                            cpnySelect.trigger('change.select2');
 
                             const deptSelect = $('#filterDepartment');
 
@@ -1289,6 +995,7 @@
                             if (deptFilter) {
                                 deptSelect.val(deptFilter);
                             }
+                            deptSelect.trigger('change.select2');
                         }
                     }
                 },
@@ -1303,75 +1010,8 @@
                     {
                         data: 'sppbid',
                         render: function(data, type, row) {
-                            let showUrl = `/showsppbs/${row.eid}`;
-                            let editUrl = `/editsppbs/${row.eid}`;
-
-                            let viewCls =
-                                'inline-flex h-8 w-8 items-center justify-center rounded-full text-sm ' +
-                                'text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10';
-
-                            // Doc ID: clean link-style text (no box); drafts get an amber pencil
-                            let linkBase =
-                                'group/doc inline-flex items-center gap-1.5 text-[13px] font-semibold tracking-wide tabular-nums ' +
-                                'underline decoration-transparent decoration-2 underline-offset-4 transition ';
-
-                            let editCls = linkBase +
-                                'text-amber-600 hover:decoration-amber-300 dark:text-amber-400';
-
-                            let defaultCls = linkBase +
-                                'text-blue-600 hover:text-blue-700 hover:decoration-blue-300 dark:text-blue-400 dark:hover:text-blue-300';
-
-                            let trackCls =
-                                'tracking-btn inline-flex h-8 w-8 items-center justify-center rounded-full text-sm ' +
-                                'text-rose-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10';
-
-                            const text = data || row.id;
-
-                            // ===== DRAFT/REVISE & OWNER =====
-                            if ((row.status === 'D' || row.status === 'H') && row.created_by === currentUser) {
-                                return `
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <!-- EDIT -->
-                                        <a href="${editUrl}" class="${editCls}" title="Edit draft">
-                                            <i class="fa-solid fa-pen text-[10px]"></i>
-                                            <span>${text}</span>
-                                        </a>
-
-                                        <!-- VIEW (EYE ICON) -->
-                                        <a href="${showUrl}"  target="_blank" class="${viewCls}" title="View">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-
-                                        <!-- TRACKING -->
-                                        <button type="button"
-                                            class="${trackCls}"
-                                            data-id="${row.eid}"
-                                            data-doc="${text}"
-                                            aria-label="Tracking" title="Tracking">
-                                            <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
-
-                                    </div>
-                                `;
-                            }
-
-                            // ===== DEFAULT (NON-DRAFT / BUKAN OWNER) =====
-                            return `
-                                <div class="flex items-center gap-2 whitespace-nowrap">
-                                    <a href="${showUrl}" class="${defaultCls}" title="Open">
-                                        <span>${text}</span>
-                                    </a>
-
-                                    <button type="button"
-                                        class="${trackCls}"
-                                        data-id="${row.eid}"
-                                        data-doc="${text}"
-                                        aria-label="Tracking" title="Tracking">
-                                        <i class="fa-solid fa-paper-plane"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                            return sppDocCell(row, data || row.id, 'sppbs', currentUser);
+}
 
                     },
                     {
@@ -1405,69 +1045,20 @@
                     {
                         data: 'requesttype_name',
                         defaultContent: '-',
-                        className: 'text-left',
-                        render: function(data, type) {
-                            if (!data) return '-';
-                            const str = String(data);
-                            if (type === 'export' || str.length <= 40) return str;
-                            return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 40)}…</span>`;
-                        }
+                        className: 'text-left'
                     },
                     {
                         data: 'keperluan',
-                        className: 'text-left',
-                        render: function(data, type) {
-                            if (!data) return '-';
-                            const str = String(data);
-                            if (type === 'export' || str.length <= 50) return str;
-                            return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 50)}…</span>`;
-                        }
+                        defaultContent: '-',
+                        className: 'text-left'
                     },
 
                     {
                         data: 'status',
                         className: 'text-left',
                         render: function(data) {
-                            // soft pill + dot; colours match the status filter cards above
-                            const map = {
-                                'D': {
-                                    t: 'Revise',
-                                    c: 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30',
-                                    d: 'bg-amber-500'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30',
-                                    d: 'bg-orange-500'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30',
-                                    d: 'bg-green-500'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30',
-                                    d: 'bg-rose-500'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30',
-                                    d: 'bg-red-500'
-                                },
-                                'H': {
-                                    t: 'Draft',
-                                    c: 'bg-pink-50 text-pink-700 ring-pink-200 dark:bg-pink-500/10 dark:text-pink-300 dark:ring-pink-500/30',
-                                    d: 'bg-pink-500'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-slate-50 text-slate-600 ring-slate-200 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10',
-                                d: 'bg-slate-400'
-                            };
-                            return `<span class="inline-flex min-w-[116px] items-center justify-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${it.c}"><span class="h-1.5 w-1.5 rounded-full ${it.d}"></span>${it.t}</span>`;
-                        }
+                            return sppStatusBadge(data);
+}
                     }
                 ],
 
@@ -1506,8 +1097,8 @@
             //     table.ajax.reload(null, true);
             // });
 
-            // default selected card = "All"
-            $('.status-filter[data-status=""]').first().addClass('active');
+            // default selected card = On Progress
+            $('.status-filter[data-status="P"]').first().addClass('active');
 
             $(document).off('click', '.status-filter').on('click', '.status-filter', function(e) {
 
@@ -1561,6 +1152,8 @@
 
                 table.ajax.reload(null, true);
             });
+            sppInitFilters();
+
             $('#filterCompany').on('change', function() {
                 cpnyFilter = this.value;
                 deptFilter = '';

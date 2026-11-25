@@ -1089,6 +1089,11 @@ SELECT2
         width: 100% !important;
     }
 
+    /* The open dropdown's wrapper is appended straight to <body> at the field's position; at 100% wide it overflows the page and adds scrollbars. */
+    body > .select2-container {
+        width: auto !important;
+    }
+
     .select2-selection--single {
 
         height: 42px;

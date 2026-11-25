@@ -1,4 +1,7 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'stockjobs' ? 'Stock Jobs' : '';
     @endphp
@@ -7,85 +10,23 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-            <a href="#" class="status-filter group block h-full" data-filter="all">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($stockJobs + $stockDone) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter active group block h-full" data-filter="jobs">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Stock Jobs</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($stockJobs) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-filter="done">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Stock Done</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($stockDone) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-filter="inv">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Inventory Stock</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($inventoryStock) }}</p>
-                </div>
-            </a>
-
-
-            <a href="#" class="status-filter group block h-full" data-filter="stock_all">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                        🗂️
-                    </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
-                            All Item Request
-                        </p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">
-                        {{ number_format($stockAllRequest ?? 0) }}
-                    </p>
-
-                </div>
-            </a>
-        </div>
-
+        @php
+            $statusCards = [
+                [['data-filter' => 'all'], 'All', '📦', 'all', number_format($stockJobs + $stockDone), false],
+                [['data-filter' => 'jobs'], 'Stock Jobs', '🧾', 'blue', number_format($stockJobs), true],
+                [['data-filter' => 'done'], 'Stock Done', '✅', 'green', number_format($stockDone), false],
+                [['data-filter' => 'inv'], 'Inventory Stock', '📦', 'sky', number_format($inventoryStock), false],
+                [['data-filter' => 'stock_all'], 'All Item Request', '🗂️', 'purple', number_format($stockAllRequest ?? 0), false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         {{-- TABLES --}}
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             {{-- JOBS WRAP --}}
             <div id="jobsWrap">
-                <div
-                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                    <h1 id="jobsTitle" class="text-base font-extrabold text-gray-700 dark:text-white">Stock Jobs</h1>
-                </div>
+                <x-list-page-header title="Stock Jobs" title-id="jobsTitle" subtitle="Assign inventory IDs to item requests" />
 
                 <div class="relative overflow-hidden">
                     <table id="stockJobsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -111,34 +52,32 @@
 
             {{-- INVENTORY WRAP --}}
             <div id="invWrap" class="hidden">
-                <div
-                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📦 Inventory
-                        List</h2>
-
-                    <button id="addInventoryBtn"
-                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
-                        + Add Inventory
+                <x-list-page-header title="Inventory List" subtitle="Stock inventory master">
+                    <div class="sppb-f relative w-44">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                        <select id="filter_cpny">
+                            <option value="">Select Company</option>
+                            @foreach ($cpnyIds as $cpny)
+                                <option value="{{ $cpny }}">{{ $cpny }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="sppb-f relative w-52">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                        <select id="filter_bu">
+                            <option value="">Select Business Unit</option>
+                            @foreach ($buList as $bu)
+                                <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button id="addInventoryBtn" type="button"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        <i class="fa-solid fa-plus mr-2 text-xs"></i>Add Inventory
                     </button>
-                </div>
+                </x-list-page-header>
 
-                <div class="flex gap-3 px-5 pt-4">
-                    <select id="filter_cpny" class="rounded-lg border px-3 py-2">
-                        <option value="">Select Company</option>
-                        @foreach ($cpnyIds as $cpny)
-                            <option value="{{ $cpny }}">{{ $cpny }}</option>
-                        @endforeach
-                    </select>
-
-                    <select id="filter_bu" class="rounded-lg border px-3 py-2">
-                        <option value="">Select Business Unit</option>
-                        @foreach ($buList as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="relative mt-4 overflow-hidden">
+                <div class="relative overflow-hidden">
                     <table id="inventoryTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                         <thead>
                             <tr
@@ -162,69 +101,74 @@
         </div>
 
         {{-- INVENTORY CRUD MODAL --}}
-        <div id="inventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                <h2 id="inventoryModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
-                    Inventory</h2>
+        <div id="inventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+            <div class="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800">
+                <div class="-mx-6 -mt-6 mb-5 flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg></span>
+                    <div>
+                        <h2 id="inventoryModalTitle" class="text-base font-bold text-gray-800 dark:text-white">Add Inventory</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Fill in the item classification, description and units.</p>
+                    </div>
+                </div>
 
                 <form id="inventoryForm">
                     @csrf
                     <input type="hidden" id="inv_id" name="id">
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div id="inventoryIdWrapper">
-                            <label class="block text-gray-700 dark:text-white">Inventory ID</label>
+                    <div class="sf-field grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2">
+                        <div id="inventoryIdWrapper" class="md:col-span-2">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Inventory ID</label>
                             <input type="text" id="inventoryid" name="inventoryid"
-                                class="w-full cursor-not-allowed rounded-lg border bg-gray-100 px-3 py-2 text-gray-700 dark:bg-gray-600 dark:text-gray-200"
+                                class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 cursor-not-allowed !bg-gray-100 dark:!bg-gray-700"
                                 readonly>
                         </div>
 
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Item Type</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Item Type</label>
                             <select id="item_type" name="item_type_id"
-                                class="select2 w-full rounded-lg border px-3 py-2" required>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required>
                                 <option value="">Select Item Type</option>
                             </select>
                             <input type="hidden" id="item_type_hidden" name="item_type_id_hidden">
                         </div>
 
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Item Sub Type</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Item Sub Type</label>
                             <select id="item_sub_type" name="item_sub_type_id"
-                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required disabled>
                                 <option value="">Select Sub Type</option>
                             </select>
                             <input type="hidden" id="item_sub_type_hidden" name="item_sub_type_id_hidden">
                         </div>
 
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Item Class</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Item Class</label>
                             <select id="item_class" name="item_class_id"
-                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required disabled>
                                 <option value="">Select Class</option>
                             </select>
                             <input type="hidden" id="item_class_hidden" name="item_class_id_hidden">
                         </div>
 
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Item Sub Class</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Item Sub Class</label>
                             <select id="item_sub_class" name="item_sub_class_id"
-                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required disabled>
                                 <option value="">Select Sub Class</option>
                             </select>
                             <input type="hidden" id="item_sub_class_hidden" name="item_sub_class_id_hidden">
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block text-gray-700 dark:text-white">Description</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</label>
                             <input type="text" id="inventory_descr" name="inventory_descr"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" required>
                         </div>
 
                         <div id="stockUnitWrap">
-                            <label class="block text-gray-700 dark:text-white">Stock Unit</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Stock Unit</label>
                             <select id="stock_unit" name="stock_unit"
-                                class="select2 w-full rounded-lg border px-3 py-2" required>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required>
                                 <option value="">Select</option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
@@ -234,9 +178,9 @@
                         </div>
 
                         <div id="purchaseUnitWrap">
-                            <label class="block text-gray-700 dark:text-white">Purchase Unit</label>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Purchase Unit</label>
                             <select id="purchase_unit" name="purchase_unit"
-                                class="select2 w-full rounded-lg border px-3 py-2" required>
+                                class="select2 sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100" required>
                                 <option value="">Select</option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
@@ -246,11 +190,11 @@
                         </div>
                     </div>
 
-                    <div class="mt-5 flex justify-end gap-2">
+                    <div class="-mx-6 -mb-6 mt-6 flex justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                         <button type="button" id="closeInventoryModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                            class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Cancel</button>
                         {{-- <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button> --}}
-                        <button id="btnInvSave" type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">
+                        <button id="btnInvSave" type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             Save
                         </button>
                     </div>
@@ -304,7 +248,8 @@
                 // penting: dropdownParent supaya select2 muncul di modal (bukan di belakang overlay)
                 $('#inventoryModal .select2').select2({
                     width: '100%',
-                    dropdownParent: $('#inventoryModal')
+                    dropdownParent: $('#inventoryModal'),
+                    dropdownCssClass: 'sf-s2-dropdown'
                 });
             }
 
@@ -688,9 +633,7 @@
                         {
                             data: 'irid',
                             render: function(data, type, row) {
-                                const text = data || '-';
-                                const url = `/showitemreq/${row.eid}`;
-                                return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">${text}</a>`;
+                                return sppDocCell(row, data || '-', 'itemreq', null, true);
                             }
                         },
                         {
@@ -1003,6 +946,7 @@
                 });
 
                 // inventory filter
+                $('#filter_cpny, #filter_bu').select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
                 $('#filter_cpny, #filter_bu').on('change', function() {
                     invTable.ajax.reload(null, true);
                 });

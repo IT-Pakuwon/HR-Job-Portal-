@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'sppks' ? 'HR' : '';
     @endphp
@@ -6,172 +8,11 @@
         @php
             $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS');
         @endphp
-        <div
-            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-
-            {{-- All Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- On Progress Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">On Progress</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Draft Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="H">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Draft</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Reject Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Reject</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS'))
-                {{-- SPPK All List --}}
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full" data-mode="all">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">SPPK All List</p>
-                            </div>
-                            <p class="shrink-0 text-base font-bold">
-                                {{ $allListCount }}
-                            </p>
-
-                        </div>
-                    </a>
-                </button>
-            @endif
-        </div>
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Request SPPK
-                </h2>
-
-                <div class="flex items-center gap-4">
-                    {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="flex hidden items-center gap-2">
-
-                        {{-- Status Filter --}}
-                        <select id="filterStatus"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="C">Completed</option>
-                        </select>
-
-                        {{-- Company Filter --}}
-                        <select id="filterCompany"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Company</option>
-                        </select>
-
-                        {{-- Department Filter --}}
-                        <select id="filterDepartment"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Department</option>
-                        </select>
-
-                    </div>
-                    <a id="createBtn" href="{{ url('/createsppks') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-
-            </div>
+        <x-status-filter-cards prefix="SPPK"
+            :counts="['' => $all, 'P' => $onProgress, 'H' => $draft, 'R' => $reject, 'D' => $revise, 'C' => $completed]"
+            :all-list="(auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS')) ? $allListCount : null" />
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-spp-list-header title="Request SPPK" :create-url="url('/createsppks')" />
 
             <div class="relative overflow-hidden">
                 <table id="sppksTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -185,10 +26,10 @@
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-center! font-medium">
                                 Company
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                            <th scope="col" class="w-32 px-4 py-3 text-center! font-medium">
                                 Department
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
@@ -947,7 +788,7 @@
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {
             // simpan status filter global
-            let statusFilter = 'P'; // default
+            let statusFilter = 'P'; // default = On Progress
             let mode = 'normal';
             let deptFilter = '';
             let cpnyFilter = '';
@@ -971,7 +812,7 @@
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'List_SPPK',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -983,7 +824,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'List_SPPK',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -1038,6 +879,7 @@
                             if (cpnyFilter) {
                                 cpnySelect.val(cpnyFilter);
                             }
+                            cpnySelect.trigger('change.select2');
 
                             const deptSelect = $('#filterDepartment');
 
@@ -1054,6 +896,7 @@
                             if (deptFilter) {
                                 deptSelect.val(deptFilter);
                             }
+                            deptSelect.trigger('change.select2');
                         }
                     }
                 },
@@ -1069,48 +912,8 @@
                     {
                         data: 'sppkid',
                         render: function(data, type, row) {
-                            // default: view
-                            let url = `/showsppks/${row.eid}`;
-                            let cls =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-
-                            const text = data || row.id;
-
-                            const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
-                                row.created_by === currentUser);
-
-                            // icon view (mata)
-                            const viewBtn = `
-                                <a href="/showsppks/${row.eid}" target="_blank"
-                                class="inline-flex items-center justify-center rounded-full p-2
-                                        text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                                aria-label="View" title="View">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                            `;
-
-                            // jika status Draft & milik current user → ke halaman edit
-                            if (isDraftOwner) {
-                                url = `/editsppks/${row.eid}`;
-                                cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                            }
-
-                            return `
-                                <div class="flex items-center gap-2 whitespace-nowrap">
-                                    <a href="${url}" class="${cls}">${text}</a>
-
-                                    ${isDraftOwner ? viewBtn : ''}
-
-                                    <button type="button"
-                                        class="tracking-btn inline-flex items-center justify-center rounded-full p-2
-                                            text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        data-id="${row.eid}" aria-label="Tracking" title="Tracking">
-                                        <i class="fa-solid fa-paper-plane"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                            return sppDocCell(row, data || row.id, 'sppks', currentUser);
+}
 
                     },
 
@@ -1140,38 +943,8 @@
                         data: 'status',
                         className: 'text-left',
                         render: function(data) {
-                            const map = {
-                                'D': {
-                                    t: 'Revise',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'H': {
-                                    t: 'Draft',
-                                    c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
-                        }
+                            return sppStatusBadge(data);
+}
                     }
                 ],
 
@@ -1189,7 +962,13 @@
             // });
 
 
-            $(document).off('click', '.status-filter').on('click', '.status-filter', function(e) {
+                        // default selected card = On Progress
+            $('.status-filter[data-status="P"]').first().addClass('active');
+
+$(document).off('click', '.status-filter').on('click', '.status-filter', function(e) {
+                $('.status-filter').removeClass('active');
+                $(this).addClass('active');
+
                 e.preventDefault();
 
                 const selectedMode = $(this).data('mode') || 'normal';
@@ -1224,6 +1003,8 @@
                 statusFilter = this.value;
                 table.ajax.reload();
             });
+
+            sppInitFilters();
 
             $('#filterCompany').on('change', function() {
                 cpnyFilter = this.value;

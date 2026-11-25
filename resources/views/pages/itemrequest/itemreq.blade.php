@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'itemreq' ? 'HR' : '';
     @endphp
@@ -6,107 +8,22 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div
-            class="{{ ($isAdmin ?? false) ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {{-- All --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter active group block h-full" data-status="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, true],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'D'], 'Revise / Draft', '✏️', 'blue', $revise, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+            ];
+            if ($isAdmin ?? false) {
+                $statusCards[] = [['data-status' => '', 'data-mode' => 'all'], 'Item Request All List', '📊', 'purple', $allListCount, false];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- On Progress --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">On Progress</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Reject --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Reject</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise / Draft --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Item Request All List (admin only) --}}
-            @if ($isAdmin ?? false)
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full" data-status="" data-mode="all">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">Item Request All List</p>
-                            </div>
-                            <p class="shrink-0 text-base font-bold">{{ $allListCount }}</p>
-                        </div>
-                    </a>
-                </button>
-            @endif
-        </div>
-
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Item Request</h2>
-
-                {{-- sesuaikan URL/route create --}}
-                <a href="{{ url('/createitemreq') }}"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    <i class="fas fa-plus pr-2"></i>Create
-                </a>
-            </div>
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Item Request" :create-url="url('/createitemreq')" />
 
             <div class="relative overflow-hidden">
                 <table id="itemReqTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -114,21 +31,14 @@
                         <tr
                             class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="w-10 px-4 py-3"></th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
-                                IRID</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
-                                Date</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
-                                Company</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
-                                Department</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">IRID</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Date</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Company</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Department</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">Inventory Type</th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                Description</th>
-                            <th class="px-4 py-3 text-left font-medium">
-                                PIC</th>
-                            <th class="w-32 px-4 py-3 text-left font-medium">
-                                Status</th>
+                            <th class="px-4 py-3 text-left font-medium">Description</th>
+                            <th class="px-4 py-3 text-left font-medium">PIC</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,7 +53,7 @@
 
         $(document).ready(function() {
             // default status filter: '' (All)
-            let statusFilter = '';
+            let statusFilter = 'P';
             let modeFilter = 'normal';
 
             const table = $('#itemReqTable').DataTable({
@@ -220,32 +130,7 @@
                     {
                         data: 'irid',
                         render: function(data, type, row) {
-                            let url = `/showitemreq/${row.eid}`;
-                            let cls =
-                                'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-
-                            const text = data || '-';
-
-                            // jika status Draft (D) & milik current user -> edit
-                            if (row.status === 'D' && row.created_by === currentUser) {
-                                url = `/edititemreq/${row.eid}`;
-                                cls =
-                                    'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                            }
-
-                            return `
-                                        <div class="flex items-center gap-2 whitespace-nowrap">
-                                            <a href="${url}" class="${cls}">${text}</a>
-                                            <!-- Aktifkan jika sudah ada tracking route untuk item request -->
-                                            <!--
-                                            <button type="button"
-                                                class="tracking-btn inline-flex items-center justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                data-id="${row.eid}" data-doc="${text}" aria-label="Tracking" title="Tracking">
-                                                <i class="fa-solid fa-paper-plane"></i>
-                                            </button>
-                                            -->
-                                        </div>
-                                    `;
+                            return sppDocCell(row, data || '-', 'itemreq', currentUser, true);
                         }
                     },
 
@@ -282,29 +167,7 @@
                         data: 'status',
                         className: 'text-left',
                         render: function(data) {
-                            const map = {
-                                'D': {
-                                    t: 'Revise / Draft',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-36 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            return sppStatusBadge(data, { D: 'Revise / Draft' });
                         }
                     }
                 ],

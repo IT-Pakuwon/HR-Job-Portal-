@@ -38,7 +38,7 @@
                 </button> --}}
                 @if (!empty($canEdit) && $canEdit)
                     <button id="editBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -53,12 +53,12 @@
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left Card --}}
-                <div class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col overflow-y-auto rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                        <h1 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
                                 ID
                             </span>
                             {{ $bq->bqid }}
@@ -67,14 +67,14 @@
 
                             <a href="{{ url('/pdf_bq_pt') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     Print PDF
                                 </button>
                             </a>
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-6 py-4">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             @php
@@ -123,14 +123,17 @@
                 </div>
 
                 {{-- Right Card (Photo Before) --}}
-                <div class="flex flex-col gap-4 bg-white sm:w-1/2 md:w-full dark:bg-gray-800">
-                    <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
+                <div class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm sm:w-1/2 md:w-full dark:border-gray-700 dark:bg-gray-800">
+                    <header class="flex items-center gap-3 rounded-t-2xl border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Photo Before</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Photos of the condition before the work</p>
+                        </div>
                     </header>
 
                     {{-- Attachment (div grid) --}}
-                    <div class="flex-1 overflow-y-auto px-4 py-3">
+                    <div class="flex-1 overflow-y-auto px-6 py-5">
                         <div id="bqAttachmentGrid"
                             class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                             {{-- akan dirender via JS --}}
@@ -143,7 +146,7 @@
                     @if (!empty($canEdit) && $canEdit)
                         {{-- form upload ke service GCS --}}
                         <form id="bqAttachmentUploadForm" enctype="multipart/form-data"
-                            class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm   dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky bottom-0 z-10 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                             @csrf
                             <input type="hidden" name="cpnyid" value="{{ $bq->cpny_id }}">
                             <input type="hidden" name="departementid" value="{{ $bq->department_id }}">
@@ -151,18 +154,18 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
                                 <div class="flex-1">
                                     <label for="bqAttachFiles"
-                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Upload Attachment
                                     </label>
                                     <div class="flex items-center gap-3">
                                         <input type="file" id="bqAttachFiles" name="attachments[]" multiple
-                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                            class="block h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
                                         <button type="button" id="btnUploadBqAttachment"
-                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                             Upload
                                         </button>
                                         <button type="button" id="btnResetBqAttachment"
-                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                             Reset
                                         </button>
                                     </div>
@@ -174,48 +177,52 @@
                     @endif
                 </div>
             </div>
-            <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col rounded-xl bg-white dark:bg-gray-800">
+            <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 {{-- Header --}}
-                <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📝 BQ Detail</h2>
+                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg></span>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">BQ Detail</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">The BQ lines of this document</p>
+                        </div>
+                    </div>
                 </header>
 
                 {{-- Scrollable Table --}}
-                <div class="max-h-[calc(50rem-4rem)] overflow-x-auto overflow-y-auto"> {{-- adjust height --}}
-                    <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                <div class="max-h-[calc(50rem-4rem)] overflow-x-auto overflow-y-auto px-6 pb-6 pt-4"> {{-- adjust height --}}
+                    <table class="w-full border-separate border-spacing-0 text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="sticky top-0 z-10 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                             <tr>
-                                <th class="px-4 py-2 text-left">No</th>
-                                <th class="px-4 py-2 text-left">Description</th>
-                                <th class="px-4 py-2 text-right">Qty</th>
-                                <th class="px-4 py-2 text-left">UoM</th>
-                                <th class="px-4 py-2 text-right">Est Mat Price</th>
-                                <th class="px-4 py-2 text-right">Total Est Mat</th>
-                                <th class="px-4 py-2 text-right">Est Jasa Price</th>
-                                <th class="px-4 py-2 text-right">Total Est Jasa</th>
+                                <th class="px-4 py-3 text-left">No</th>
+                                <th class="px-4 py-3 text-left">Description</th>
+                                <th class="px-4 py-3 text-right">Qty</th>
+                                <th class="px-4 py-3 text-left">UoM</th>
+                                <th class="px-4 py-3 text-right">Est Mat Price</th>
+                                <th class="px-4 py-3 text-right">Total Est Mat</th>
+                                <th class="px-4 py-3 text-right">Est Jasa Price</th>
+                                <th class="px-4 py-3 text-right">Total Est Jasa</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($bqdetail as $item)
-                                <tr
-                                    class="border-t border-gray-200 bg-white hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->bq_descr }}</td>
-                                    <td class="px-4 py-2 text-right">
+                                <tr class="border-t border-gray-100 transition-colors odd:bg-white even:bg-gray-50/50 hover:bg-blue-50/60 dark:border-gray-700 dark:odd:bg-gray-800 dark:even:bg-gray-800/60 dark:hover:bg-gray-700">
+                                    <td class="px-4 py-2.5">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-2.5">{{ $item->bq_descr }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
                                     </td>
-                                    <td class="px-4 py-2">{{ $item->uom }}</td>
-                                    <td class="px-4 py-2 text-right">
+                                    <td class="px-4 py-2.5">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-2 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-2 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-2 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
                                     </td>
                                 </tr>

@@ -2,15 +2,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="max-w-9xl mx-auto p-2">
-        <div class="rounded-xl bg-white p-5 shadow-sm dark:bg-gray-800">
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-lg font-extrabold text-gray-800 dark:text-white">Edit BQ Kontrak</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
-                        Default: update Qty langsung. Kalau ganti Category → tabel ambil dari TEMP.
-                    </p>
-                </div>
-            </div>
+        <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Edit BQ Kontrak</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Default: update Qty langsung. Kalau ganti Category → tabel ambil dari TEMP.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+            <div class="p-6">
 
             {{-- Flash --}}
             @if (session('error'))
@@ -27,20 +30,20 @@
             {{-- Header info --}}
             <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                    <label class="text-xs text-gray-500 dark:text-gray-300">BQ ID</label>
-                    <div class="mt-1 rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:text-gray-100">
+                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">BQ ID</label>
+                    <div class="flex min-h-[40px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         {{ $bq->bqid }}
                     </div>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-500 dark:text-gray-300">Company</label>
-                    <div class="mt-1 rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:text-gray-100">
+                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
+                    <div class="flex min-h-[40px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         {{ $bq->cpny_id }}
                     </div>
                 </div>
                 <div>
-                    <label class="text-xs text-gray-500 dark:text-gray-300">SPPJ</label>
-                    <div class="mt-1 rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:text-gray-100">
+                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">SPPJ</label>
+                    <div class="flex min-h-[40px] items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         {{ $bq->sppjtid }}
                     </div>
                 </div>
@@ -48,16 +51,17 @@
 
             {{-- Category picker --}}
             <div class="mt-6">
-                <label class="text-xs text-gray-500 dark:text-gray-300">Category Kontrak</label>
-                <div class="mt-1 flex items-center gap-2">
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Category Kontrak</label>
+                <div class="flex items-center gap-2">
                     <input id="kontrakcategory" type="text" readonly
-                        class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 cursor-pointer"
                         value="{{ $currentCategory ?? '' }}"
                         placeholder="Klik 🔍 untuk pilih category (optional)">
                     <button id="btnPickCategory" type="button"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                        🔍 Pilih
-                    </button>
+                        class="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                            Pilih
+                        </button>
                 </div>
 
                 <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -79,38 +83,38 @@
                 {{-- flag mode: 0=direct update BqDetail, 1=replace from temp --}}
                 <input type="hidden" name="use_temp" id="use_temp_hidden" value="0">
 
-                <div class="mt-6 overflow-x-auto">
+                <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                        <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                             <tr>
-                                <th class="px-3 py-2 text-left">No</th>
-                                <th class="px-3 py-2 text-left">Type</th>
-                                <th class="px-3 py-2 text-left">ID</th>
-                                <th class="px-3 py-2 text-left">Description</th>
-                                <th class="px-3 py-2 text-left">Qty</th>
-                                <th class="px-3 py-2 text-left">UOM</th>
-                                <th class="px-3 py-2 text-left">Duration</th>
+                                <th class="px-3 py-3 text-left">No</th>
+                                <th class="px-3 py-3 text-left">Type</th>
+                                <th class="px-3 py-3 text-left">ID</th>
+                                <th class="px-3 py-3 text-left">Description</th>
+                                <th class="px-3 py-3 text-left">Qty</th>
+                                <th class="px-3 py-3 text-left">UOM</th>
+                                <th class="px-3 py-3 text-left">Duration</th>
                             </tr>
                         </thead>
 
                         {{-- DEFAULT: pakai BqDetail (direct update) --}}
                         <tbody id="detailTbody" class="divide-y dark:divide-gray-700">
                             @forelse($details as $d)
-                                <tr class="dark:text-gray-100"
+                                <tr class="transition-colors hover:bg-blue-50/60 dark:text-gray-100 dark:hover:bg-gray-700"
                                     data-mode="direct"
                                     data-id="{{ $d->id }}">
-                                    <td class="px-3 py-2">{{ $d->bq_line_no }}</td>
-                                    <td class="px-3 py-2">{{ $d->kontrak_bq_type }}</td>
-                                    <td class="px-3 py-2">{{ $d->kontrak_bq_id }}</td>
-                                    <td class="px-3 py-2">{{ $d->bq_descr }}</td>
-                                    <td class="px-3 py-2">
+                                    <td class="px-3 py-2.5">{{ $d->bq_line_no }}</td>
+                                    <td class="px-3 py-2.5">{{ $d->kontrak_bq_type }}</td>
+                                    <td class="px-3 py-2.5">{{ $d->kontrak_bq_id }}</td>
+                                    <td class="px-3 py-2.5">{{ $d->bq_descr }}</td>
+                                    <td class="px-3 py-2.5">
                                         {{-- IMPORTANT: id = BqDetail.id --}}
                                         <input type="number" min="0" step="0.01"
                                             name="qty[{{ $d->id }}]" value="{{ (float) $d->qty }}"
-                                            class="qty-input w-28 rounded-md border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
+                                            class="qty-input h-9 w-28 rounded-lg border border-gray-300 bg-white px-2 text-right text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
                                     </td>
-                                    <td class="px-3 py-2">{{ $d->uom }}</td>
-                                    <td class="px-3 py-2">{{ $d->kontrak_duration_qty }}</td>
+                                    <td class="px-3 py-2.5">{{ $d->uom }}</td>
+                                    <td class="px-3 py-2.5">{{ $d->kontrak_duration_qty }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -123,49 +127,48 @@
                     </table>
                 </div>
 
-                <div class="mt-6 flex justify-end gap-2">
+                <div class="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-700">
                     <a href="{{ route('bqkontrak.show', $eid) }}"
                         class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
                         Back
                     </a>
 
                     <button type="submit" id="btnSubmitUpdate"
-                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                        class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60">
                         Update
                     </button>
                 </div>
             </form>
         </div>
+        </div>
     </div>
 
     {{-- Modal Select Category --}}
     <div id="categoryModal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-        <div class="absolute left-1/2 top-1/2 w-[95%] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-lg dark:bg-gray-800">
-            <div class="flex items-center justify-between border-b px-5 py-3 dark:border-gray-700">
-                <div class="text-sm font-bold text-gray-800 dark:text-gray-100">Select Kontrak Category</div>
+        <div class="absolute left-1/2 top-1/2 w-[95%] max-w-5xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="text-base font-bold text-gray-800 dark:text-gray-100">Select Kontrak Category</div>
                 <button id="btnCloseModal"
-                    class="rounded-md p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">✕</button>
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
-            <div class="flex items-center gap-2 px-5 py-3">
+            <div class="flex items-center gap-2 px-6 py-4">
                 <input id="categorySearch" type="text" placeholder="Search..."
-                    class="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
                 <button id="btnCategoryRefresh" type="button"
-                    class="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                    ↻
-                </button>
+                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
             </div>
 
-            <div class="px-5 pb-4">
-                <div class="overflow-x-auto rounded-lg border dark:border-gray-700">
+            <div class="px-6 pb-5">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="min-w-full text-sm">
-                        <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                        <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                             <tr>
-                                <th class="px-3 py-2 text-left">Kontrak Category</th>
-                                <th class="px-3 py-2 text-left">Kontrak Descr</th>
-                                <th class="px-3 py-2 text-center">Action</th>
+                                <th class="px-3 py-3 text-left">Kontrak Category</th>
+                                <th class="px-3 py-3 text-left">Kontrak Descr</th>
+                                <th class="px-3 py-3 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody id="categoryTbody" class="divide-y dark:divide-gray-700">
@@ -178,13 +181,13 @@
                     </table>
                 </div>
 
-                <div class="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                     <div id="categoryInfo">Showing 0 of 0 items</div>
                     <div class="flex items-center gap-2">
                         <button id="btnPrevCat"
-                            class="rounded-md border px-3 py-1.5 disabled:opacity-50 dark:border-gray-700">Prev</button>
+                            class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                         <button id="btnNextCat"
-                            class="rounded-md border px-3 py-1.5 disabled:opacity-50 dark:border-gray-700">Next</button>
+                            class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                     </div>
                 </div>
             </div>
@@ -291,12 +294,12 @@
                 return;
             }
             tbody.innerHTML = rows.map(r => `
-                <tr class="dark:text-gray-100">
-                    <td class="px-3 py-2">${r.kontrakcategory ?? ''}</td>
-                    <td class="px-3 py-2">${r.kontrakcategory_descr ?? ''}</td>
-                    <td class="px-3 py-2 text-center">
+                <tr class="transition-colors hover:bg-blue-50/60 dark:text-gray-100 dark:hover:bg-gray-700">
+                    <td class="px-3 py-2.5">${r.kontrakcategory ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.kontrakcategory_descr ?? ''}</td>
+                    <td class="px-3 py-2.5 text-center">
                         <button type="button"
-                            class="btn-choose rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                            class="btn-choose inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                             data-category="${r.kontrakcategory}">
                             Choose
                         </button>
@@ -371,19 +374,19 @@
             }
 
             tbody.innerHTML = rows.map(r => `
-                <tr class="dark:text-gray-100" data-mode="temp" data-id="${r.id}">
-                    <td class="px-3 py-2">${r.bq_line_no ?? ''}</td>
-                    <td class="px-3 py-2">${r.kontrak_bq_type ?? ''}</td>
-                    <td class="px-3 py-2">${r.kontrak_bq_id ?? ''}</td>
-                    <td class="px-3 py-2">${r.bq_descr ?? ''}</td>
-                    <td class="px-3 py-2">
+                <tr class="transition-colors hover:bg-blue-50/60 dark:text-gray-100 dark:hover:bg-gray-700" data-mode="temp" data-id="${r.id}">
+                    <td class="px-3 py-2.5">${r.bq_line_no ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.kontrak_bq_type ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.kontrak_bq_id ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.bq_descr ?? ''}</td>
+                    <td class="px-3 py-2.5">
                         <input type="number" min="0" step="0.01"
                             name="qty[${r.id}]"
                             value="${parseFloat(r.qty ?? 0)}"
-                            class="qty-input w-28 rounded-md border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
+                            class="qty-input h-9 w-28 rounded-lg border border-gray-300 bg-white px-2 text-right text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />
                     </td>
-                    <td class="px-3 py-2">${r.uom ?? ''}</td>
-                    <td class="px-3 py-2">${r.kontrak_duration_qty ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.uom ?? ''}</td>
+                    <td class="px-3 py-2.5">${r.kontrak_duration_qty ?? ''}</td>
                 </tr>
             `).join('');
         }

@@ -8,17 +8,25 @@
                 <input type="hidden" name="idx" value="{{ $bq->id ?? '' }}">
                 <input type="hidden" name="sppjtid" value="{{ $bq->sppjtid ?? '' }}">
                 <input type="hidden" name="bqid" value="{{ $bq->bqid ?? '' }}">
-                <div class="flex w-full flex-col gap-2 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
-                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                        <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Edit BQ</h2>
-                    </div>
+                <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Edit BQ</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Review the BQ details, re-import the Excel file if needed, then submit.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                    <div class="flex flex-col gap-5 p-6">
 
                     @php
                         $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
                         $valueClass = 'text-gray-600 dark:text-gray-400';
                     @endphp
 
-                    <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-x-8 gap-y-3 rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm md:grid-cols-2 xl:grid-cols-4 dark:border-gray-700 dark:bg-white/[0.02]">
 
                         <div>
                             <span class="{{ $labelClass }}">BQID:</span>
@@ -43,28 +51,29 @@
                     </div>
 
                     <!-- Divider -->
-                    <div class="my-2 border-t border-gray-100 dark:border-gray-800"></div>
+                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
 
                     <!-- Import Section -->
                     <div class="flex items-end gap-4">
 
                         <div class="flex-1">
-                            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 Import Excel
                             </label>
 
                             <input type="file" name="file" id="file" required
-                                class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-blue-500 focus:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                                class="block h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
                         </div>
 
                         <button type="submit" id="importBtn"
-                            class="rounded-lg bg-blue-600 px-6 py-2.5 text-white transition hover:bg-blue-700">
+                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             Import
                         </button>
 
                     </div>
 
 
+                </div>
                 </div>
             </form>
 
@@ -73,19 +82,23 @@
             @php
                 $rows = isset($tempData) && count($tempData) > 0 ? $tempData : $bq_detail;
             @endphp
-            <div class="rounded-2xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-
-                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">
-                    📊 BQ Detail
-                    @if (isset($tempData) && count($tempData) > 0)
-                        <span class="ml-2 text-sm font-normal text-red-500">(preview import)</span>
+            <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">BQ Detail</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">The BQ lines of this document</p>
+                                    </div>
+                                </div>
+                                @if (isset($tempData) && count($tempData) > 0)
+                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Preview import</span>
                     @endif
-                </h2>
+                            </div>
 
-                <div class="w-full overflow-x-auto rounded-lg border dark:border-gray-700">
-                    <table class="w-full min-w-[1200px] table-auto whitespace-nowrap text-sm">
-                        <thead
-                            class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                <div class="w-full overflow-x-auto px-6 pb-6 pt-4">
+                    <table class="min-w-[1200px] table-auto w-full overflow-hidden whitespace-nowrap rounded-lg border border-gray-200 text-left text-sm dark:border-gray-700">
+                        <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                             <tr>
                                 <th class="px-4 py-3 text-left">No</th>
                                 <th class="px-4 py-3 text-left">Line No</th>
@@ -98,26 +111,26 @@
                                 <th class="px-4 py-3 text-right">Total Est Jasa</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y dark:divide-gray-700">
+                        <tbody>
                             @forelse ($rows as $item)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-3">{{ $item->bq_no }}</td>
-                                    <td class="px-4 py-3">{{ $item->bq_line_no }}</td>
-                                    <td class="px-4 py-3">{{ $item->bq_descr }}</td>
-                                    <td class="px-4 py-3 text-right">
+                                <tr class="border-t border-gray-100 transition-colors odd:bg-white even:bg-gray-50/50 hover:bg-blue-50/60 dark:border-gray-700 dark:odd:bg-gray-800 dark:even:bg-gray-800/60 dark:hover:bg-gray-700">
+                                    <td class="px-4 py-2.5">{{ $item->bq_no }}</td>
+                                    <td class="px-4 py-2.5">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-2.5">{{ $item->bq_descr }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
                                     </td>
-                                    <td class="px-4 py-3">{{ $item->uom }}</td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-2.5">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-right">
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
                                     </td>
                                 </tr>
@@ -136,20 +149,26 @@
 
             <form id="submitApprovalForm" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div
-                    class="flex flex-col gap-2 rounded-2xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                     <details class="group" open>
 
                         <summary
-                            class="flex cursor-pointer items-center justify-between text-base font-semibold text-gray-800 dark:text-gray-100">
-                            <span>📸 Photo Before</span>
-                            <span class="text-xs text-gray-500 group-open:hidden dark:text-gray-400">See details</span>
-                            <span class="hidden text-xs text-gray-500 group-open:inline dark:text-gray-400">Hide details</span>
+                            class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                                <span>
+                                    <span class="block text-base font-bold text-gray-800 dark:text-white">Photo Before</span>
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">Photos of the condition before the work</span>
+                                </span>
+                            </span>
+                            <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                            <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                         </summary>
 
                         <!-- Existing Attachments -->
-                        <div class="mt-6">
+
+                        <div class="px-6 pt-5">
                             <div id="existingAttachments"
                                 class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                                 <p class="col-span-full text-center italic text-gray-500 dark:text-gray-400">
@@ -159,7 +178,8 @@
                         </div>
 
                         <!-- New Attachments -->
-                        <div class="mt-8">
+
+                        <div class="px-6 pb-6 pt-6">
                             <div id="hiddenInputs"></div>
                             <input type="file" id="hiddenPicker" class="hidden" accept="image/*" multiple>
 
@@ -199,9 +219,9 @@
                         </div>
 
                     </details>
-                    <div class="flex flex-col justify-end gap-3 md:flex-row md:items-center">
+                    <div class="flex flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                         <button id="cancelBtn"
-                            class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
 
                             <span id="cancelText">Cancel</span>
                             <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -214,7 +234,7 @@
 
                         <input type="hidden" name="temp_id" value="{{ $temp_id }}">
                         <button type="submit" id="submitBtn"
-                            class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
 
                             <span id="btnText">Submit Approval</span>
                             <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"

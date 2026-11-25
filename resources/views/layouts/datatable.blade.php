@@ -1557,6 +1557,11 @@ Approval / Attachment / Comments tables
         width: 100% !important;
     }
 
+    /* The open dropdown's wrapper is appended straight to <body> at the field's position; at 100% wide it overflows the page and adds scrollbars. */
+    body > .select2-container {
+        width: auto !important;
+    }
+
     .select2-container--default .select2-selection--single {
         height: 40px !important;
         border: 1px solid #e9e9ea;

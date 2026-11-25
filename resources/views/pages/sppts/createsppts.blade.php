@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-form-styles />
     <!-- Select2 CSS & JS -->
     {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script> --}}
@@ -9,21 +10,26 @@
                 <form id="spptForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="is_draft" id="isDraftField" value="0">
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                         <!-- Header -->
-                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
+                        <div class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span>
+                            <div>
+                                <h2 class="text-base font-bold text-gray-800 dark:text-white">Create SPPT</h2>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Fill in the request details, add the items and attach the supporting files.</p>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="flex flex-col gap-5 p-6">
+
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
 
                             <!-- Company -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="req sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
@@ -35,22 +41,21 @@
                             </div>
 
                             <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Business
                                     Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
 
                             <!-- Department -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                                 <select name="departementid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}"
@@ -62,8 +67,8 @@
                             </div>
 
                             <!-- Request Type -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Request
                                     Type</label>
 
                                 <div class="flex w-full">
@@ -72,28 +77,22 @@
 
                                     {{-- display readonly --}}
                                     <input type="text" id="requesttype_name_display" readonly
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full cursor-pointer rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="Select request type...">
 
                                     <button type="button" id="btnSearchRequestType"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        class="inline-flex h-10 w-11 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 text-gray-500 transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-600 dark:hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Perpost -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Perpost</label>
                                 @php $year = \Carbon\Carbon::now()->year; @endphp
                                 <select id="perpost" name="perpost"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
@@ -104,11 +103,11 @@
 
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
 
                             <!-- Nama Tenant (Modal Picker) -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Nama Tenant
                                 </label>
 
@@ -120,50 +119,44 @@
                                 <div class="flex w-full">
                                     {{-- display readonly --}}
                                     <input type="text" id="tenant_name_display" readonly
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full cursor-pointer rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="Select tenant...">
 
                                     <button type="button" id="btnSearchTenant"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        class="inline-flex h-10 w-11 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 text-gray-500 transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-600 dark:hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Unit Display -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai -
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Lantai -
                                     Unit</label>
                                 <input type="text" id="no_unit_tenant" name="no_unit_tenant"
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                     placeholder="Otomatis dari Tenant" readonly>
                             </div>
 
                             <!-- PIC (select2 user) -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PIC</label>
                                 {{-- <input type="hidden" name="pic_pengawas" id="pic_pengawas"> --}}
                                 {{-- <select id="pic_select" name="pic_select"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" required
                                     data-placeholder="Search">
                                 </select> --}}
                                 <input type="text" name="pic_pengawas"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     placeholder="PIC" required />
                             </div>
 
                             <!-- Status Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Status
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status
                                     Unit</label>
                                 <select id="condition_unit" name="condition_unit"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     <option value="" disabled selected>-- pilih status --</option>
                                     <option value="Buka">Buka</option>
@@ -172,11 +165,11 @@
                             </div>
 
                             <!-- Beban Biaya -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Beban
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Beban
                                     Biaya</label>
                                 <select id="beban" name="beban"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     required>
                                     <option value="" disabled selected>-- pilih beban biaya --</option>
                                     <option value="Tenant">Tenant</option>
@@ -188,92 +181,86 @@
 
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
 
                             <!-- Emergency -->
-                            <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    SPPT Emergency
-                                </label>
-
-                                <div class="flex items-center gap-2">
+                            <div class="flex flex-col gap-1.5">
+                                <span class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">SPPT Emergency</span>
+                                <label for="is_urgent"
+                                    class="flex h-10 cursor-pointer items-center gap-3 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm transition hover:border-red-300 has-[:checked]:border-red-400 has-[:checked]:bg-red-50 has-[:checked]:text-red-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:has-[:checked]:bg-red-500/10 dark:has-[:checked]:text-red-300">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700">
-                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">
-                                        Tandai sebagai emergency
-                                    </label>
-                                </div>
+                                        class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600">
+                                    <span>Tandai sebagai emergency</span>
+                                </label>
                             </div>
 
                             <!-- WO -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WO
                                     ID</label>
 
                                 <div class="flex">
                                     <input type="text" id="woid" name="woid"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full cursor-pointer rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         readonly>
 
                                     <button type="button" id="btnSearchWo"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd" d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100
-                                                8 4 4 0 000-8z" clip-rule="evenodd" />
-                                        </svg>
+                                        class="inline-flex h-10 w-11 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 text-gray-500 transition hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-600 dark:hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="flex flex-col gap-2 lg:col-span-3">
-                                <label for="keperluan"
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5 lg:col-span-3">
+                                <label for="keperluan" class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Description
                                 </label>
-                                <textarea id="keperluan" name="keperluan" rows="3" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
+                                <textarea id="keperluan" name="keperluan" rows="1" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"></textarea>
                             </div>
                         </div>
+                    </div>
                     </div>
 
 
                     <!-- ... header & form atas tetap ... -->
-                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-xl p-4">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="flex w-full flex-col">
                             <details class="group" open>
                                 <summary
-                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>SPPT Detail</span>
-                                    <span
-                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                        details &rarr;</span>
-                                    <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                        details &darr;</span>
+                                    class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                    <span class="flex items-center gap-3">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                        <span>
+                                            <span class="block text-base font-bold text-gray-800 dark:text-white">SPPT Detail</span>
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400">The items you are requesting</span>
+                                        </span>
+                                    </span>
+                                    <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                                 </summary>
-                                <div class="flex h-auto flex-col justify-start">
+                                <div class="flex h-auto flex-col justify-start px-6 pb-6 pt-5">
                                     <div class="overflow-x-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
+                                        <table class="mb-4 w-full border-separate border-spacing-0 text-sm">
+                                            <thead class="bg-gray-50 dark:bg-gray-900/40">
                                                 <tr>
-                                                    <th class="w-12 border p-3 text-center">No</th>
-                                                    <th class="req w-[25%] border p-3">Product Name</th>
-                                                    <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
-                                                    <th class="req w-28 w-[8%] border p-3">UoM</th>
-                                                    <th class="w-[15%] border p-3">Note</th>
-                                                    <th class="req border p-3">Location</th>
-                                                    {{-- <th class="req border p-3">Sub Location</th> --}}
-                                                    <th class="req w-[10%] border p-3">Budget</th>
-                                                    <th class="w-16 border p-3 text-center"></th>
+                                                    <th class="w-12 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">No</th>
+                                                    <th class="req w-[25%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Product Name</th>
+                                                    <th class="req w-28 w-[6%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Qty</th>
+                                                    <th class="req w-28 w-[8%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">UoM</th>
+                                                    <th class="w-[15%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Note</th>
+                                                    <th class="req border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Location</th>
+                                                    {{-- <th class="req border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Sub Location</th> --}}
+                                                    <th class="req w-[10%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Budget</th>
+                                                    <th class="w-16 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center"></th>
                                                 </tr>
                                             </thead>
                                             <tbody id="spptTable">
                                                 <tr class="sppt-row">
-                                                    <td class="border p-3 text-center">1</td>
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">1</td>
 
                                                     <!-- Product Name (text + zoom button + hidden id) -->
-                                                    <td class="border p-3">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="inventoryid[]"
                                                                 class="inventoryIdField">
@@ -286,32 +273,32 @@
                                                             <input type="hidden" name="purchase_unit[]"
                                                                 class="purchaseUnitField">
                                                             <input type="text" name="product_name[]"
-                                                                class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="productNameField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 placeholder="Select product..." readonly>
                                                             <button type="button"
-                                                                class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
+                                                                class="openInventoryModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                         </div>
                                                     </td>
 
                                                     <!-- Qty -->
-                                                    <td class="border p-3 text-center">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                         <input type="text" name="qty[]"
-                                                            class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                                                            class="qtyField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                                                             placeholder="0,00">
                                                     </td>
 
                                                     <!-- UoM auto-filled -->
-                                                    {{-- <td class="border p-3">
+                                                    {{-- <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                     <input type="text" name="stock_unit[]" readonly
                                             class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none dark:bg-gray-900 dark:text-gray-400"
                                             placeholder="-">
                                              <button type="button"
-                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                title="Lookup">🔎</button>
+                                                class="openUomModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                     </td> --}}
                                                     {{-- UoM --}}
-                                                    <td class="border p-3">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                         <div class="flex items-center gap-2">
                                                             <!-- Hidden untuk kirim detail UoM -->
                                                             <input type="hidden" name="uom_from_unit[]"
@@ -323,40 +310,40 @@
                                                             <input type="hidden" name="uom_unitrate[]"
                                                                 class="uomRateField">
                                                             <input type="text" name="stock_unit[]"
-                                                                class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="stock_unitField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 placeholder="-" readonly>
                                                             <button type="button"
-                                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
+                                                                class="openUomModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                         </div>
                                                     </td>
 
                                                     <!-- Note -->
-                                                    <td class="border p-3">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                         <input type="text" name="note[]" placeholder="Note"
-                                                            class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
+                                                            class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                     </td>
 
 
-                                                    <td class="border p-3">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="location_id[]"
                                                                 class="locationIdField">
                                                             <input type="hidden" name="sub_location_id[]"
                                                                 class="subLocationIdField">
                                                             <input type="text" name="location_combo_display[]"
-                                                                class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="locationDisplayField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 placeholder="Select location & sub location..."
                                                                 readonly>
                                                             <button type="button"
-                                                                class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
+                                                                class="openLokasiPicker inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                         </div>
                                                     </td>
 
 
                                                     <!-- Coa (lookup modal) -->
-                                                    <td class="border p-3">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="activity_id[]"
                                                                 class="activityIdField">
@@ -368,17 +355,17 @@
                                                                 class="actDescrField">
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]"
-                                                                class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                class="coaNameField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 placeholder="Select Budget..." readonly>
                                                             <button type="button"
-                                                                class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                                title="Lookup">🔎</button>
+                                                                class="openCoaModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                                         </div>
                                                     </td>
 
-                                                    <td class="border p-3 text-center">
+                                                    <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                         <button type="button"
-                                                            class="removeSppt hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                                            class="removeSppt hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -386,13 +373,8 @@
                                     </div>
 
                                     <button type="button" id="addSppt"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        class="mb-1 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                                         Add Row
                                     </button>
                                 </div>
@@ -402,44 +384,44 @@
 
                     <!-- ===== Modal Lookup Inventory ===== -->
                     <div id="inventoryModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Inventory</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
                             <!-- Tabs -->
-                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+                            {{-- <div class="mb-4 flex items-center border-b border-gray-200 dark:border-gray-700">
                                 <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button>
                                 <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
                                     data-type="se">Jasa</button>
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     <button id="invRefresh" type="button"
-                                        class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 </div>
                             </div> --}}
 
                             <div class="mb-4 ml-auto flex items-center justify-between gap-2">
                                 <input id="invSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="invRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Inventory ID</th>
-                                            <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>
-                                            <th class="border p-2">Category</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Inventory ID</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Description</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">UoM</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Category</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="invTableBody" class="text-sm"></tbody>
@@ -447,13 +429,13 @@
                             </div>
 
                             <!-- Pagination (optional simple) -->
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="invPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="invNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -461,45 +443,45 @@
 
                     <!-- ===== Modal Lookup Request Type ===== -->
                     <div id="requestTypeModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Request Type</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Request Type</h3>
                                 <button type="button" id="closeRequestTypeModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="rtSearch" type="text" placeholder="Search Request Type..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="rtRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
                                     <span>DocType: <b id="rtDocBadge">SPPT</b></span>
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            {{-- <th class="border p-2">Request Type ID</th> --}}
-                                            <th class="border p-2">Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            {{-- <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Request Type ID</th> --}}
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Name</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="rtTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="rtPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="rtNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -507,45 +489,45 @@
 
                     <!-- ===== Modal Lookup Tenant ===== -->
                     <div id="tenantModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Tenant</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Tenant</h3>
                                 <button type="button" id="closeTenantModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="tenantSearch" type="text" placeholder="Search tenant..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="tenantRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
                                     <span>Company: <b id="tenantCpnyBadge">-</b></span>
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Tenant</th>
-                                            <th class="border p-2">Lantai - Unit</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Tenant</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Lantai - Unit</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tenantTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="tenantCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="tenantPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="tenantNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -555,43 +537,43 @@
 
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
                             <!-- Header -->
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Pilih Location & Sub
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Pilih Location & Sub
                                     Location</h3>
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                 </div>
                                 <button type="button" id="closeLokasi"
-                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
                             <!-- Body -->
-                            <div class="px-5 py-5">
+                            <div class="py-1">
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <!-- Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                            class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                             <option value="">-- choose --</option>
                                         </select>
-                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                        <small class="mt-1.5 block text-xs text-gray-400 dark:text-gray-500">Wajib
                                             memilih Location.</small>
                                     </div>
 
                                     <!-- Sub Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                            class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sub
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                             <option value="">-- choose --</option>
                                         </select>
-                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                        <small class="mt-1.5 block text-xs text-gray-400 dark:text-gray-500">Wajib
                                             memilih sub location.</small>
                                     </div>
                                 </div>
@@ -599,13 +581,13 @@
 
                             <!-- Footer -->
                             <div
-                                class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+                                class="-mx-6 -mb-6 mt-5 flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                                 <button type="button" id="cancelLokasi"
-                                    class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     Cancel
                                 </button>
                                 <button type="button" id="saveLokasi"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                                    class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     Save
                                 </button>
                             </div>
@@ -614,19 +596,19 @@
 
                     <!-- ===== Modal Lookup Budget ===== -->
                     <div id="coaModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Budget</h3>
                                 <button type="button" id="closeCoaModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="coaRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <div class="ml-auto flex items-center gap-3">
                                     <span>Company: <b id="coaCpnyBadge"></b></span>
                                     <span>Dept: <b id="coaDeptBadge"></b></span>
@@ -634,29 +616,29 @@
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Account ID</th>
-                                            <th class="border p-2">Account Descr</th>
-                                            <th class="border p-2">Activity</th>
-                                            <th class="border p-2">Budget Descr</th>
-                                            <th class="border p-2">Remaining Budget</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Account ID</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Account Descr</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Activity</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Budget Descr</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Remaining Budget</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="coaTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="coaPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="coaNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -664,46 +646,46 @@
 
                     <!-- ===== Modal Lookup UoM ===== -->
                     <div id="uomModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select UoM</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select UoM</h3>
                                 <button type="button" id="closeUomModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="uomSearch" type="text" placeholder="Search from/to..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="uomRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <div class="ml-auto flex items-center gap-3">
                                     <span>Inventory: <b id="uomInvBadge"></b></span>
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">From</th>
-                                            <th class="border p-2">To</th>
-                                            <th class="border p-2">Mult/Div</th>
-                                            <th class="border p-2">Rate</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">From</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">To</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Mult/Div</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Rate</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="uomTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="uomCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="uomPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="uomNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -711,19 +693,19 @@
 
                     {{-- MODAL PILIH WO --}}
                     <div id="woModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Work Order</h3>
+                        class="sf-modal fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+                        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
+                            <div class="-mx-6 -mt-6 mb-5 flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Select Work Order</h3>
                                 <button type="button" id="closeWoModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <input id="woSearch" type="text" placeholder="Search WO ID / Created By..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="h-10 w-64 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <button id="woRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Refresh"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
                                     <span>Company: <b id="woCpnyBadge"></b></span>
                                     <span>Dept: <b id="woDeptBadge"></b></span>
@@ -731,71 +713,69 @@
                                 </div>
                             </div>
 
-                            <div class="max-h-[60vh] overflow-auto">
+                            <div class="max-h-[60vh] overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">WO ID</th>
-                                            <th class="border p-2">WO Date</th>
-                                            <th class="border p-2">Department</th>
-                                            <th class="border p-2">Budget Use</th>
-                                            <th class="border p-2">Created By</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">WO ID</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">WO Date</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Department</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Budget Use</th>
+                                            <th class="border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Created By</th>
+                                            <th class="w-24 border-b border-gray-200 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="woTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                 <span id="woCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="woPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Prev</button>
                                     <button id="woNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                        class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Next</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                    details &rarr;</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                    details &darr;</span>
-                            </summary>
-                            <div class="flex flex-col pt-6">
+                                    class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                    <span class="flex items-center gap-3">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span>
+                                        <span>
+                                            <span class="req block text-base font-bold text-gray-800 dark:text-white">Attachments</span>
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this request</span>
+                                        </span>
+                                    </span>
+                                    <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
+                                </summary>
+                            <div class="flex flex-col px-6 pt-5">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                         <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
-                                        </button>
+                                            class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                     </div>
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg> Add Attachment
+                                class="mx-6 mb-6 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" style="width: calc(100% - 3rem);">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                Add Attachment
                             </button>
                         </details>
                         <div
-                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            class="flex flex-row items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -808,12 +788,12 @@
 
                             <div class="flex justify-start gap-3 md:justify-end">
                                 <button type="button" id="saveDraftBtn"
-                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     <span id="draftBtnText">Save as Draft</span>
                                 </button>
 
                                 <button type="submit" id="submitBtn"
-                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -834,6 +814,8 @@
             </div>
         </div>
     </div>
+
+    <x-spp-form-select2 />
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -1128,74 +1110,74 @@
                 spptcount++;
                 const row = `
             <tr class="sppt-row">
-                <td class="p-3 border text-center">${spptcount}</td>
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">${spptcount}</td>
 
-                <td class="p-3 border">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                 <div class="flex items-center gap-2">
                     <input type="hidden" name="inventoryid[]" class="inventoryIdField">
                     <input type="hidden" name="item_type[]"     class="prodItemTypeField">
                     <input type="hidden" name="item_sub_type[]"     class="prodItemSubTypeField">
                     <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                     <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
-                    <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
-                    <button type="button" class="openInventoryModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                    <input type="text" name="product_name[]" class="productNameField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="Select product..." readonly>
+                    <button type="button" class="openInventoryModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                 </div>
                 </td>
 
-                <td class="border p-3 text-center">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                 <input type="text" name="qty[]"
-                        class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
+                        class="qtyField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-right"
                         placeholder="0,00">
                 </td>
 
-                <td class="border p-3">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                     <div class="flex items-center gap-2">
                         <!-- Hidden untuk kirim detail UoM -->
                         <input type="hidden" name="uom_from_unit[]"      class="uomFromField">
                         <input type="hidden" name="uom_to_unit[]"        class="uomToField">
                         <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
                         <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                        <input type="text" name="stock_unit[]" class="stock_unitField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                             placeholder="-" readonly>
                         <button type="button"
-                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Lookup">🔎</button>
+                                class="openUomModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                     </div>
                 </td>
 
-                <td class="p-3 border">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                 <input type="text" name="note[]" placeholder="Note"
-                        class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                 </td>
 
-                <td class="border p-3">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
                         <input type="text"  name="location_combo_display[]"
-                            class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                            class="locationDisplayField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                             placeholder="Select location & sub location..." readonly>
                         <button type="button"
-                                class="openLokasiPicker rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="Lookup">🔎</button>
+                                class="openLokasiPicker inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                     </div>
                 </td>
 
-                <td class="p-3 border">
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
                         <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
                         <input type="hidden" name="activity_descr[]"  class="actDescrField">
                         <input type="hidden" name="coa_id[]" class="coaIdField">
-                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select Budget..." readonly>
-                        <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
+                        <input type="text"   name="coa[]"    class="coaNameField w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" placeholder="Select Budget..." readonly>
+                        <button type="button" class="openCoaModal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                     </div>
                 </td>
 
 
-                <td class="p-3 border text-center">
-                <button type="button" class="removeSppt bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
+                <button type="button" class="removeSppt hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                 </td>
             </tr>`;
                 $('#spptTable').append(row);
@@ -1280,7 +1262,7 @@
 
             // Load Inventory from API
             function loadInventory() {
-                $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
+                $tbody.html(`<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>`);
                 $.getJSON("{{ route('inventory.list') }}", {
                         type: invState.type, // 'stock' | 'jasa'
                         search: invState.search,
@@ -1292,12 +1274,12 @@
                         // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
                         const rows = (res.data || []).map(item => `
                 <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.inventoryid}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.inventory_descr}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.stock_unit || ''}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
+                    <button type="button" class="chooseInventory inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"
@@ -1312,7 +1294,7 @@
                 </tr>
                 `).join('');
 
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
+                        $tbody.html(rows || `<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>`);
                         invState.total = res.total || 0;
                         $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
                         // toggle prev/next disabled
@@ -1322,7 +1304,7 @@
                     })
                     .fail(function() {
                         $tbody.html(
-                            `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
+                            `<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-red-600">Failed to load inventory</td></tr>`
                         );
                         $invCount.text('');
                         $('#invPrev, #invNext').prop('disabled', true);
@@ -1387,8 +1369,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                    <button type="button" class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
             </div>
         `);
                 toggleDeleteButton();
@@ -1529,13 +1511,13 @@
             // Load locations from API (by cpnyid)
             function loadLocations() {
                 if (!locState.cpnyid) {
-                    $locTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
+                    $locTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Select Company first</td></tr>');
                     $locCount.text('');
                     $('#locPrev, #locNext').prop('disabled', true);
                     return;
                 }
 
-                $locTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $locTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 $.getJSON("{{ route('locations.byCompany') }}", {
                         cpnyid: locState.cpnyid,
                         search: locState.search,
@@ -1546,17 +1528,17 @@
                         // Expected: { data: [{location_id, location_name}], total, page, per_page }
                         const rows = (res.data || []).map(item => `
                 <tr>
-                <td class="border p-2">${item.location_id}</td>
-                <td class="border p-2">${item.location_name || item.locationname || ''}</td>
-                <td class="border p-2 text-center">
-                    <button type="button" class="chooseLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.location_id}</td>
+                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${item.location_name || item.locationname || ''}</td>
+                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
+                    <button type="button" class="chooseLocation inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                     data-id="${item.location_id}"
                     data-name="${$('<div>').text(item.location_name || item.locationname || '').html()}">Choose</button>
                 </td>
                 </tr>
             `).join('');
 
-                        $locTbody.html(rows || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                        $locTbody.html(rows || '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                         locState.total = res.total || 0;
                         $locCount.text(`Showing ${rows ? (res.data.length) : 0} of ${locState.total} items`);
                         const maxPage = Math.ceil((locState.total || 0) / locState.per_page) || 1;
@@ -1565,7 +1547,7 @@
                     })
                     .fail(function() {
                         $locTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $locCount.text('');
                         $('#locPrev, #locNext').prop('disabled', true);
@@ -1692,13 +1674,13 @@
             function loadSubLocations() {
                 if (!subLocState.cpnyid || !subLocState.location_id) {
                     $subLocTbody.html(
-                        '<tr><td colspan="3" class="p-3 text-center">Select company & location first</td></tr>');
+                        '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Select company & location first</td></tr>');
                     $subLocCount.text('');
                     $('#subLocPrev, #subLocNext').prop('disabled', true);
                     return;
                 }
 
-                $subLocTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $subLocTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 $.getJSON("{{ route('sublocations.byLocation') }}", {
                         cpnyid: subLocState.cpnyid,
                         location_id: subLocState.location_id,
@@ -1715,10 +1697,10 @@
                                 .sub_loc_name ?? '';
                             return `
                 <tr>
-                    <td class="border p-2">${id}</td>
-                    <td class="border p-2">${name}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseSubLocation rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${id}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${name}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
+                    <button type="button" class="chooseSubLocation inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                         data-id="${id}" data-name="${$('<div>').text(name).html()}">Choose</button>
                     </td>
                 </tr>
@@ -1726,7 +1708,7 @@
                         }).join('');
 
                         $subLocTbody.html(rows ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                         subLocState.total = res.total || 0;
                         $subLocCount.text(
                             `Showing ${rows ? (res.data.length) : 0} of ${subLocState.total} items`);
@@ -1736,7 +1718,7 @@
                     })
                     .fail(function() {
                         $subLocTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $subLocCount.text('');
                         $('#subLocPrev, #subLocNext').prop('disabled', true);
@@ -1910,7 +1892,7 @@
             // Load Budget from API
             function loadCoa() {
 
-                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
 
                 const woid = ($('#woid').val() || '').trim();
 
@@ -1964,18 +1946,18 @@
 
                             return `
                                 <tr>
-                                    <td class="border p-2">${id}</td>
-                                    <td class="border p-2">${accDescr}</td>
-                                    <td class="border p-2">${act_Descr}</td>
-                                    <td class="border p-2">${actDescr}</td>
-                                    <td class="border p-2">
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${id}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${accDescr}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${act_Descr}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${actDescr}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">
                                         <div class="font-semibold">${remaining}</div>
                                         <div class="text-sm opacity-70">Available : ${available}</div>
                                         <div class="text-sm opacity-70">Used: ${used}</div>
                                     </td>
-                                    <td class="border p-2 text-center">
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
                                         <button type="button"
-                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            class="chooseCoa inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                             data-id="${escAttr(id)}"
                                             data-activity_id="${escAttr(actId)}"
                                             data-business_unit_id="${escAttr(buId)}"
@@ -1989,7 +1971,7 @@
                             `;
                         }).join('');
 
-                        $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
+                        $coaTbody.html(rows || '<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                         coaState.total = res.total || 0;
                         $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
 
@@ -1999,7 +1981,7 @@
                     })
                     .fail(function() {
                         $coaTbody.html(
-                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
@@ -2127,7 +2109,7 @@
 
             // Load UoM list by inventoryid
             function loadUoms() {
-                $uomTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+                $uomTbody.html('<tr><td colspan="5" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 $.getJSON("{{ route('uom.byInventory') }}", {
                         inventoryid: uomState.inventoryid,
                         search: uomState.search,
@@ -2145,12 +2127,12 @@
 
                             return `
                 <tr>
-                    <td class="border p-2">${from}</td>
-                    <td class="border p-2">${to}</td>
-                    <td class="border p-2">${md}</td>
-                    <td class="border p-2">${rate}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseUom rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${from}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${to}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${md}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${rate}</td>
+                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
+                    <button type="button" class="chooseUom inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                             data-from="${$('<div>').text(from).html()}"
                             data-to="${$('<div>').text(to).html()}"
                             data-md="${$('<div>').text(md).html()}"
@@ -2162,7 +2144,7 @@
                 `;
                         }).join('');
 
-                        $uomTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
+                        $uomTbody.html(rows || '<tr><td colspan="5" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
                         uomState.total = res.total || 0;
                         $uomCount.text(`Showing ${rows ? (res.data.length) : 0} of ${uomState.total} items`);
 
@@ -2172,7 +2154,7 @@
                     })
                     .fail(function() {
                         $uomTbody.html(
-                            '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="5" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $uomCount.text('');
                         $('#uomPrev, #uomNext').prop('disabled', true);
@@ -2568,7 +2550,7 @@
 
             // Load WO dari API
             function loadWo() {
-                $woTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+                $woTbody.html('<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 // $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
                 $.getJSON("{{ route('wos.ajax.index') }}", {
                         cpnyid: woState.cpnyid,
@@ -2588,14 +2570,14 @@
 
                             return `
                                 <tr>
-                                    <td class="border p-2">${woid}</td>
-                                    <td class="border p-2">${wodate}</td>
-                                    <td class="border p-2">${department_id}</td>
-                                    <td class="border p-2">${budget_use}</td>
-                                    <td class="border p-2">${created_by}</td>
-                                    <td class="border p-2 text-center">
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${woid}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${wodate}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${department_id}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${budget_use}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${created_by}</td>
+                                    <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
                                         <button type="button"
-                                                class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                class="chooseWo inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                                 data-woid="${woid}">
                                             Choose
                                         </button>
@@ -2606,7 +2588,7 @@
 
                         const rowsHtml = rowsArr.join('');
                         $woTbody.html(rowsHtml ||
-                            '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
+                            '<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
 
                         woState.total = res.total || 0;
                         const showing = rowsArr.length;
@@ -2618,7 +2600,7 @@
                     })
                     .fail(function() {
                         $woTbody.html(
-                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="6" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $woCount.text('');
                         $('#woPrev, #woNext').prop('disabled', true);
@@ -2716,7 +2698,7 @@
             });
 
             function loadRequestTypes() {
-                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $rtTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
 
                 $.getJSON("{{ route('requesttypes.byDoctype') }}", {
                         doctype: rtState.doctype,
@@ -2739,10 +2721,10 @@
                             return `
                             <tr>
 
-                                <td class="border p-2">${$('<div>').text(name).html()}</td>
-                                <td class="border p-2 text-center">
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${$('<div>').text(name).html()}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
                                     <button type="button"
-                                        class="chooseRequestType rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        class="chooseRequestType inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                         data-id="${id}"
                                         data-name="${$('<div>').text(name).html()}">
                                         Choose
@@ -2753,7 +2735,7 @@
                         });
 
                         $rtTbody.html(rowsArr.join('') ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
 
                         const showing = list.length;
                         $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
@@ -2764,7 +2746,7 @@
                     })
                     .fail(function() {
                         $rtTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-red-600">Failed to load</td></tr>'
                         );
                         $rtCount.text('');
                         $('#rtPrev, #rtNext').prop('disabled', true);
@@ -2813,7 +2795,7 @@
 
                 // tampilkan modal dulu, kasih placeholder loading supaya terasa cepat
                 $tenantModal.removeClass('hidden').addClass('flex');
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $tenantTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
                 $tenantCount.text('');
 
                 // biar render dulu baru ajax
@@ -2864,13 +2846,13 @@
 
             function loadTenants() {
                 if (!tenantState.cpnyid) {
-                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
+                    $tenantTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Select Company first</td></tr>');
                     $tenantCount.text('');
                     $('#tenantPrev, #tenantNext').prop('disabled', true);
                     return;
                 }
 
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $tenantTbody.html('<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</td></tr>');
 
                 $.getJSON("{{ route('tenants.search') }}", {
                         q: tenantState.search,
@@ -2890,11 +2872,11 @@
 
                             return `
                             <tr>
-                                <td class="border p-2">${$('<div>').text(name).html()}</td>
-                                <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
-                                <td class="border p-2 text-center">
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${$('<div>').text(name).html()}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200">${$('<div>').text(unitLabel).html()}</td>
+                                <td class="border-b border-gray-100 px-3 py-2.5 text-gray-700 dark:border-gray-700 dark:text-gray-200 text-center">
                                     <button type="button"
-                                        class="chooseTenant rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        class="chooseTenant inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                                         data-id="${id}"
                                         data-name="${$('<div>').text(name).html()}"
                                         data-unit_label="${$('<div>').text(unitLabel).html()}"
@@ -2907,7 +2889,7 @@
                         }).join('');
 
                         $tenantTbody.html(rows ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No data</td></tr>');
 
                         const showing = list.length;
                         $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
@@ -2918,7 +2900,7 @@
                     })
                     .fail(function() {
                         $tenantTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>'
+                            '<tr><td colspan="3" class="px-3 py-8 text-center text-sm text-red-600">Failed to load tenant</td></tr>'
                         );
                         $tenantCount.text('');
                         $('#tenantPrev, #tenantNext').prop('disabled', true);
@@ -3122,7 +3104,7 @@
                 isReverting = true;
 
                 // revert cpny
-                $cpny.val(prevCpny);
+                $cpny.val(prevCpny).trigger('change.select2');
 
                 // reload BU sesuai cpny lama, lalu set BU lama
                 // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
@@ -3192,7 +3174,7 @@
                 const ok = await confirmReset('Business Unit');
                 if (!ok) {
                     isReverting = true;
-                    $bu.val(prevBu);
+                    $bu.val(prevBu).trigger('change.select2');
                     isReverting = false;
                     return;
                 }

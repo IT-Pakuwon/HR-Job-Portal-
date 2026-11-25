@@ -1,107 +1,25 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     @php
         $currentPage = Route::currentRouteName() == 'imbudgets' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        {{-- STATUS CARDS (Hold / Revise is the default filter, see statusFilter below) --}}
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'H,D'], 'Hold / Revise', '🛠️', 'blue', ($hold ?? 0) + ($revise ?? 0), true],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $onProgress, false],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'X'], 'Cancel', '❌', 'pink', $cancel, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- All --}}
-            <button type="button" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-
-            {{-- Hold / Revise --}}
-            <button type="button" class="status-filter group block h-full" data-status="H,D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛠️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Hold / Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ ($hold ?? 0) + ($revise ?? 0) }}</p>
-                </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="status-filter group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
-                </div>
-            </button>
-
-            {{-- Reject --}}
-            <button type="button" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Reject</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                </div>
-            </button>
-
-            {{-- Cancel --}}
-            <button type="button" class="status-filter group block h-full" data-status="X">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛑</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Cancel</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $cancel }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-        </div>
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">IMBudget</h2>
-            </div>
+        <div class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="IM Budget" subtitle="Track and manage your IM budget requests" />
 
             <div class="relative overflow-hidden">
                 <table id="imbudgetsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
@@ -133,19 +51,17 @@
         </div>
 
         <!-- ================== TRACKING MODAL ================== -->
-        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800 dark:ring-white/10">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h3 class="text-[12px] font-semibold text-gray-800 dark:text-white">
+                    <h3 class="text-base font-bold text-gray-800 dark:text-white">
                         IM Budget Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
                     </h3>
                     <button id="closeTracking"
-                        class="text-lg leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                        &times;
-                    </button>
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
 
                 {{-- <!-- Controls (opsional) -->
@@ -425,7 +341,7 @@
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {
             // simpan status filter global
-            let statusFilter = 'P'; // default
+            let statusFilter = 'H,D'; // default = Hold / Revise
 
             const table = $('#imbudgetsTable').DataTable({
                 processing: true,
@@ -446,7 +362,7 @@
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
-                        text: '↓ Excel',
+                        text: '<i class="fa-solid fa-file-excel"></i> Excel',
                         title: 'List_IMBudget',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
@@ -458,7 +374,7 @@
                     },
                     {
                         extend: 'csvHtml5',
-                        text: '↓ CSV',
+                        text: '<i class="fa-solid fa-file-csv"></i> CSV',
                         title: 'List_IMBudget',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
@@ -505,69 +421,12 @@
                     {
                         data: 'imbudgetid',
                         render: function(data, type, row) {
-                            // default link ke show
-                            let url =
-                                `/showimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                            let cls =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-                            const text = data || '-';
-
-                            // jika status Draft & milik current user → link ke edit
-                            if (row.status === 'D' && row.user_peminta === currentUser) {
-                                url =
-                                    `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                                cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                            }
-
-                            if (row.status === 'H' && row.user_peminta === currentUser) {
-                                url =
-                                    `/editimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-                                cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                            }
-
-                            // return `
-                            //         <div class="flex items-left gap-2 whitespace-nowrap">
-                            //         <a href="${url}" class="${cls}">${text}</a>
-                            //         <button type="button"
-                            //             class="tracking-btn inline-flex items-left justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            //             data-id="${encodeURIComponent(row.imbudgetid)}" data-doc="${text}" aria-label="Tracking" title="Tracking">
-                            //             <i class="fa-solid fa-paper-plane"></i>
-                            //         </button>
-                            //         </div>
-                            //     `;
-                            let eyeButton = '';
-
-                                if (row.status === 'D' && row.user_peminta === currentUser) {
-                                    const showBudgetUrl = `/showimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
-
-                                    eyeButton = `
-                                        <a href="${showBudgetUrl}" target="_blank"
-                                            class="inline-flex items-center justify-center rounded-full p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                            aria-label="View Budget"
-                                            title="View Budget">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-                                    `;
-                                }
-
-                                return `
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
-                                        <a href="${url}" class="${cls}">${text}</a>
-
-                                        ${eyeButton}
-
-                                        <button type="button"
-                                            class="tracking-btn inline-flex items-center justify-center rounded-full p-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                            data-id="${encodeURIComponent(row.imbudgetid)}"
-                                            data-doc="${text}"
-                                            aria-label="Tracking"
-                                            title="Tracking">
-                                            <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
-                                    </div>
-                                `;
+                            // Doc ID button; owner = user_peminta; ids come from eid (or the doc id when there is no eid)
+                            return sppDocCell(row, data || '-', 'imbudgets', currentUser, false, ['D', 'H'], {
+                                id: encodeURIComponent(row.eid || row.imbudgetid),
+                                owner: 'user_peminta',
+                                trackId: encodeURIComponent(row.imbudgetid)
+                            });
                         }
                     },
                     {
@@ -610,38 +469,11 @@
                         data: 'status',
                         className: 'text-left',
                         render: function(data) {
-                            const map = {
-                                'D': {
-                                    t: 'Revise',
-                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
-                                },
-                                'H': {
-                                    t: 'Hold',
-                                    c: 'bg-amber-300/30 text-amber-700'
-                                }, // NEW
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
-                            };
-
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                            // H = Hold (the shared badge calls H "Draft")
+                            if (data === 'H') {
+                                return '<span class="inline-flex min-w-[116px] items-center justify-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Hold</span>';
+                            }
+                            return sppStatusBadge(data);
                         }
                     }
                 ],

@@ -29,7 +29,7 @@
             <div class="flex gap-3">
                 @if (!empty($canEdit) && $canEdit)
                     <button id="editBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -44,17 +44,17 @@
         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6">
                 {{-- Left Card --}}
-                <div class="flex flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-col overflow-y-auto rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                        <h1 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
                                 ID
                             </span>
                             {{ $bq->bqid }}
                         </h1>
-                        {{-- <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        {{-- <h1 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1  text-sm  font-semibold text-purple-700">
                                 ID
@@ -66,14 +66,14 @@
 
                             <a href="{{ url('/pdf_bq_pj') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     Print PDF
                                 </button>
                             </a>
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-6 py-4">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Reusable Classes --}}
@@ -129,34 +129,38 @@
 
 
             </div>
-            <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col rounded-xl bg-white dark:bg-gray-800">
+            <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 {{-- Header --}}
-                <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📝 BQ Detail</h2>
+                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg></span>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">BQ Detail</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">The BQ lines of this document</p>
+                        </div>
+                    </div>
                 </header>
 
                 {{-- Scrollable Table --}}
-                <div class="max-h-[calc(50rem-4rem)] overflow-x-auto overflow-y-auto"> {{-- adjust height --}}
-                    <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-200">
-                        <thead class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
+                <div class="max-h-[calc(50rem-4rem)] overflow-x-auto overflow-y-auto px-6 pb-6 pt-4"> {{-- adjust height --}}
+                    <table class="w-full border-separate border-spacing-0 text-sm text-gray-700 dark:text-gray-200">
+                        <thead class="sticky top-0 z-10 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                             <tr>
-                                <th class="px-4 py-2 text-left">Line No</th>
-                                <th class="px-4 py-2 text-left">Description</th>
-                                <th class="px-4 py-2 text-right">Qty</th>
-                                <th class="px-4 py-2 text-left">UoM</th>
+                                <th class="px-4 py-3 text-left">Line No</th>
+                                <th class="px-4 py-3 text-left">Description</th>
+                                <th class="px-4 py-3 text-right">Qty</th>
+                                <th class="px-4 py-3 text-left">UoM</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($bqdetail as $item)
-                                <tr
-                                    class="border-t border-gray-200 bg-white hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->bq_descr }}</td>
-                                    <td class="px-4 py-2 text-right">
+                                <tr class="border-t border-gray-100 transition-colors odd:bg-white even:bg-gray-50/50 hover:bg-blue-50/60 dark:border-gray-700 dark:odd:bg-gray-800 dark:even:bg-gray-800/60 dark:hover:bg-gray-700">
+                                    <td class="px-4 py-2.5">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-2.5">{{ $item->bq_descr }}</td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
                                     </td>
-                                    <td class="px-4 py-2">{{ $item->uom }}</td>
+                                    <td class="px-4 py-2.5">{{ $item->uom }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

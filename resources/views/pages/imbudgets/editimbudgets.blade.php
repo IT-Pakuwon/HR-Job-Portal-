@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-form-styles />
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
@@ -11,8 +12,7 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
-                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                             @php
                                 $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
 
@@ -37,13 +37,16 @@
                                 };
                             @endphp
 
-                            <h2 class="flex flex-wrap items-center gap-2 text-base font-extrabold text-gray-800 dark:text-white">
-                                <span
-                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                    ID
-                                </span>
-
-                                <span>{{ $imbudget->imbudgetid }}</span>
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Edit IM Budget</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Review the budget lines and explain the request before submitting.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-bold text-blue-700 ring-1 ring-inset ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30"><span class="text-[10px] font-semibold uppercase tracking-wider text-blue-400">ID</span>{{ $imbudget->imbudgetid }}</span>
 
                                 @if (!empty($doctypeLabel))
                                     <span class="{{ $doctypeClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
@@ -54,7 +57,7 @@
                                 @if (!empty($sourceDocid))
                                     @if (!empty($sourceUrl))
                                         <a href="{{ $sourceUrl }}" target="_blank" rel="noopener noreferrer"
-                                            class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:underline dark:bg-indigo-900/30 dark:text-indigo-300">
+                                            class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-100 hover:underline dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
                                             {{ $sourceDocid }}
                                         </a>
                                     @else
@@ -64,20 +67,22 @@
                                         </span>
                                     @endif
                                 @endif
-                            </h2>
+                            </div>
                         </div>
 
+                        <div class="p-6">
+
                         {{-- ===== Header fields ===== --}}
-                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
 
                             {{-- Company --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Company
                                 </label>
 
                                 <select disabled
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                                    class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
                                     <option>{{ $imbudget->cpny_id }}</option>
                                 </select>
 
@@ -86,76 +91,80 @@
                             </div>
 
                             {{-- Department --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Department
                                 </label>
 
                                 <select disabled
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">
+                                    class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
                                     <option>{{ $imbudget->department_id }}</option>
                                 </select>
 
                                 <input type="hidden" name="departementid" value="{{ $imbudget->department_id }}">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Perpost
                                 </label>
 
                                 <input type="text" disabled
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
+                                    class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-500 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"
                                     value="{{ $imbudget->budget_perpost }}">
 
                                 <input type="hidden" name="perpost" value="{{ $imbudget->budget_perpost }}">
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Purpose
                                 </label>
-                                <textarea rows="3" name="keperluan" disabled
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">{{ $imbudget->keperluan }}</textarea>
+                                <textarea rows="2" name="keperluan" disabled
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">{{ $imbudget->keperluan }}</textarea>
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="req block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Reason for unbudgeted/over budget
                                 </label>
-                                <textarea rows="3" name="imbudgetnote" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:outline-none focus:ring-0 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">{{ $imbudget->imbudgetnote }}</textarea>
+                                <textarea rows="2" name="imbudgetnote" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">{{ $imbudget->imbudgetnote }}</textarea>
                             </div>
                         </div>
                     </div>
+                    </div>
 
                     {{-- ===== Detail ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-xl p-4">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="flex w-full flex-col">
                             <details class="group" open>
                                 <summary
-                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>📝 IMBudget Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                        details &rarr;</span>
-                                    <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                        details &darr;</span>
+                                    class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                    <span class="flex items-center gap-3">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                        <span>
+                                            <span class="block text-base font-bold text-gray-800 dark:text-white">IMBudget Detail</span>
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Budget lines and the amounts you request</span>
+                                        </span>
+                                    </span>
+                                    <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                                 </summary>
 
-                                <div class="flex h-auto flex-col justify-start">
+                                <div class="flex h-auto flex-col justify-start px-6 pb-6 pt-5">
                                     <div class="overflow-x-auto">
-                                        <table class="mb-4 mt-3 w-full">
-                                            <thead class="bg-gray-100/10">
+                                        <table class="mb-4 w-full border-separate border-spacing-0 text-sm">
+                                            <thead class="bg-gray-50 dark:bg-gray-900/40">
                                                 <tr>
-                                                    <th class="w-10 border p-3 text-center">No</th>
-                                                    <th class="w-20 border p-3 text-center">COA</th>
-                                                    <th class="w-24 border p-3 text-center">Activity</th>
-                                                    <th class="w-[16%] border p-3">Activity Descr</th>
-                                                    <th class="w-24 border p-3 text-right">Amount Expense</th>
-                                                    <th class="w-24 border p-3 text-right">Budget Remain</th>
-                                                    <th class="w-24 border p-3 text-right">Budget Needed</th>
-                                                    <th class="w-24 border p-3 text-right">Budget Requested</th>
-                                                    <th class="w-[14%] border p-3">Note</th>
+                                                    <th class="w-10 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">No</th>
+                                                    <th class="w-20 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">COA</th>
+                                                    <th class="w-24 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-center">Activity</th>
+                                                    <th class="w-[16%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Activity Descr</th>
+                                                    <th class="w-24 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-right">Amount Expense</th>
+                                                    <th class="w-24 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-right">Budget Remain</th>
+                                                    <th class="w-24 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-right">Budget Needed</th>
+                                                    <th class="w-24 border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400 text-right">Budget Requested</th>
+                                                    <th class="w-[14%] border-b border-gray-200 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">Note</th>
                                                 </tr>
                                             </thead>
 
@@ -169,72 +178,72 @@
                                                             : number_format((float) $v, 2, ',', '.');
                                                     @endphp
                                                     <tr class="imbudget-row" data-detail-id="{{ $d->id }}">
-                                                        <td class="border p-3 text-center">{{ $rowNo }}</td>
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">{{ $rowNo }}</td>
 
                                                         {{-- id detail untuk update --}}
                                                         <input type="hidden" name="detail_id[]"
                                                             value="{{ $d->id }}" />
 
-                                                        <td class="border p-3 text-center">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                             <input type="text"
-                                                                class="w-full border-none bg-transparent text-center"
+                                                                class="w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100 text-center"
                                                                 value="{{ $d->budget_account_id }}" readonly>
                                                             <input type="hidden" name="budget_account_id[]"
                                                                 value="{{ $d->budget_account_id }}">
                                                         </td>
-                                                        <td class="border p-3 text-center">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-center">
                                                             <input type="text"
-                                                                class="w-full border-none bg-transparent text-center"
+                                                                class="w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100 text-center"
                                                                 value="{{ $d->budget_activity_id }}" readonly>
                                                             <input type="hidden" name="budget_activity_id[]"
                                                                 value="{{ $d->budget_activity_id }}">
                                                         </td>
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text"
-                                                                class="w-full border-none bg-transparent"
+                                                                class="w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100"
                                                                 value="{{ $d->budget_activity_descr }}" readonly>
                                                             <input type="hidden" name="budget_activity_descr[]"
                                                                 value="{{ $d->budget_activity_descr }}">
                                                         </td>
 
                                                         {{-- angka hasil agregasi/perhitungan (readonly) --}}
-                                                        <td class="border p-3 text-right">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-right">
                                                             <input type="text"
-                                                                class="amountExpenseField w-full border-none bg-transparent text-right"
+                                                                class="amountExpenseField w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100 text-right"
                                                                 value="{{ $fmt($d->amount_expense ?? 0) }}" readonly>
                                                             <input type="hidden" name="amount_expense[]"
                                                                 value="{{ (float) ($d->amount_expense ?? 0) }}">
                                                         </td>
-                                                        <td class="border p-3 text-right">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-right">
                                                             <input type="text"
-                                                                class="budgetRemainField w-full border-none bg-transparent text-right"
+                                                                class="budgetRemainField w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100 text-right"
                                                                 value="{{ $fmt($d->budget_remain ?? 0) }}" readonly>
                                                             <input type="hidden" name="budget_remain[]"
                                                                 value="{{ (float) ($d->budget_remain ?? 0) }}">
                                                         </td>
-                                                        <td class="border p-3 text-right">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-right">
                                                             <input type="text"
-                                                                class="budgetNeededField w-full border-none bg-transparent text-right"
+                                                                class="budgetNeededField w-full border-0 bg-transparent! p-0 text-sm text-gray-800 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100 text-right"
                                                                 value="{{ $fmt($d->budget_needed ?? 0) }}" readonly>
                                                             <input type="hidden" name="budget_needed[]"
                                                                 value="{{ (float) ($d->budget_needed ?? 0) }}">
                                                         </td>
 
                                                         {{-- editable --}}
-                                                        <td class="border p-3 text-right">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700 text-right">
                                                             @php
                                                                 $req = $d->budget_requested ?? 0;
                                                                 // tampil pakai koma
                                                                 $reqDisp = number_format((float) $req, 2, ',', '.');
                                                             @endphp
                                                             <input type="text" name="budget_requested[]"
-                                                                class="reqField w-full rounded-md border px-2 py-1 text-right"
+                                                                class="reqField w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 text-right"
                                                                 value="{{ $reqDisp }}" inputmode="decimal"
                                                                 autocomplete="off" placeholder="0,00">
                                                         </td>
-                                                        <td class="border p-3">
+                                                        <td class="border-b border-gray-100 px-3 py-2.5 align-middle dark:border-gray-700">
                                                             <input type="text" name="note[]"
-                                                                class="w-full rounded-md border px-2 py-1"
+                                                                class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                                                 value="{{ $d->note }}">
                                                         </td>
 
@@ -242,7 +251,7 @@
                                                 @empty
                                                     <tr class="imbudget-row">
                                                         <td colspan="14"
-                                                            class="border p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                                            class="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                                                             No budget detail. (Generated from CS when approving.)
                                                         </td>
                                                     </tr>
@@ -257,30 +266,33 @@
 
 
                     {{-- ===== Attachments (optional ditampilkan sesuai kebutuhan) ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden dark:text-gray-400">See
-                                    details &rarr;</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline dark:text-gray-400">Hide
-                                    details &darr;</span>
-                            </summary>
+                                    class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                    <span class="flex items-center gap-3">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span>
+                                        <span>
+                                            <span class="block text-base font-bold text-gray-800 dark:text-white">Attachments</span>
+                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this request</span>
+                                        </span>
+                                    </span>
+                                    <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
+                                </summary>
 
-                            <div id="attachmentsList" class="mt-6 flex flex-col gap-2">
+                            <div id="attachmentsList" class="flex flex-col gap-2 px-6 pt-5">
                                 @forelse ($attachments as $att)
-                                    <div class="attachment-row flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40"
+                                    <div class="attachment-row flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/40"
                                         data-id="{{ $att->id }}">
                                         <div class="flex min-w-0 items-center gap-3">
                                             <div
-                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                                                 📎</div>
                                             <div class="min-w-0">
                                                 @if ($att->url)
                                                     <a href="{{ $att->url }}" target="_blank"
-                                                        class="block truncate font-medium text-indigo-700 hover:underline dark:text-indigo-300">
+                                                        class="block truncate font-medium text-blue-700 hover:underline dark:text-blue-300">
                                                         {{ $att->display_name }}
                                                     </a>
                                                 @else
@@ -303,10 +315,8 @@
                                         </div>
 
                                         <button type="button"
-                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
-                                            aria-label="Remove attachment">
-                                            🗑️
-                                        </button>
+                                            class="removeAttachment2 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                                            aria-label="Remove attachment"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                     </div>
                                 @empty
                                     <div
@@ -317,33 +327,26 @@
                             </div>
 
                             {{-- Upload baru --}}
-                            <div id="attachmentsContainer" class="mt-6">
+                            <div id="attachmentsContainer" class="px-6 pt-3">
                                 <div class="attachment-row flex items-center gap-2">
                                     <input type="file" name="attachments[]"
-                                        class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                     <button type="button"
-                                        class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                        🗑️
-                                    </button>
+                                        class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                 </div>
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                class="mx-6 mb-6 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" style="width: calc(100% - 3rem);">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                                 Add Attachment
                             </button>
                         </details>
 
                         <div
-                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            class="flex flex-row items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
 
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -355,9 +358,9 @@
                             </button>
 
                             <!-- Cancel Button-->
-                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                            <div class="flex flex-row flex-wrap items-center justify-end gap-3">
                                 <button type="button" id="cancelBtn"
-                                    class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                     <span id="cancelText">Cancel IM Budget</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -369,7 +372,7 @@
                                     </svg>
                                 </button>
                                 <button type="submit" id="submitBtn"
-                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -422,8 +425,8 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                <input type="file" name="attachments[]" class="mt-2 flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                    <button type="button" class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 mt-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
             </div>
         `);
                 toggleDeleteButton();

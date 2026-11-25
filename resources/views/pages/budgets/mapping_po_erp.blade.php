@@ -1,67 +1,95 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-spp-list-styles />
+    <style>
+        /* Mapping lists: on phones every row becomes a small card (labels come from data-label) */
+        @media (max-width: 639px) {
+            .map-list thead { display: none; }
+            .map-list, .map-list tbody, .map-list tr, .map-list td { display: block; width: 100%; }
+            .map-list tbody tr { padding: .75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+            .dark .map-list tbody tr { border-bottom-color: #374151; }
+            .map-list td { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .3rem 0 !important; text-align: right; word-break: break-word; }
+            .map-list td::before { content: attr(data-label); flex: none; font-size: .6875rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #6b7280; text-align: left; }
+            .map-list td[colspan] { display: block; text-align: center; }
+            .map-list td[colspan]::before { content: none; }
+        }
+    </style>
     @php
         $currentPage = Route::currentRouteName() == 'mapping_po_erp.index' ? 'Integration' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="rounded-xl bg-white p-5 shadow-sm dark:bg-gray-800">
-
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h1 class="text-lg font-extrabold text-gray-800 dark:text-white">Mapping PO ERP</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">Klik icon 🔍 untuk review & update mapping</p>
-                </div>
-
-                <button id="btnReload"
-                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-95">
-                    Reload
-                </button>
-            </div>
-
-            {{-- Filters --}}
-            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
-                <div class="md:col-span-2">
-                    <label for="filterCompany" class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Company</label>
-                    <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+        <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-700 sm:px-6">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Mapping PO ERP</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Klik ikon kaca pembesar untuk review & update mapping</p>
+                                    </div>
+                                </div>
+                                <div class="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+                                <div class="sppb-f relative w-full sm:w-44">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                                    <select id="filterCompany">
                         <option value="">All Company</option>
                         @foreach ($companies as $company)
                             <option value="{{ $company }}">{{ $company }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Filter Status</label>
-                    <select id="filterStatus"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        <option value="">All</option>
+                                </div>
+                                <div class="sppb-f relative w-full sm:w-44">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                                    <select id="filterStatus">
+                        <option value="">All Status</option>
                         <option value="D">Waiting Review</option>
                         <option value="P">Review</option>
                         <option value="C">Completed</option>
                     </select>
-                </div>
+                                </div>
+                                <button id="btnReload"
+                                    class="inline-flex w-full items-center justify-center gap-2 sm:w-auto rounded-lg border border-blue-100 bg-blue-50 px-4 text-sm font-semibold text-blue-700 h-10 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                    Reload
+                                </button>
+                            </div>
+                            </div>
 
-                <div class="md:col-span-6">
-                    <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Search</label>
-                    <input id="searchInput"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            <div class="p-4 sm:p-6">
+            {{-- Search --}}
+            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <label for="pageSize" class="flex h-10 items-center gap-1 rounded-[10px] border border-slate-200 bg-slate-50 pl-4 pr-3.5 text-[13px] text-gray-500 transition hover:border-slate-300 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                    Show
+                    <select id="pageSize" class="sf-select h-8 border-0 bg-transparent pl-2 text-sm font-bold text-blue-600 outline-none dark:text-blue-300">
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="99999">All</option>
+                    </select>
+                    entries
+                </label>
+
+                <div class="flex min-w-0 flex-1 items-center justify-end gap-2 sm:flex-none">
+                <div class="relative min-w-0 flex-1 sm:flex-none">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></span>
+                    <input id="searchInput" type="search"
+                        class="h-10 w-full rounded-full border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-800 transition-all duration-300 placeholder:text-slate-400 hover:border-slate-300 hover:bg-white sm:w-80 sm:focus:w-[30rem] focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
                         placeholder="cpny_id / order_no / vendor / remark / ref_no...">
                 </div>
-
-                <div class="flex items-end md:col-span-2">
-                    <button id="btnSearch"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        Apply
-                    </button>
-                </div>
+                <button id="btnSearch"
+                    class="h-10 rounded-full bg-blue-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:scale-95">
+                    Apply
+                </button>
+            </div>
             </div>
 
             {{-- Table --}}
-            <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-900">
-                            <tr class="text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                    <table class="map-list min-w-full text-sm">
+                        <thead class="bg-gray-50 dark:bg-gray-900/40">
+                            <tr class="text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 <th class="w-14 px-4 py-3"></th>
                                 <th class="px-4 py-3">Cpny</th>
                                 <th class="px-4 py-3">Order No</th>
@@ -81,83 +109,89 @@
                 </div>
             </div>
 
+            {{-- Pagination (10 per page) --}}
+            <div id="pager" class="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row"></div>
+
+        </div>
         </div>
     </div>
 
     {{-- ===== Modal (Tailwind) ===== --}}
-    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-2 sm:p-4">
-        <div class="flex w-full max-w-[95vw] lg:max-w-6xl max-h-[95vh] flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-800">
-            <div class="shrink-0 flex items-start justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-                <div>
-                    <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Detail & Mapping</h2>
-                    <p id="modalSub" class="text-sm font-semibold text-gray-700 dark:text-gray-200"></p>
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 p-2 backdrop-blur-sm sm:p-4">
+        <div class="flex max-h-[95vh] w-full max-w-[95vw] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10 lg:max-w-6xl">
+            <div class="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-4 dark:border-gray-700 sm:px-6">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg></span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Detail & Mapping</h2>
+                        <p id="modalSub" class="truncate text-sm font-medium text-gray-500 dark:text-gray-400"></p>
+                    </div>
                 </div>
                 <button id="btnCloseModal"
-                    class="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">✕</button>
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-5 space-y-4">
+            <div class="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
                 <input type="hidden" id="rowId">
 
-                {{-- HEADER --}}
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">Company</div><div>:</div>
-                        <input id="mCpny" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                {{-- SUMMARY --}}
+                <div class="grid grid-cols-2 gap-3 rounded-xl border border-gray-100 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-white/[0.02] sm:grid-cols-3 lg:grid-cols-[0.8fr_1.3fr_1.3fr_1.3fr_1.7fr_0.7fr]">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Company</div>
+                        <input id="mCpny" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">Sppbjkt</div><div>:</div>
-                        <input id="mSppbjkt" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Sppbjkt</div>
+                        <input id="mSppbjkt" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">Order Nbr</div><div>:</div>
-                        <input id="mOrderNo" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Order Nbr</div>
+                        <input id="mOrderNo" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">CS</div><div>:</div>
-                        <input id="mCs" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">CS</div>
+                        <input id="mCs" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">Order Date</div><div>:</div>
-                        <input id="mOrderDate" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Order Date</div>
+                        <input id="mOrderDate" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">Ordertype</div><div>:</div>
-                        <input id="mOrderType" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    <div class="min-w-0 rounded-lg border border-gray-100 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Ordertype</div>
+                        <input id="mOrderType" readonly class="mt-0.5 block w-full truncate border-0 bg-transparent! p-0 text-[15px] font-semibold text-gray-900 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-100">
                     </div>
-
-                    <div class="grid grid-cols-[120px_12px_1fr] items-start gap-2 text-sm md:col-span-2">
-                        <div class="pt-1 text-gray-500 dark:text-gray-400">Remaks</div><div class="pt-1">:</div>
-                        <textarea id="mRemark" rows="2" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm md:col-span-2">
-                        <div class="text-gray-500 dark:text-gray-400">Integration Type</div><div>:</div>
-                        <select id="mIntegrationType"
-                            class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="">-- Select Integration Type --</option>
-                        </select>
+                    <div class="col-span-full rounded-lg border border-l-4 border-gray-100 border-l-blue-500 bg-white px-3 py-2.5 shadow-sm dark:border-gray-700 dark:border-l-blue-400 dark:bg-gray-800">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Remarks</div>
+                        <textarea id="mRemark" rows="2" readonly class="mt-0.5 block w-full resize-none border-0 bg-transparent! p-0 text-sm leading-relaxed text-gray-700 shadow-none! outline-none ring-0! focus:ring-0! dark:text-gray-200"></textarea>
                     </div>
                 </div>
 
                 {{-- DETAIL TABLE --}}
                 <div class="rounded-xl border border-gray-200 dark:border-gray-700">
-                    <div class="border-b border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 dark:border-gray-700 dark:text-gray-200">
-                        Detail Items (Mapping per Line)
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-700">
+                        <div>
+                            <div class="text-sm font-bold text-gray-800 dark:text-gray-100">Detail Items</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Mapping per line</div>
+                        </div>
+                        <label class="flex w-full items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 sm:w-auto">
+                            <span class="shrink-0">Integration Type</span>
+                            <span class="block w-full sm:w-52"><select id="mIntegrationType"
+                            class="sf-select h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            <option value="">-- Select Integration Type --</option>
+                        </select></span>
+                        </label>
                     </div>
 
-                    <div class="max-h-80 overflow-y-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
+                    <div class="max-h-[42vh] overflow-auto">
+                        <table class="min-w-full text-xs">
                             <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
-                                <tr class="text-left font-bold uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                <tr class="text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     <th class="px-3 py-2 w-12">No</th>
                                     <th class="px-3 py-2 min-w-[280px]">Item Info</th>
                                     <th class="px-3 py-2 w-14">Qty/Uom</th>
                                     <th class="px-3 py-2 w-25 text-right">Cost</th>
-                                    <th class="px-3 py-2 min-w-[300px]">IFCA(entity_cd,location_cd,acct_cd,div_cd,dept_cd)</th>
-                                    <th class="px-3 py-2 min-w-[260px]">SOLOMON(acct_cd,allocation_cd,subaccount_dept)</th>
+                                    <th class="px-3 py-2 min-w-[300px]"><span class="block text-gray-700 dark:text-gray-200">IFCA</span><span class="block text-[10px] font-normal normal-case tracking-normal text-gray-400">entity_cd · location_cd · acct_cd · div_cd · dept_cd</span></th>
+                                    <th class="px-3 py-2 min-w-[260px]"><span class="block text-gray-700 dark:text-gray-200">SOLOMON</span><span class="block text-[10px] font-normal normal-case tracking-normal text-gray-400">acct_cd · allocation_cd · subaccount_dept</span></th>
                                 </tr>
                             </thead>
                             <tbody id="detailTbody" class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -172,34 +206,53 @@
                 {{-- STATUS + NOTE --}}
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Status</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</label>
                         <select id="mStatus"
-                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="D">Waiting Review</option>
                             <option value="P">Review</option>
                         </select>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold text-gray-500 dark:text-gray-400">Review Note</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Review Note</label>
                         <input id="mNote"
-                            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="Catatan review...">
                     </div>
                 </div>
             </div>
 
-            <div class="shrink-0 flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+            <div class="flex shrink-0 flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50/60 px-4 py-4 dark:border-gray-700 dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-end sm:px-6">
                 <button id="btnCancel"
-                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                    class="w-full rounded-lg sm:w-auto border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 active:scale-95 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                     Close
                 </button>
                 <button id="btnSave"
-                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-95">
+                    class="w-full rounded-lg sm:w-auto bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:scale-95">
                     Save Update
                 </button>
             </div>
         </div>
     </div>
+
+<script>
+$(function() {
+    // styled dropdowns for the filter bar (same Select2 skin as the forms)
+    $('#filterCompany, #filterStatus').each(function() {
+        $(this).select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sppb-s2-dropdown' });
+    });
+});
+</script>
+
+<script>
+$(function() {
+    // modal dropdowns: same Select2 skin as the forms (the list is appended to <body>, above the modal)
+    $('#mStatus, #mIntegrationType').each(function() {
+        $(this).parent().addClass('sf-field');
+        $(this).select2({ width: '100%', minimumResultsForSearch: 8, dropdownCssClass: 'sf-s2-dropdown' });
+    });
+});
+</script>
 
 <script>
 (function() {
@@ -215,12 +268,12 @@
     function statusBadge(st) {
         st = (st || '').toUpperCase();
         const map = {
-            D: { text: 'Waiting Review', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-            P: { text: 'Review',        cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-            C: { text: 'Completed',     cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+            D: { text: 'Waiting Review', cls: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30', dot: 'bg-blue-500' },
+            P: { text: 'Review',        cls: 'bg-yellow-50 text-yellow-700 ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30', dot: 'bg-yellow-500' },
+            C: { text: 'Completed',     cls: 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30', dot: 'bg-green-500' },
         };
-        const m = map[st] || { text: (st || '-'), cls: 'bg-gray-50 text-gray-700 border-gray-200' };
-        return `<span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${m.cls}">${m.text}</span>`;
+        const m = map[st] || { text: (st || '-'), cls: 'bg-slate-50 text-slate-600 ring-slate-200 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10', dot: 'bg-slate-400' };
+        return `<span class="inline-flex min-w-[116px] items-center justify-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${m.cls}"><span class="h-1.5 w-1.5 rounded-full ${m.dot}"></span>${m.text}</span>`;
     }
 
     function openModal() {
@@ -235,9 +288,9 @@
 
     function magnifierBtn(id) {
         return `
-            <button type="button" class="js-open inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700"
+            <button type="button" class="js-open group/view inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"
                 data-id="${id}" title="View / Edit">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 text-gray-700 dark:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="h-4 w-4 transition-transform duration-300 group-hover/view:scale-125">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.85-5.15a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
                 </svg>
             </button>
@@ -260,10 +313,10 @@
 
         if (editable) {
             el.classList.remove(
-                'bg-gray-200',
+                'bg-gray-100',
                 'text-gray-500',
                 'cursor-not-allowed',
-                'opacity-70'
+                'opacity-80'
             );
 
             el.classList.add(
@@ -275,10 +328,10 @@
             el.classList.remove('bg-white');
 
             el.classList.add(
-                'bg-gray-200',
+                'bg-gray-100',
                 'text-gray-500',
                 'cursor-not-allowed',
-                'opacity-70'
+                'opacity-80'
             );
         }
     }
@@ -348,15 +401,20 @@
         }
     }
 
+    let PER_PAGE = 10; // changed by the "Show N entries" selector
+    let allRows = [];
+    let page = 1;
     let tableRequestId = 0;
 
-    async function loadTable() {
+    async function loadTable(keepPage) {
         const requestId = ++tableRequestId;
         const status = document.getElementById('filterStatus').value;
         const search = document.getElementById('searchInput').value.trim();
         const company = document.getElementById('filterCompany').value;
 
         tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
+        const pagerEl = document.getElementById('pager');
+        if (pagerEl) pagerEl.innerHTML = '';
 
         const qs = new URLSearchParams();
         if (status) qs.set('status', status);
@@ -378,29 +436,75 @@
         }
         if (requestId !== tableRequestId) return;
 
-        const rows = json.data || [];
+        allRows = json.data || [];
+        const pages = Math.max(1, Math.ceil(allRows.length / PER_PAGE));
+        page = keepPage === true ? Math.min(page, pages) : 1; // after "Save Update" stay on the same page
+        renderPage();
+    }
 
-        if (!rows.length) {
+    function renderPage() {
+        if (!allRows.length) {
             tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No data</td></tr>`;
+            renderPager();
             return;
         }
+
+        const rows = allRows.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
         tbody.innerHTML = rows.map(r => {
             const vendor = r.vendor_name ? r.vendor_name : (r.supplier_cd ?? '');
 
             return `
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td class="px-4 py-3">${magnifierBtn(r.id)}</td>
-                    <td class="px-4 py-3 font-semibold text-gray-800 dark:text-white">${escapeHtml(r.cpny_id ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.order_no ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.order_date ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(vendor)}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.ref_no_sppbjkt ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.ref_no_cs ?? '')}</td>
-                    <td class="px-4 py-3">${statusBadge(r.status)}</td>
+                <tr class="transition-colors hover:bg-blue-50/60 dark:hover:bg-gray-700">
+                    <td class="px-4 py-3" data-label="Action">${magnifierBtn(r.id)}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800 dark:text-white" data-label="Cpny">${escapeHtml(r.cpny_id ?? '')}</td>
+                    <td class="px-4 py-3" data-label="Order No">${escapeHtml(r.order_no ?? '')}</td>
+                    <td class="px-4 py-3" data-label="Order Date">${escapeHtml(r.order_date ?? '')}</td>
+                    <td class="px-4 py-3" data-label="Vendor">${escapeHtml(vendor)}</td>
+                    <td class="px-4 py-3" data-label="Ref SPPBJKT">${escapeHtml(r.ref_no_sppbjkt ?? '')}</td>
+                    <td class="px-4 py-3" data-label="Ref CS">${escapeHtml(r.ref_no_cs ?? '')}</td>
+                    <td class="px-4 py-3" data-label="Status">${statusBadge(r.status)}</td>
                 </tr>
             `;
         }).join('');
+
+        renderPager();
+    }
+
+    function renderPager() {
+        const el = document.getElementById('pager');
+        if (!el) return;
+
+        const total = allRows.length;
+        if (!total) { el.innerHTML = ''; return; }
+
+        const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+        const from = (page - 1) * PER_PAGE + 1;
+        const to = Math.min(page * PER_PAGE, total);
+
+        const nums = [];
+        for (let p = 1; p <= pages; p++) {
+            if (p === 1 || p === pages || Math.abs(p - page) <= 1) nums.push(p);
+            else if (nums[nums.length - 1] !== '…') nums.push('…');
+        }
+
+        const base = 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-medium transition';
+        const idle = 'border-gray-200 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600';
+        const current = 'border-blue-200 bg-blue-50 font-semibold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300';
+        const off = 'cursor-not-allowed opacity-40';
+
+        const btn = (label, target, cls, disabled) =>
+            `<button type="button" data-page="${target}" class="${base} ${cls}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+
+        el.innerHTML =
+            `<div class="text-sm text-gray-500 dark:text-gray-400">Showing ${from} to ${to} of ${total} entries</div>` +
+            `<div class="flex flex-wrap items-center justify-center gap-1.5">` +
+            btn('Previous', page - 1, idle + (page === 1 ? ' ' + off : ''), page === 1) +
+            nums.map(n => n === '…'
+                ? '<span class="px-1 text-gray-400">…</span>'
+                : btn(n, n, n === page ? current : idle, false)).join('') +
+            btn('Next', page + 1, idle + (page === pages ? ' ' + off : ''), page === pages) +
+            `</div>`;
     }
 
     function inputCell(name, value, rid, widthCls, group) {
@@ -413,7 +517,9 @@
             data-name="${name}"
             data-group="${g}"
             value="${v}"
-            class="${w} rounded-md border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white" />`;
+            placeholder="${name}"
+            title="${name}"
+            class="${w} rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" />`;
     }
 
     async function openRow(id) {
@@ -514,6 +620,9 @@
 
         applyIntegrationTypeMode(integrationType);
 
+        // the selects are Select2 now: show the values that were just set from code
+        if (window.jQuery) jQuery('#mStatus, #mIntegrationType').trigger('change.select2');
+
         openModal();
     }
 
@@ -562,16 +671,32 @@
 
         if (res.ok && json.success) {
             closeModal();
-            await loadTable();
+            await loadTable(true);
         } else {
             alert(json.message || 'Gagal update');
         }
     }
 
     // events
+    document.getElementById('pageSize').addEventListener('change', (e) => {
+        PER_PAGE = parseInt(e.target.value, 10) || 10;
+        page = 1;
+        renderPage();
+    });
+
+    document.getElementById('pager').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-page]');
+        if (!b || b.disabled) return;
+        page = parseInt(b.dataset.page, 10);
+        renderPage();
+        tbody.closest('.overflow-hidden').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
     document.getElementById('btnReload').addEventListener('click', loadTable);
     document.getElementById('btnSearch').addEventListener('click', loadTable);
     document.getElementById('filterStatus').addEventListener('change', loadTable);
+    // Select2 raises a jQuery "change" (not a native one), so listen through jQuery as well
+    if (window.jQuery) jQuery('#filterStatus, #filterCompany').on('change', loadTable);
     document.getElementById('filterCompany').addEventListener('change', loadTable);
 
     document.getElementById('searchInput').addEventListener('keydown', (e) => {
@@ -587,6 +712,10 @@
     const integrationSelect = document.getElementById('mIntegrationType');
     if (integrationSelect) {
         integrationSelect.addEventListener('change', function() {
+            applyIntegrationTypeMode(this.value);
+        });
+        // Select2 only raises a jQuery "change"; listen through jQuery as well
+        if (window.jQuery) jQuery(integrationSelect).on('change', function() {
             applyIntegrationTypeMode(this.value);
         });
     }

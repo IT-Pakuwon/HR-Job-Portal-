@@ -3,91 +3,48 @@
         $currentPage = Route::currentRouteName() == 'inventories' ? 'Inventories' : '';
     @endphp
 
-    <style>
-        .dt-toolbar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .dt-toolbar .dataTables_length,
-        .dt-toolbar .dataTables_filter {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .dt-toolbar .dataTables_filter input {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 6px 10px;
-        }
-
-        .dt-toolbar .dataTables_length select {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 6px 10px;
-        }
-    </style>
+    <x-spp-list-styles />
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Inventory List" subtitle="Browse stock and non-stock inventory items">
+                {{-- TYPE FILTER (segmented) --}}
+                <div class="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-white/5">
+                    <button type="button" data-type="STOCK"
+                        class="typeFilterBtn whitespace-nowrap rounded-md bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition">Stock</button>
+                    <button type="button" data-type="NONSTOCK"
+                        class="typeFilterBtn whitespace-nowrap rounded-md px-4 py-1.5 text-sm font-semibold text-gray-600 transition hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">NonStock</button>
+                </div>
 
-                <!-- LEFT: TITLE -->
-                <h2 class="whitespace-nowrap text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    📦 Inventory List
-                </h2>
-
-                <!-- RIGHT: ALL CONTROLS -->
-                <div class="flex flex-wrap items-center gap-3">
-
-                    <!-- TYPE FILTER -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold text-gray-700 dark:text-white">Filter:</span>
-
-                        <button type="button"
-                            class="typeFilterBtn whitespace-nowrap rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
-                            data-type="STOCK">
-                            Stock
-                        </button>
-
-                        <button type="button"
-                            class="typeFilterBtn whitespace-nowrap rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                            data-type="NONSTOCK">
-                            NonStock
-                        </button>
-                    </div>
-
-                    <!-- COMPANY -->
-                    <select id="filter_cpny" class="rounded-lg border px-3 py-2 text-sm">
+                {{-- COMPANY --}}
+                <div class="sppb-f relative w-44">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg></span>
+                    <select id="filter_cpny">
                         <option value="">Select Company</option>
                         @foreach ($cpnyIds as $cpny)
                             <option value="{{ $cpny }}">{{ $cpny }}</option>
                         @endforeach
                     </select>
+                </div>
 
-                    <!-- BU -->
-                    <select id="filter_bu" class="rounded-lg border px-3 py-2 text-sm">
+                {{-- BU --}}
+                <div class="sppb-f relative w-52">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                    <select id="filter_bu">
                         <option value="">Select Business Unit</option>
                         @foreach ($buList as $bu)
                             <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }}</option>
                         @endforeach
                     </select>
-
-                    <!-- HINT -->
-                    <span id="hintStockOnly" class="hidden whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-                        Filter Company/BU hanya dipakai saat tab Stock.
-                    </span>
-
                 </div>
-            </div>
-            <div class="relative mt-4 overflow-hidden">
+
+                {{-- HINT --}}
+                <span id="hintStockOnly" class="hidden whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                    Company/BU filters only apply to Stock.
+                </span>
+            </x-list-page-header>
+
+            <div class="relative overflow-hidden">
                 <table id="inventoriesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
@@ -116,6 +73,12 @@
 
             const $cpny = $('#filter_cpny');
             const $bu = $('#filter_bu');
+
+            $cpny.add($bu).select2({
+                width: '100%',
+                minimumResultsForSearch: 8,
+                dropdownCssClass: 'sppb-s2-dropdown'
+            });
 
             function isStockMode() {
                 return currentFilter === 'STOCK';
@@ -207,11 +170,11 @@
 
                     {
                         data: 'status',
-                        className: 'text-center',
+                        className: 'text-left',
                         render: function(s) {
                             return String(s || '').toUpperCase() === 'A' ?
-                                '<span class="w-full max-w-25 bg-green-300/30 text-green-600 pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
-                                '<span class="w-full max-w-25 bg-red-300/30 text-red-600 pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                                '<span class="inline-flex min-w-[96px] items-center justify-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>' :
+                                '<span class="inline-flex min-w-[96px] items-center justify-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive</span>';
                         }
                     }
                 ],
@@ -236,12 +199,12 @@
                 currentFilter = $(this).data('type');
 
                 $('.typeFilterBtn')
-                    .removeClass('bg-indigo-600 text-white')
-                    .addClass('bg-gray-100 text-gray-700');
+                    .removeClass('bg-blue-600 text-white shadow-sm')
+                    .addClass('text-gray-600 dark:text-gray-300');
 
                 $(this)
-                    .removeClass('bg-gray-100 text-gray-700')
-                    .addClass('bg-indigo-600 text-white');
+                    .removeClass('text-gray-600 dark:text-gray-300')
+                    .addClass('bg-blue-600 text-white shadow-sm');
 
                 applyStockColumnVisibility();
                 table.ajax.reload();

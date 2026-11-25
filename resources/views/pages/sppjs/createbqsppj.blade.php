@@ -75,14 +75,18 @@
                         class="flex flex-col gap-4">
                         @csrf
 
-                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                            <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
-                                <h2 class="text-base font-bold">📥 Import BQ</h2>
-
-                                <!-- ONLY Template button here -->
+                        <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">Import BQ</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Pick the Excel file with your BQ lines, then import it to preview.</p>
+                                    </div>
+                                </div>
                                 <a href="{{ asset('templates/import_bq.xlsx') }}" target="_blank" rel="noopener"
                                     download
-                                    class="inline-flex items-center gap-2 rounded-md border border-green-600 bg-green-600 px-4 py-2 text-white hover:bg-green-700 dark:border-green-500 dark:bg-green-700 dark:hover:bg-green-600">
+                                    class="inline-flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white dark:border-green-800 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-600 dark:hover:text-white">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -92,110 +96,116 @@
                                 </a>
                             </div>
 
+                            <div class="p-6">
+
                             <!-- Header fields: diambil dari $sppj -->
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
                                 <!-- SPPJID -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         SPPJ ID
                                     </label>
                                     <!-- kirim id SPPJ untuk import -->
                                     <input type="hidden" name="idx" value="{{ $sppj->id ?? '' }}">
                                     <input type="hidden" name="sppjtid" value="{{ $sppj->sppjid ?? '' }}">
                                     <input type="text" name="sppjid" value="{{ $sppj->sppjid ?? '' }}"
-                                        class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                                        class="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         readonly>
                                 </div>
 
                                 <!-- Company -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Company
                                     </label>
                                     <input type="text" name="company"
                                         value="{{ $sppj->cpny_id ?? ($sppj->cpny_name ?? '') }}"
-                                        class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                                        class="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         readonly>
                                 </div>
 
                                 <!-- Departement -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Departement
                                     </label>
                                     <input type="text" name="departement"
                                         value="{{ $sppj->department_id ?? ($sppj->department ?? '') }}"
-                                        class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                                        class="h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         readonly>
                                 </div>
 
                                 <!-- File -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Import Excel
                                     </label>
                                     <input type="file" name="file" id="file" required
-                                        class="block w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
+                                        class="block h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
                                 </div>
                             </div>
                             <!-- Button -->
-                            <div class="mt-4 flex justify-end">
+                            <div class="mt-6 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-700">
                                 <button type="submit" id="importBtn"
-                                    class="inline-flex items-center rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
+                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     Import
                                 </button>
                             </div>
+                        </div>
                         </div>
                     </form>
 
                     <div class="flex flex-col gap-4">
                         {{-- Table Preview Import --}}
                         @if (isset($tempData) && count($tempData) > 0)
-                            <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                                <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
-                                    <h2 class="flex items-center gap-2 text-sm font-bold">
-                                        📊 BQ Details
-                                    </h2>
-                                    {{-- <h5
+                            <div class="flex-1 flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" /></svg></span>
+                                    <div>
+                                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">BQ Details</h2>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Preview of the imported lines</p>
+                                    </div>
+                                </div>
+                                {{-- <h5
                                         class="rounded-xl bg-red-100/50 px-4 py-1.5 text-sm font-semibold text-red-600">
                                         Preview
                                     </h5> --}}
-                                </div>
+                            </div>
 
-                                <div class="w-full overflow-x-auto">
-                                    <table
-                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
-                                        <thead class="bg-gray-100 font-bold text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                                <div class="w-full overflow-x-auto px-6 pb-6 pt-4">
+                                    <table class="min-w-[1100px] table-auto w-full overflow-hidden whitespace-nowrap rounded-lg border border-gray-200 text-left text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                                             <tr>
-                                                <th class="px-4 py-2">Line No</th>
-                                                <th class="px-4 py-2">Description</th>
-                                                <th class="px-4 py-2 text-right">Qty</th>
-                                                <th class="px-4 py-2">UoM</th>
-                                                <th class="px-4 py-2 text-right">Est Mat Price</th>
-                                                <th class="px-4 py-2 text-right">Total Est Mat</th>
-                                                <th class="px-4 py-2 text-right">Est Jasa Price</th>
-                                                <th class="px-4 py-2 text-right">Total Est Jasa</th>
+                                                <th class="px-4 py-3">Line No</th>
+                                                <th class="px-4 py-3">Description</th>
+                                                <th class="px-4 py-3 text-right">Qty</th>
+                                                <th class="px-4 py-3">UoM</th>
+                                                <th class="px-4 py-3 text-right">Est Mat Price</th>
+                                                <th class="px-4 py-3 text-right">Total Est Mat</th>
+                                                <th class="px-4 py-3 text-right">Est Jasa Price</th>
+                                                <th class="px-4 py-3 text-right">Total Est Jasa</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach ($tempData as $item)
-                                                <tr class="border-t hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
-                                                    <td class="px-4 py-2">{{ $item->bq_descr }}</td>
-                                                    <td class="px-4 py-2 text-right">
+                                                <tr class="border-t border-gray-100 transition-colors odd:bg-white even:bg-gray-50/50 hover:bg-blue-50/60 dark:border-gray-700 dark:odd:bg-gray-800 dark:even:bg-gray-800/60 dark:hover:bg-gray-700">
+                                                    <td class="px-4 py-2.5">{{ $item->bq_line_no }}</td>
+                                                    <td class="px-4 py-2.5">{{ $item->bq_descr }}</td>
+                                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
                                                     </td>
-                                                    <td class="px-4 py-2">{{ $item->uom }}</td>
-                                                    <td class="px-4 py-2 text-right">
+                                                    <td class="px-4 py-2.5">{{ $item->uom }}</td>
+                                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                                         {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
                                                     </td>
-                                                    <td class="px-4 py-2 text-right">
+                                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                                         {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
                                                     </td>
-                                                    <td class="px-4 py-2 text-right">
+                                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                                         {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
                                                     </td>
-                                                    <td class="px-4 py-2 text-right">
+                                                    <td class="px-4 py-2.5 text-right tabular-nums">
                                                         {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
                                                     </td>
                                                 </tr>
@@ -207,21 +217,26 @@
 
 
                             {{-- Form submit approval (biarkan seperti semula) --}}
-                            <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="flex-1 flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                                 <form id="submitApprovalForm" method="POST" action="{{ route('bqsppj.store') }}">
                                     @csrf
-                                    <div class="flex w-full flex-col gap-4">
-                                        <div class="flex w-full flex-col border-b">
-                                            <details class="group mb-4" open>
+                                    <div class="flex w-full flex-col">
+                                        <div class="flex w-full flex-col">
+                                            <details class="group" open>
                                                 <summary
-                                                    class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
-                                                    <span class="text-sm font-semibold">Photo Before</span>
-                                                    <span class="transition-all group-open:hidden">See details</span>
-                                                    <span class="hidden transition-all group-open:inline">Hide
-                                                        details</span>
+                                                    class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                                    <span class="flex items-center gap-3">
+                                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
+                                                        <span>
+                                                            <span class="block text-base font-bold text-gray-800 dark:text-white">Photo Before</span>
+                                                            <span class="block text-xs text-gray-500 dark:text-gray-400">Photos of the condition before the work</span>
+                                                        </span>
+                                                    </span>
+                                                    <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                                    <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
                                                 </summary>
 
-                                                <div class="flex h-auto flex-col justify-start">
+                                                <div class="flex h-auto flex-col justify-start px-6 pb-6 pt-5">
                                                     <!-- file inputs tersembunyi untuk submit -->
                                                     <div id="hiddenInputs"></div>
                                                     <!-- picker hidden untuk open file dialog (multiple) -->
@@ -233,7 +248,7 @@
                                                         class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                                         <!-- tile add photo -->
                                                         <button type="button" id="addAttachmentTile"
-                                                            class="flex aspect-[2/1] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600 dark:text-gray-400 dark:border-gray-700">
+                                                            class="flex aspect-[2/1] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-400">
                                                             <div class="flex flex-col items-center gap-1">
                                                                 <svg xmlns="http://www.w3.org/2000/svg"
                                                                     class="h-7 w-7" viewBox="0 0 20 20"
@@ -254,13 +269,12 @@
 
                                         </div>
 
-                                        <div class="w-full px-4">
-                                            <div
-                                                class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                                        <div class="flex flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
+                                            <div class="contents">
                                                 <!-- Cancel Button-->
                                                 <div class="flex justify-start">
                                                     <button id="cancelBtn"
-                                                        class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                                        class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                                         <span id="cancelText">Cancel</span>
                                                         <svg id="cancelSpinner"
                                                             class="hidden h-5 w-5 animate-spin text-white"
@@ -283,7 +297,7 @@
                                                 <!-- Submit -->
                                                 <div class="flex justify-start md:justify-end">
                                                     <button type="submit" id="submitBtn"
-                                                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                                        class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                                         <span id="btnText">Submit</span>
                                                         <svg id="loadingSpinner"
                                                             class="hidden h-5 w-5 animate-spin text-white"

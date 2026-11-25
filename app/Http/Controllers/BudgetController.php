@@ -191,7 +191,9 @@ class BudgetController extends Controller
             ->orderBy('cpny_name')
             ->get();
 
-        $temp_id = session('import_temp_id');
+        // The import preview only lives for the page load that follows an import (flag flashed by import()).
+        // Any later visit (menu, Back, closing and reopening) starts clean: the old preview is discarded.
+        $temp_id = $this->takeFreshImportTempId();
 
         $tempData = [];
         if ($temp_id) {
@@ -199,6 +201,29 @@ class BudgetController extends Controller
         }
 
         return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
+    }
+
+    /**
+     * Returns the import temp id only when this request directly follows an import
+     * (import() flashes "import_preview_fresh"). Otherwise a leftover preview is reset:
+     * its temp rows are deleted and the session id is forgotten, so it can never be shown
+     * or saved by mistake later.
+     */
+    private function takeFreshImportTempId()
+    {
+        $temp_id = session('import_temp_id');
+        if (!$temp_id) {
+            return null;
+        }
+
+        if (session('import_preview_fresh')) {
+            return $temp_id;
+        }
+
+        MsBudgetTemp::where('temp_budget_id', $temp_id)->delete();
+        session()->forget('import_temp_id');
+
+        return null;
     }
 
     public function createBudget_xxx()
@@ -359,6 +384,7 @@ class BudgetController extends Controller
             );
 
             session(['import_temp_id' => $temp_id]);
+            session()->flash('import_preview_fresh', true); // show the preview on the next page load only
 
             return $budget
                 ? redirect()->route('budget.edit', $hash)->with('success', 'Data berhasil di-import (edit mode).')
@@ -751,7 +777,8 @@ class BudgetController extends Controller
 
         $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id)
             ->get();
-        $temp_id  = session('import_temp_id');
+        // preview only right after an import; a later visit resets it (see takeFreshImportTempId)
+        $temp_id  = $this->takeFreshImportTempId();
         $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : [];
 
         $rows = TrAttachment::where('refnbr', $budget->budget_id)
