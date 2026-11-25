@@ -354,6 +354,13 @@ class ApprovalDashboardController extends Controller
                 return [
                     'refnbr' => strtoupper(trim($latest->refnbr)),
                     'aprv_datebefore' => $latest->aprv_datebefore,
+                    // company|department of every approval line, used to break ties when one
+                    // docid still resolves to several documents inside the same group
+                    'lines' => collect($rows)
+                        ->map(fn ($r) => strtoupper(trim((string) $r->aprv_cpnyid)).'|'.strtoupper(trim((string) $r->aprv_departementid)))
+                        ->unique()
+                        ->values()
+                        ->all(),
                 ];
             });
 
@@ -737,9 +744,16 @@ class ApprovalDashboardController extends Controller
                     'url' => $url,
                     'query' => $query,
                     'status' => $status,
+                    // 2 = approval line's company+department match this document, 1 = company only, 0 = neither
+                    '_rank' => in_array(strtoupper(trim((string) $r->cpnyid)).'|'.strtoupper(trim((string) $r->departementid)), $approval['lines'] ?? [], true)
+                        ? 2
+                        : (collect($approval['lines'] ?? [])->contains(fn ($l) => str_starts_with($l, strtoupper(trim((string) $r->cpnyid)).'|')) ? 1 : 0),
                 ];
             })
             ->filter()
+            // Same docid can exist for different applicants/documents within one group (e.g. JAP): put the
+            // document that matches the approval line's company/department first so unique() keeps it.
+            ->sortByDesc('_rank')
             // De-duplicate: the group match above already resolved which
             // document this approval belongs to, so any rows still sharing
             // a docid here are the same document surfacing from more than
@@ -747,6 +761,11 @@ class ApprovalDashboardController extends Controller
             // sometimes with a slightly different company code within the
             // same group) — keep one.
             ->unique(fn ($r) => strtoupper(trim($r['docid'])))
+            ->map(function ($r) {
+                unset($r['_rank']);
+
+                return $r;
+            })
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
 
