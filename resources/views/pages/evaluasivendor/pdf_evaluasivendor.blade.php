@@ -61,7 +61,7 @@
             <th style="width:43%">Kriteria Penilaian</th>
             <th style="width:5%">Skor (1–5)</th>
             <th style="width:7%">Skor Terbobot</th>
-            <th style="width:17%">Catatan / Bukti Lapangan</th>
+            <th style="width:17%">Catatan</th>
         </tr></thead>
         <tbody>
             @forelse($details->groupBy('template_vpe_aspect_id') as $group)
@@ -76,7 +76,7 @@
         </tbody>
     </table>
     <p class="formula">Nilai terbobot = bobot (%) × nilai konversi skor / 100. Skor 1=40, 2=60, 3=80, 4=100, 5=120.</p>
-    <table class="notes"><tr><td><strong>Catatan Evaluasi</strong><div class="text">{{ $evaluation->vendor_perfomance_note ?: '—' }}</div></td><td><strong>Komentar / Rekomendasi</strong><div class="text">{{ $evaluation->template_vpe_aspect_comment ?: '—' }}</div></td></tr></table>
+    <table class="notes"><tr><td><strong>Catatan Evaluasi</strong><div class="text">{{ $evaluation->vendor_perfomance_note ?: '—' }}</div></td></tr></table>
     @if($guide)
         <table class="guide">
             <thead><tr><th style="width:22%">Panduan Skor (1–5)</th><th>Keterangan</th><th style="width:10%">Nilai</th></tr></thead>

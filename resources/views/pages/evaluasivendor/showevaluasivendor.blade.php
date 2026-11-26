@@ -95,10 +95,6 @@
                         <h2 class="vendor-note-heading">Catatan Evaluasi</h2>
                         <p class="vendor-note-content">{{ $evaluation->vendor_perfomance_note ?: 'Belum ada catatan evaluasi.' }}</p>
                     </section>
-                    <section class="vendor-note-box vendor-note-recommendation">
-                        <h2 class="vendor-note-heading">Komentar / Rekomendasi</h2>
-                        <p class="vendor-note-content">{{ $evaluation->template_vpe_aspect_comment ?: 'Belum ada komentar atau rekomendasi.' }}</p>
-                    </section>
                 </div>
             </section>
         </div>
@@ -119,7 +115,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm" style="table-layout:fixed;min-width:1100px;overflow-wrap:anywhere">
                     <colgroup><col style="width:3%"><col style="width:16%"><col style="width:5%"><col style="width:26%"><col style="width:12%"><col style="width:8%"><col style="width:23%"><col style="width:7%"></colgroup>
-                    <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700"><tr><th class="p-3">No</th><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan / Bukti Lapangan</th><th class="p-3">Attachment</th></tr></thead>
+                    <thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700"><tr><th class="p-3">No</th><th class="p-3">Aspek / Subaspek</th><th class="p-3">Bobot %</th><th class="p-3">Kriteria Penilaian</th><th class="p-3">Skor</th><th class="p-3">Nilai Terbobot</th><th class="p-3">Catatan</th><th class="p-3">Attachment</th></tr></thead>
                     <tbody>
                         @php
                             $number = 0;

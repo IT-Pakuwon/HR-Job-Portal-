@@ -233,18 +233,17 @@ class EvaluasiVendorController extends Controller
             'vendor_perfomance_date' => 'required|date_format:Y-m-d',
             'vendor_perfomance_start_date' => 'required|date_format:Y-m-d',
             'vendor_perfomance_end_date' => 'required|date_format:Y-m-d|after_or_equal:vendor_perfomance_start_date',
-            'vendor_perfomance_note' => 'nullable|string|max:10000',
-            'template_vpe_aspect_comment' => 'nullable|string|max:10000',
+            'vendor_perfomance_note' => 'required|string|max:10000',
             'ratings' => 'required|array', 'ratings.*' => 'required|integer|between:1,5',
             'template_vpe_id' => 'required|string|max:50',
             'notes' => 'nullable|array', 'notes.*' => 'nullable|string|max:10000',
-            'criteria' => 'nullable|array', 'criteria.*' => 'nullable|string|max:10000',
             'attachments' => 'nullable|array', 'attachments.*' => 'array|max:10',
             'attachments.*.*' => 'required|file|max:10240',
             'remove_attachments' => 'nullable|array', 'remove_attachments.*' => 'integer|distinct',
         ], $creating ? ['source_type' => ['required', Rule::in(['SPK', 'KONTRAK'])],
             'source_id' => 'required|integer|min:1'] : []), [
             'template_vpe_id.required' => 'Jenis Pekerjaan wajib dipilih.',
+            'vendor_perfomance_note.required' => 'Catatan Evaluasi wajib diisi.',
             'ratings.required' => 'Seluruh skor penilaian wajib diisi.',
             'ratings.*.required' => 'Skor pada setiap subaspek wajib diisi.',
             'ratings.*.integer' => 'Skor harus berupa angka 1 sampai 5.',
@@ -279,7 +278,6 @@ class EvaluasiVendorController extends Controller
                 $master = $this->master($data['template_vpe_id']);
                 $result = $scoring->calculate($master['details'], $data['ratings'], $master['scale']);
                 foreach ($result['details'] as &$detail) {
-                    $detail['template_vpe_subaspect_kriteria'] = array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'];
                     $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
                 }
                 unset($detail);
@@ -325,7 +323,7 @@ class EvaluasiVendorController extends Controller
     private function inputFields(array $data): array
     {
         return array_intersect_key($data, array_flip(['vendor_perfomance_date', 'vendor_perfomance_start_date',
-            'vendor_perfomance_end_date', 'vendor_perfomance_note', 'template_vpe_aspect_comment']));
+            'vendor_perfomance_end_date', 'vendor_perfomance_note']));
     }
 
     private function detailQuery(TrVendorPerfomance $evaluation)
@@ -525,7 +523,6 @@ class EvaluasiVendorController extends Controller
                 if ($templateChanged) {
                     $this->detailQuery($evaluation)->delete();
                     foreach ($result['details'] as &$detail) {
-                        $detail['template_vpe_subaspect_kriteria'] = array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'];
                         $detail['template_vpe_subaspect_note'] = $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'];
                     }
                     unset($detail);
@@ -535,7 +532,6 @@ class EvaluasiVendorController extends Controller
                     $this->detailQuery($evaluation)->where('id', $detail['id'])->update([
                         'template_vpe_subaspect_score' => $detail['template_vpe_subaspect_score'],
                         'template_vpe_subaspect_nilai' => $detail['template_vpe_subaspect_nilai'],
-                        'template_vpe_subaspect_kriteria' => array_key_exists($detail['template_vpe_subaspect_id'], $data['criteria'] ?? []) ? $data['criteria'][$detail['template_vpe_subaspect_id']] : $detail['template_vpe_subaspect_kriteria'],
                         'template_vpe_subaspect_note' => $data['notes'][$detail['template_vpe_subaspect_id']] ?? $detail['template_vpe_subaspect_note'],
                         'status' => 'P', 'updated_by' => $request->user()->username, 'updated_at' => now(),
                     ]);
