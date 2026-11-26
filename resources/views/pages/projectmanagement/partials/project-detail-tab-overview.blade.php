@@ -12,7 +12,7 @@
         <p id="detailProjectDescription" class="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">—</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-3" :class="kind === 'subtask' ? '' : 'sm:grid-cols-3'">
+    <div class="grid grid-cols-1 gap-3" :class="kind === 'subtask' ? '' : (kind === 'project' ? 'sm:grid-cols-3' : 'sm:grid-cols-2')">
         <div x-show="kind === 'project'" class="rounded-xl bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Team</p>
             <p id="detailProjectTeam" class="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-100">—</p>
