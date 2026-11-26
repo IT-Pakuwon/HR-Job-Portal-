@@ -27,6 +27,9 @@ class PmProjectController extends Controller
 {
     use HasAutonbr;
 
+    // Second number inside a Team's /projects/{eid} hash — see show().
+    private const TEAM_EID_TAG = 1;
+
     private function hasProjectAccess(): bool
     {
         return (bool) Auth::user()?->hasRole('PROJECTACCESS');
@@ -537,6 +540,7 @@ class PmProjectController extends Controller
 
         $teamsOut = $teams->map(fn ($t) => [
             'team_id' => $t->team_id,
+            'eid' => Hashids::encode($t->id, self::TEAM_EID_TAG),
             'team_name' => $t->team_name,
             'member_count' => (int) ($memberCounts[$t->team_id] ?? 0),
             'is_favorite' => $favoriteTeamIds->contains($t->team_id),
@@ -544,6 +548,7 @@ class PmProjectController extends Controller
 
         $projectsOut = $projects->map(fn ($p) => [
             'project_id' => $p->project_id,
+            'eid' => Hashids::encode($p->id),
             'teams' => ($projectTeams->get($p->project_id) ?? collect())->map(fn ($pt) => [
                 'team_id' => $pt->team_id,
                 'team_name' => $teamNames->get($pt->team_id)?->team_name,
@@ -706,24 +711,32 @@ class PmProjectController extends Controller
         return response()->json(['success' => true, 'message' => 'Project created successfully', 'project_id' => $project->project_id]);
     }
 
-    // Deep-link into a specific Project's detail modal — mirrors this app's
-    // /showticket/{eid} convention: a Hashids-encoded numeric id in the URL
-    // (not the raw ms_project.project_id business key), pre-opening the
-    // modal on the same portfolio board page rather than a separate route.
+    // /projects/{eid} — a Team's or a Project's own board. Mirrors this app's
+    // /showticket/{eid} convention: a Hashids-encoded numeric id in the URL,
+    // not the business key. Team and Project ids overlap, so a Team's eid
+    // also encodes TEAM_EID_TAG (see boardData()).
     public function show(string $eid)
     {
         abort_unless($this->canBrowse(), 403);
 
-        $id = Hashids::decode($eid)[0] ?? null;
-        abort_if(!$id, 404);
+        $parts = Hashids::decode($eid);
+        $isTeam = count($parts) === 2 && $parts[1] === self::TEAM_EID_TAG;
+        abort_unless($isTeam || count($parts) === 1, 404);
 
-        $project = MsProject::where('id', $id)->where('status', 'A')->firstOrFail();
-        $this->assertTeamAccess($project);
+        if ($isTeam) {
+            $team = MsTeam::where('id', $parts[0])->where('status', 'A')->firstOrFail();
+            abort_unless($team->isAccessibleBy(Auth::user()), 403);
+            $scope = ['openTeamId' => $team->team_id];
+        } else {
+            $project = MsProject::where('id', $parts[0])->where('status', 'A')->firstOrFail();
+            $this->assertTeamAccess($project);
+            $scope = ['openProjectBoardId' => $project->project_id];
+        }
 
         return view('pages.projectmanagement.projects', [
             'initialTab' => 'kanban',
             'canCreateProject' => $this->canManageProjects(),
-            'openProjectId' => $project->project_id,
+            ...$scope,
         ]);
     }
 

@@ -655,7 +655,7 @@
     </div>
 
     {{-- PROJECT DETAIL MODAL — clicking a card opens this instead of
-         navigating away; URL becomes /projects/{eid} while it's open.
+         navigating away. The URL stays on the board behind it.
          No backdrop-click-to-close: only the X / Close buttons dismiss it.
          Broken into partials/project-detail-*.blade.php by section. --}}
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -1274,9 +1274,9 @@
                 // above, sourced from PmTaskController instead of
                 // TeamTaskController. Mutually exclusive with teamId.
                 projectId: '',
-                // Set only by a /task/{eid} deep link (TeamTaskController::show())
-                // — the specific Task/Subtask to open once that Team's board
-                // finishes loading (see loadTeamTaskBoard()). Cleared after use.
+                // Set by a /task/{eid} deep link (or Back/Forward onto one)
+                // — the specific Task/Subtask to open once its board finishes
+                // loading (see load*TaskBoard()). Cleared after use.
                 pendingOpenTaskEid: opts.openTaskEid || null,
                 pendingOpenChatTaskId: opts.openChatTaskId || null,
                 teams: [],
@@ -1410,6 +1410,7 @@
                     this.teamId = this.teamId === teamId ? '' : teamId;
                     this.statusPanelOpen = false;
                     this.projectId = '';
+                    this.syncScopeUrl();
                     this.loadMainPanel();
                 },
 
@@ -1421,6 +1422,30 @@
                     this.projectId = this.projectId === projectId ? '' : projectId;
                     this.statusPanelOpen = false;
                     this.teamId = '';
+                    this.syncScopeUrl();
+                    this.loadMainPanel();
+                },
+
+                // Puts the selected board's own /projects/{eid} URL (or plain
+                // /projects for the landing list) in the address bar. `url`
+                // overrides it, for deep links that keep their own address.
+                syncScopeUrl(mode = 'push', url = null) {
+                    const item = this.teamId
+                        ? this.teams.find(t => t.team_id === this.teamId)
+                        : this.projects.find(p => p.project_id === this.projectId);
+                    // A board that isn't in the sidebar has no eid to show.
+                    const fallback = this.teamId || this.projectId ? location.href : '{{ route('projects.index') }}';
+                    const target = url || (item ? `{{ url('projects') }}/${item.eid}` : fallback);
+                    const state = { scope: { teamId: this.teamId, projectId: this.projectId } };
+                    history[mode === 'replace' ? 'replaceState' : 'pushState'](state, '', target);
+                },
+
+                // Browser Back/Forward onto another board.
+                showScope({ teamId, projectId }) {
+                    if (this.teamId === teamId && this.projectId === projectId) return;
+                    this.teamId = teamId;
+                    this.projectId = projectId;
+                    this.statusPanelOpen = false;
                     this.loadMainPanel();
                 },
 
@@ -1500,7 +1525,10 @@
                             method: 'DELETE',
                             data: { _token: '{{ csrf_token() }}' },
                             success: (res) => {
-                                if (this.projectId === projectId) this.projectId = '';
+                                if (this.projectId === projectId) {
+                                    this.projectId = '';
+                                    this.syncScopeUrl('replace');
+                                }
                                 Swal.fire({ icon: 'success', title: res.message || 'Project archived', timer: 1500, showConfirmButton: false });
                                 this.loadSidebar();
                             },
@@ -1534,6 +1562,9 @@
                             } else {
                                 this.applyDefaultScope();
                             }
+                            // Task and chat deep links keep their own address.
+                            const isDeepLink = /\/(task|project-task|team-chat|project-chat)\//.test(location.pathname);
+                            this.syncScopeUrl('replace', isDeepLink ? location.href : null);
                         }
 
                         this.loaded = true;
@@ -1554,7 +1585,6 @@
                     currentTaskApiBase = `{{ url('all-team') }}/${this.teamId}/tasks`;
                     currentTaskDoctype = 'TTK';
                     currentTaskRefreshFn = (cb2) => this.loadTeamTaskBoard(cb2);
-                    PM_CURRENT_TEAM_ID = this.teamId;
 
                     const pre = this.takePrefetch('team', this.teamId);
                     const teamId = this.teamId;
@@ -1622,8 +1652,8 @@
                             this.pendingOpenChatTaskId = null;
                         }
 
-                        // A /project-task/{eid} deep link — same as the
-                        // Team board's handling in loadTeamTaskBoard().
+                        // A Project Task deep link — same as the Team
+                        // board's handling in loadTeamTaskBoard().
                         if (this.pendingOpenTaskEid) {
                             const eid = this.pendingOpenTaskEid;
                             this.pendingOpenTaskEid = null;
@@ -2402,7 +2432,7 @@
                 },
 
                 openCalendarItem(ev) {
-                    if (!(this.teamId || this.projectId)) return openProjectDetail(ev.id, 'push');
+                    if (!(this.teamId || this.projectId)) return openProjectDetail(ev.id);
                     const t = findTaskInTree(ev.id, currentTasksCache);
                     if (!t) return;
                     currentTaskApiBase = this.taskApiBase;
@@ -2784,7 +2814,7 @@
                             </td>
                         </tr>
                     `);
-                    $row.on('click', () => openProjectDetail(p.project_id, 'push'));
+                    $row.on('click', () => openProjectDetail(p.project_id));
                     return $row;
                 },
 
@@ -3304,7 +3334,7 @@
             // from it (PM_PROJECT_ID matches) — editSelectedProject() (the
             // scoped board's own Edit button) opens this same form without
             // ever opening that modal, and cancelling shouldn't pop it open.
-            if (wasEditing && editedProjectId && PM_PROJECT_ID === editedProjectId) openProjectDetail(editedProjectId, 'none');
+            if (wasEditing && editedProjectId && PM_PROJECT_ID === editedProjectId) openProjectDetail(editedProjectId);
         });
 
         $(document).on('submit', '#projectForm', function (e) {
@@ -3354,7 +3384,7 @@
                     Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false })
                         .then(() => {
                             const portfolio = Alpine.$data(document.getElementById('pmPortfolioRoot'));
-                            if (isEdit && PM_PROJECT_ID === projectId) openProjectDetail(projectId, 'none');
+                            if (isEdit && PM_PROJECT_ID === projectId) openProjectDetail(projectId);
                             // Edited from the scoped board's own Edit button
                             // (editSelectedProject()) — refresh sidebar +
                             // board in place instead of a hard reload.
@@ -3369,17 +3399,13 @@
         });
 
         // ═══════════════════════════════════════════════════════════════
-        // PROJECT DETAIL MODAL — clicking a card opens this in place, URL
-        // becomes /projects/{eid}. Mirrors the all-team.blade.php detail
-        // modal's pushState/replaceState/popstate convention, except the
-        // backdrop deliberately does NOT close it (only X / Close do).
+        // PROJECT DETAIL MODAL — clicking a card opens this in place; the
+        // URL stays on the board behind it (/projects/{eid} is the board,
+        // see syncScopeUrl()). The backdrop deliberately does NOT close it
+        // (only X / Close do).
         // ═══════════════════════════════════════════════════════════════
         let PM_PROJECT_ID = null;
         let currentProjectDetail = null;
-        // Which Team's board is currently loaded — set by loadTeamTaskBoard(),
-        // stamped onto a Task/Subtask's history state so popstate/a bookmarked
-        // /task/{eid} link knows which Team's data to load before finding it.
-        let PM_CURRENT_TEAM_ID = null;
         const PM_CURRENT_USER = { name: @json(Auth::user()->name), username: @json(Auth::user()->username) };
 
         function pmProjectShow() {
@@ -3420,7 +3446,7 @@
                         url: `{{ url('projects') }}/${PM_PROJECT_ID}/link/${linkedProjectId}`,
                         method: 'DELETE',
                         data: { _token: '{{ csrf_token() }}' },
-                        success: () => openProjectDetail(PM_PROJECT_ID, 'none'),
+                        success: () => openProjectDetail(PM_PROJECT_ID),
                     });
                 },
 
@@ -4756,14 +4782,14 @@
             $('#taskActivityCount').text('');
             loadTaskActivity();
 
-            // A Team Task/Subtask gets its own shareable /task/{eid} URL
-            // (same convention as a Project's /projects/{eid}) — a Project's
-            // OWN tasks (doctype 'TSK', opened via window.pmOpenTask()) stay
-            // untracked, same as before, since they have no standalone page.
-            if (currentTaskDoctype === 'TTK' && task.eid) {
+            // Every Task/Subtask (Team or Project) has its own shareable
+            // /task/{eid} URL. The state names the board to load first when
+            // Back/Forward returns here.
+            if (task.eid) {
                 const url = `{{ url('task') }}/${task.eid}`;
-                if (historyMode === 'push') history.pushState({ taskEid: task.eid, teamId: PM_CURRENT_TEAM_ID }, '', url);
-                else if (historyMode === 'replace') history.replaceState({ taskEid: task.eid, teamId: PM_CURRENT_TEAM_ID }, '', url);
+                const state = { taskEid: task.eid, board: currentTaskBoard() };
+                if (historyMode === 'push') history.pushState(state, '', url);
+                else if (historyMode === 'replace') history.replaceState(state, '', url);
             }
         }
 
@@ -4922,7 +4948,7 @@
                         <button type="button" class="linked-project-unlink text-gray-400 hover:text-red-500">&times;</button>
                     </span>
                 `);
-                $chip.find('.linked-project-open').on('click', () => openProjectDetail(lp.project_id, 'push'));
+                $chip.find('.linked-project-open').on('click', () => openProjectDetail(lp.project_id));
                 if (Alpine.$data(document.getElementById('pmProjectShowRoot')).canCreateProject) {
                     $chip.find('.linked-project-unlink').on('click', () => Alpine.$data(document.getElementById('pmProjectShowRoot')).unlinkProject(lp.project_id));
                 } else {
@@ -4932,9 +4958,7 @@
             });
         }
 
-        // historyMode: 'push' (user-initiated) | 'replace' (deep-link load) |
-        // 'none' (browser back/forward already moved, or a silent in-place refresh).
-        function openProjectDetail(projectId, historyMode = 'push') {
+        function openProjectDetail(projectId) {
             $.get(`{{ url('projects') }}/${projectId}/detail`, function (data) {
                 PM_PROJECT_ID = data.project_id;
                 PM_ENTITY_DOCTYPE = 'PRJ';
@@ -5024,12 +5048,8 @@
                 $('#projectDetailModal').removeClass('hidden');
                 refreshEntityAttachments();
                 loadEntityComments();
-
-                const url = `{{ url('projects') }}/${data.eid}`;
-                if (historyMode === 'push') history.pushState({ projectId: data.project_id }, '', url);
-                else if (historyMode === 'replace') history.replaceState({ projectId: data.project_id }, '', url);
             }).fail(function () {
-                closeProjectDetail('replace');
+                closeProjectDetail();
                 Swal.fire({ icon: 'error', title: 'Project not found', text: 'This project may have been archived or removed.' });
             });
         }
@@ -5038,10 +5058,6 @@
             $('#projectDetailModal').addClass('hidden');
             const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
             const wasProject = root.kind === 'project';
-            // A Project's OWN tasks (doctype 'TSK') never got a URL of their
-            // own (unlike a Team Task's /task/{eid} — see openTaskEntityDetail())
-            // so only a Team Task/Subtask detail needs its URL cleaned up here too.
-            const wasTeamTask = !wasProject && currentTaskDoctype === 'TTK';
             root.kind = 'project';
             PM_PROJECT_ID = null;
             PM_ENTITY_DOCTYPE = 'PRJ';
@@ -5050,10 +5066,9 @@
             taskDetailStack = [];
             entityCanChat = true;
 
-            if (!wasProject && !wasTeamTask) return;
-            const url = '{{ route('projects.index') }}';
-            if (historyMode === 'push') history.pushState({}, '', url);
-            else if (historyMode === 'replace') history.replaceState({}, '', url);
+            // Only a Task detail changes the URL (see openTaskEntityDetail()),
+            // so only it needs the board's URL back.
+            if (!wasProject) Alpine.$data(document.getElementById('pmPortfolioRoot')).syncScopeUrl(historyMode);
         }
 
         // Opens the same modal/form used by "New Project", pre-filled from
@@ -5919,7 +5934,7 @@
             });
 
             // ── Project detail modal open/close — no backdrop-click-close ──
-            $('#closeProjectDetailModal, #closeProjectDetailModalBtn').on('click', () => closeProjectDetail('push'));
+            $('#closeProjectDetailModal, #closeProjectDetailModalBtn').on('click', () => closeProjectDetail());
 
             $('#projectDetailEditBtn').on('click', function () {
                 if (currentDetailTaskId) {
@@ -5933,32 +5948,33 @@
 
             $(document).on('click', '.project-card-open', function (e) {
                 e.preventDefault();
-                openProjectDetail($(this).data('project-id'), 'push');
+                openProjectDetail($(this).data('project-id'));
             });
 
             window.addEventListener('popstate', function (e) {
-                if (e.state && e.state.projectId) {
-                    openProjectDetail(e.state.projectId, 'none');
-                } else if (e.state && e.state.taskEid) {
+                if (e.state && e.state.taskEid) {
                     const portfolio = Alpine.$data(document.getElementById('pmPortfolioRoot'));
-                    if (PM_CURRENT_TEAM_ID === e.state.teamId) {
-                        // Already on the right Team's board — just find and
-                        // reopen (at whatever drill depth it was at).
+                    const teamId = e.state.board?.type === 'TEAM' ? e.state.board.id : '';
+                    const projectId = e.state.board?.type === 'PROJECT' ? e.state.board.id : '';
+                    if (portfolio.teamId === teamId && portfolio.projectId === projectId) {
+                        // Already on the right board — just find and reopen
+                        // (at whatever drill depth it was at).
                         const target = findTaskByEid(e.state.taskEid, currentTasksCache);
                         if (target) {
                             taskDetailStack = findAncestorTaskIds(e.state.taskEid, currentTasksCache) || [];
-                            currentTaskApiBase = `{{ url('all-team') }}/${e.state.teamId}/tasks`;
-                            currentTaskDoctype = 'TTK';
-                            currentTaskRefreshFn = (cb) => portfolio.loadTeamTaskBoard(cb);
+                            currentTaskApiBase = portfolio.taskApiBase;
+                            currentTaskDoctype = portfolio.taskDoctype;
+                            currentTaskRefreshFn = (cb) => portfolio.refreshTaskBoard(cb);
                             openTaskEntityDetail(target, 'none');
                         }
                     } else {
-                        // Navigated back/forward across two different Teams'
+                        // Navigated back/forward across two different boards'
                         // tasks — switch board first, same deep-link path a
                         // fresh /task/{eid} page load uses.
-                        portfolio.teamId = e.state.teamId;
+                        portfolio.teamId = teamId;
+                        portfolio.projectId = projectId;
                         portfolio.pendingOpenTaskEid = e.state.taskEid;
-                        portfolio.loadTeamTaskBoard();
+                        portfolio.loadMainPanel();
                     }
                 } else {
                     $('#projectDetailModal').addClass('hidden');
@@ -5967,13 +5983,11 @@
                     PM_ENTITY_ID = null;
                     currentDetailTaskId = null;
                     taskDetailStack = [];
+                    if (e.state && e.state.scope) {
+                        Alpine.$data(document.getElementById('pmPortfolioRoot')).showScope(e.state.scope);
+                    }
                 }
             });
-
-            const initialProjectId = @json($openProjectId ?? null);
-            if (initialProjectId) {
-                openProjectDetail(initialProjectId, 'replace');
-            }
 
             // ── Shared detail modal's Back button (drilling into a nested
             // Task/Team-Task's own subtasks — see the .subtask-row handler
@@ -6139,7 +6153,7 @@
                         data: { _token: '{{ csrf_token() }}' },
                         success: function (res) {
                             $('#taskModal').addClass('hidden');
-                            closeProjectDetail('none');
+                            closeProjectDetail('replace');
                             toastr.success(res?.message || 'Task archived');
                             refreshTaskDetailContext();
                         },
@@ -6312,7 +6326,7 @@
             $('#confirmLinkBtn').on('click', function () {
                 $.post(`{{ url('projects') }}/${PM_PROJECT_ID}/link`, { linked_project_id: $('#linkProjectSelect').val(), _token: '{{ csrf_token() }}' }, function () {
                     $('#linkProjectModal').addClass('hidden');
-                    openProjectDetail(PM_PROJECT_ID, 'none');
+                    openProjectDetail(PM_PROJECT_ID);
                 });
             });
 

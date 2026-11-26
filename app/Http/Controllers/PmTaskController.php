@@ -287,9 +287,10 @@ class PmTaskController extends Controller
         return response()->json(['items' => PmActivityLogger::feed('PROJECT', $projectId, $tasks, 'TSK', false)]);
     }
 
-    // Deep link into a Project Task's detail modal — /project-task/{eid},
-    // same convention as TeamTaskController::show(): a Hashids-encoded
-    // tr_project_task.id, opening the modal on the Project's own Task board.
+    // Deep link into a Project Task's detail modal — /task/{eid} (reached via
+    // TeamTaskController::show()), or /project-task/{eid} from bell
+    // notifications: a Hashids-encoded tr_project_task.id, opening the modal
+    // on the Project's own Task board.
     public function show(string $eid)
     {
         $id = Hashids::decode($eid)[0] ?? null;
@@ -309,7 +310,8 @@ class PmTaskController extends Controller
             'initialTab' => $chatOnly ? 'message' : 'kanban',
             'canCreateProject' => $user->hasRole('PROADMINACCESS') || $user->isPrimaryAdmin(),
             'openProjectBoardId' => $task->project_id,
-            'openTaskEid' => $chatOnly ? null : $eid,
+            // Re-encoded so it matches board-data even from an older link.
+            'openTaskEid' => $chatOnly ? null : Hashids::encode($task->id, TrProjectTask::EID_TAG),
             'openChatTaskId' => $chatOnly ? $task->task_id : null,
         ]);
     }
@@ -406,7 +408,7 @@ class PmTaskController extends Controller
                 'teams' => ($taskTeams->get($t->task_id) ?? collect())
                     ->map(fn ($tt) => ['team_id' => $tt->team_id, 'team_name' => $teamNames->get($tt->team_id, $tt->team_id)])
                     ->values(),
-                'eid' => Hashids::encode($t->id),
+                'eid' => Hashids::encode($t->id, TrProjectTask::EID_TAG),
                 'task_id' => $t->task_id,
                 'parent_task_id' => $t->parent_task_id,
                 'task_name' => $t->task_name,

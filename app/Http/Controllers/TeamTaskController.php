@@ -334,17 +334,22 @@ class TeamTaskController extends Controller
         ]);
     }
 
-    // Deep-link into a specific Task/Subtask's detail modal — mirrors
+    // /task/{eid} — deep link into any Task/Subtask's detail modal, mirroring
     // PmProjectController::show()'s /projects/{eid} convention: a
-    // Hashids-encoded numeric id (tr_team_task.id, not the task_id business
-    // key) in the URL, pre-opening the modal on the Team's own Task board
-    // (projects.blade.php's teamId-scoped view) rather than a separate page.
+    // Hashids-encoded numeric id (not the task_id business key) in the URL,
+    // pre-opening the modal on the owning board rather than a separate page.
+    // A Project Task's hash is tagged and handed to PmTaskController.
     public function show(string $eid)
     {
-        $id = Hashids::decode($eid)[0] ?? null;
-        abort_if(! $id, 404);
+        $parts = Hashids::decode($eid);
 
-        $task = TrTeamTask::whereIn('status', ['A', 'C'])->findOrFail($id);
+        if (count($parts) === 2 && $parts[1] === TrProjectTask::EID_TAG) {
+            return app(PmTaskController::class)->show($eid);
+        }
+
+        abort_unless(count($parts) === 1, 404);
+
+        $task = TrTeamTask::whereIn('status', ['A', 'C'])->findOrFail($parts[0]);
         $this->team($task->team_id);
 
         return view('pages.projectmanagement.projects', [

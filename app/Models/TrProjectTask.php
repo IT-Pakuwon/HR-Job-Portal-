@@ -10,6 +10,10 @@ class TrProjectTask extends Model
     protected $connection = 'pgsql5';
     protected $table = 'tr_project_task';
 
+    // Second number inside a Project Task's /task/{eid} hash. Team Task and
+    // Project Task ids overlap, and a Team Task's hash carries the id alone.
+    public const EID_TAG = 1;
+
     protected $fillable = [
         'task_id',
         'project_id',
