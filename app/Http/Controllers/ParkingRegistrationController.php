@@ -795,6 +795,10 @@ class ParkingRegistrationController extends Controller
                 ->where('status', 'A')
                 ->whereNull('deleted_at');
 
+            if ($parkingType === 'RENEWAL') {
+                $q->whereRaw('UPPER(TRIM(parking_type)) = ?', ['NEWREQUEST']);
+            }
+
             if ($cpnyId !== '') {
                 $q->where('cpny_id', $cpnyId);
             }
