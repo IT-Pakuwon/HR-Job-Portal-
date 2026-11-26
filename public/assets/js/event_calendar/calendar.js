@@ -10,6 +10,7 @@ const EventCalendarApp = {
         modalMode: 'create', // 'create' | 'edit'
         locationTom: null,
         picTom: null,
+        addedPics: [], // saved PIC names added to the dropdown for the event being edited
         viewingEvent: null,
         holidaySet: new Set(), // 'YYYY-MM-DD' — national holidays + Cuti Bersama from sys_calendar_exception
     },
@@ -111,9 +112,11 @@ const EventCalendarApp = {
     // SELECT2 (Event Type / Event Status)
     // --------------------------------------------------------
     initSelect2() {
-        $('#eventModal .select2').select2({
+        $('#eventModal select.select2').select2({
             width: '100%',
             dropdownParent: $('#eventModal'),
+            dropdownCssClass: 'sf-s2-dropdown',
+            minimumResultsForSearch: Infinity,
         });
     },
 
@@ -178,6 +181,7 @@ const EventCalendarApp = {
             resourceOrder: 'cpny_name,dept_rank,sort_key',
             resourceGroupField: 'group_key',
             resourceAreaHeaderContent: 'Location',
+            resourceAreaWidth: '23%',
             selectable: Boolean((window.EventCalendarCurrentUser || {}).canCreate),
             // group_key is "Company|||Department" (see calendar.blade.php) so the
             // two combine into one full-width header row, with locations nested
@@ -216,7 +220,9 @@ const EventCalendarApp = {
                 { day: 'numeric' },
             ],
             slotLabelClassNames(arg) {
-                return EventCalendarApp.isOffDay(arg.date) ? ['fc-offday-slot'] : [];
+                // Level 0 is the "Week N" band: it starts on the 1st/8th/15th..., so it must not
+                // inherit that single day's off-day colour.
+                return arg.level > 0 && EventCalendarApp.isOffDay(arg.date) ? ['fc-offday-slot'] : [];
             },
             slotLaneClassNames(arg) {
                 return EventCalendarApp.isOffDay(arg.date) ? ['fc-offday-slot'] : [];
@@ -255,7 +261,8 @@ const EventCalendarApp = {
                 const start = info.startStr;
                 const end = new Date(info.end);
                 end.setDate(end.getDate() - 1);
-                const endStr = end.toISOString().slice(0, 10);
+                // Local date parts: toISOString() converts to UTC, which in UTC+7 gives the day before.
+                const endStr = EventCalendarApp.dateKey(end);
 
                 EventCalendarApp.openCreateModal({
                     location_row_id: resourceId,
@@ -535,10 +542,11 @@ const EventCalendarApp = {
         document.getElementById('statusActiveField').classList.add('hidden');
         document.getElementById('statusActiveField').classList.remove('flex');
         document.getElementById('deleteEventBtn').classList.add('hidden');
-        $('#eventModal .select2').val('').trigger('change');
+        $('#eventModal select.select2').val('').trigger('change');
         EventCalendarApp.state.locationTom?.clear(true);
         EventCalendarApp.state.locationTom?.enable();
         EventCalendarApp.state.picTom?.clear(true);
+        EventCalendarApp.state.addedPics.splice(0).forEach((name) => EventCalendarApp.state.picTom?.removeOption(name));
     },
 
     openCreateModal(prefill = {}) {
@@ -582,11 +590,25 @@ const EventCalendarApp = {
         document.getElementById('event_start_date').value = props.event_start_date || '';
         document.getElementById('event_end_date').value = props.event_end_date || '';
         document.getElementById('product_check_exp').value = props.product_check_exp || '';
-        document.getElementById('event_total_contract').value = EventCalendarApp.formatThousands(props.event_total_contract);
+        // The database sends "125000000.00"; drop the decimals first, or formatThousands (digits only)
+        // would read them as two extra digits and save 100x the amount.
+        const contract = props.event_total_contract;
+        document.getElementById('event_total_contract').value = contract === null || contract === undefined || contract === ''
+            ? ''
+            : EventCalendarApp.formatThousands(Math.round(Number(contract)));
         document.getElementById('event_description').value = props.event_description || '';
 
         const picNames = (props.pic_event || '').split(',').map((v) => v.trim()).filter(Boolean);
-        EventCalendarApp.state.picTom?.setValue(picNames, true);
+        const picTom = EventCalendarApp.state.picTom;
+        if (picTom) {
+            // A saved PIC may have left the list (role removed, user inactive). Add the name back
+            // for this edit, otherwise saving would silently drop it.
+            picNames.filter((name) => !Object.hasOwn(picTom.options, name)).forEach((name) => {
+                picTom.addOption({ value: name, text: name });
+                EventCalendarApp.state.addedPics.push(name);
+            });
+            picTom.setValue(picNames, true);
+        }
 
         document.getElementById('pic_event_external').value = props.pic_event_external || '';
         document.getElementById('pic_event_external_hp').value = props.pic_event_external_hp || '';

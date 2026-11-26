@@ -14,13 +14,14 @@ const VplReceiveDatalist = {
         VplReceiveDatalist.table = $('#receiveTable').DataTable({
             processing:  true,
             serverSide:  true,
-            responsive:  true,
+            responsive: true,
+            columnDefs: [{ targets: 0, responsivePriority: 1 }, { targets: 7, responsivePriority: 2 }, { targets: 1, responsivePriority: 3 }],
             order:       [[1, 'desc']],
             dom:         '<"dt-toolbar"l B f>rtip',
             buttons:     [
                 {
                     extend: 'excelHtml5',
-                    text: '↓ Excel',
+                    text: '<i class="fa-solid fa-file-excel"></i> Excel',
                     title: 'Receive Product / Voucher',
                     exportOptions: {
                         columns: ':visible',
@@ -29,7 +30,7 @@ const VplReceiveDatalist = {
                 },
                 {
                     extend: 'csvHtml5',
-                    text: '↓ CSV',
+                    text: '<i class="fa-solid fa-file-csv"></i> CSV',
                     title: 'Receive Product / Voucher',
                     exportOptions: {
                         columns: ':visible',
@@ -52,39 +53,35 @@ const VplReceiveDatalist = {
             columns: [
                 {
                     data: 'action', name: 'receive_id', orderable: false, searchable: true,
+                    render: (data, type, row) => type === 'display' ? window.vplDocButton('btn-view', row.id, row.receive_id) : row.receive_id,
                 },
                 {
-                    data: 'receive_date', name: 'receive_date',
-                    render: (data) => `<span class="text-sm text-slate-700 dark:text-slate-300">${data || '—'}</span>`,
+                    data: 'receive_date', name: 'receive_date', className: 'whitespace-nowrap',
+                    render: (data) => `<span class="text-sm text-gray-700 dark:text-gray-300">${data || '—'}</span>`,
                 },
                 {
                     data: 'cpnyid', name: 'cpnyid',
-                    render: (data) => `<span class="text-sm font-medium text-slate-700 dark:text-slate-300">${data || '—'}</span>`,
+                    render: (data) => `<span class="text-sm font-medium text-gray-700 dark:text-gray-300">${data || '—'}</span>`,
                 },
                 {
                     data: 'department', name: 'department',
-                    render: (data) => `<span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">${data || '—'}</span>`,
+                    render: (data) => `<span class="text-sm font-medium text-blue-600 dark:text-blue-400">${data || '—'}</span>`,
                 },
                 {
                     data: 'vp_type', name: 'vp_type',
-                    render: (data) => {
-                        if (!data) return '<span class="text-slate-400">—</span>';
-                        const label = data.charAt(0).toUpperCase() + data.slice(1).toLowerCase();
-                        return `<span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">${label}</span>`;
-                    },
+                    render: (data, type) => type === 'display' ? window.vplTypePill(data) : data,
                 },
                 {
                     data: 'receive_type', name: 'receive_type',
-                    render: (data) => `<span class="text-sm text-slate-600 dark:text-slate-400">${data || '—'}</span>`,
+                    render: (data) => `<span class="text-sm text-gray-600 dark:text-gray-400">${data || '—'}</span>`,
                 },
                 {
                     data: 'receive_remark', name: 'receive_remark',
-                    render: (data) => `<span class="text-sm text-slate-500 dark:text-slate-400">${data || '—'}</span>`,
+                    render: (data) => `<span class="text-sm text-gray-500 dark:text-gray-400">${data || '—'}</span>`,
                 },
                 {
                     data: 'status_badge', name: 'status', orderable: false, searchable: false,
-                    className: 'text-center',
-                    render: d => `<div class="flex justify-center">${d}</div>`,
+                    render: (data, type, row) => type === 'display' ? window.vplStatusBadge(row.status) : window.vplStatusText(row.status),
                 },
             ],
             createdRow(row) {
@@ -111,8 +108,8 @@ const VplReceiveDatalist = {
             e.preventDefault();
             const status = $(this).data('status') || 'ALL';
             VplReceive.state.currentStatus = status;
-            $('.status-filter').removeClass('active-card');
-            $(this).addClass('active-card');
+            $('.status-filter').removeClass('active-card active');
+            $(this).addClass('active-card active');
             $('#adminAllFilters')
                 .toggleClass('hidden', status !== 'ADMINALL')
                 .toggleClass('flex', status === 'ADMINALL');

@@ -20,6 +20,7 @@ use App\Models\TrProjectTaskTeam;
 use App\Models\User;
 use App\Services\PmActivityLogger;
 use App\Services\PmChatAccess;
+use App\Services\PrivateChatAudience;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -300,19 +301,14 @@ class PmTaskController extends Controller
         $this->project($task->project_id);
 
         $user = Auth::user();
-        $canOpen = $task->isAccessibleBy($user);
-        // An admin outside a locked task still takes part in its chat, so a
-        // notification link lands them on that chat instead.
-        $chatOnly = !$canOpen && PmChatAccess::isAdmin($user);
-        abort_unless($canOpen || $chatOnly, 403, 'This task is private. Only its assignees can open it.');
+        abort_unless($task->isAccessibleBy($user), 403, 'This task is private. Only its assignees can open it.');
 
         return view('pages.projectmanagement.projects', [
-            'initialTab' => $chatOnly ? 'message' : 'kanban',
-            'canCreateProject' => $user->hasRole('PROADMINACCESS') || $user->isPrimaryAdmin(),
+            'initialTab' => 'kanban',
+            'canCreateProject' => $user->hasRole('PROADMINACCESS'),
             'openProjectBoardId' => $task->project_id,
             // Re-encoded so it matches board-data even from an older link.
-            'openTaskEid' => $chatOnly ? null : Hashids::encode($task->id, TrProjectTask::EID_TAG),
-            'openChatTaskId' => $chatOnly ? $task->task_id : null,
+            'openTaskEid' => Hashids::encode($task->id, TrProjectTask::EID_TAG),
         ]);
     }
 
@@ -400,6 +396,9 @@ class PmTaskController extends Controller
 
             return [
                 'can_chat' => $canChat,
+                // A private Task's admins / creator manage it without its chat.
+                'can_assign' => $canAccess && PmChatAccess::canAssign($audiences->get($t->task_id), $t, Auth::user()),
+                'chat_private' => $audiences->get($t->task_id) instanceof PrivateChatAudience,
                 'is_locked' => (bool) $t->is_locked,
                 'locked_by' => $t->locked_by,
                 'can_access' => $canAccess,
@@ -789,7 +788,7 @@ class PmTaskController extends Controller
 
         abort_if(
             PmChatAccess::moveWouldOpen('TSK',
-                TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(['task_id', 'parent_task_id', 'created_by']),
+                TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(['task_id', 'parent_task_id', 'created_by', 'is_locked']),
                 $taskId, $parentId, Auth::user()),
             403,
             'This move would open a task chat you are not part of. Ask an assignee, the creator or a project admin.'
@@ -870,7 +869,7 @@ class PmTaskController extends Controller
 
         // A custom status_id / sort_order is only honored for admins (the
         // Status Settings panel); everyone else gets one derived from the name.
-        $isAdmin = Auth::user()->isPrimaryAdmin();
+        $isAdmin = Auth::user()->hasRole('PROADMINACCESS');
         $statusName = trim($request->status_name);
         $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', ($isAdmin && $request->filled('status_id')) ? $request->status_id : $statusName));
         abort_if($statusId === '', 422, 'Status ID must contain at least one letter or number.');
@@ -925,7 +924,7 @@ class PmTaskController extends Controller
         $status->update([
             'status_name' => trim($request->status_name),
             'color' => $request->input('color', $status->color),
-            'sort_order' => (Auth::user()->isPrimaryAdmin() && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
+            'sort_order' => (Auth::user()->hasRole('PROADMINACCESS') && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
             'updated_by' => Auth::user()->username,
             'updated_at' => now(),
         ]);
@@ -982,6 +981,11 @@ class PmTaskController extends Controller
         $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
         TrProjectTask::abortUnlessAccessible('TSK', $taskId);
 
+        // ?people=1 asks for the chat's profile bubbles instead.
+        if (request()->boolean('people')) {
+            return response()->json(PmChatAccess::bubblePeople('TSK', $task));
+        }
+
         $usernames = $this->eligibleUsernames($project)
             ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
         $people = User::whereIn(DB::raw('lower(username)'), $usernames->all())->get(['username', 'name', 'user_role']);
@@ -989,8 +993,8 @@ class PmTaskController extends Controller
         // Same rule as the thread's own guard, answered in bulk.
         $audience = PmChatAccess::audience('TSK', $task);
         $openers = $task->usersWhoCanOpen($people)->pluck('username')->flip();
-        $users = $people->filter(fn ($u) => PmChatAccess::isAdmin($u)
-            || ($openers->has($u->username) && PmChatAccess::includes($audience, $u)))->values();
+        $users = $people->filter(fn ($u) => $openers->has($u->username)
+            && PmChatAccess::includes($audience, $u))->values();
 
         return response()->json($users->map(fn ($u) => ['username' => $u->username, 'name' => $u->name]));
     }

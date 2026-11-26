@@ -1,28 +1,29 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
         <div>
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0 set-tabs">
                 <button id="tab-master"
                     class="tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
                     onclick="switchTab('master')">
-                    💰 Master Group Biaya
+                    Master Group Biaya
                 </button>
                 <button id="tab-budget"
                     class="tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchTab('budget')">
-                    📋 Budget Assignment
+                    Budget Assignment
                 </button>
             </div>
 
             {{-- ── TAB 1: Master Group Biaya ──────────────────────────────────── --}}
             <div id="panel-master"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💰 Master
-                        Group Biaya</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-coins"></i></span><span>Master Group Biaya<span class="set-hint">Manage cost groups</span></span></h2>
                     @if($isAdmin)
                     <button id="addGroupBiayaBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -182,7 +183,7 @@
 
         @if($isAdmin)
         {{-- ── GROUP BIAYA MODAL (Add / Edit) ──────────────────────────────────── --}}
-        <div id="groupBiayaModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="groupBiayaModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-700">
                 <h2 id="modalTitle" class="mb-5 text-base font-bold text-gray-800 dark:text-white">Add Group Biaya</h2>
 
@@ -239,12 +240,11 @@
         </div>
 
         {{-- ── ASSIGN MODAL ─────────────────────────────────────────────────────── --}}
-        <div id="assignModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="assignModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-700">
 
                 <div class="mb-5">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Assign Budget</h2>
-                    <p id="assignModalLabel" class="mt-0.5 text-sm text-indigo-600 dark:text-indigo-300 font-medium"></p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Assign Budget<span class="set-hint" id="assignModalLabel"></span></span></h2>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -332,9 +332,9 @@
         </div>
 
         {{-- ── EDIT BUDGET MODAL ────────────────────────────────────────────────── --}}
-        <div id="editBudgetModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="editBudgetModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-700">
-                <h2 class="mb-5 text-base font-bold text-gray-800 dark:text-white">Edit Assignment</h2>
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Edit Assignment</span></h2>
 
                 <form id="editBudgetForm">
                     @csrf
@@ -378,11 +378,10 @@
 
         @if($isCostCtrl)
         {{-- ── ASSIGN GROUP BIAYA MODAL (COSTCTRL) ──────────────────────────────── --}}
-        <div id="ccAssignGbModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="ccAssignGbModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-700">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Assign Group Biaya</h2>
-                    <p id="ccGbModalLabel" class="mt-0.5 text-sm text-indigo-600 dark:text-indigo-300 font-medium"></p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Assign Group Biaya<span class="set-hint" id="ccGbModalLabel"></span></span></h2>
                 </div>
 
                 <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -413,11 +412,10 @@
         </div>
 
         {{-- ── ASSIGN COA MODAL (COSTCTRL) ──────────────────────────────────────── --}}
-        <div id="ccAssignCoaModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="ccAssignCoaModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-700">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Assign COA Account</h2>
-                    <p id="ccCoaModalLabel" class="mt-0.5 text-sm text-indigo-600 dark:text-indigo-300 font-medium"></p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Assign COA Account<span class="set-hint" id="ccCoaModalLabel"></span></span></h2>
                 </div>
 
                 {{-- Step 1: Business Unit --}}

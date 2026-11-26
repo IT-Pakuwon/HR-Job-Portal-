@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = in_array(Route::currentRouteName(), ['users', 'users-sby']) ? 'Users' : '';
         $usersSby = Route::is('users-sby') || Route::is('users-sby.*');
@@ -360,10 +362,10 @@
         </div>
 
         <div id="tabPanelList"
-            class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Users List</h2>
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-users"></i></span><span>Users List<span class="set-hint">Manage user accounts, access and roles</span></span></h2>
                 <div class="flex items-center gap-2">
                     <span id="bulkSelectedCount" class="hidden text-sm font-medium text-gray-500 dark:text-gray-400"></span>
                     <button id="clearUserFilters" type="button"
@@ -495,16 +497,12 @@
 
         @unless ($usersSby)
         <div id="tabPanelDuplicates"
-            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
                 <div class="um-panel-head py-1">
-                    <span class="um-panel-ic amber"><i class="fas fa-clone"></i></span>
+                    
                     <div>
-                        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Duplicate Users</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Users sharing the same email, username, or NPK. Review and deactivate the extra
-                            accounts to keep one active record per person.
-                        </p>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-clone"></i></span><span>Duplicate Users<span class="set-hint">Users sharing the same email, username, or NPK. Review and deactivate the extra accounts to keep one active record per person.</span></span></h2>
                     </div>
                 </div>
             </div>
@@ -538,15 +536,12 @@
         @endunless
 
         <div id="tabPanelInactive"
-            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
                 <div class="um-panel-head py-1">
-                    <span class="um-panel-ic slate"><i class="fas fa-user-slash"></i></span>
+                    
                     <div>
-                        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Inactive Users</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Users currently deactivated. Toggle the switch to reactivate an account.
-                        </p>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-user-slash"></i></span><span>Inactive Users<span class="set-hint">Users currently deactivated. Toggle the switch to reactivate an account.</span></span></h2>
                     </div>
                 </div>
             </div>
@@ -577,15 +572,12 @@
 
         @unless ($usersSby)
         <div id="tabPanelSby"
-            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
                 <div class="um-panel-head py-1">
-                    <span class="um-panel-ic indigo"><i class="fas fa-building"></i></span>
+                    
                     <div>
-                        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">User SBY</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Active users belonging to the SBY company group.
-                        </p>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-user-group"></i></span><span>User SBY<span class="set-hint">Active users belonging to the SBY company group.</span></span></h2>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,27 @@
+No,Group,Table,Description,Columns,"Rows in db_das_test","Copy data to db_das?"
+1,Group,ms_group,"Project groups",11,1,No
+2,Group,tr_group_detail,"Departments in a group",11,4,No
+3,Group,tr_group_member,"Members of a group",6,0,No
+4,Team,ms_team,Teams,11,2,No
+5,Team,tr_team_member,"Team captain and members",7,6,No
+6,Master,ms_project_status,"Project statuses",12,3,"YES - 3 rows, in script"
+7,Master,tr_project_status_team,"Which team uses which project status",6,6,No
+8,Master,ms_task_tag,"Task and project tags",9,6,"YES - ""Complete"" tag only, in script"
+9,Project,ms_project,Projects,16,3,No
+10,Project,tr_project,"Links between projects",10,0,No
+11,Project,tr_project_team,"Teams on a project",6,1,No
+12,Project,tr_project_pic,"Project PIC",7,10,No
+13,Project,tr_project_tag,"Project tags",4,1,No
+14,"Project task",ms_project_task_status,"Task status columns per project",13,12,No
+15,"Project task",tr_project_task,"Project tasks and subtasks",21,22,No
+16,"Project task",tr_project_task_assignee,"Task assignees",6,13,No
+17,"Project task",tr_project_task_team,"Teams as task PIC",6,0,No
+18,"Project task",tr_project_task_tag,"Task tags",4,12,No
+19,"Team task",ms_team_task_status,"Task status columns per team",13,9,No
+20,"Team task",tr_team_task,"Team tasks",18,13,No
+21,"Team task",tr_team_task_assignee,"Team task assignees",6,17,No
+22,"Team task",tr_team_task_tag,"Team task tags",4,10,No
+23,Other,tr_favorite,"User favorites",5,2,No
+24,Other,tr_pm_activity,"Activity history",9,88,No
+25,Other,tr_project_message,"Chat messages",17,2,No
+26,Other,tr_project_message_read,"Chat read position (unread badges)",6,"not created yet",No

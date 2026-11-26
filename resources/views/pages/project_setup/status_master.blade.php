@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'project-status.index' ? 'Status Master' : '';
         $inputCls = 'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-100';
@@ -7,12 +9,9 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2" x-data="statusMaster()" x-init="init()">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    <i class="fas fa-list-check mr-1.5 text-gray-400"></i> Status Master
-                </h2>
-                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">View and manage the statuses behind the Team, Project and Task boards. A status that still has projects or tasks in it can't be deleted.</p>
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+            <div class="border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] set-head">
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-list-check"></i></span><span>Status Master<span class="set-hint">View and manage the statuses behind the Team, Project and Task boards. A status that still has projects or tasks in it can't be deleted.</span></span></h2>
 
                 <div class="mt-3 flex gap-1 text-sm">
                     <template x-for="t in tabs" :key="t.key">
@@ -150,7 +149,7 @@
 
         {{-- ── Add / edit modal (shared) ── --}}
         <div x-show="form.open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @keydown.escape.window="form.open = false">
-            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl dark:bg-gray-800" @click.outside="form.open = false">
+            <div class="set-fields w-full max-w-md rounded-xl bg-white p-5 shadow-xl dark:bg-gray-800" @click.outside="form.open = false">
                 <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="form.editing ? 'Edit status' : 'Add status'"></h3>
                 <div class="space-y-3">
                     <div>

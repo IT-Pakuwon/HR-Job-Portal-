@@ -3,6 +3,8 @@
     @include('pages.access-requests.partials.styles')
     <x-spp-list-styles />
     <x-spp-list-scripts />
+    <x-spp-form-styles />
+    <x-it-modal-skin />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
@@ -103,17 +105,17 @@
         </div>
 
         {{-- CREATE / EDIT MODAL --}}
-        <div id="requestModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="requestModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -128,7 +130,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -136,7 +138,7 @@
 
                 </div>
 
-                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+                <div class="itm-body space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
                     <form id="requestForm" class="space-y-4">
 
@@ -147,7 +149,7 @@
                         <input type="hidden" id="requestHash">
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -283,7 +285,7 @@
                         </div>
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
 
                             <div
                                 class="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -354,7 +356,7 @@
 
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
 
                             <div
                                 class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -372,7 +374,7 @@
                                     class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                        class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -405,7 +407,7 @@
 
 
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2     dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -449,7 +451,7 @@
                                 <div class="flex items-center justify-end gap-3">
 
                                     <button type="button"
-                                        class="btn-close-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                                        class="itm-btn btn-close-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
 
                                         Cancel
 
@@ -481,18 +483,18 @@
         </div>
 
         {{-- DETAIL MODAL --}}
-        <div id="detailModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="detailModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
@@ -526,7 +528,7 @@
                         </div>
 
                         <button type="button" data-modal="#detailModal"
-                            class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                            class="itm-close btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                             <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -537,14 +539,14 @@
                 </div>
 
                 {{-- CONTENT --}}
-                <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
+                <div class="itm-body grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
 
                     {{-- LEFT CONTENT --}}
                     <div class="space-y-4 lg:col-span-4">
 
                         {{-- REQUEST INFORMATION --}}
                         <div
-                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -561,7 +563,7 @@
 
                         {{-- ACCESS ITEMS --}}
                         <div
-                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -579,7 +581,7 @@
 
                         {{-- ATTACHMENTS --}}
                         <div
-                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -605,7 +607,7 @@
 
                         {{-- TIMELINE --}}
                         <div
-                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -666,10 +668,10 @@
 
                 {{-- STICKY FOOTER --}}
                 <div
-                    class="sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="itm-foot sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <button type="button" data-modal="#detailModal"
-                        class="btn-close-modal text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        class="itm-btn btn-close-modal text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
                         Close
                     </button>
 
@@ -696,17 +698,17 @@
         </div>
 
         {{-- PROCESS HARDWARE MODAL --}}
-        <div id="processHardwareModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="processHardwareModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-4xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -721,7 +723,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -729,7 +731,7 @@
 
                 </div>
 
-                <div class="space-y-2 p-4">
+                <div class="itm-body space-y-2 p-4">
 
                     <div id="processHardwareInfoContainer"></div>
 
@@ -742,17 +744,17 @@
         </div>
 
         {{-- PROCESS SOFTWARE MODAL --}}
-        <div id="processSoftwareModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="processSoftwareModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-4xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -767,7 +769,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -775,7 +777,7 @@
 
                 </div>
 
-                <div class="space-y-2 p-4">
+                <div class="itm-body space-y-2 p-4">
 
                     <div id="processSoftwareInfoContainer"></div>
 
@@ -789,12 +791,12 @@
 
     </div>
     <div id="modalCreateTicket"
-        class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/60 px-4  ">
+        class="itm sf-field fixed inset-0 z-[70] hidden items-center justify-center bg-black/60 px-4  ">
 
         <div
-            class="w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+            class="itm-dialog w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-2 dark:border-neutral-800">
+            <div class="itm-head flex items-center justify-between border-b border-gray-200 px-5 py-2 dark:border-neutral-800">
 
                 <div>
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
@@ -807,7 +809,7 @@
                 </div>
 
                 <button type="button" data-close-modal="modalCreateTicket"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800">
+                    class="itm-close flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800">
 
                     <i class="ti ti-x text-lg"></i>
 
@@ -819,7 +821,7 @@
 
                 @csrf
 
-                <div class="max-h-[78vh] space-y-5 overflow-y-auto px-5 py-4">
+                <div class="itm-body max-h-[78vh] space-y-5 overflow-y-auto px-5 py-4">
 
                     <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
@@ -959,7 +961,7 @@
                                 <div
                                     class="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
 
-                                    <i class="ti ti-paperclip text-2xl text-blue-600 dark:text-blue-400"></i>
+                                    <i class="fa-solid fa-paperclip text-2xl text-blue-600 dark:text-blue-400"></i>
 
                                 </div>
 
@@ -993,10 +995,10 @@
                 </div>
 
                 <div
-                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-2 dark:border-neutral-800">
+                    class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-2 dark:border-neutral-800">
 
                     <button type="button" data-close-modal="modalCreateTicket"
-                        class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800">
+                        class="itm-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800">
 
                         Cancel
                     </button>

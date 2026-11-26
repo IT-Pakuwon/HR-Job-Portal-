@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $apvSby = Route::is('approvals-sby') || Route::is('approvals-sby.*');
         $apvBase = $apvSby ? '/approvals-sby' : '/approvals';
@@ -30,11 +32,10 @@
 
             {{-- ===================== TAB: Approval List ===================== --}}
             <div id="tabPanelList"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📋 Ms Approval
-                        List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-clipboard-check"></i></span><span>Ms Approval List<span class="set-hint">Approval lines per document type</span></span></h2>
                     <button id="addApprovalBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Approval
@@ -147,11 +148,11 @@
 
             {{-- ===================== TAB: Add / Duplicate Approval ===================== --}}
             <div id="tabPanelForm"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f172a] md:p-6">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f172a] md:p-6 set-card">
 
                 <div class="mb-5 flex items-center gap-3">
                     <div
-                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-lg text-white shadow-sm">
                         <i class="fa-solid fa-diagram-project"></i>
                     </div>
                     <div>
@@ -381,11 +382,10 @@
             {{-- ===================== TAB: Approval Group Biaya ===================== --}}
             @unless($restrictAdmin)
             <div id="tabPanelGroupBiaya"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💰 Ms Approval
-                        Group Biaya List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-coins"></i></span><span>Ms Approval Group Biaya List<span class="set-hint">Approval lines by cost group</span></span></h2>
                     <button id="gbAddApprovalBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Approval Group Biaya
@@ -480,14 +480,9 @@
 
             {{-- ===================== TAB: Approval SBY ===================== --}}
             <div id="tabPanelApprovalSby"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-                <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Approval
-                        SBY</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Approval lines for every company in the SBY group, across all document types and
-                        departments.
-                    </p>
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+                <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-building"></i></span><span>Approval SBY<span class="set-hint">Approval lines for every company in the SBY group, across all document types and departments.</span></span></h2>
                 </div>
 
                 <div class="flex flex-wrap items-end gap-3 px-5 pt-4">
@@ -580,7 +575,7 @@
 
     {{-- Approval Group Biaya modal --}}
     @unless($restrictAdmin)
-    <div id="gbApprovalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+    <div id="gbApprovalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
         <div class="relative w-full max-w-6xl rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 id="gbApprovalModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                 Add Approval Group Biaya
@@ -684,7 +679,7 @@
     </select>
 
     {{-- Edit modal (single approval line) --}}
-    <div id="editApprovalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+    <div id="editApprovalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
         <div class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 id="editApprovalModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                 Edit Approval

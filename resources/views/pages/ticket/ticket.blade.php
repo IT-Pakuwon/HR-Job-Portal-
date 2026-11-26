@@ -2,6 +2,7 @@
     @include('pages.ticket.partial.style')
     <x-spp-list-styles />
     <x-spp-list-scripts />
+    <x-it-modal-skin />
     <x-spp-form-styles />
 
     <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
@@ -374,7 +375,7 @@
         </div>
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
-            class="ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
+            class="itm sf-field ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             {{-- Backdrop --}}
             <div
@@ -383,11 +384,11 @@
 
             {{-- Panel --}}
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- Header --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
@@ -396,7 +397,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
+                        class="itm-close btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -405,7 +406,7 @@
                 </div>
 
                 {{-- Content --}}
-                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+                <div class="itm-body space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
                     <form id="createTicketForm" class="space-y-4">
 
@@ -415,7 +416,7 @@
 
                         {{-- Ticket Information --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -510,7 +511,7 @@
 
                         {{-- Classification --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -569,7 +570,7 @@
 
                         {{-- Location --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -628,7 +629,7 @@
 
                         {{-- Issue Detail --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -665,7 +666,7 @@
                                     <textarea id="issue_descr" name="issue_descr" class="hidden"></textarea>
 
                                     <div id="issue_descr_editor"
-                                        class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        class="itm-card rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
                                         style="min-height: 140px;"></div>
 
                                 </div>
@@ -676,7 +677,7 @@
 
                         {{-- Attachment --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div
                                 class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -696,7 +697,7 @@
                                     class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                        class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -732,12 +733,12 @@
 
                         {{-- Footer --}}
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex items-center justify-end gap-3">
 
                                 <button type="button"
-                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
+                                    class="itm-btn btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
 
                                     Cancel
 
@@ -765,7 +766,7 @@
         </div>
 
         {{-- DETAIL TICKET MODAL --}}
-        <div id="ticketDetailModal" class="ticket-modal fixed inset-0 z-[50] hidden p-4">
+        <div id="ticketDetailModal" class="itm sf-field ticket-modal fixed inset-0 z-[50] hidden p-4">
 
             {{-- Backdrop --}}
             <div
@@ -775,11 +776,11 @@
             <div class="mx-auto flex min-h-screen w-full max-w-[95vw] items-center justify-center xl:max-w-7xl">
 
                 <div
-                    class="modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 transition-all duration-200 dark:bg-gray-900">
+                    class="itm-dialog modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 transition-all duration-200 dark:bg-gray-900">
 
                     {{-- Header --}}
                     <div
-                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 xl:flex-row xl:items-start xl:justify-between dark:border-gray-800 dark:bg-gray-900">
+                        class="itm-head sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 xl:flex-row xl:items-start xl:justify-between dark:border-gray-800 dark:bg-gray-900">
 
                         <div>
 
@@ -842,7 +843,7 @@
                             </button>
 
                             <button type="button"
-                                class="btn-close-modal inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10">
+                                class="itm-close btn-close-modal inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10">
 
                                 <i class="ti ti-x text-[18px]"></i>
 
@@ -1127,7 +1128,7 @@
                                 class="border-b border-gray-200 bg-gray-50/70 px-6 py-2 dark:border-gray-800 dark:bg-gray-900/60">
 
                                 <div
-                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                    class="itm-card inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                                     <button type="button"
                                         class="ticket-detail-tab active inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200"
@@ -1210,7 +1211,7 @@
                                             <input type="hidden" id="comment_ticket_id">
 
                                             <div
-                                                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-blue-500 dark:focus-within:ring-blue-500/10">
+                                                class="itm-card overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-blue-500 dark:focus-within:ring-blue-500/10">
 
                                                 <textarea id="comment_message" rows="1" placeholder="Write discussion, progress update, or response..."
                                                     class="w-full resize-none border-0 bg-transparent px-5 py-2 text-sm leading-7 text-gray-700 outline-none ring-0 placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"></textarea>
@@ -1292,21 +1293,21 @@
 
         {{-- SERVICE ORDER LIST MODAL --}}
         @if ($isITRole)
-        <div id="soListModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div id="soListModal" class="itm sf-field fixed inset-0 z-[60] hidden items-center justify-center p-4">
             <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-            <div class="modal-panel relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            <div class="itm-dialog dt-pretty modal-panel relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- Header --}}
-                <div class="flex items-center justify-between border-b border-slate-200 bg-white/90 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                <div class="itm-head flex items-center justify-between border-b border-slate-200 bg-white/90 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white">Service Order List</h2>
                     <button type="button" id="btn_close_so_list"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
+                        class="itm-close inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
                         <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
                 {{-- Filters --}}
-                <div class="border-b border-slate-200 bg-slate-50 px-6 py-3 dark:border-white/10 dark:bg-white/[0.02]">
+                <div class="itm-body border-b border-slate-200 bg-slate-50 px-6 py-3 dark:border-white/10 dark:bg-white/[0.02]">
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
                         <input type="text" id="so_filter_search" placeholder="SO ID / Ticket / PIC / Job Type"
                             class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
@@ -1325,7 +1326,7 @@
                 </div>
 
                 {{-- Table --}}
-                <div class="flex-1 overflow-auto p-4">
+                <div class="itm-body flex-1 overflow-auto p-4">
                     <table id="soListTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                         <thead>
                             <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -1460,6 +1461,6 @@
 
     <script src="{{ asset('assets/js/ticket/init.js') }}"></script>
     @if ($isITRole)
-    <script src="{{ asset('assets/js/ticket/service-order-list.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/service-order-list.js') }}?v={{ filemtime(public_path('assets/js/ticket/service-order-list.js')) }}"></script>
     @endif
 </x-app-layout>

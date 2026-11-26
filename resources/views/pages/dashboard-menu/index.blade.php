@@ -6,12 +6,12 @@
         @dm-flash.window="flash($event.detail.text)">
 
         @unless ($embedded)
-        <div class="mb-4 flex items-center gap-3">
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
+        <div class="mb-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3.5 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                 <i class="fa-solid fa-table-cells-large"></i>
             </div>
             <div>
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">Dashboard Menu</h1>
+                <h1 class="text-base! font-bold tracking-tight text-gray-800 dark:text-white">Dashboard Menu</h1>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Define menu tiles once, then choose which tiles each dashboard shows and in what order.</p>
             </div>
         </div>
@@ -25,7 +25,7 @@
         <div class="grid grid-cols-1 gap-4">
 
             {{-- ============ Per-dashboard tile list ============ --}}
-            <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 @unless ($embedded)
                 <div class="mb-4">
                     <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Tiles per dashboard</h2>
@@ -36,9 +36,9 @@
                 {{-- Dashboard switcher --}}
                 <div class="relative mb-4" @click.outside="dashOpen = false" @keydown.escape="dashOpen = false">
                     <button type="button" @click="dashOpen = !dashOpen; if (dashOpen) $nextTick(() => $refs.dashSearch.focus())"
-                        class="flex w-full items-center gap-3 rounded-xl border border-gray-300 bg-white px-3 py-2 text-left shadow-sm transition hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5"
-                        :class="dashOpen ? 'border-indigo-500 ring-2 ring-indigo-100' : ''">
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300"><i class="fa-solid fa-table-cells-large text-sm"></i></span>
+                        class="flex w-full items-center gap-3 rounded-xl border border-gray-300 bg-white px-3 py-2 text-left shadow-sm transition hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5"
+                        :class="dashOpen ? 'border-blue-500 ring-2 ring-blue-100' : ''">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300"><i class="fa-solid fa-table-cells-large text-sm"></i></span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="currentDash.name"></span>
                             <span class="block truncate font-mono text-[11px] text-gray-400" x-text="currentDash.code"></span>
@@ -53,20 +53,20 @@
                             <div class="relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                                 <input type="text" x-ref="dashSearch" x-model="dashQ" placeholder="Search dashboard…"
-                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
                             </div>
                         </div>
                         <div class="max-h-72 overflow-y-auto p-1.5">
                             <template x-for="d in dashList" :key="d.code">
                                 <button type="button" @click="dash = d.code; dashOpen = false; dashQ = ''; plaudOpen = false"
-                                    class="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
-                                    :class="d.code === dash ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''">
+                                    class="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                                    :class="d.code === dash ? 'bg-blue-50 dark:bg-blue-500/10' : ''">
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm text-gray-800 dark:text-gray-100" x-text="d.name"></span>
                                         <span class="block truncate font-mono text-[11px] text-gray-400" x-text="d.code"></span>
                                     </span>
                                     <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="countClass(d)" x-text="countLabel(d)"></span>
-                                    <i class="fa-solid fa-check w-3 text-xs text-indigo-600" :class="d.code === dash ? '' : 'invisible'"></i>
+                                    <i class="fa-solid fa-check w-3 text-xs text-blue-600" :class="d.code === dash ? '' : 'invisible'"></i>
                                 </button>
                             </template>
                             <p x-show="!dashList.length" class="px-3 py-6 text-center text-xs text-gray-400">No matching dashboard.</p>
@@ -77,11 +77,11 @@
 
                 <ul class="space-y-2">
                     <template x-for="(it, i) in current.items" :key="it.t + it.key">
-                        <li class="rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 transition hover:border-indigo-200 dark:border-gray-700 dark:bg-gray-700/30">
+                        <li class="rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 transition hover:border-blue-200 dark:border-gray-700 dark:bg-gray-700/30">
                             <div class="flex items-center gap-3">
                                 <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-gray-400 shadow-sm dark:bg-gray-700" x-text="i + 1"></span>
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
-                                    <svg class="h-[18px] w-[18px] text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/40">
+                                    <svg class="h-[18px] w-[18px] text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="info(it).icon || ''" />
                                     </svg>
                                 </span>
@@ -89,7 +89,7 @@
                                     <span class="flex min-w-0 items-center gap-2">
                                         <span class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="info(it).name"></span>
                                         <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                                            :class="{ 'bg-indigo-600 text-white': info(it).kind === 'panel', 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200': info(it).kind === 'menu', 'bg-amber-100 text-amber-800': info(it).kind === 'link' }"
+                                            :class="{ 'bg-blue-600 text-white': info(it).kind === 'panel', 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-200': info(it).kind === 'menu', 'bg-amber-100 text-amber-800': info(it).kind === 'link' }"
                                             :title="info(it).kind === 'panel' ? 'Opens a panel on the dashboard' : (info(it).kind === 'link' ? 'Opens an external link in a new tab' : 'Opens a page in a new tab')"
                                             x-text="info(it).kind"></span>
                                     </span>
@@ -104,25 +104,25 @@
                             <div class="mt-2 flex items-center gap-2">
                                 <input type="text" x-model="it.desc" maxlength="255" placeholder="Subtitle (optional)"
                                     @keydown.enter.prevent="dirty(it) && saveRow(it)"
-                                    class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs transition focus:border-indigo-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+                                    class="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs transition focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
                                 <button type="button" x-show="dirty(it)" x-cloak @click="saveRow(it)" :disabled="busy"
-                                    class="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">Save</button>
+                                    class="shrink-0 inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">Save</button>
                                 <span x-show="it.saved === null" x-cloak class="shrink-0 text-[11px] text-amber-600">Not saved yet — use Save all</span>
                             </div>
                             <label x-show="(info(it).kind === 'panel' && it.key !== 'PNL_PLAUD') || it.key === 'MAILBOX'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                                <input type="checkbox" x-model="it.progress" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <input type="checkbox" x-model="it.progress" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-200">
                                 <span class="font-semibold">Count in Your Progress</span>
                                 <span class="text-gray-400">— untick to keep its count bubble but leave it out of the "things left" checklist.</span>
                             </label>
                             <label x-show="info(it).kind === 'panel'" x-cloak class="mt-2 flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                                <input type="checkbox" x-model="it.default" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <input type="checkbox" x-model="it.default" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-200">
                                 <span class="font-semibold">Open by default</span>
                                 <span class="text-gray-400">— for everyone. A user can pin or unpin it for themself on the dashboard.</span>
                             </label>
                             {{-- the Plaud tile carries its own setup: which Plaud account(s) feed it, per company --}}
                             <div x-show="it.t === 'c' && it.key === 'PNL_PLAUD'" x-cloak class="mt-2">
                                 <button type="button" @click="plaudOpen = true"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-600 shadow-sm transition hover:bg-violet-50 dark:border-violet-500/40 dark:bg-transparent dark:text-violet-300">
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 dark:border-blue-500/40 dark:bg-transparent dark:text-blue-300">
                                     <i class="fa-solid fa-microphone-lines text-[10px]"></i> Update Plaud accounts
                                 </button>
                             </div>
@@ -138,7 +138,7 @@
                     {{-- Searchable tile picker --}}
                     <div class="relative min-w-40 flex-1" @click.outside="pickOpen = false" @keydown.escape="pickOpen = false">
                         <button type="button" @click="pickOpen = !pickOpen; if (pickOpen) $nextTick(() => $refs.pickSearch.focus())"
-                            class="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50/50 px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300">
+                            class="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-blue-300 bg-blue-50/50 px-3 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <span class="flex items-center gap-2"><i class="fa-solid fa-plus text-xs"></i> Add a tile</span>
                             <i class="fa-solid fa-chevron-down text-[10px] transition-transform" :class="pickOpen ? 'rotate-180' : ''"></i>
                         </button>
@@ -149,7 +149,7 @@
                                 <div class="mb-2 grid grid-cols-3 gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
                                     <template x-for="k in [['menu','fa-bars','Menu'],['panel','fa-window-maximize','Panel'],['link','fa-arrow-up-right-from-square','Link']]" :key="k[0]">
                                         <button type="button" @click="pickType = k[0]; pickQ = ''"
-                                            :class="pickType === k[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+                                            :class="pickType === k[0] ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
                                             class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition">
                                             <i class="fa-solid text-[10px]" :class="k[1]"></i><span x-text="k[2]"></span>
                                         </button>
@@ -158,7 +158,7 @@
                                 <div class="relative">
                                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                                     <input type="text" x-ref="pickSearch" x-model="pickQ" :placeholder="'Search ' + pickType + '…'"
-                                        class="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+                                        class="w-full rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
                                 </div>
                             </div>
                             <div class="max-h-72 overflow-y-auto p-1.5">
@@ -167,9 +167,9 @@
                                         <div class="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-gray-400" x-text="g.group"></div>
                                         <template x-for="m in g.items" :key="m.t + m.key">
                                             <button type="button" @click="pick(m)"
-                                                class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-indigo-50 dark:hover:bg-indigo-500/10">
-                                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40">
-                                                    <svg class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-blue-50 dark:hover:bg-blue-500/10">
+                                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                                                    <svg class="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="m.icon || ''" />
                                                     </svg>
                                                 </span>
@@ -183,7 +183,7 @@
                             </div>
                             <div x-show="pickType === 'link'" class="border-t border-gray-100 p-1.5 dark:border-white/10">
                                 <button type="button" @click="pickOpen = false; edit(null, 'link')"
-                                    class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-500/10">
+                                    class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-semibold text-blue-600 transition hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10">
                                     <i class="fa-solid fa-plus text-[10px]"></i>
                                     <span x-text="pickType === 'link' ? 'New external link…' : 'New custom page tile…'"></span>
                                 </button>
@@ -194,13 +194,13 @@
                     @if ($embedded)
                     {{-- the side handle is awkward inside a frame: same drawer, opened from here --}}
                     <button type="button" @click="drawer = true"
-                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 dark:border-indigo-500/40 dark:bg-gray-800 dark:text-indigo-300">
+                        class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 dark:border-blue-500/40 dark:bg-gray-800 dark:text-blue-300">
                         <i class="fa-solid fa-sliders text-xs"></i> Custom tiles
-                        <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200" x-text="tiles.length"></span>
+                        <span class="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200" x-text="tiles.length"></span>
                     </button>
                     @endif
                     <button type="button" @click="saveMap()" :disabled="busy"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">
                         <i class="fa-solid fa-floppy-disk text-xs"></i> Save all
                     </button>
                     <span x-show="unsaved(current)" x-cloak class="w-full text-xs font-medium text-amber-600">
@@ -213,7 +213,7 @@
 
             {{-- ============ Custom tiles drawer (handle sticks to the right edge) ============ --}}
             <button type="button" x-show="!drawer && {{ $embedded ? 'false' : 'true' }}" @click="drawer = true"
-                class="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl bg-indigo-600 px-2 py-4 text-white shadow-lg transition-all hover:pr-3 hover:bg-indigo-700"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500"
                 title="Custom tiles">
                 <i class="fa-solid fa-sliders text-sm"></i>
                 <span class="text-xs font-semibold tracking-wide" style="writing-mode: vertical-rl;">Custom tiles</span>
@@ -242,20 +242,20 @@
                         <div class="inline-flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
                             <template x-for="f in [['all','All'],['panel','Panel'],['link','Link']]" :key="f[0]">
                                 <button type="button" @click="tileType = f[0]"
-                                    :class="tileType === f[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+                                    :class="tileType === f[0] ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
                                     class="rounded-lg px-3 py-1 text-xs font-semibold transition" x-text="f[1]"></button>
                             </template>
                         </div>
-                        <button type="button" @click="edit(null)" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                        <button type="button" @click="edit(null)" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">
                             <i class="fa-solid fa-plus text-[10px]"></i> New tile
                         </button>
                     </div>
                 <ul class="space-y-2">
                     <template x-for="t in shownTiles" :key="t.menu_key">
-                        <li class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 transition hover:border-indigo-200 hover:bg-indigo-50/50 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-indigo-500/40"
+                        <li class="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/60 p-3 transition hover:border-blue-200 hover:bg-blue-50/50 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-blue-500/40"
                             :class="t.status !== 'A' ? 'opacity-60' : ''">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
-                                <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                                <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="t.icon_path || ''" />
                                 </svg>
                             </span>
@@ -266,7 +266,7 @@
                                 </span>
                                 <span class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium"
-                                        :class="t.route_name ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300' : (t.external_url ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300')">
+                                        :class="t.route_name ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300' : (t.external_url ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300')">
                                         <i class="fa-solid text-[9px]" :class="t.route_name ? 'fa-link' : (t.external_url ? 'fa-arrow-up-right-from-square' : 'fa-window-maximize')"></i>
                                         <span class="max-w-56 truncate" x-text="t.route_name ? t.route_name : (t.external_url ? t.external_url.replace('https://', '') : 'panel: ' + t.panel_key)"></span>
                                     </span>
@@ -275,7 +275,7 @@
                                     </span>
                                 </span>
                             </span>
-                            <button type="button" @click="edit(t)" class="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:border-white/10 dark:bg-white/5">Edit</button>
+                            <button type="button" @click="edit(t)" class="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 dark:border-white/10 dark:bg-white/5">Edit</button>
                         </li>
                     </template>
                     <li x-show="!tiles.length" class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-xs text-gray-400">No custom tiles yet.</li>
@@ -288,13 +288,13 @@
         <div id="plaudAccounts" x-data="plaudMap()"
             x-effect="load(dash, has('c', 'PNL_PLAUD') && plaudOpen); if (!plaudOpen) { confirming = false; }; if (saved) { saved = false; plaudOpen = false; $dispatch('dm-flash', { text: 'Plaud accounts saved for ' + dash + '.' }); }"
             x-show="has('c', 'PNL_PLAUD') && plaudOpen" x-cloak x-transition.opacity
-            class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
             @keydown.escape.window="confirming ? (confirming = false) : (plaudOpen = false)">
             <div class="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800"
                 @click.outside="if (!confirming && !$event.target.closest('.select2-container, .select2-dropdown')) plaudOpen = false">
 
                 <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/10">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300"><i class="fa-solid fa-microphone-lines"></i></span>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300"><i class="fa-solid fa-microphone-lines"></i></span>
                     <div class="min-w-0 flex-1">
                         <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Plaud accounts</h3>
                         <p class="truncate text-[11px] text-gray-400">Dashboard: <span class="font-semibold" x-text="currentDash.name"></span> <span class="font-mono" x-text="'(' + dash + ')'"></span></p>
@@ -336,12 +336,12 @@
                         <li x-show="loaded && !rows.length" x-cloak class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-xs text-gray-400 dark:border-white/10">No company is set up: nobody sees any Plaud recording on this dashboard yet.</li>
                     </ul>
 
-                    <button type="button" @click="rows.push({ cpny_id: '', plaud_account_id: '' })" class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-violet-300 bg-white px-3 py-1.5 text-xs font-semibold text-violet-600 transition hover:bg-violet-50 dark:border-violet-500/40 dark:bg-transparent dark:text-violet-300"><i class="fa-solid fa-plus text-[10px]"></i> Add company</button>
+                    <button type="button" @click="rows.push({ cpny_id: '', plaud_account_id: '' })" class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 dark:border-blue-500/40 dark:bg-transparent dark:text-blue-300"><i class="fa-solid fa-plus text-[10px]"></i> Add company</button>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-3 dark:border-white/10 dark:bg-white/5">
-                    <button type="button" @click="plaudOpen = false" class="rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Cancel</button>
-                    <button type="button" @click="askSave()" :disabled="busy" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-50"><i class="fa-solid fa-floppy-disk text-[10px]"></i> Save Plaud accounts</button>
+                    <button type="button" @click="plaudOpen = false" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
+                    <button type="button" @click="askSave()" :disabled="busy" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500"><i class="fa-solid fa-floppy-disk text-[10px]"></i> Save Plaud accounts</button>
                 </div>
 
                 {{-- Verification before anything is written --}}
@@ -357,8 +357,8 @@
                             <li x-show="!summary.length" class="text-gray-400">No rows: nobody will see any Plaud recording on this dashboard.</li>
                         </ul>
                         <div class="mt-4 flex justify-center gap-2">
-                            <button type="button" @click="confirming = false" class="rounded-lg border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Back</button>
-                            <button type="button" @click="doSave(dash)" :disabled="busy" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-50"><i class="fa-solid fa-check text-[10px]"></i> Yes, save</button>
+                            <button type="button" @click="confirming = false" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Back</button>
+                            <button type="button" @click="doSave(dash)" :disabled="busy" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500"><i class="fa-solid fa-check text-[10px]"></i> Yes, save</button>
                         </div>
                     </div>
                 </div>
@@ -366,13 +366,13 @@
         </div>
 
         {{-- ============ Tile editor ============ --}}
-        @php $inp = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-100'; @endphp
-        <div x-show="form" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm" @keydown.escape.window="form = null">
+        @php $inp = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-100'; @endphp
+        <div x-show="form" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" @keydown.escape.window="form = null">
             <div class="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800" @click.outside="if (!$event.target.closest('.select2-container, .select2-dropdown')) form = null">
 
                 <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/10">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
-                        <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="form?.icon_path || 'M12 4.5v15m7.5-7.5h-15'" />
                         </svg>
                     </span>
@@ -410,8 +410,8 @@
                             </div>
                             <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-3 dark:border-white/10 dark:bg-white/5">
                                 <div class="flex items-center gap-3">
-                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 ring-1 ring-indigo-200 dark:bg-indigo-900/40 dark:ring-indigo-500/30">
-                                        <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 ring-1 ring-blue-200 dark:bg-blue-900/40 dark:ring-blue-500/30">
+                                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="form.icon_path || 'M12 4.5v15m7.5-7.5h-15'" :class="form.icon_path ? '' : 'opacity-30'" />
                                         </svg>
                                     </span>
@@ -423,7 +423,7 @@
                                 <div class="mt-3 grid max-h-44 grid-cols-6 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-8" style="scrollbar-width: thin;">
                                     <template x-for="ic in iconChoices" :key="ic.path">
                                         <button type="button" :title="ic.label" @click="form.icon_path = ic.path"
-                                            :class="form.icon_path === ic.path ? 'border-indigo-500 bg-indigo-50 text-indigo-600 ring-2 ring-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-500/30' : 'border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:text-indigo-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-300'"
+                                            :class="form.icon_path === ic.path ? 'border-blue-500 bg-blue-50 text-blue-600 ring-2 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-blue-500/30' : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600 dark:border-white/10 dark:bg-gray-800 dark:text-gray-300'"
                                             class="flex h-11 items-center justify-center rounded-xl border transition">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="ic.path" />
@@ -433,7 +433,7 @@
                                 </div>
                                 <p x-show="!iconChoices.length" class="py-4 text-center text-xs text-gray-400">No icon matches.</p>
                                 <details class="mt-3 text-xs">
-                                    <summary class="cursor-pointer select-none font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400">Use a custom SVG path instead</summary>
+                                    <summary class="cursor-pointer select-none font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400">Use a custom SVG path instead</summary>
                                     <input type="text" x-model="form.icon_path" placeholder='SVG path "d" value (24×24 outline)' class="{{ $inp }} mt-2 font-mono text-xs">
                                 </details>
                             </div>
@@ -446,7 +446,7 @@
                             <div class="mb-2 grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5" :class="form.route_name ? 'grid-cols-3' : 'grid-cols-2'">
                                 <template x-for="k in [['route','fa-link','Opens a page'],['panel','fa-window-maximize','Opens a panel'],['link','fa-arrow-up-right-from-square','External link']].filter(k => k[0] !== 'route' || form.route_name)" :key="k[0]">
                                     <button type="button" @click="form.kind = k[0]"
-                                        :class="form.kind === k[0] ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
+                                        :class="form.kind === k[0] ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'"
                                         class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition">
                                         <i class="fa-solid text-[10px]" :class="k[1]"></i><span x-text="k[2]"></span>
                                     </button>
@@ -483,7 +483,7 @@
 
                 <div class="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/70 px-5 py-3 dark:border-white/10 dark:bg-white/5">
                     <button type="button" @click="form = null" class="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-200">Cancel</button>
-                    <button type="button" @click="saveTile()" :disabled="busy" class="rounded-lg bg-indigo-600 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50">Save</button>
+                    <button type="button" @click="saveTile()" :disabled="busy" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">Save</button>
                 </div>
             </div>
         </div>
@@ -608,7 +608,7 @@
                     return this.dashboards.filter(d => !q || d.name.toLowerCase().includes(q) || d.code.toLowerCase().includes(q));
                 },
                 countLabel(d) { return d.items.length + (d.items.length === 1 ? ' tile' : ' tiles'); },
-                countClass(d) { return d.items.length ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'; },
+                countClass(d) { return d.items.length ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'; },
                 get current() { return this.dashboards.find(d => d.code === this.dash) || { items: [] }; },
                 tile(key) { return this.tiles.find(t => t.menu_key === key); },
                 has(t, key) { return this.current.items.some(i => i.t === t && i.key === key); },

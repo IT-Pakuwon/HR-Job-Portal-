@@ -1,14 +1,14 @@
-<div id="reopenTicketModal" data-form-modal="true" class="ticket-modal fixed inset-0 z-[80] hidden overflow-y-auto p-3 sm:p-5">
+<div id="reopenTicketModal" data-form-modal="true" class="itm sf-field ticket-modal fixed inset-0 z-[80] hidden overflow-y-auto p-3 sm:p-5">
 
     <div class="modal-backdrop absolute inset-0 bg-slate-900/60  "></div>
 
     <div class="modal-panel relative z-10 mx-auto flex min-h-screen w-full items-center justify-center">
 
         <div
-            class="modal-scroll flex max-h-[95vh] w-full max-w-[95vw] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/[0.06] dark:bg-[#0f172a] sm:max-w-4xl">
+            class="itm-dialog modal-scroll flex max-h-[95vh] w-full max-w-[95vw] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/[0.06] dark:bg-[#0f172a] sm:max-w-4xl">
 
             <div
-                class="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:px-6 sm:py-5">
+                class="itm-head sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:px-6 sm:py-5">
 
                 <div class="min-w-0">
 
@@ -23,7 +23,7 @@
                 </div>
 
                 <button type="button"
-                    class="btn-close-form-modal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
+                    class="itm-close btn-close-form-modal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
 
                     <i class="fa-solid fa-xmark text-base"></i>
 
@@ -37,7 +37,7 @@
 
                 <input type="hidden" id="reopen_ticket_eid" name="eid">
 
-                <div class="flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+                <div class="itm-body flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
 
                     <div class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
 
@@ -97,7 +97,7 @@
                                 </div>
 
                                 <textarea id="reopen_descr" name="response_descr" class="hidden"></textarea>
-                                <div id="reopen_descr_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
+                                <div id="reopen_descr_editor" class="itm-card rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
 
                             </div>
 
@@ -167,10 +167,10 @@
                 </div>
 
                 <div
-                    class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
+                    class="itm-foot sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
+                        class="itm-btn btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
                         Cancel
 
                     </button>

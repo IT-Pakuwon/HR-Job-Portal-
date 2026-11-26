@@ -1,88 +1,50 @@
 <x-app-layout>
     @include('pages.carexpense.partial.style')
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
+    <x-spp-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Cost Type Filter Cards --}}
-        <div class="grid grid-cols-4 gap-4">
-
-            {{-- All --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter active group block h-full flex-1 w-full" data-filter="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $countAll }}</p>
-                    </div>
-                </a>
-            </button>
-
-            @php
-                $cardColors = [
-                    'border-blue-600 bg-blue-200/20 text-blue-600 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/20',
-                    'border-emerald-600 bg-emerald-200/20 text-emerald-600 hover:bg-emerald-100 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500/20',
-                    'border-orange-500 bg-orange-200/20 text-orange-600 hover:bg-orange-100 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-500/20',
-                    'border-violet-600 bg-violet-200/20 text-violet-600 hover:bg-violet-100 dark:border-violet-500 dark:text-violet-400 dark:hover:bg-violet-500/20',
-                    'border-rose-600 bg-rose-200/20 text-rose-600 hover:bg-rose-100 dark:border-rose-500 dark:text-rose-400 dark:hover:bg-rose-500/20',
-                    'border-cyan-600 bg-cyan-200/20 text-cyan-600 hover:bg-cyan-100 dark:border-cyan-500 dark:text-cyan-400 dark:hover:bg-cyan-500/20',
-                ];
-            @endphp
-            @foreach ($costTypes as $type)
-                <button type="button" class="text-left">
-                    <a href="#" class="status-filter group block h-full flex-1 w-full" data-filter="{{ $type->id }}">
-                        <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border p-3 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md active:scale-95 {{ $cardColors[$loop->index % count($cardColors)] }}">
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚗</div>
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                                <p class="break-words text-sm font-medium">{{ $type->category_name }}</p>
-                            </div>
-                            <p class="shrink-0 text-base font-bold">{{ $countByType[$type->id] ?? 0 }}</p>
-                        </div>
-                    </a>
-                </button>
-            @endforeach
-
-        </div>
+        @php
+            $cardTones = ['blue', 'green', 'orange', 'purple', 'red', 'sky'];
+            $statusCards = [[['data-filter' => ''], 'All', '📦', 'all', $countAll, true]];
+            foreach ($costTypes->values() as $i => $type) {
+                $statusCards[] = [['data-filter' => $type->id], $type->category_name, '🚗', $cardTones[$i % count($cardTones)], $countByType[$type->id] ?? 0, false];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         {{-- Table --}}
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="dt-pretty mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Car Expense
-                </h2>
-
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('carexpense.download-template') }}"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-emerald-600 px-5 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500/10">
-                        <i class="fa-solid fa-file-arrow-down mr-2 text-xs"></i>
-                        Template
-                    </a>
-                    <button type="button" id="btnOpenImport"
-                        class="inline-flex h-10 items-center justify-center rounded-lg border border-blue-600 px-5 text-sm font-medium text-blue-600 transition hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10">
-                        <i class="fa-solid fa-file-import mr-2 text-xs"></i>
-                        Import
-                    </button>
-                    <button type="button" id="btnOpenCreate"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                        <i class="fa-solid fa-plus mr-2 text-xs"></i>
-                        Create
-                    </button>
-                </div>
-
-            </div>
+            <x-list-page-header title="Car Expense" subtitle="Record fuel, toll, parking and other vehicle costs"
+                icon='<i class="fa-solid fa-gas-pump"></i>'>
+                <a href="{{ route('carexpense.download-template') }}"
+                    class="inline-flex h-10 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+                    <i class="fa-solid fa-file-arrow-down mr-2 text-xs"></i>
+                    Template
+                </a>
+                <button type="button" id="btnOpenImport"
+                    class="inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                    <i class="fa-solid fa-file-import mr-2 text-xs"></i>
+                    Import
+                </button>
+                <button type="button" id="btnOpenCreate"
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                    <i class="fa-solid fa-plus mr-2 text-xs"></i>
+                    Create
+                </button>
+            </x-list-page-header>
 
             {{-- Filter Row --}}
-            <div class="grid w-full grid-cols-4 items-end gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+            <div class="sf-field grid w-full grid-cols-1 items-end gap-3 border-b border-gray-100 px-5 py-3.5 dark:border-white/[0.06] sm:grid-cols-2 lg:grid-cols-4">
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Nopol</label>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Nopol</label>
                     <select id="filterNopol"
                         class="select2-filter w-full rounded-lg border border-slate-200 bg-white text-sm text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
                         <option value="">All Nopol</option>
@@ -93,28 +55,28 @@
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">From</label>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">From</label>
                     <input type="date" id="filterDateFrom"
-                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">To</label>
+                    <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">To</label>
                     <input type="date" id="filterDateTo"
-                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                 </div>
 
                 <div class="flex items-end">
                     <button type="button" id="btnResetFilters"
-                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:bg-white/[0.08]">
+                        class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
                         <i class="fa-solid fa-rotate-left mr-1 text-xs"></i> Reset
                     </button>
                 </div>
 
             </div>
 
-            <div class="relative overflow-x-hidden p-4">
-                <table id="carExpenseTable" class="w-full text-left text-sm">
+            <div class="relative overflow-x-hidden">
+                <table id="carExpenseTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
@@ -139,23 +101,23 @@
         {{-- =========================================================
              CREATE MODAL
         ========================================================= --}}
-        <div id="createModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+        <div id="createModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Create Car Expense</h2>
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Record a new car expense entry.</p>
                     </div>
                     <button id="btnCloseCreateModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -167,7 +129,7 @@
                         @csrf
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                                 <h3
@@ -304,7 +266,7 @@
 
                         {{-- ATTACHMENT --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                                 <h3
@@ -317,7 +279,7 @@
                                 <label for="create_attachments"
                                     class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-5 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
                                     <div
-                                        class="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                        class="itm-card flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
                                     </div>
                                     <div class="text-left">
@@ -332,14 +294,14 @@
                         </div>
 
                         <div
-                            class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
                             <div class="flex items-center justify-end gap-3">
                                 <button type="button" id="btnCancelCreate"
-                                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                                    class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
                                     Cancel
                                 </button>
                                 <button type="submit" id="btnSubmitCreate"
-                                    class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                                    class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
                                     <i class="fa-solid fa-floppy-disk text-xs"></i>
                                     Save
                                 </button>
@@ -357,17 +319,17 @@
         {{-- =========================================================
              SHOW MODAL
         ========================================================= --}}
-        <div id="showModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+        <div id="showModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                     <div>
                         <h2 id="show_refnbr" class="text-xl font-bold text-slate-900 dark:text-white">
                             Car Expense Detail
@@ -375,7 +337,7 @@
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Expense record information.</p>
                     </div>
                     <button id="btnCloseShowModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -383,7 +345,7 @@
                 <div class="space-y-4 bg-slate-50 p-5 dark:bg-[#0b1220]">
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
                             <h3
@@ -400,7 +362,7 @@
 
                     {{-- ATTACHMENTS --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -424,9 +386,9 @@
                 </div>
 
                 <div
-                    class="sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="itm-foot sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
                     <button type="button" id="btnCloseShowModalFooter"
-                        class="text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        class="itm-btn text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
                         Close
                     </button>
                     <div class="flex items-center gap-3">
@@ -436,7 +398,7 @@
                             Delete
                         </button>
                         <button type="button" id="btnEditFromShow"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                            class="itm-primary inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
                             <i class="fa-solid fa-pen text-xs"></i>
                             Edit
                         </button>
@@ -450,17 +412,17 @@
         {{-- =========================================================
              EDIT MODAL
         ========================================================= --}}
-        <div id="editModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+        <div id="editModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                     <div>
                         <h2 id="edit_refnbr" class="text-xl font-bold text-slate-900 dark:text-white">
                             Edit Car Expense
@@ -468,7 +430,7 @@
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Update expense record.</p>
                     </div>
                     <button id="btnCloseEditModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -483,7 +445,7 @@
                         <input type="hidden" id="edit_eid">
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                                 <h3
@@ -618,14 +580,14 @@
                         </div>
 
                         <div
-                            class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
                             <div class="flex items-center justify-end gap-3">
                                 <button type="button" id="btnCancelEdit"
-                                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                                    class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
                                     Cancel
                                 </button>
                                 <button type="submit" id="btnSubmitEdit"
-                                    class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                                    class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
                                     <i class="fa-solid fa-floppy-disk text-xs"></i>
                                     Save Changes
                                 </button>
@@ -643,19 +605,19 @@
         {{-- =========================================================
              IMPORT MODAL
         ========================================================= --}}
-        <div id="importModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+        <div id="importModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
 
-            <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            <div class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
-                <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                <div class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Import Car Expense</h2>
                         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Upload an Excel file (.xlsx) using the provided template, then review before importing.</p>
                     </div>
                     <button id="btnCloseImportModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -674,7 +636,7 @@
                             <input type="file" id="importFileInput" accept=".xlsx,.xls" class="hidden">
                         </div>
 
-                        <div id="importFileInfo" class="mt-2 hidden rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 dark:border-white/10 dark:bg-white/[0.03]">
+                        <div id="importFileInfo" class="itm-card mt-2 hidden rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 dark:border-white/10 dark:bg-white/[0.03]">
                             <div class="flex items-center gap-3">
                                 <i class="fa-solid fa-file-excel text-emerald-500"></i>
                                 <span id="importFileName" class="flex-1 truncate text-sm text-slate-700 dark:text-slate-200"></span>
@@ -702,7 +664,7 @@
                             Preview — <span id="importPreviewCount" class="text-emerald-600 dark:text-emerald-400">0</span> row(s) ready to import
                         </p>
                         <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full whitespace-nowrap text-left text-xs">
                                 <thead class="border-b border-slate-100 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-400">
                                     <tr>
                                         <th class="px-3 py-2">#</th>
@@ -740,14 +702,14 @@
 
                 </div>
 
-                <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-6 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                <div class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-6 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" id="btnCancelImport"
-                            class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                            class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
                             Cancel
                         </button>
                         <button type="button" id="btnSubmitImport" disabled
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+                            class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
                             <i class="fa-solid fa-file-import text-xs"></i>
                             Import
                         </button>
@@ -1252,6 +1214,7 @@
 
             $('#filterNopol').select2({
                 width: '100%',
+                dropdownCssClass: 'sf-s2-dropdown',
                 allowClear: true,
                 placeholder: 'All Nopol',
             });
@@ -1314,7 +1277,14 @@
 
                 columns: [
                     { data: null, defaultContent: '' },
-                    { data: 'refnbr', defaultContent: '-' },
+                    {
+                        data: 'refnbr',
+                        defaultContent: '-',
+                        render: function(data, type, row) {
+                            if (type !== 'display' || !data || !row.eid) return data;
+                            return `<button type="button" onclick="openDetail('${row.eid}')" class="${window.listCls.doc}">${window.listDocText(data)}</button>`;
+                        }
+                    },
                     { data: 'ref_date', defaultContent: '-' },
                     { data: 'nopol', defaultContent: '-' },
                     { data: 'driver', defaultContent: '-' },
@@ -1322,7 +1292,7 @@
                         data: 'cost_type_name',
                         defaultContent: '-',
                         render: function(data) {
-                            return `<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">${data ?? '-'}</span>`;
+                            return window.listBadge('blue', data ?? '-');
                         }
                     },
                     { data: 'cost_descr', defaultContent: '-' },
@@ -1339,9 +1309,8 @@
                         data: 'eid',
                         className: 'text-center',
                         render: function(data) {
-                            return `<button type="button" onclick="openDetail('${data}')"
-                                class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]">
-                                <i class="fa-solid fa-eye mr-1 text-[10px]"></i> View
+                            return `<button type="button" onclick="openDetail('${data}')" class="${window.listCls.action.blue}">
+                                <i class="fa-solid fa-eye text-[10px]"></i> View
                             </button>`;
                         }
                     }
@@ -1490,7 +1459,7 @@
                                     ${r.cost_type}
                                 </span>
                             </td>
-                            <td class="px-3 py-2">${r.description}</td>
+                            <td class="min-w-[12rem] whitespace-normal px-3 py-2">${r.description}</td>
                             <td class="px-3 py-2 text-right">${r.qty}</td>
                             <td class="px-3 py-2 text-right">${Number(r.amount).toLocaleString('id-ID')}</td>
                         </tr>

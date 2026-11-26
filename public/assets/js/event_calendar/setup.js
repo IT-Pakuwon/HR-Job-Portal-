@@ -65,10 +65,22 @@ const EventLocationSetupApp = {
     // SELECT2
     // --------------------------------------------------------
     initSelect2() {
-        $('#locationModal .select2').select2({
+        $('#locationModal select.select2').select2({
             width: '100%',
             dropdownParent: $('#locationModal'),
+            dropdownCssClass: 'sf-s2-dropdown',
         });
+
+        $('#filterCompany').select2({
+            width: '100%',
+            dropdownCssClass: 'sppb-s2-dropdown',
+        });
+    },
+
+    escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
     },
 
     // --------------------------------------------------------
@@ -100,37 +112,64 @@ const EventLocationSetupApp = {
             processing: true,
             responsive: true,
             order: [[1, 'asc']],
+            dom: '<"dt-toolbar"l f>rtip',
             columns: [
                 {
                     data: 'event_location_id',
-                    className: 'px-5 py-3 text-sm font-medium text-slate-900 dark:text-white',
-                    render: $.fn.dataTable.render.text(),
+                    className: 'px-4 py-3 text-sm',
+                    // Non-display types get the raw value so search, sort and the company filter stay exact.
+                    render: (data, type) => type === 'display'
+                        ? `<span class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-300">${EventLocationSetupApp.escapeHtml(data)}</span>`
+                        : (data ?? ''),
                 },
                 {
                     data: 'event_location_name',
-                    className: 'px-5 py-3 text-sm text-slate-700 dark:text-slate-200',
+                    className: 'px-4 py-3 text-sm font-semibold text-gray-800 dark:text-gray-100',
                     render: $.fn.dataTable.render.text(),
                 },
                 {
                     data: 'event_total_area',
-                    className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400',
-                    render: (data) => data || '-',
+                    className: 'px-4 py-3 text-sm text-gray-600 dark:text-gray-300',
+                    render: (data, type) => {
+                        if (!data) return '-';
+                        return type === 'display' ? EventLocationSetupApp.escapeHtml(data) : data;
+                    },
                 },
-                { data: 'cpny_name', className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400', render: (data) => data || '-' },
-                { data: 'department_names', className: 'px-5 py-3 text-sm text-slate-500 dark:text-slate-400', render: (data) => data || '-' },
+                {
+                    data: 'cpny_name',
+                    className: 'px-4 py-3 text-sm text-gray-600 dark:text-gray-300',
+                    render: (data, type) => {
+                        if (!data) return '-';
+                        return type === 'display' ? EventLocationSetupApp.escapeHtml(data) : data;
+                    },
+                },
+                {
+                    data: 'department_names',
+                    className: 'px-4 py-3 text-sm',
+                    render: (data, type) => {
+                        if (!data) return '-';
+                        if (type !== 'display') return data;
+
+                        const chips = data.split(',').map((v) => v.trim()).filter(Boolean)
+                            .map((name) => `<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">${EventLocationSetupApp.escapeHtml(name)}</span>`)
+                            .join('');
+
+                        return `<div class="flex flex-wrap gap-1">${chips}</div>`;
+                    },
+                },
                 {
                     data: 'status',
-                    className: 'px-5 py-3 text-sm',
+                    className: 'px-4 py-3 text-sm',
                     render: (data) => data === 'A'
-                        ? '<span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>'
-                        : '<span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">Inactive</span>',
+                        ? '<span class="inline-flex min-w-[96px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>'
+                        : '<span class="inline-flex min-w-[96px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30"><span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Inactive</span>',
                 },
                 {
                     data: null,
                     orderable: false,
                     searchable: false,
-                    className: 'px-5 py-3 text-right text-sm',
-                    render: (data, type, row) => `<button type="button" class="edit-location-btn font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" data-id="${row.id}">Edit</button>`,
+                    className: 'px-4 py-3 text-right text-sm',
+                    render: (data, type, row) => `<button type="button" class="edit-location-btn inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-xs text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300" title="Edit location" aria-label="Edit location" data-id="${row.id}"><i class="fa-solid fa-pen-to-square"></i></button>`,
                 },
             ],
         });
@@ -146,7 +185,7 @@ const EventLocationSetupApp = {
 
     bindCompanyFilter() {
         const companyColumnIndex = 3; // 0-based: id, name, area, company, department, status, actions
-        document.getElementById('filterCompany')?.addEventListener('change', (e) => {
+        $('#filterCompany').on('change', (e) => {
             const value = e.target.value;
             const table = EventLocationSetupApp.state.table;
             table.column(companyColumnIndex).search(value ? `^${$.fn.dataTable.util.escapeRegex(value)}$` : '', true, false).draw();
@@ -197,7 +236,7 @@ const EventLocationSetupApp = {
         document.getElementById('status').value = 'A';
         document.getElementById('status_active').checked = true;
         document.getElementById('deleteLocationBtn').classList.add('hidden');
-        $('#locationModal .select2').val('').trigger('change');
+        $('#locationModal select.select2').val('').trigger('change');
         EventLocationSetupApp.state.departmentTom?.clear(true);
     },
 
@@ -220,6 +259,7 @@ const EventLocationSetupApp = {
         $('#cpny_id').val(row.cpny_id || '').trigger('change');
         document.getElementById('event_location_id').value = row.event_location_id || '';
         document.getElementById('event_location_name').value = row.event_location_name || '';
+        document.getElementById('event_total_area').value = row.event_total_area ?? '';
 
         const departmentIds = (row.event_department_id || '').split(',').map((v) => v.trim()).filter(Boolean);
         EventLocationSetupApp.state.departmentTom?.setValue(departmentIds, true);

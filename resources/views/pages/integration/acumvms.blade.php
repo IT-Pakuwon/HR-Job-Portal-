@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="max-w-9xl mx-auto w-full p-4">
@@ -71,7 +73,7 @@
                 {{-- FORM UPDATE WINDOW --}}
                 <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Setting Window</h2>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Setting Window</span></h2>
 
                         @if (!$setting)
                             <span class="text-xs font-semibold text-red-600 dark:text-red-300">
@@ -136,7 +138,7 @@
                 {{-- RUNNER --}}
                 <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Execute</h2>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Execute</span></h2>
 
                         <div class="text-xs text-gray-500 dark:text-gray-300">
                             <span class="font-semibold">Lock:</span> <span id="lockText">{{ $running ? 'Running' : 'Idle' }}</span>
@@ -202,7 +204,7 @@
                 <div class="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                         <div class="flex items-center justify-between gap-3">
-                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Setting Window VMS RFP</h2>
+                            <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Setting Window VMS RFP</span></h2>
                             @if (!$vmsSetting)
                                 <span class="text-xs font-semibold text-red-600 dark:text-red-300">Setting VMSRFP belum ada</span>
                             @endif
@@ -263,10 +265,7 @@
                     <div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 class="text-base font-bold text-gray-800 dark:text-white">Execute VMS RFP Manual</h2>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-300">
-                                Pilih proses yang akan dijalankan. Run manual tidak menggeser window scheduler.
-                            </p>
+                            <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Execute VMS RFP Manual<span class="set-hint">Pilih proses yang akan dijalankan. Run manual tidak menggeser window scheduler.</span></span></h2>
                         </div>
                         <span id="vmsBadge" class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $vmsRunning ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
                             {{ $vmsRunning ? 'RUNNING' : 'IDLE' }}

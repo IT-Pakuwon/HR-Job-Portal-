@@ -9,9 +9,9 @@ const VplMasterInit = {
         // 1. Modal system (select2, open/close)
         VplMasterModal.init();
 
-        // 2. DataTable list + action menu + status filter + filter bar
+        // 2. DataTable list + row actions + status filter + filter bar
         VplMasterDatalist.init();
-        VplMasterDatalist.initActionMenu();
+        VplMasterDatalist.initRowActions();
         VplMasterDatalist.initStatusFilter();
         VplMasterDatalist.initFilterBar();
         VplMasterDatalist.initTotalStockTooltip();

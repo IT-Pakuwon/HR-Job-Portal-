@@ -1,26 +1,30 @@
 {{-- WARNING TAB (Tenant Relation / Finance): panel --}}
-<div x-show="activeTab === 'warning'" x-cloak>
-    <div class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:items-center">
-        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">⚠️ Tenant Warning</h2>
-        @php $wfSel = 'h-10 rounded-lg border border-gray-200 bg-white px-3 pr-8 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-200'; @endphp
-        <div class="ml-auto flex flex-wrap items-center gap-2">
-            @if ($isAdminUser)
-                {{-- options are filled by the shared .js-site-filter loader in master.blade.php --}}
-                <select id="filterWarnSite" class="js-site-filter {{ $wfSel }}" title="Filter by site">
-                    <option value="">All Sites</option>
-                </select>
-                <select id="filterWarnFloor" class="{{ $wfSel }}" title="Filter by floor">
-                    <option value="">All Floors</option>
-                </select>
-            @endif
-            <select id="filterWarnState" class="{{ $wfSel }}" title="Filter by warning">
-                <option value="">All</option>
-                <option value="1">Warned</option>
-                <option value="0">No warning</option>
-            </select>
-        </div>
-    </div>
-    <div class="relative overflow-hidden p-2">
+<div class="dt-pretty" x-show="activeTab === 'warning'" x-cloak>
+    {{-- site options are filled by the shared .js-site-filter loader in master.blade.php --}}
+    <x-ts-list-header title="Tenant Warning" hint="Set or clear a warning and choose the documents a tenant may create" icon="fa-triangle-exclamation">
+                @if ($isAdminUser)
+                <x-ts-filter icon="fa-building" class="w-52">
+                    <select id="filterWarnSite" class="js-site-filter ts-s2" title="Filter by site">
+                        <option value="">All Sites</option>
+                    </select>
+                </x-ts-filter>
+                @endif
+                @if ($isAdminUser)
+                <x-ts-filter icon="fa-layer-group" class="w-40">
+                    <select id="filterWarnFloor" class="ts-s2" title="Filter by floor">
+                        <option value="">All Floors</option>
+                    </select>
+                </x-ts-filter>
+                @endif
+                <x-ts-filter icon="fa-triangle-exclamation" class="w-44">
+                    <select id="filterWarnState" class="ts-s2" title="Filter by warning">
+                        <option value="">All</option>
+                        <option value="1">Warned</option>
+                        <option value="0">No warning</option>
+                    </select>
+                </x-ts-filter>
+            </x-ts-list-header>
+    <div class="relative overflow-x-auto">
         <table id="tenantWarningsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
             <thead>
                 <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">

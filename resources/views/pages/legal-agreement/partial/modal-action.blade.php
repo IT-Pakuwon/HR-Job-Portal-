@@ -2,19 +2,19 @@
 <div id="actionAgreementModal" class="agr-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4" data-form-modal="true">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/50 opacity-0 transition-opacity duration-200"></div>
 
-    <div class="modal-panel modal-scroll relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 opacity-0 translate-y-4 scale-[0.98] shadow-2xl transition-all duration-200 dark:bg-slate-900">
+    <div class="modal-panel modal-scroll relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-gray-50 p-6 opacity-0 translate-y-4 scale-[0.98] shadow-2xl transition-all duration-200 dark:bg-slate-900">
 
-        <div class="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 pb-5 dark:border-white/[0.06]">
+        <div class="sticky -top-6 z-10 -mx-6 -mt-6 mb-5 flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-6 py-4 dark:border-white/[0.06] dark:bg-slate-900">
             <div class="flex items-center gap-3">
                 <span id="action_modal_icon" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
                     <i class="fa-solid fa-bolt"></i>
                 </span>
                 <div>
-                    <h3 id="action_modal_title" class="text-lg font-bold text-slate-800 dark:text-white">Action</h3>
+                    <h3 id="action_modal_title" class="text-base font-bold tracking-tight text-gray-800 dark:text-white">Action</h3>
                     <p id="action_modal_subtitle" class="text-xs text-slate-400">-</p>
                 </div>
             </div>
-            <button type="button" class="btn-close-form-modal flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.08] dark:hover:text-white">
+            <button type="button" class="btn-close-form-modal flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-white">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -29,7 +29,7 @@
             <input type="hidden" id="action_type" />
 
             <div id="action_pic_step" class="agr-step hidden" data-step-key="pic">
-                <div class="agr-section rounded-xl border border-slate-200 p-5 dark:border-white/[0.06]">
+                <div class="agr-section rounded-xl border border-gray-100 p-5 dark:border-white/[0.06]">
                     <div class="agr-section-head justify-between">
                         <div class="flex items-center gap-2.5">
                             <span class="agr-section-badge"><i class="fa-solid fa-users text-[11px]"></i></span>
@@ -53,7 +53,7 @@
             </div>
 
             <div id="action_psm_step" class="agr-step hidden" data-step-key="psm">
-                <div class="agr-section rounded-xl border border-slate-200 p-5 dark:border-white/[0.06]">
+                <div class="agr-section rounded-xl border border-gray-100 p-5 dark:border-white/[0.06]">
                     <div class="agr-section-head">
                         <span class="agr-section-badge"><i class="fa-solid fa-file-signature text-[11px]"></i></span>
                         <p class="agr-section-title">Document Info</p>
@@ -84,7 +84,7 @@
             </div>
 
             <div id="action_notes_step" class="agr-step hidden" data-step-key="notes">
-                <div class="agr-section rounded-xl border border-slate-200 p-5 dark:border-white/[0.06]">
+                <div class="agr-section rounded-xl border border-gray-100 p-5 dark:border-white/[0.06]">
                     <div class="agr-section-head">
                         <span class="agr-section-badge"><i class="fa-solid fa-message text-[11px]"></i></span>
                         <p id="action_descr_label" class="agr-section-title">Notes</p>
@@ -94,7 +94,7 @@
             </div>
 
             <div id="action_attachment_step" class="agr-step hidden" data-step-key="attachments">
-                <div class="agr-section rounded-xl border border-slate-200 p-5 dark:border-white/[0.06]">
+                <div class="agr-section rounded-xl border border-gray-100 p-5 dark:border-white/[0.06]">
                     <div class="agr-section-head">
                         <span class="agr-section-badge"><i class="fa-solid fa-paperclip text-[11px]"></i></span>
                         <p id="action_attachment_label" class="agr-section-title">Attachments</p>
@@ -109,18 +109,18 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex items-center justify-between border-t border-slate-100 pt-5 dark:border-white/[0.06]">
-                <button type="button" class="btn-close-form-modal rounded-lg border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+            <div class="sticky -bottom-6 z-10 -mx-6 -mb-6 mt-5 flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4 dark:border-white/[0.06] dark:bg-slate-900">
+                <button type="button" class="btn-close-form-modal inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-red-200 bg-red-50 font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
                     Cancel
                 </button>
                 <div class="flex items-center gap-3">
-                    <button type="button" id="btnActionStepBack" class="hidden flex items-center gap-2 rounded-lg border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+                    <button type="button" id="btnActionStepBack" class="hidden inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                         <i class="fa-solid fa-arrow-left"></i> Back
                     </button>
-                    <button type="button" id="btnActionStepNext" class="hidden flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                    <button type="button" id="btnActionStepNext" class="hidden inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                         Next <i class="fa-solid fa-arrow-right"></i>
                     </button>
-                    <button type="submit" id="btnSubmitAction" class="hidden flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                    <button type="submit" id="btnSubmitAction" class="hidden inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                         Submit
                     </button>
                 </div>

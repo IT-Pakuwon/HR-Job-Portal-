@@ -52,7 +52,7 @@ const VplUsageDetailModal = {
             C: { cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30', icon: 'fa-circle-check', text: 'Approved! Your usage document has been accepted.' },
             R: { cls: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30',               icon: 'fa-circle-xmark',         text: 'Rejected. This document has been rejected.' },
             D: { cls: 'bg-yellow-50 text-yellow-800 border border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:border-yellow-500/30', icon: 'fa-triangle-exclamation', text: 'On Hold. This document requires revision.' },
-            X: { cls: 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10',           icon: 'fa-ban',                  text: 'Cancelled. This document has been cancelled.' },
+            X: { cls: 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-white/5 dark:text-gray-400 dark:border-white/10',           icon: 'fa-ban',                  text: 'Cancelled. This document has been cancelled.' },
         };
         const banner = document.getElementById('v_statusBanner');
         const bc = bannerMap[t.status];
@@ -87,8 +87,8 @@ const VplUsageDetailModal = {
             tbody.insertAdjacentHTML('beforeend', `
                 <tr>
                     <td class="px-4 py-2">
-                        <div class="font-medium text-slate-800 dark:text-white">${d.product_id}</div>
-                        <div class="text-xs text-slate-500">${d.product_name ?? ''}</div>
+                        <div class="font-medium text-gray-800 dark:text-white">${d.product_id}</div>
+                        <div class="text-xs text-gray-500">${d.product_name ?? ''}</div>
                     </td>
                     <td class="px-4 py-2 text-xs">${d.whs_id ?? ''}</td>
                     <td class="px-4 py-2 text-xs">${expDisplay}</td>
@@ -106,15 +106,15 @@ const VplUsageDetailModal = {
                 const url = `/usagevp/attachment/${a.id}/view`;
                 attachBody.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center justify-between px-4 py-2">
-                        <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
+                        <a href="${url}" target="_blank" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
                             <i class="fa-regular fa-file mr-2 text-xs"></i>${a.name ?? a.attachfile}
                         </a>
-                        <span class="text-xs text-slate-400">${a.created_at ?? ''}</span>
+                        <span class="text-xs text-gray-400">${a.created_at ?? ''}</span>
                     </div>
                 `);
             });
         } else {
-            attachBody.innerHTML = '<p class="p-4 text-sm text-slate-400">No attachments.</p>';
+            attachBody.innerHTML = '<p class="p-4 text-sm text-gray-400">No attachments.</p>';
         }
 
         const addAttachBtn = document.getElementById('v_addAttachBtn');
@@ -137,11 +137,11 @@ const VplUsageDetailModal = {
         messages.forEach((m) => {
             const alignCls = m.is_mine ? 'items-end' : 'items-start';
             const bubbleCls = m.is_mine
-                ? 'bg-indigo-600 text-white rounded-br-none'
-                : 'bg-white dark:bg-white/[0.07] text-slate-800 dark:text-slate-100 rounded-bl-none';
+                ? 'bg-blue-600 text-white rounded-br-none'
+                : 'bg-white dark:bg-white/[0.07] text-gray-800 dark:text-gray-100 rounded-bl-none';
             msgBody.insertAdjacentHTML('beforeend', `
                 <div class="flex flex-col gap-1 ${alignCls}">
-                    <div class="text-[11px] text-slate-400">${m.name} · ${m.created_at}</div>
+                    <div class="text-[11px] text-gray-400">${m.name} · ${m.created_at}</div>
                     <div class="max-w-[85%] rounded-xl px-4 py-2 text-sm shadow-sm ${bubbleCls}">${m.message}</div>
                 </div>
             `);

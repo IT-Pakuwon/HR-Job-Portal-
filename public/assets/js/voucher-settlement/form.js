@@ -43,7 +43,7 @@ const VplSettlementForm = {
 
                 if (!lines.length) {
                     warning?.classList.remove('hidden');
-                    body.innerHTML = '<tr id="c_detailEmptyRow"><td colspan="6" class="px-3 py-6 text-center text-sm text-slate-400">This document has no lines.</td></tr>';
+                    body.innerHTML = '<tr id="c_detailEmptyRow"><td colspan="6" class="px-3 py-6 text-center text-sm text-gray-400">This document has no lines.</td></tr>';
                     return;
                 }
 
@@ -58,7 +58,7 @@ const VplSettlementForm = {
         const prefix = mode === 'create' ? 'c' : 'e';
         const body = document.getElementById(`${prefix}_detailBody`);
         if (prefix === 'c') {
-            body.innerHTML = '<tr id="c_detailEmptyRow"><td colspan="6" class="px-3 py-6 text-center text-sm text-slate-400">Select a Usage document to load its lines.</td></tr>';
+            body.innerHTML = '<tr id="c_detailEmptyRow"><td colspan="6" class="px-3 py-6 text-center text-sm text-gray-400">Select a Usage document to load its lines.</td></tr>';
             document.getElementById('c_lines_warning')?.classList.add('hidden');
         } else {
             body.innerHTML = '';
@@ -104,7 +104,7 @@ const VplSettlementForm = {
         document.getElementById('c_attachBody').innerHTML = `
             <tr id="c_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;
@@ -209,7 +209,7 @@ const VplSettlementForm = {
         document.getElementById('c_attachBody').innerHTML = `
             <tr id="c_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;
@@ -243,10 +243,10 @@ const VplSettlementForm = {
             const url = `/settlementvp/attachment/${a.id}/view`;
             eAttachBody.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center justify-between px-4 py-2" data-attach-id="${a.id}">
-                    <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
+                    <a href="${url}" target="_blank" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
                         <i class="fa-regular fa-file mr-1 text-xs"></i>${a.name ?? a.attachfile}
                     </a>
-                    <button type="button" class="e-del-exist-attach text-red-400 hover:text-red-600 ml-4"
+                    <button type="button" class="e-del-exist-attach ml-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10"
                         data-attach-id="${a.id}">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
@@ -257,7 +257,7 @@ const VplSettlementForm = {
         document.getElementById('e_attachBody').innerHTML = `
             <tr id="e_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;
@@ -405,10 +405,10 @@ const VplSettlementForm = {
 
         const headerEl = document.getElementById(`${prefix}_previewHeader`);
         headerEl.innerHTML = `
-            <div><div class="text-xs text-slate-500">Company</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${cpnyid}</div></div>
-            <div><div class="text-xs text-slate-500">Department</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${dept}</div></div>
-            <div><div class="text-xs text-slate-500">Usage Doc</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${usageId}</div></div>
-            <div class="md:col-span-4"><div class="text-xs text-slate-500">Remark</div><div class="mt-1 text-slate-700 dark:text-slate-200">${remark || '—'}</div></div>
+            <div><div class="text-xs text-gray-500">Company</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${cpnyid}</div></div>
+            <div><div class="text-xs text-gray-500">Department</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${dept}</div></div>
+            <div><div class="text-xs text-gray-500">Usage Doc</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${usageId}</div></div>
+            <div class="md:col-span-4"><div class="text-xs text-gray-500">Remark</div><div class="mt-1 text-gray-700 dark:text-gray-200">${remark || '—'}</div></div>
         `;
 
         const detailBody = document.getElementById(`${prefix}_previewDetailBody`);
@@ -417,7 +417,7 @@ const VplSettlementForm = {
                 <td class="px-4 py-2">${r.product}</td>
                 <td class="px-4 py-2 text-right font-semibold">${Number(r.qtyUsage).toLocaleString()}</td>
                 <td class="px-4 py-2 text-right">${Number(r.qtyReturn).toLocaleString()}</td>
-                <td class="px-4 py-2 text-right font-semibold text-indigo-600 dark:text-indigo-400">${Number(r.qtySettlement || 0).toLocaleString()}</td>
+                <td class="px-4 py-2 text-right font-semibold text-blue-600 dark:text-blue-400">${Number(r.qtySettlement || 0).toLocaleString()}</td>
                 <td class="px-4 py-2 text-right font-semibold">${Number(r.sisa).toLocaleString()}</td>
             </tr>
         `).join('');

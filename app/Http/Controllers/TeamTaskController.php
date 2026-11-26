@@ -787,7 +787,7 @@ class TeamTaskController extends Controller
 
         // A custom status_id / sort_order is only honored for admins (the
         // Status Settings panel); everyone else gets one derived from the name.
-        $isAdmin = Auth::user()->isPrimaryAdmin();
+        $isAdmin = Auth::user()->hasRole('PROADMINACCESS');
         $statusName = trim($request->status_name);
         $statusId = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', ($isAdmin && $request->filled('status_id')) ? $request->status_id : $statusName));
         abort_if($statusId === '', 422, 'Status ID must contain at least one letter or number.');
@@ -842,7 +842,7 @@ class TeamTaskController extends Controller
         $status->update([
             'status_name' => trim($request->status_name),
             'color' => $request->input('color', $status->color),
-            'sort_order' => (Auth::user()->isPrimaryAdmin() && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
+            'sort_order' => (Auth::user()->hasRole('PROADMINACCESS') && $request->filled('sort_order')) ? (int) $request->sort_order : $status->sort_order,
             'updated_by' => Auth::user()->username,
             'updated_at' => now(),
         ]);
@@ -901,6 +901,10 @@ class TeamTaskController extends Controller
         if ($taskId) {
             $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
             TrProjectTask::abortUnlessAccessible('TTK', $taskId);
+            // ?people=1 asks for the chat's profile bubbles instead.
+            if (request()->boolean('people')) {
+                return response()->json(PmChatAccess::bubblePeople('TTK', $task));
+            }
             $audience = PmChatAccess::audience('TTK', $task);
         }
 

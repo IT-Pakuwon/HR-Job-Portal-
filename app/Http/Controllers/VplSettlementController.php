@@ -204,7 +204,7 @@ class VplSettlementController extends Controller
                 'P'     => 'Product',
                 default => $r->vp_type ?? '',
             })
-            ->addColumn('action', fn ($r) => '<button type="button" class="btn-create-from-job inline-flex items-center justify-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"'
+            ->addColumn('action', fn ($r) => '<button type="button" class="btn-create-from-job inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-3 text-xs font-semibold text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"'
                 .' data-usage-id="'.$r->usage_id.'" data-cpnyid="'.$r->cpnyid.'" data-department="'.$r->department.'" data-vp-type="'.$r->vp_type.'">'
                 .'<i class="fa-solid fa-plus text-[10px]"></i> Settle</button>'
             )

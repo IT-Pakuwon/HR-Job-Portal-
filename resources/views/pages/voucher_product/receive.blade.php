@@ -3,35 +3,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<style>
-.modal-panel { backface-visibility: hidden; }
-.modal-scroll { scrollbar-width: thin; }
-.select2-container .select2-selection--single { height: 42px !important; border-radius: 8px !important; border-color: #e2e8f0 !important; display: flex; align-items: center; }
-.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
-.select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
-.apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
-.status-filter.active-card .status-card { box-shadow: 0 0 0 2px #56b1f3; }
-
-/* SweetAlert2 dark mode */
-.dark .swal2-popup { background: #1e293b; color: #e2e8f0; }
-.dark .swal2-title, .dark .swal2-html-container { color: #e2e8f0; }
-.dark .swal2-close { color: #94a3b8; }
-.dark .swal2-input, .dark .swal2-textarea, .dark .swal2-select { background: #0f172a; color: #e2e8f0; border-color: #334155; }
-.dark .swal2-validation-message { background: #0f172a; color: #f87171; }
-
-/* Select2 — dark mode */
-.dark .select2-container .select2-selection--single { background-color: #0b1220; border-color: rgba(255, 255, 255, .1) !important; }
-.dark .select2-container .select2-selection--single .select2-selection__rendered { color: #f8fafc; }
-.dark .select2-container .select2-selection--single .select2-selection__placeholder { color: #64748b; }
-.dark .select2-container .select2-selection--single .select2-selection__arrow b { border-color: #94a3b8 transparent transparent transparent; }
-.dark .select2-container.select2-container--disabled .select2-selection--single { background-color: #0f172a; border-color: rgba(255, 255, 255, .06) !important; cursor: not-allowed; }
-.dark .select2-container.select2-container--disabled .select2-selection--single .select2-selection__rendered { color: #64748b; }
-.dark .select2-dropdown { background-color: #0f172a; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
-.dark .select2-search--dropdown .select2-search__field { background-color: #0b1220; border-color: rgba(255, 255, 255, .1); color: #f8fafc; }
-.dark .select2-results__option { color: #e2e8f0; }
-.dark .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #3193da; color: #ffffff; }
-.dark .select2-container--default .select2-results__option[aria-selected=true] { background-color: #1e293b; color: #f8fafc; }
-</style>
+<x-spp-list-styles />
+<x-vpl-styles />
 
 <div class="max-w-9xl mx-auto w-full p-2">
 
@@ -40,144 +13,42 @@
 {{-- ======================================================== --}}
 @php
     $vplCompanyAccess = $user->hasVplCompanyAccess();
-    $gridColsClass = $user->isPrimaryAdmin()
-        ? ($vplCompanyAccess ? 'xl:grid-cols-8' : 'xl:grid-cols-7')
-        : ($vplCompanyAccess ? 'xl:grid-cols-7' : 'xl:grid-cols-6');
+    $cards = [
+        [['data-status' => 'ALL'], 'All', '📦', 'all', $counts['all'], false],
+        [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $counts['progress'], true, null, 'active-card'],
+        [['data-status' => 'C'], 'Completed', '✅', 'green', $counts['completed'], false],
+        [['data-status' => 'D'], 'Hold / Revise', '✏️', 'blue', $counts['hold'], false],
+        [['data-status' => 'R'], 'Rejected', '⛔', 'red', $counts['rejected'], false],
+        [['data-status' => 'X'], 'Cancelled', '❌', 'all', $counts['cancelled'], false],
+    ];
+    if ($user->isPrimaryAdmin()) {
+        $cards[] = [['data-status' => 'ADMINALL'], 'Receive All', '🌐', 'purple', $counts['admin_all'] ?? 0, false];
+    }
+    if ($vplCompanyAccess) {
+        $cards[] = [['data-status' => 'COMPANYALL'], 'All Receive', '🏢', 'sky', $counts['company_all'] ?? 0, false];
+    }
 @endphp
-<div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $gridColsClass }}">
-
-    {{-- All --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="ALL">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">All</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['all'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- On Progress --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter active-card group block h-full" data-status="P">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-500 bg-yellow-100/30 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">On Progress</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['progress'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- Completed --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="C">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-600 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">Completed</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['completed'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- Hold / Revise --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="D">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-500 bg-blue-100/30 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">Hold / Revise</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['hold'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- Rejected --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="R">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-600 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">Rejected</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['rejected'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- Cancelled --}}
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="X">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-500 bg-slate-200/20 p-3 text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-400 dark:text-slate-400 dark:hover:bg-slate-700/30">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">❌</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">Cancelled</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['cancelled'] }}</p>
-            </div>
-        </a>
-    </button>
-
-    {{-- Receive All — admin only, system-wide view --}}
-    @if($user->isPrimaryAdmin())
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="ADMINALL">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-500 bg-purple-100/30 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">Receive All</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['admin_all'] ?? 0 }}</p>
-            </div>
-        </a>
-    </button>
-    @endif
-
-    {{-- All Receive — VPCOLLACCESS/VPLOYALTYACCESS/VPPRMTNACCESS only, company-wide view --}}
-    @if($vplCompanyAccess)
-    <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="COMPANYALL">
-            <div class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-500 bg-teal-100/30 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95 dark:border-teal-500 dark:text-teal-400 dark:hover:bg-teal-500/20">
-                <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏢</div>
-                <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                    <p class="break-words text-sm font-medium">All Receive</p>
-                </div>
-                <p class="shrink-0 text-base font-bold">{{ $counts['company_all'] ?? 0 }}</p>
-            </div>
-        </a>
-    </button>
-    @endif
-
-</div>
+<x-status-filter-cards :custom="$cards" />
 
 {{-- ======================================================== --}}
 {{-- DATATABLE PANEL --}}
 {{-- ======================================================== --}}
-<div class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+<div class="dt-pretty mt-3 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-    <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-        <div>
-            <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                Receive Product / Voucher
-            </h2>
-        </div>
-        <div class="flex items-center gap-3">
-            @if($user->isPrimaryAdmin())
+    <x-list-page-header title="Receive Product / Voucher" subtitle="Record products and vouchers coming into stock" icon='<i class="fa-solid fa-box-open"></i>'>
+        @if($user->isPrimaryAdmin())
             <div id="adminAllFilters" class="hidden items-center gap-2">
-                <select id="f_vp_type"
-                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                <div class="sppb-f relative w-40">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-tags text-xs"></i></span>
+                    <select id="f_vp_type" class="vpl-filter w-full">
                     <option value="">All Types</option>
                     <option value="voucher">Voucher</option>
                     <option value="product">Product</option>
                 </select>
-                <select id="f_doc_status"
-                    class="h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200">
+                </div>
+                <div class="sppb-f relative w-40">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-circle-check text-xs"></i></span>
+                    <select id="f_doc_status" class="vpl-filter w-full">
                     <option value="ALL">All Status</option>
                     <option value="P">On Progress</option>
                     <option value="C">Completed</option>
@@ -185,14 +56,13 @@
                     <option value="R">Rejected</option>
                     <option value="X">Cancelled</option>
                 </select>
+                </div>
             </div>
-            @endif
-            <button id="openCreateBtn" type="button"
-                class="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-medium text-white transition hover:bg-indigo-500">
-                <i class="fa-solid fa-plus mr-2 text-xs"></i> New Receive
-            </button>
-        </div>
-    </div>
+        @endif
+        <button id="openCreateBtn" type="button" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300">
+            <i class="fa-solid fa-plus text-xs"></i> New Receive
+        </button>
+    </x-list-page-header>
 
     <div class="relative overflow-hidden">
         <table id="receiveTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
@@ -219,35 +89,38 @@
 {{-- ======================================================== --}}
 {{-- CREATE MODAL --}}
 {{-- ======================================================== --}}
-<div id="createModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+<div id="createModal" class="vpl-pop fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-gray-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-2xl bg-white opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 dark:bg-gray-800 dark:ring-white/10">
 
         {{-- Header --}}
-        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
-            <div>
-                <h2 class="text-sm font-bold text-slate-900 dark:text-white">Create Receive</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">New product / voucher receipt form.</p>
+        <div class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-plus"></i></span>
+                <div class="min-w-0">
+                    <h2 class="text-base font-bold leading-tight text-gray-800 dark:text-white">Create Receive</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">New product / voucher receipt form.</p>
+                </div>
             </div>
             <button type="button" id="closeCreateModal"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
-                <i class="fa-solid fa-xmark text-lg"></i>
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
 
         {{-- Body --}}
-        <div class="bg-slate-50 p-6 dark:bg-[#0b1220]">
-            <form id="createForm" class="space-y-6" enctype="multipart/form-data">
+        <div class="bg-gray-50 p-5 dark:bg-gray-900/60">
+            <form id="createForm" class="space-y-4" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Basic Info --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Basic Information</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-circle-info"></i></span><span>Basic Information</span></h3>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                             <select name="cpnyid" id="c_cpnyid" class="w-full select2-create" required>
                                 @foreach($usercpny as $p)
                                     <option value="{{ $p->cpny_id }}" {{ $p->cpny_id == $usercpny2?->cpny_id ? 'selected' : '' }}>{{ $p->cpny_id }}</option>
@@ -255,7 +128,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department <span class="text-red-500">*</span></label>
                             <select name="department" id="c_department" class="w-full select2-create" required>
                                 @foreach($userdept as $p)
                                     <option value="{{ $p->department_id }}" {{ $p->department_id == $userdept2?->department_id ? 'selected' : '' }}>{{ $p->department_id }}</option>
@@ -263,7 +136,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Voucher / Product Type <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Voucher / Product Type <span class="text-red-500">*</span></label>
                             <select name="vp_type" id="c_vp_type" class="w-full select2-create" required>
                                 <option value=""></option>
                                 <option value="voucher">Voucher</option>
@@ -274,13 +147,13 @@
                 </div>
 
                 {{-- Source Info --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Source Information</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-location-arrow"></i></span><span>Source Information</span></h3>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Source of Receive <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Source of Receive <span class="text-red-500">*</span></label>
                             <select name="receive_type" id="c_receive_type" class="w-full select2-create" required>
                                 <option value=""></option>
                                 @foreach($sourceOptions as $src)
@@ -289,7 +162,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department of Receive <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department of Receive <span class="text-red-500">*</span></label>
                             <select name="source_receive_dept" id="c_source_dept" class="w-full select2-create" required>
                                 <option value=""></option>
                                 <option value="CASUALLEASING">CASUALLEASING</option>
@@ -298,10 +171,10 @@
                             </select>
                         </div>
                     </div>
-                    <div class="px-6 pb-6">
-                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                    <div class="px-5 pb-5">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Remark <span class="text-red-500">*</span></label>
                         <textarea name="receive_remark" id="c_remark" rows="2" placeholder="Enter remarks..." required
-                            class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
+                            class="min-h-[4.5rem] px-3 py-2 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"></textarea>
                     </div>
                 </div>
 
@@ -311,25 +184,25 @@
                     <strong>⚠ Cannot Submit</strong> — Your department is not registered as a destination warehouse for this company and type. Please contact the administrator.
                 </div>
 
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Receive Details</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-list-ul"></i></span><span>Receive Details</span></h3>
                         <button type="button" id="c_addRow"
-                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:border-blue-500 hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add Row
                         </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm" id="c_detailTable">
-                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                            <thead class="bg-gray-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:23%">Product <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:13%">Tenant</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:12%">Price</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:11%">Qty <span class="text-red-500">*</span></th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:7%">UOM</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:13%">Expired Date</th>
-                                    <th class="c-whs-th px-4 py-2.5 text-left text-xs font-semibold uppercase text-slate-600 dark:text-slate-400" style="width:22%">Dest. WHS <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:23%">Product <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:13%">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:12%">Price</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:11%">Qty <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:7%">UOM</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:13%">Expired Date</th>
+                                    <th class="c-whs-th px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:22%">Dest. WHS <span class="text-red-500">*</span></th>
                                     <th class="px-4 py-2.5" style="width:8%"></th>
                                 </tr>
                             </thead>
@@ -341,21 +214,21 @@
                                         </select>
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="c-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="c-tenant-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="c-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="c-price-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="number" name="addmore[0][qty]" min="1" placeholder="Qty"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                            class="h-10 px-3 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="c-uom-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="c-uom-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="date" name="addmore[0][expired_date]" min="{{ date('Y-m-d') }}"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                            class="h-10 px-3 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     </td>
                                     <td class="c-whs-td px-4 py-2">
                                         <select name="addmore[0][whs_id]" class="w-full c-whs-sel" style="min-width:160px">
@@ -370,11 +243,11 @@
                 </div>
 
                 {{-- Attachments --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments <span class="text-red-500">*</span></h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-paperclip"></i></span><span>Attachments <span class="text-red-500">*</span></span></h3>
                         <button type="button" id="c_addAttach"
-                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:border-blue-500 hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add File
                         </button>
                     </div>
@@ -384,7 +257,7 @@
                                 <tr id="c_attach_0">
                                     <td class="py-1 pr-2">
                                         <input type="file" name="attachment[]"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                                            class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                                     </td>
                                     <td class="py-1 pl-1"></td>
                                 </tr>
@@ -396,14 +269,14 @@
         </div>
 
         {{-- Footer --}}
-        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+        <div class="sticky bottom-0 z-20 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center justify-end gap-3">
                 <button type="button" id="closeCreateModalFooter"
-                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                     Close
                 </button>
                 <button type="button" id="submitCreateBtn"
-                    class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300">
                     <i class="fa-solid fa-paper-plane text-xs"></i> Submit Approval
                 </button>
             </div>
@@ -416,99 +289,102 @@
 {{-- ======================================================== --}}
 {{-- VIEW MODAL --}}
 {{-- ======================================================== --}}
-<div id="viewModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+<div id="viewModal" class="vpl-pop fixed inset-0 z-[60] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-gray-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-2xl bg-white opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 dark:bg-gray-800 dark:ring-white/10">
 
         {{-- Header --}}
-        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
-            <div>
-                <h2 id="v_title" class="font-semibold text-slate-800 dark:text-white">Receive Detail</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Receipt information & approval workflow.</p>
+        <div class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-file-lines"></i></span>
+                <div class="min-w-0">
+                    <h2 id="v_title" class="break-words text-base font-bold leading-tight text-gray-800 dark:text-white">Receive Detail</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Receipt information & approval workflow.</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 {{-- Print PDF --}}
                 <button type="button" id="v_printBtn" title="Print PDF"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                     <i class="fa-solid fa-print text-base"></i>
                 </button>
                 {{-- Toggle Discussion Panel --}}
                 <button type="button" id="v_msgToggleBtn"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                     <i class="fa-regular fa-comments text-base"></i>
                 </button>
                 <button type="button" id="closeViewModal"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
         </div>
 
         {{-- Body --}}
-        <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.6fr_0.6fr]">
+        <div class="grid grid-cols-1 gap-4 bg-gray-50 p-5 dark:bg-gray-900/60 lg:grid-cols-[1.6fr_0.6fr]">
 
             {{-- LEFT --}}
             <div class="space-y-4">
 
                 {{-- Receive Info --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Received By</div>
-                            <div id="v_user" class="mt-2 text-base font-semibold text-slate-900 dark:text-white"></div>
+                            <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Received By</div>
+                            <div id="v_user" class="mt-1 text-base font-bold text-gray-900 dark:text-white"></div>
                         </div>
                         <div id="v_status_badge"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 p-4 md:grid-cols-3">
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Source of Receive</div><div id="v_receive_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500 dark:text-slate-400">Dept of Receive</div><div id="v_source_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
+                    <div class="grid grid-cols-2 gap-4 p-5 md:grid-cols-3">
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Date</div><div id="v_date" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Company</div><div id="v_cpnyid" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Department</div><div id="v_dept" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">V/P Type</div><div id="v_vp_type" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Source of Receive</div><div id="v_receive_type" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
+                        <div><div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Dept of Receive</div><div id="v_source_dept" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100"></div></div>
                     </div>
-                    <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">
-                        <div class="text-xs text-slate-500 dark:text-slate-400">Remark</div>
-                        <div id="v_remark" class="mt-1 text-sm text-slate-700 dark:text-slate-200"></div>
+                    <div class="border-t border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Remark</div>
+                        <div id="v_remark" class="mt-1 whitespace-pre-line break-words text-sm text-gray-700 dark:text-gray-200"></div>
                     </div>
                 </div>
 
                 {{-- Detail Table --}}
-                <div class="overflow-hidden rounded-lg border border-blue-100 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
-                    <div class="border-b border-blue-100 px-5 py-2 dark:border-blue-500/20">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">Receive Details</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-list-ul"></i></span><span>Receive Details</span></h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
-                            <thead class="border-b border-blue-100 dark:border-blue-500/20">
+                            <thead class="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Product ID</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Product Name</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Tenant</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Price</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Expired</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Qty</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">UOM</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">Total Price</th>
-                                    <th class="px-4 py-2 text-left text-xs font-semibold text-blue-700 dark:text-blue-300">WHS</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Product ID</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Product Name</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Price</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Expired</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Qty</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">UOM</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Price</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WHS</th>
                                 </tr>
                             </thead>
-                            <tbody id="v_detailBody" class="divide-y divide-blue-100 dark:divide-blue-500/20"></tbody>
+                            <tbody id="v_detailBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                         </table>
                     </div>
                 </div>
 
                 {{-- Attachments --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-paperclip"></i></span><span>Attachments</span></h3>
                         <button type="button" id="v_addAttachBtn"
-                            class="hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="hidden inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:border-blue-500 hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add File
                         </button>
                         <input type="file" id="v_addAttachInput" name="attachment[]" multiple class="hidden">
                     </div>
-                    <div id="v_attachBody" class="divide-y divide-slate-100 dark:divide-white/10 empty:p-4 empty:text-sm empty:text-slate-400"></div>
+                    <div id="v_attachBody" class="divide-y divide-gray-100 empty:p-4 empty:text-sm empty:text-gray-400 dark:divide-gray-700"></div>
                 </div>
 
             </div>
@@ -517,11 +393,11 @@
             <div class="space-y-4">
 
                 {{-- Revision Reason (shown when status = D) --}}
-                <div id="v_reviseReasonWrapper" class="hidden overflow-hidden rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
+                <div id="v_reviseReasonWrapper" class="hidden overflow-hidden rounded-xl border border-yellow-200 bg-yellow-50 shadow-sm dark:border-yellow-500/20 dark:bg-yellow-500/10">
                     <div class="border-b border-yellow-100 px-5 py-2 dark:border-yellow-500/20">
                         <h3 class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">Revision Reason</h3>
                     </div>
-                    <div id="v_revise_reason" class="p-5 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100"></div>
+                    <div id="v_revise_reason" class="break-words p-5 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100"></div>
                 </div>
 
                 <div class="overflow-hidden">
@@ -530,15 +406,15 @@
                         <div id="v_statusBanner" class="mb-0 flex w-full items-center gap-2"></div>
                         <div id="v_approvalActions" class="mb-4 flex hidden w-full items-center justify-between gap-2">
                             <button type="button" id="v_approveBtn"
-                                class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">
+                                class="h-10 flex-1 rounded-lg bg-emerald-500 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-400">
                                 <i class="fa-solid fa-check mr-1"></i> Approve
                             </button>
                             <button type="button" id="v_reviseBtn"
-                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white">
+                                class="h-10 flex-1 rounded-lg bg-yellow-400 px-4 text-xs font-semibold text-black shadow-sm transition hover:bg-yellow-300 dark:text-white">
                                 <i class="fa-solid fa-rotate-left mr-1"></i> Revise
                             </button>
                             <button type="button" id="v_rejectBtn"
-                                class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+                                class="h-10 flex-1 rounded-lg bg-red-500 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-red-400">
                                 <i class="fa-solid fa-xmark mr-1"></i> Reject
                             </button>
                         </div>
@@ -553,23 +429,23 @@
 
         {{-- Discussion / Messages panel — absolute inside modal so it overlaps the right column --}}
         <div id="v_discussionPanel"
-            class="absolute bottom-16 right-0 z-30 hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+            class="absolute bottom-[76px] right-4 z-30 hidden w-[380px] max-w-[calc(100%-2rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800">
 
-            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Messages</h3>
-                <button type="button" id="v_discussionClose">
-                    <i class="fa-solid fa-xmark text-slate-400 hover:text-slate-700 dark:hover:text-white"></i>
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Messages</h3>
+                <button type="button" id="v_discussionClose" aria-label="Close" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div id="v_msgBody" class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]"></div>
+            <div id="v_msgBody" class="h-[360px] space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-900/60"></div>
 
-            <div class="border-t border-slate-200 p-3 dark:border-white/10">
+            <div class="border-t border-gray-100 p-3 dark:border-gray-700">
                 <div class="flex items-end gap-2">
                     <textarea id="v_msgInput" rows="1" placeholder="Write message..."
-                        class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
+                        class="min-h-[44px] flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 transition placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"></textarea>
                     <button type="button" id="v_msgSend"
-                        class="h-11 w-11 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                        class="h-11 w-11 shrink-0 rounded-lg bg-blue-600 text-white shadow-sm transition hover:bg-blue-500">
                         <i class="fa-solid fa-paper-plane text-sm"></i>
                     </button>
                 </div>
@@ -577,17 +453,17 @@
         </div>
 
         {{-- Footer --}}
-        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+        <div class="sticky bottom-0 z-20 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center justify-between">
                 <button type="button" id="closeViewModalFooter"
-                    class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Close</button>
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Close</button>
                 <div class="flex items-center gap-3">
                     <button type="button" id="v_cancelBtn"
-                        class="hidden rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-500">
+                        class="hidden h-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                         Cancel Document
                     </button>
                     <button type="button" id="v_editBtn"
-                        class="hidden rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                        class="hidden h-10 items-center justify-center rounded-lg bg-blue-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500">
                         Edit
                     </button>
                 </div>
@@ -600,59 +476,62 @@
 {{-- ======================================================== --}}
 {{-- EDIT MODAL --}}
 {{-- ======================================================== --}}
-<div id="editModal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+<div id="editModal" class="vpl-pop fixed inset-0 z-[70] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-gray-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/70"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-[90rem] translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-2xl bg-white opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 dark:bg-gray-800 dark:ring-white/10">
 
         {{-- Header --}}
-        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
-            <div>
-                <h2 id="e_title" class="text-sm font-bold text-slate-900 dark:text-white">Edit Receive</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Modify and resubmit for approval.</p>
+        <div class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-pen-to-square"></i></span>
+                <div class="min-w-0">
+                    <h2 id="e_title" class="text-base font-bold leading-tight text-gray-800 dark:text-white">Edit Receive</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Modify and resubmit for approval.</p>
+                </div>
             </div>
             <button type="button" id="closeEditModal"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
-                <i class="fa-solid fa-xmark text-lg"></i>
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                <i class="fa-solid fa-xmark text-base"></i>
             </button>
         </div>
 
         {{-- Body --}}
-        <div class="bg-slate-50 p-6 dark:bg-[#0b1220]">
-            <form id="editForm" class="space-y-6" enctype="multipart/form-data">
+        <div class="bg-gray-50 p-5 dark:bg-gray-900/60">
+            <form id="editForm" class="space-y-4" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Basic (read-only) --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Basic Information <span class="text-slate-400 font-normal normal-case text-[11px]">(read-only)</span></h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-circle-info"></i></span><span>Basic Information <span class="text-[11px] font-normal text-gray-400">(read-only)</span></span></h3>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company</label>
-                            <input type="text" id="e_cpnyid_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
+                            <input type="text" id="e_cpnyid_display" readonly class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-white/[0.04] dark:text-gray-300">
                             <input type="hidden" name="cpnyid" id="e_cpnyid">
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Department</label>
-                            <input type="text" id="e_dept_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
+                            <input type="text" id="e_dept_display" readonly class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-white/[0.04] dark:text-gray-300">
                             <input type="hidden" name="department" id="e_dept">
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">V/P Type</label>
-                            <input type="text" id="e_vp_type_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">V/P Type</label>
+                            <input type="text" id="e_vp_type_display" readonly class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-white/[0.04] dark:text-gray-300">
                             <input type="hidden" name="vp_type" id="e_vp_type">
                         </div>
                     </div>
                 </div>
 
                 {{-- Editable Source --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Source Information</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-location-arrow"></i></span><span>Source Information</span></h3>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Source of Receive <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Source of Receive <span class="text-red-500">*</span></label>
                             <select name="receive_type" id="e_receive_type" class="w-full select2-edit" required>
                                 <option value=""></option>
                                 @foreach($sourceOptions as $src)
@@ -661,7 +540,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Dept of Receive <span class="text-red-500">*</span></label>
+                            <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Dept of Receive <span class="text-red-500">*</span></label>
                             <select name="source_receive_dept" id="e_source_dept" class="w-full select2-edit" required>
                                 <option value=""></option>
                                 <option value="CASUALLEASING">CASUALLEASING</option>
@@ -670,57 +549,57 @@
                             </select>
                         </div>
                     </div>
-                    <div class="px-6 pb-6">
-                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                    <div class="px-5 pb-5">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Remark <span class="text-red-500">*</span></label>
                         <textarea name="receive_remark" id="e_remark" rows="2" required
-                            class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
+                            class="min-h-[4.5rem] px-3 py-2 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"></textarea>
                     </div>
                 </div>
 
                 {{-- Existing Details --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Existing Details</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-list-ul"></i></span><span>Existing Details</span></h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
-                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                            <thead class="bg-gray-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Product</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Tenant</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Price</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Expired</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">Qty</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">UOM</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400">WHS</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Product</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Price</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Expired</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Qty</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">UOM</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WHS</th>
                                     <th class="px-4 py-2.5 w-16"></th>
                                 </tr>
                             </thead>
-                            <tbody id="e_existDetailBody" class="divide-y divide-slate-100 dark:divide-white/10"></tbody>
+                            <tbody id="e_existDetailBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
                         </table>
                     </div>
                 </div>
 
                 {{-- Add New Detail Lines --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add New Lines</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-square-plus"></i></span><span>Add New Lines</span></h3>
                         <button type="button" id="e_addRow"
-                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:border-blue-500 hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add Row
                         </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm" id="e_detailTable">
-                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                            <thead class="bg-gray-50 dark:bg-white/[0.03]">
                                 <tr>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:23%">Product</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:13%">Tenant</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:12%">Price</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:11%">Qty</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:7%">UOM</th>
-                                    <th class="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:13%">Expired Date</th>
-                                    <th class="e-whs-th px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400" style="width:22%">Dest. WHS</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:23%">Product</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:13%">Tenant</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:12%">Price</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:11%">Qty</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:7%">UOM</th>
+                                    <th class="px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:13%">Expired Date</th>
+                                    <th class="e-whs-th px-4 py-2.5 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400" style="width:22%">Dest. WHS</th>
                                     <th class="px-4 py-2.5 w-8"></th>
                                 </tr>
                             </thead>
@@ -732,21 +611,21 @@
                                         </select>
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="e-tenant-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="e-tenant-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="e-price-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="e-price-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="number" name="addmore[0][qty]" min="1" placeholder="Qty"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                            class="h-10 px-3 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     </td>
                                     <td class="px-4 py-2">
-                                        <span class="e-uom-display block rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">—</span>
+                                        <span class="e-uom-display block rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-white/5 dark:bg-white/[0.04] text-sm text-gray-600 dark:text-gray-300">—</span>
                                     </td>
                                     <td class="px-4 py-2">
                                         <input type="date" name="addmore[0][expired_date]" min="{{ date('Y-m-d') }}"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                            class="h-10 px-3 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     </td>
                                     <td class="e-whs-td px-4 py-2">
                                         <select name="addmore[0][whs_id]" class="w-full e-whs-sel" style="min-width:160px">
@@ -761,19 +640,19 @@
                 </div>
 
                 {{-- Existing Attachments --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Existing Attachments</h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-paperclip"></i></span><span>Existing Attachments</span></h3>
                     </div>
-                    <div id="e_existAttachBody" class="divide-y divide-slate-100 dark:divide-white/10"></div>
+                    <div id="e_existAttachBody" class="divide-y divide-gray-100 dark:divide-gray-700"></div>
                 </div>
 
                 {{-- New Attachments --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add Attachments <span class="text-red-500">*</span></h3>
+                <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
+                        <h3 class="flex items-center gap-2.5 text-sm font-bold text-gray-800 dark:text-gray-100"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-paperclip"></i></span><span>Add Attachments <span class="text-red-500">*</span></span></h3>
                         <button type="button" id="e_addAttach"
-                            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-300 bg-blue-50/60 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:border-blue-500 hover:bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
                             <i class="fa-solid fa-plus text-[10px]"></i> Add File
                         </button>
                     </div>
@@ -783,7 +662,7 @@
                                 <tr id="e_attach_0">
                                     <td class="py-1 pr-2">
                                         <input type="file" name="attachment[]"
-                                            class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                                            class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                                     </td>
                                     <td class="py-1 pl-1"></td>
                                 </tr>
@@ -795,14 +674,14 @@
         </div>
 
         {{-- Footer --}}
-        <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+        <div class="sticky bottom-0 z-20 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center justify-end gap-3">
                 <button type="button" id="closeEditModalFooter"
-                    class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                     Close
                 </button>
                 <button type="button" id="submitEditBtn"
-                    class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300">
                     <i class="fa-solid fa-paper-plane text-xs"></i> Resubmit Approval
                 </button>
             </div>
@@ -820,6 +699,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 {{-- Pass Laravel route URLs to external JS --}}
+<x-spp-list-scripts />
+<x-vpl-list-scripts />
+
 <script>
     // cspell:disable
     window.VplReceiveConfig = {
@@ -838,13 +720,13 @@
 </script>
 
 {{-- Voucher Receive JS modules --}}
-<script src="{{ asset('assets/js/voucher-receive/core.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/modal.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/helper.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/datalist.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/form.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/detail-modal.js') }}"></script>
-<script src="{{ asset('assets/js/voucher-receive/init.js') }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/core.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/core.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/modal.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/modal.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/helper.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/helper.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/datalist.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/datalist.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/form.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/form.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/detail-modal.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/detail-modal.js')) }}"></script>
+<script src="{{ asset('assets/js/voucher-receive/init.js') }}?v={{ filemtime(public_path('assets/js/voucher-receive/init.js')) }}"></script>
 
 
 </x-app-layout>

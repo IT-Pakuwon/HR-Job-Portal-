@@ -1,4 +1,9 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-form-styles />
+    <x-event-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- HEADER TAB --}}
@@ -54,45 +59,30 @@
         <div id="roomPanel">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
                 {{-- HEADER --}}
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Meeting Room List
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Manage all meeting room master data.
-                        </p>
-
-                    </div>
-
+                <x-list-page-header title="Meeting Room List" subtitle="Manage all meeting room master data.">
                     <button type="button" onclick="openCreateRoomModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
 
                         <span>
                             Add Room
                         </span>
 
                     </button>
-
-                </div>
+                </x-list-page-header>
 
                 {{-- TABLE --}}
-                <div class="overflow-x-auto p-5">
+                <div class="relative">
 
-                    <table id="roomTable" class="display w-full border-collapse text-sm">
+                    <table id="roomTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Room ID</th>
@@ -118,45 +108,30 @@
         <div id="accessoriesPanel" class="hidden">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
                 {{-- HEADER --}}
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Meeting Accessories
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Manage meeting accessories and online meeting accounts.
-                        </p>
-
-                    </div>
-
+                <x-list-page-header title="Meeting Accessories" subtitle="Manage meeting accessories and online meeting accounts.">
                     <button type="button" onclick="openCreateAccessoriesModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
 
                         <span>
                             Add Accessories
                         </span>
 
                     </button>
-
-                </div>
+                </x-list-page-header>
 
                 {{-- TABLE --}}
-                <div class="overflow-x-auto p-5">
+                <div class="relative">
 
-                    <table id="accessoriesTable" class="display w-full border-collapse text-sm">
+                    <table id="accessoriesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Accessories ID</th>
@@ -184,32 +159,17 @@
         <div id="roomAccessPanel" class="hidden">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+                <x-list-page-header title="Meeting Room Access" subtitle="Configure allowed booking users per room."></x-list-page-header>
 
-                    <div>
+                <div class="relative">
 
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Meeting Room Access
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Configure allowed booking users per room.
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="overflow-x-auto p-5">
-
-                    <table id="roomAccessTable" class="display w-full border-collapse text-sm">
+                    <table id="roomAccessTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Room ID</th>
@@ -233,45 +193,30 @@
         <div id="dateBlockPanel" class="hidden">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
                 {{-- HEADER --}}
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Date Block Settings
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Manage booking date limit settings. Only one Active setting is used by the system at a time.
-                        </p>
-
-                    </div>
-
+                <x-list-page-header title="Date Block Settings" subtitle="Manage booking date limit settings. Only one Active setting is used by the system at a time.">
                     <button type="button" onclick="openCreateDateBlockModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
 
                         <span>
                             Add Setting
                         </span>
 
                     </button>
-
-                </div>
+                </x-list-page-header>
 
                 {{-- TABLE --}}
-                <div class="overflow-x-auto p-5">
+                <div class="relative">
 
-                    <table id="dateBlockTable" class="display w-full border-collapse text-sm">
+                    <table id="dateBlockTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Setting ID</th>
@@ -294,12 +239,12 @@
 
         </div>
 
-        <div id="createAccessoriesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createAccessoriesModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -314,7 +259,7 @@
                     </div>
 
                     <button type="button" onclick="closeCreateAccessoriesModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -439,17 +384,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateAccessoriesModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
+                            class="itm-primary rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
 
                             Save Accessories
 
@@ -463,12 +408,12 @@
 
         </div>
 
-        <div id="createRoomModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createRoomModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -483,7 +428,7 @@
                     </div>
 
                     <button type="button" onclick="closeCreateRoomModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -560,17 +505,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateRoomModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+                            class="itm-primary rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
                             Save Room
 
@@ -584,12 +529,12 @@
 
         </div>
 
-        <div id="editRoomModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editRoomModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -604,7 +549,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditRoomModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -682,17 +627,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditRoomModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+                            class="itm-primary rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
                             Update Room
 
@@ -706,12 +651,12 @@
 
         </div>
 
-        <div id="editAccessoriesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editAccessoriesModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -726,7 +671,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditAccessoriesModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -845,17 +790,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditAccessoriesModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
+                            class="itm-primary rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
 
                             Update Accessories
 
@@ -869,11 +814,11 @@
 
         </div>
 
-        <div id="roomAccessModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="roomAccessModal" class="itm sf-field ev-ts fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -888,7 +833,7 @@
                     </div>
 
                     <button type="button" onclick="closeRoomAccessModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -926,17 +871,17 @@
                     </div>
 
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeRoomAccessModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700">
+                            class="itm-primary rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700">
 
                             Save Access
 
@@ -950,12 +895,12 @@
 
         </div>
 
-        <div id="createDateBlockModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createDateBlockModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -970,7 +915,7 @@
                     </div>
 
                     <button type="button" onclick="closeCreateDateBlockModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -1053,17 +998,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateDateBlockModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700">
+                            class="itm-primary rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700">
 
                             Save Setting
 
@@ -1077,12 +1022,12 @@
 
         </div>
 
-        <div id="editDateBlockModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editDateBlockModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -1097,7 +1042,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditDateBlockModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -1180,17 +1125,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditDateBlockModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700">
+                            class="itm-primary rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700">
 
                             Update Setting
 

@@ -5,15 +5,15 @@ namespace App\Http\Controllers\Traits;
 use Illuminate\Support\Facades\Auth;
 
 // Changing Tasks/Subtasks (create, edit, move, lock, cover, columns…) is
-// PROJECTACCESS work — creating Teams (CAPTACCESS) and Projects
-// (PROADMINACCESS) are separate roles that don't include it.
+// PROJECTACCESS work, plus the module admin (PROADMINACCESS). The plain
+// admin role gives nothing here.
 trait RequiresTaskAccess
 {
     protected static function canEditTasks(): bool
     {
         $user = Auth::user();
 
-        return $user && ($user->hasRole('PROJECTACCESS') || $user->isPrimaryAdmin());
+        return $user && ($user->hasRole('PROJECTACCESS') || $user->hasRole('PROADMINACCESS'));
     }
 
     protected function assertCanEditTasks(): void

@@ -1,45 +1,28 @@
 <x-app-layout>
 
+    <x-spp-list-styles />
+    <x-vpl-styles />
     <style>
-        .select2-container { width: 100% !important; }
-        .select2-container--default .select2-selection--single {
-            height: 46px !important;
-            border: 1px solid #d1d5db !important;
-            border-radius: 0.75rem !important;
-            display: flex !important;
-            align-items: center !important;
-            background: transparent !important;
-        }
-        .select2-container--default .select2-selection--single:focus-within,
-        .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #64748b !important;
-            box-shadow: 0 0 0 2px rgba(100,116,139,.15) !important;
-        }
-        .select2-selection__rendered { padding-left: 14px !important; font-size: 14px !important; line-height: 46px !important; }
-        .select2-selection__arrow { top: 10px !important; right: 10px !important; }
-        .select2-dropdown { z-index: 99999 !important; border-radius: 0.75rem !important; box-shadow: 0 8px 24px rgba(15,23,42,.14) !important; }
-        .select2-results__option { font-size: 14px; padding: 8px 14px !important; color: #0f172a !important; }
-        .select2-results__option--highlighted { background-color: #1e293b !important; color: #ffffff !important; }
-        .select2-search--dropdown .select2-search__field { border-radius: 6px !important; padding: 6px 10px !important; color: #0f172a !important; }
-        .select2-dropdown { background-color: #ffffff !important; }
-        .select2-selection__rendered { color: #0f172a !important; }
-
+        .dt-pretty table.dataTable thead th { white-space: nowrap; }
+        .dt-pretty table.dataTable thead th:last-child { text-align: right; }
+        .dt-pretty table.dataTable tbody td { padding: .75rem 1rem; }
+        .vpl-dialog { animation: vpl-dialog-in .18s ease-out; }
+        @keyframes vpl-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .vpl-dialog { animation: none; } }
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- TAB HEADER --}}
-        <div class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="mb-3 inline-flex flex-wrap items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-            <button id="tabWarehouse"
-                class="tab-btn active-tab inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition">
-                <span class="text-base">🏭</span>
+            <button id="tabWarehouse" type="button" class="tab-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active-tab bg-blue-600 text-white shadow-sm">
+                <i class="fa-solid fa-warehouse text-xs"></i>
                 <span>Warehouse</span>
             </button>
 
-            <button id="tabWarehouseDept"
-                class="tab-btn inline-flex items-center gap-2 rounded-xl border border-transparent bg-transparent px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
-                <span class="text-base">🏢</span>
+            <button id="tabWarehouseDept" type="button" class="tab-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300">
+                <i class="fa-solid fa-users text-xs"></i>
                 <span>Warehouse Dept</span>
             </button>
 
@@ -47,35 +30,27 @@
 
         {{-- PANEL 1: WAREHOUSE --}}
         <div id="warehousePanel">
-            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-                <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Warehouse Setup</h2>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage VPL warehouse master data.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <a href="{{ route('vpl.mastervp') }}"
-                            class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10">
-                            ← Back to Master Stock
-                        </a>
-                        <button type="button" onclick="toggleModal('#createWhsModal', true)"
-                            class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
-                            <span>＋</span> Add Warehouse
-                        </button>
-                    </div>
-                </div>
+                <x-list-page-header title="Warehouse Setup" subtitle="Manage VPL warehouse master data." icon='<i class="fa-solid fa-warehouse"></i>'>
+                    <a href="{{ route('vpl.mastervp') }}" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        <i class="fa-solid fa-arrow-left text-xs"></i> Back to Master Stock
+                    </a>
+                    <button type="button" onclick="toggleModal('#createWhsModal', true)" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300">
+                        <i class="fa-solid fa-plus text-xs"></i> Add Warehouse
+                    </button>
+                </x-list-page-header>
 
-                <div class="overflow-x-auto p-5">
-                    <table id="tableWarehouse" class="display w-full border-collapse text-sm">
+                <div class="relative overflow-hidden">
+                    <table id="tableWarehouse" class="w-full border-separate border-spacing-0 text-sm" style="width:100%">
                         <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Company</th>
-                                <th>Warehouse ID</th>
-                                <th>VP Type</th>
-                                <th>Status</th>
-                                <th class="text-right">Action</th>
+                            <tr class="bg-gray-50/70 dark:bg-white/[0.02]">
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">No</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Company</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Warehouse ID</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">VP Type</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Status</th>
+                                <th class="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Action</th>
                             </tr>
                         </thead>
                     </table>
@@ -86,70 +61,77 @@
 
         {{-- PANEL 2: WAREHOUSE DEPT --}}
         <div id="warehouseDeptPanel" class="hidden">
-            <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-                <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Warehouse Dept Setup</h2>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure department access per warehouse.</p>
-                    </div>
-                    <button type="button" onclick="openCreateDeptModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
-                        <span>＋</span> Add Dept
+                <x-list-page-header title="Warehouse Dept Setup" subtitle="Configure department access per warehouse." icon='<i class="fa-solid fa-users"></i>'>
+                    <button type="button" onclick="openCreateDeptModal()" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300">
+                        <i class="fa-solid fa-plus text-xs"></i> Add Dept
                     </button>
-                </div>
+                </x-list-page-header>
 
-                <div class="grid grid-cols-1 gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid grid-cols-1 gap-3 border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Warehouse ID</label>
-                        <select id="filter_dept_whs_id" class="dept-filter-select2" style="width:100%">
+                        <label for="filter_dept_whs_id" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Warehouse ID</label>
+                        <div class="sppb-f relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-warehouse text-xs"></i></span>
+                            <select id="filter_dept_whs_id" class="dept-filter-select2" style="width:100%">
                             <option value="">All Warehouse IDs</option>
                             @foreach ($warehouseIds as $whsId)
                                 <option value="{{ $whsId }}">{{ $whsId }}</option>
                             @endforeach
-                        </select>
+                            </select>
+                        </div>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Activity Type</label>
-                        <select id="filter_dept_activity_type" class="dept-filter-select2" style="width:100%">
+                        <label for="filter_dept_activity_type" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Activity Type</label>
+                        <div class="sppb-f relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-list-check text-xs"></i></span>
+                            <select id="filter_dept_activity_type" class="dept-filter-select2" style="width:100%">
                             <option value="">All Activity Types</option>
                             <option value="RECEIVE">Receive</option>
                             <option value="TRANSFER">Transfer</option>
                             <option value="TRANSFER_RECEIVE">Transfer Receive</option>
                             <option value="USAGE">Usage</option>
-                        </select>
+                            </select>
+                        </div>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Department</label>
-                        <select id="filter_dept_department_id" class="dept-filter-select2" style="width:100%">
+                        <label for="filter_dept_department_id" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
+                        <div class="sppb-f relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-users text-xs"></i></span>
+                            <select id="filter_dept_department_id" class="dept-filter-select2" style="width:100%">
                             <option value="">All Departments</option>
                             @foreach ($departments as $dept)
                                 <option value="{{ $dept->department_id }}">{{ $dept->department_id }} - {{ $dept->department_name }}</option>
                             @endforeach
-                        </select>
+                            </select>
+                        </div>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">VP Type</label>
-                        <select id="filter_dept_vp_type" class="dept-filter-select2" style="width:100%">
+                        <label for="filter_dept_vp_type" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">VP Type</label>
+                        <div class="sppb-f relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-tags text-xs"></i></span>
+                            <select id="filter_dept_vp_type" class="dept-filter-select2" style="width:100%">
                             <option value="">All VP Types</option>
                             <option value="V">Voucher</option>
                             <option value="P">Product</option>
-                        </select>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto p-5">
-                    <table id="tableDept" class="display w-full border-collapse text-sm">
+                <div class="relative overflow-hidden">
+                    <table id="tableDept" class="w-full border-separate border-spacing-0 text-sm" style="width:100%">
                         <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Company</th>
-                                <th>Warehouse ID</th>
-                                <th>Activity Type</th>
-                                <th>Department</th>
-                                <th>VP Type</th>
-                                <th>Status</th>
-                                <th class="text-right">Action</th>
+                            <tr class="bg-gray-50/70 dark:bg-white/[0.02]">
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">No</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Company</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Warehouse ID</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Activity Type</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Department</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">VP Type</th>
+                                <th class="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Status</th>
+                                <th class="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400">Action</th>
                             </tr>
                         </thead>
                     </table>
@@ -163,24 +145,26 @@
     {{-- ============================================================ --}}
     {{-- MODAL: Create Warehouse --}}
     {{-- ============================================================ --}}
-    <div id="createWhsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+    <div id="createWhsModal" class="vpl-pop fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+        <div class="vpl-dialog max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Add Warehouse</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Create VPL warehouse master data.</p>
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-plus"></i></span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Add Warehouse</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Create VPL warehouse master data.</p>
+                    </div>
                 </div>
-                <button type="button" onclick="toggleModal('#createWhsModal', false)"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">✕</button>
+                <button type="button" onclick="toggleModal('#createWhsModal', false)" aria-label="Close" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <form id="createWhsForm">
                 @csrf
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 bg-gray-50 p-5 dark:bg-gray-900/60 md:grid-cols-2">
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                         <select name="cpnyid" required class="whs-select2">
                             <option value="">Select Company</option>
                             @foreach ($usercpny as $c)
@@ -190,14 +174,14 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Warehouse ID <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Warehouse ID <span class="text-red-500">*</span></label>
                         <input type="text" name="whs_id" required
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            class="h-10 px-3 w-full rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 uppercase"
                             placeholder="e.g. WH001">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VP Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">VP Type</label>
                         <select name="vp_type" class="whs-select2">
                             <option value="">All</option>
                             <option value="V">Voucher</option>
@@ -207,11 +191,11 @@
 
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                     <button type="button" onclick="toggleModal('#createWhsModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
                     <button type="submit"
-                        class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Save Warehouse</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300 disabled:opacity-60">Save Warehouse</button>
                 </div>
             </form>
 
@@ -219,26 +203,28 @@
     </div>
 
     {{-- MODAL: Edit Warehouse --}}
-    <div id="editWhsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+    <div id="editWhsModal" class="vpl-pop fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+        <div class="vpl-dialog max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Edit Warehouse</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update VPL warehouse master data.</p>
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-pen-to-square"></i></span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Edit Warehouse</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Update VPL warehouse master data.</p>
+                    </div>
                 </div>
-                <button type="button" onclick="toggleModal('#editWhsModal', false)"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">✕</button>
+                <button type="button" onclick="toggleModal('#editWhsModal', false)" aria-label="Close" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <form id="editWhsForm">
                 @csrf
                 <input type="hidden" name="id" id="edit_whs_db_id">
 
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 bg-gray-50 p-5 dark:bg-gray-900/60 md:grid-cols-2">
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                         <select name="cpnyid" id="edit_whs_cpnyid" required class="whs-select2">
                             <option value="">Select Company</option>
                             @foreach ($usercpny as $c)
@@ -248,13 +234,13 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Warehouse ID</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Warehouse ID</label>
                         <input type="text" name="whs_id" id="edit_whs_id" readonly
-                            class="w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm uppercase shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white">
+                            class="h-10 w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-white/[0.04] dark:text-gray-300 uppercase">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VP Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">VP Type</label>
                         <select name="vp_type" id="edit_whs_vp_type" class="whs-select2">
                             <option value="">All</option>
                             <option value="V">Voucher</option>
@@ -264,11 +250,11 @@
 
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                     <button type="button" onclick="toggleModal('#editWhsModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
                     <button type="submit"
-                        class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Update Warehouse</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300 disabled:opacity-60">Update Warehouse</button>
                 </div>
             </form>
 
@@ -278,24 +264,26 @@
     {{-- ============================================================ --}}
     {{-- MODAL: Create Warehouse Dept --}}
     {{-- ============================================================ --}}
-    <div id="createDeptModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+    <div id="createDeptModal" class="vpl-pop fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+        <div class="vpl-dialog max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Add Warehouse Dept</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure department access for a warehouse.</p>
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-plus"></i></span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Add Warehouse Dept</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Configure department access for a warehouse.</p>
+                    </div>
                 </div>
-                <button type="button" onclick="toggleModal('#createDeptModal', false)"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">✕</button>
+                <button type="button" onclick="toggleModal('#createDeptModal', false)" aria-label="Close" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <form id="createDeptForm">
                 @csrf
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 bg-gray-50 p-5 dark:bg-gray-900/60 md:grid-cols-2">
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                         <select name="cpnyid" required class="dept-select2">
                             <option value="">Select Company</option>
                             @foreach ($usercpny as $c)
@@ -305,14 +293,14 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Warehouse ID <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Warehouse ID <span class="text-red-500">*</span></label>
                         <select name="whs_id" id="create_dept_whs_id" required class="dept-select2">
                             <option value="">Select Warehouse</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Activity Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Activity Type</label>
                         <select name="activity_type" class="dept-select2">
                             <option value="">All</option>
                             <option value="RECEIVE">Receive</option>
@@ -323,7 +311,7 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VP Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">VP Type</label>
                         <select name="vp_type" class="dept-select2">
                             <option value="">All</option>
                             <option value="V">Voucher</option>
@@ -333,7 +321,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                         <select name="department_id" class="dept-select2">
                             <option value="">— select department —</option>
                             @foreach ($departments as $dept)
@@ -344,11 +332,11 @@
 
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                     <button type="button" onclick="toggleModal('#createDeptModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
                     <button type="submit"
-                        class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Save</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300 disabled:opacity-60">Save</button>
                 </div>
             </form>
 
@@ -356,26 +344,28 @@
     </div>
 
     {{-- MODAL: Edit Warehouse Dept --}}
-    <div id="editDeptModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+    <div id="editDeptModal" class="vpl-pop fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+        <div class="vpl-dialog max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Edit Warehouse Dept</h2>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update department access configuration.</p>
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-pen-to-square"></i></span>
+                    <div class="min-w-0">
+                        <h2 class="text-base font-bold text-gray-800 dark:text-white">Edit Warehouse Dept</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Update department access configuration.</p>
+                    </div>
                 </div>
-                <button type="button" onclick="toggleModal('#editDeptModal', false)"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">✕</button>
+                <button type="button" onclick="toggleModal('#editDeptModal', false)" aria-label="Close" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <form id="editDeptForm">
                 @csrf
                 <input type="hidden" name="id" id="edit_dept_db_id">
 
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 bg-gray-50 p-5 dark:bg-gray-900/60 md:grid-cols-2">
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                         <select name="cpnyid" id="edit_dept_cpnyid" required class="dept-select2">
                             <option value="">Select Company</option>
                             @foreach ($usercpny as $c)
@@ -385,14 +375,14 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Warehouse ID <span class="text-red-500">*</span></label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Warehouse ID <span class="text-red-500">*</span></label>
                         <select name="whs_id" id="edit_dept_whs_id" required class="dept-select2">
                             <option value="">Select Warehouse</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Activity Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Activity Type</label>
                         <select name="activity_type" id="edit_dept_activity_type" class="dept-select2">
                             <option value="">All</option>
                             <option value="RECEIVE">Receive</option>
@@ -403,7 +393,7 @@
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VP Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">VP Type</label>
                         <select name="vp_type" id="edit_dept_vp_type" class="dept-select2">
                             <option value="">All</option>
                             <option value="V">Voucher</option>
@@ -413,7 +403,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                         <select name="department_id" id="edit_dept_department_id" class="dept-select2">
                             <option value="">— select department —</option>
                             @foreach ($departments as $dept)
@@ -424,11 +414,11 @@
 
                 </div>
 
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-end gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                     <button type="button" onclick="toggleModal('#editDeptModal', false)"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">Cancel</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
                     <button type="submit"
-                        class="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">Update</button>
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition focus:outline-none focus:ring-2 bg-blue-600 font-semibold text-white hover:bg-blue-500 focus:ring-blue-300 disabled:opacity-60">Update</button>
                 </div>
             </form>
 
@@ -465,12 +455,12 @@ const tabs = {
             const targetPanel = tabs[this.id];
 
             $('.tab-btn')
-                .removeClass('active-tab border-blue-200 bg-blue-50 text-blue-700')
-                .addClass('border-transparent bg-transparent text-gray-600');
+                .removeClass('active-tab bg-blue-600 text-white shadow-sm')
+                .addClass('bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900');
 
             $(this)
-                .removeClass('border-transparent bg-transparent text-gray-600')
-                .addClass('active-tab border-blue-200 bg-blue-50 text-blue-700');
+                .removeClass('bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900')
+                .addClass('active-tab bg-blue-600 text-white shadow-sm');
 
             Object.values(tabs).forEach(p => $(p).addClass('hidden'));
             $(targetPanel).removeClass('hidden');
@@ -505,7 +495,7 @@ const tabs = {
             initSelect2('#editDeptModal',   '.dept-select2');
 
             // Warehouse Dept filter bar
-            $('.dept-filter-select2').select2({ width: '100%', allowClear: true, placeholder: 'All' });
+            $('.dept-filter-select2').select2({ width: '100%', allowClear: true, placeholder: 'All', dropdownCssClass: 'sppb-s2-dropdown' });
             $('.dept-filter-select2').on('change', function () {
                 tableDept.ajax.reload(null, false);
             });
@@ -530,9 +520,9 @@ const tabs = {
                     {
                         data: 'vp_type', name: 'vp_type',
                         render: d => d === 'V'
-                            ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Voucher</span>'
+                            ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 px-2.5 py-0.5 text-xs font-semibold">Voucher</span>'
                             : d === 'P'
-                            ? '<span class="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">Product</span>'
+                            ? '<span class="inline-flex items-center rounded-full border border-[#e9d5ff] bg-[#faf5ff] text-[#7e22ce] dark:border-[#a855f7]/30 dark:bg-[#a855f7]/10 dark:text-[#d8b4fe] px-2.5 py-0.5 text-xs font-semibold">Product</span>'
                             : (d ?? '-')
                     },
                     { data: 'status_badge', orderable: false, searchable: false },
@@ -541,11 +531,14 @@ const tabs = {
                         render: function (data, type, row) {
                             const id      = String(row.id).replace(/'/g, "\\'");
                             const isActive = row.status === 'A';
-                            const toggleColor = isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700';
+                            const toggleColor = isActive
+                                ? 'border-red-100 bg-red-50 text-red-600 hover:border-red-600 hover:bg-red-600'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-600 hover:bg-emerald-600';
+                            const toggleIcon = isActive ? 'fa-ban' : 'fa-circle-check';
                             const toggleLabel = isActive ? 'Deactivate' : 'Activate';
                             return `<div class="flex items-center justify-end gap-2">
-                                <button onclick="editWarehouse('${id}')" class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white hover:bg-amber-600">Edit</button>
-                                <button onclick="toggleWarehouse('${id}', ${isActive ? 0 : 1})" class="rounded-lg ${toggleColor} px-3 py-1 text-xs text-white">${toggleLabel}</button>
+                                <button type="button" onclick="editWarehouse('${id}')" class="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:shadow-md border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-500"><i class="fa-solid fa-pen-to-square"></i>Edit</button>
+                                <button type="button" onclick="toggleWarehouse('${id}', ${isActive ? 0 : 1})" class="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:shadow-md min-w-[104px] ${toggleColor}"><i class="fa-solid ${toggleIcon}"></i>${toggleLabel}</button>
                             </div>`;
                         }
                     }
@@ -573,9 +566,9 @@ const tabs = {
                     {
                         data: 'vp_type', name: 'vp_type',
                         render: d => d === 'V'
-                            ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Voucher</span>'
+                            ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 px-2.5 py-0.5 text-xs font-semibold">Voucher</span>'
                             : d === 'P'
-                            ? '<span class="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">Product</span>'
+                            ? '<span class="inline-flex items-center rounded-full border border-[#e9d5ff] bg-[#faf5ff] text-[#7e22ce] dark:border-[#a855f7]/30 dark:bg-[#a855f7]/10 dark:text-[#d8b4fe] px-2.5 py-0.5 text-xs font-semibold">Product</span>'
                             : (d ?? '-')
                     },
                     { data: 'status_badge',   orderable: false, searchable: false },
@@ -584,11 +577,14 @@ const tabs = {
                         render: function (data, type, row) {
                             const id      = String(row.id).replace(/'/g, "\\'");
                             const isActive = row.status === 'A';
-                            const toggleColor = isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700';
+                            const toggleColor = isActive
+                                ? 'border-red-100 bg-red-50 text-red-600 hover:border-red-600 hover:bg-red-600'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-600 hover:bg-emerald-600';
+                            const toggleIcon = isActive ? 'fa-ban' : 'fa-circle-check';
                             const toggleLabel = isActive ? 'Deactivate' : 'Activate';
                             return `<div class="flex items-center justify-end gap-2">
-                                <button onclick="editDept('${id}')" class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white hover:bg-amber-600">Edit</button>
-                                <button onclick="toggleDept('${id}', ${isActive ? 0 : 1})" class="rounded-lg ${toggleColor} px-3 py-1 text-xs text-white">${toggleLabel}</button>
+                                <button type="button" onclick="editDept('${id}')" class="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:shadow-md border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-500"><i class="fa-solid fa-pen-to-square"></i>Edit</button>
+                                <button type="button" onclick="toggleDept('${id}', ${isActive ? 0 : 1})" class="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:shadow-md min-w-[104px] ${toggleColor}"><i class="fa-solid ${toggleIcon}"></i>${toggleLabel}</button>
                             </div>`;
                         }
                     }
@@ -724,7 +720,7 @@ const tabs = {
         }
 
         function baseTableConfig({ ajax, columns, order = [[1, 'asc']], searchPlaceholder = 'Search...' }) {
-            return { processing: true, serverSide: true, responsive: true, autoWidth: false, pageLength: 10, ajax, columns, order, language: { search: '', searchPlaceholder } };
+            return { processing: true, serverSide: true, responsive: true, autoWidth: false, pageLength: 10, ajax, columns, order, dom: '<"dt-toolbar"l f>rtip', language: { search: '', searchPlaceholder } };
         }
 
         function showLoading(title = 'Processing...') { Swal.fire({ title, allowOutsideClick: false, didOpen: () => Swal.showLoading() }); }

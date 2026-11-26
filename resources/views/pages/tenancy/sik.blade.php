@@ -1,9 +1,5 @@
 <x-app-layout>
     @php
-        $ctl = 'h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200';
-    @endphp
-
-    @php
         $cards = [
             ['ALL', 'All', '📦', 'all'],
             ['P', 'On Progress', '⏳', 'yellow'],
@@ -21,27 +17,30 @@
             @endforeach
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <x-ts-list-assets />
 
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">SIK Request</h2>
-                <div class="flex flex-wrap items-center gap-2">
-                    <select x-model="f.year" @change="reload()" class="{{ $ctl }}" title="SIK year">
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+
+            <x-ts-list-header title="SIK Request" hint="Work permit requests from tenants and their approval" icon="fa-file-signature">
+                <x-ts-filter icon="fa-calendar" class="w-40">
+                    <select x-model="f.year" @change="reload()" class="ts-s2" title="SIK year">
                         <option value="">All Years</option>
-                        @foreach ($years as $y)<option value="{{ $y }}">{{ $y }}</option>@endforeach
+                        @foreach ($years as $y)<option value="{{ $y }}" @selected($y == now()->year)>{{ $y }}</option>@endforeach
                     </select>
-                    <select x-model="f.siteid" @change="reload()" class="{{ $ctl }} w-48">
+                </x-ts-filter>
+                <x-ts-filter icon="fa-building" class="w-56">
+                    <select x-model="f.siteid" @change="reload()" class="ts-s2" title="Site">
                         <option value="">All Sites</option>
                         @foreach ($sites as $s)<option value="{{ $s->siteid }}">{{ $s->sitename }}</option>@endforeach
                     </select>
-                </div>
-            </div>
+                </x-ts-filter>
+            </x-ts-list-header>
 
-            <div class="p-2" x-ignore>
-                <table id="sikTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
+            <div class="relative overflow-x-auto" x-ignore>
+                <table id="sikTable" class="ts-rows w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
-                            <th class="px-4 py-3 text-center font-medium" style="text-align:center">SIK No</th>
+                            <th class="px-4 py-3 text-left font-medium">SIK No</th>
                             <th class="px-4 py-3 text-left font-medium">Date</th>
                             <th class="px-4 py-3 text-left font-medium">Site</th>
                             <th class="px-4 py-3 text-left font-medium">Tenant</th>
@@ -60,30 +59,33 @@
         <!-- Detail modal (same layout as the VPL/Receive view modal) -->
         <div x-show="detail" x-cloak @keydown.escape.window="closeDetail()"
             class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-slate-900/60 dark:bg-black/70" @click="closeDetail()"
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm dark:bg-black/70" @click="closeDetail()"
                 x-show="detail" x-transition.opacity.duration.200ms></div>
 
             <div x-show="detail" x-transition:enter="transition duration-200" x-transition:enter-start="translate-y-4 scale-[0.98] opacity-0" x-transition:enter-end="translate-y-0 scale-100 opacity-100"
-                class="relative z-10 flex max-h-[95vh] w-full max-w-[90rem] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                class="relative z-10 flex max-h-[95vh] w-full max-w-[90rem] flex-col overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 dark:bg-[#0f172a] dark:ring-white/10">
                 <template x-if="detail">
                     <div class="relative flex flex-col">
 
                         {{-- Header --}}
-                        <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
-                            <div>
-                                <h2 class="text-xl font-semibold text-slate-800 dark:text-white" x-text="'SIK — ' + detail.data.siknbr"></h2>
-                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">SIK information &amp; approval workflow.</p>
+                        <div class="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-white px-6 py-3.5 dark:border-white/[0.06] dark:bg-[#0f172a]">
+                            <div class="flex min-w-0 items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-file-signature"></i></span>
+                                <div class="min-w-0">
+                                <h2 class="text-base! font-bold tracking-tight text-gray-800 dark:text-white" x-text="'SIK — ' + detail.data.siknbr"></h2>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">SIK information &amp; approval workflow.</p>
+                                </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 {{-- Two PDFs per SIK: the permit (Surat Ijin Kerja) and the document detail --}}
                                 <div class="relative" x-data="{ pdfMenu: false }" @click.outside="pdfMenu = false" @keydown.escape.stop="pdfMenu = false">
                                     <button type="button" @click="pdfMenu = !pdfMenu" title="Print PDF"
-                                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                                         <i class="fa-solid fa-print text-base"></i><i class="fa-solid fa-chevron-down text-[10px]"></i>
                                     </button>
-                                    <div x-show="pdfMenu" x-cloak x-transition class="absolute right-0 top-12 z-40 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#0f172a]">
+                                    <div x-show="pdfMenu" x-cloak x-transition class="absolute right-0 top-12 z-40 w-64 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#0f172a]">
                                         <a :href="permitUrl()" target="_blank" @click="pdfMenu = false" class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5">
-                                            <i class="fa-solid fa-file-signature mt-0.5 text-indigo-500"></i>
+                                            <i class="fa-solid fa-file-signature mt-0.5 text-blue-600"></i>
                                             <span><span class="block text-sm font-semibold text-slate-700 dark:text-slate-200">SIK Permit</span><span class="block text-xs text-slate-400">Surat Ijin Kerja with signatures &amp; QR</span></span>
                                         </a>
                                         <a :href="printUrl()" target="_blank" @click="pdfMenu = false" class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5">
@@ -93,16 +95,16 @@
                                     </div>
                                 </div>
                                 <button type="button" @click="copyLink()" title="Copy link to this SIK"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                                     <i class="fa-solid fa-link text-base"></i>
                                 </button>
                                 <button type="button" @click="showChat = !showChat" title="Messages"
-                                    class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                                    class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                                     <i class="fa-regular fa-comments text-base"></i>
-                                    <span x-show="detail.messages.length" x-text="detail.messages.length" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-indigo-500 px-1 text-center text-[10px] font-semibold leading-4 text-white"></span>
+                                    <span x-show="detail.messages.length" x-text="detail.messages.length" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-blue-500 px-1 text-center text-[10px] font-semibold leading-4 text-white"></span>
                                 </button>
                                 <button type="button" @click="closeDetail()"
-                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
+                                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
                                     <i class="fa-solid fa-xmark text-lg"></i>
                                 </button>
                             </div>
@@ -113,18 +115,18 @@
 
                             {{-- LEFT --}}
                             <div class="space-y-4">
-                                <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
                                     {{-- Hero --}}
                                     <div class="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-3 dark:border-white/10">
                                         <div class="flex min-w-0 items-center gap-4">
-                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-base font-bold uppercase text-white shadow-sm shadow-indigo-600/30" x-text="(detail.data.created_user || '?').charAt(0)"></div>
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-base font-bold uppercase text-white shadow-sm" x-text="(detail.data.created_user || '?').charAt(0)"></div>
                                             <div class="min-w-0">
                                                 <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Created By</div>
                                                 <div class="truncate text-base font-semibold text-slate-900 dark:text-white" x-text="detail.data.created_user || '—'"></div>
                                                 <div class="mt-0.5 text-xs text-slate-500 dark:text-slate-400"><i class="fa-regular fa-clock mr-1"></i><span x-text="String(detail.data.sikdate || '').substring(0, 16)"></span></div>
                                             </div>
                                         </div>
-                                        <span class="inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold" :class="modalBadge(detail.data.status)">
+                                        <span class="inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 ring-inset" :class="modalBadge(detail.data.status)">
                                             <span class="h-2 w-2 rounded-full bg-current"></span><span x-text="detail.data.status_label"></span>
                                         </span>
                                     </div>
@@ -134,7 +136,7 @@
                                         <template x-for="g in infoGroups(detail.data)" :key="g.title">
                                             <div class="px-5 py-4">
                                                 <div class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                                    <span class="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10"><i class="fa-solid text-[11px]" :class="g.icon"></i></span>
+                                                    <span class="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-500 dark:bg-blue-500/10"><i class="fa-solid text-[11px]" :class="g.icon"></i></span>
                                                     <span x-text="g.title"></span>
                                                 </div>
                                                 <div class="grid grid-cols-1 gap-y-2.5">
@@ -155,11 +157,11 @@
                                         <div class="grid grid-cols-1 gap-3 px-5 py-4 lg:grid-cols-2">
                                             <template x-for="[label, val, icon] in textFields(detail.data)" :key="label">
                                                 <div class="rounded-lg bg-slate-50 px-3.5 py-3 dark:bg-white/[0.03]">
-                                                    <div class="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><i class="fa-solid text-indigo-400" :class="icon"></i><span x-text="label"></span></div>
+                                                    <div class="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"><i class="fa-solid text-blue-400" :class="icon"></i><span x-text="label"></span></div>
                                                     <template x-if="label === 'Workers' && val">
                                                         <ol class="flex flex-wrap gap-x-4 gap-y-1">
                                                             <template x-for="(w, wi) in splitList(val)" :key="wi">
-                                                                <li class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600 dark:bg-indigo-500/20" x-text="wi + 1"></span><span x-text="w"></span></li>
+                                                                <li class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-600 dark:bg-blue-500/20" x-text="wi + 1"></span><span x-text="w"></span></li>
                                                             </template>
                                                         </ol>
                                                     </template>
@@ -171,15 +173,18 @@
                                 </div>
 
                                 {{-- Attachments --}}
-                                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
-                                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Attachments</h3>
+                                <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/10">
+                                        <div class="flex items-center gap-2.5">
+                                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-paperclip"></i></span>
+                                            <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Attachments</h3>
+                                        </div>
                                         <template x-if="detail.can.upload">
                                             <div>
                                                 <input type="file" x-ref="attachInput" class="hidden" accept=".jpg,.jpeg,.png,video/*" title="JPG, JPEG, PNG or video, max 5 MB per file" @change="upload($event)">
                                                 <button type="button" @click="$refs.attachInput.click()" :disabled="busy"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
-                                                    <i class="fa-solid fa-paperclip"></i> Add Attachment
+                                                    class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-dashed border-blue-300 px-3.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 disabled:opacity-50 dark:border-blue-500/40 dark:text-blue-300 dark:hover:bg-blue-500/10">
+                                                    <i class="fa-solid fa-plus"></i> Add Attachment
                                                 </button>
                                             </div>
                                         </template>
@@ -188,7 +193,7 @@
                                     <div class="divide-y divide-slate-100 dark:divide-white/10">
                                         <template x-for="(f, i) in detail.attachments" :key="i">
                                             <div class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
-                                                <a :href="f.url" target="_blank" rel="noopener" class="flex min-w-0 items-center gap-2 text-indigo-600 hover:underline dark:text-indigo-400">
+                                                <a :href="f.url" target="_blank" rel="noopener" class="flex min-w-0 items-center gap-2 text-blue-600 hover:underline dark:text-blue-400">
                                                     <i class="fa-solid" :class="fileIcon(f.fileextension)"></i>
                                                     <span class="truncate" x-text="f.name + '.' + f.fileextension"></span>
                                                 </a>
@@ -202,7 +207,7 @@
                             {{-- RIGHT --}}
                             <div class="space-y-4">
                                 {{-- Reason (Reject / Revise) --}}
-                                <div x-show="detail.reason" class="overflow-hidden rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
+                                <div x-show="detail.reason" class="overflow-hidden rounded-2xl border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
                                     <div class="border-b border-yellow-100 px-5 py-2 dark:border-yellow-500/20">
                                         <h3 class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300" x-text="detail.data.status === 'R' ? 'Rejection Reason' : 'Revision Reason'"></h3>
                                     </div>
@@ -210,30 +215,31 @@
                                 </div>
 
                                 <template x-if="banner(detail.data.status)">
-                                    <div class="rounded-lg border px-4 py-3 text-sm font-medium" :class="banner(detail.data.status).cls">
+                                    <div class="rounded-xl border px-4 py-3 text-sm font-medium" :class="banner(detail.data.status).cls">
                                         <i class="fa-solid mr-2 shrink-0" :class="banner(detail.data.status).icon"></i><span x-text="banner(detail.data.status).text"></span>
                                     </div>
                                 </template>
 
                                 {{-- Extend approval: the approver whose turn it is adds a sub-level approver (SIK On Progress) --}}
                                 <div x-show="detail.can.extend">
-                                    <button type="button" @click="startAddApprover()" class="w-full rounded-lg bg-violet-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-violet-400"><i class="fa-solid fa-user-plus mr-1"></i> Extend Approval</button>
+                                    <button type="button" @click="startAddApprover()" class="h-10 w-full rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"><i class="fa-solid fa-user-plus mr-1"></i> Extend Approval</button>
                                 </div>
 
                                 {{-- Approve / Revise / Reject --}}
                                 <div x-show="detail.can.approve" class="space-y-3">
                                     <div class="flex items-center justify-between gap-2">
-                                        <button type="button" @click="startAction('A')" class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400"><i class="fa-solid fa-check mr-1"></i> Approve</button>
-                                        <button type="button" @click="startAction('D')" class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300 dark:text-white"><i class="fa-solid fa-rotate-left mr-1"></i> Revise</button>
-                                        <button type="button" @click="startAction('R')" class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400"><i class="fa-solid fa-xmark mr-1"></i> Reject</button>
+                                        <button type="button" @click="startAction('A')" class="h-10 flex-1 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i class="fa-solid fa-check mr-1"></i> Approve</button>
+                                        <button type="button" @click="startAction('D')" class="h-10 flex-1 rounded-lg bg-amber-400 px-3 text-sm font-semibold text-amber-950 shadow-sm transition hover:bg-amber-500"><i class="fa-solid fa-rotate-left mr-1"></i> Revise</button>
+                                        <button type="button" @click="startAction('R')" class="h-10 flex-1 rounded-lg bg-red-600 px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"><i class="fa-solid fa-xmark mr-1"></i> Reject</button>
                                     </div>
                                 </div>
 
-                                <div x-show="!detail.approvals.length" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.02]">No approval records.</div>
+                                <div x-show="!detail.approvals.length" class="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/[0.02]">No approval records.</div>
 
-                                <div x-show="detail.approvals.length" class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                                    <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
-                                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Approval Workflow</h3>
+                                <div x-show="detail.approvals.length" class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    <div class="flex items-center gap-2.5 border-b border-gray-100 px-5 py-3 dark:border-white/10">
+                                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-route"></i></span>
+                                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Approval Workflow</h3>
                                     </div>
                                     <div class="space-y-4 p-4">
                                         <template x-for="(a, i) in detail.approvals" :key="i">
@@ -262,15 +268,15 @@
                         </div>
 
                         {{-- Footer --}}
-                        <div class="border-t border-slate-200 px-7 py-4 dark:border-white/10">
-                            <button type="button" @click="closeDetail()" class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">Close</button>
+                        <div class="flex justify-end border-t border-gray-100 bg-gray-50/70 px-6 py-3.5 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                            <button type="button" @click="closeDetail()" class="inline-flex h-10 items-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10">Close</button>
                         </div>
 
                         {{-- Discussion / messages panel --}}
                         <div x-show="showChat" x-transition
-                            class="absolute bottom-16 right-0 z-30 w-[380px] max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
-                            <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
-                                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Messages</h3>
+                            class="absolute bottom-16 right-0 z-30 w-[380px] max-w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                            <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-white/10">
+                                <h3 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100"><i class="fa-regular fa-comments text-blue-600"></i>Messages</h3>
                                 <button type="button" @click="showChat = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
                             </div>
                             <div x-ref="chatBody" class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
@@ -290,12 +296,12 @@
                             <div class="relative flex items-end gap-2 border-t border-slate-200 p-3 dark:border-white/10">
                                 {{-- @mention picker: creator + approvers of this SIK --}}
                                 <div x-show="mention.open && mentionList().length" x-cloak
-                                    class="absolute bottom-full left-3 right-3 mb-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#0f172a]">
+                                    class="absolute bottom-full left-3 right-3 mb-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-[#0f172a]">
                                     <template x-for="(p, i) in mentionList()" :key="p.username">
                                         <button type="button" @mousedown.prevent="pickMention(p)" @mouseenter="mention.index = i"
                                             class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                                            :class="i === mention.index ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''">
-                                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold uppercase text-indigo-600" x-text="p.username.charAt(0)"></span>
+                                            :class="i === mention.index ? 'bg-blue-50 dark:bg-blue-500/10' : ''">
+                                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold uppercase text-blue-600" x-text="p.username.charAt(0)"></span>
                                             <span class="min-w-0 flex-1">
                                                 <span class="block truncate font-medium text-slate-800 dark:text-slate-100" x-text="p.name"></span>
                                                 <span class="block truncate text-[11px] text-slate-400" x-text="'@' + p.username"></span>
@@ -310,9 +316,9 @@
                                     @keydown.up="if (mention.open) { $event.preventDefault(); mention.index = Math.max(mention.index - 1, 0); }"
                                     @keydown.escape.stop="mention.open = false"
                                     @keydown.enter.prevent="if (mention.open && mentionList().length) pickMention(mentionList()[mention.index]); else if (!$event.shiftKey) sendMessage()"
-                                    class="max-h-24 min-h-9 flex-1 resize-none rounded-lg border border-slate-200 bg-white p-2 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-200"></textarea>
+                                    class="max-h-24 min-h-9 flex-1 resize-none rounded-lg border border-gray-200 bg-white p-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-200"></textarea>
                                 <button type="button" @click="sendMessage()" :disabled="busy || !chatText.trim()"
-                                    class="h-9 rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"><i class="fa-solid fa-paper-plane"></i></button>
+                                    class="h-9 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"><i class="fa-solid fa-paper-plane"></i></button>
                             </div>
                         </div>
                     </div>
@@ -326,15 +332,8 @@
             const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
             const fmt = d => d ? String(d).substring(0, 10) : '-';
             const badgeCls = { C: 'bg-emerald-50 text-emerald-700', P: 'bg-amber-50 text-amber-700', R: 'bg-rose-50 text-rose-700', H: 'bg-blue-50 text-blue-700', X: 'bg-gray-100 text-gray-600' };
-            // same badge look as the other lists (tinted background + border, square corners)
-            const listBadge = {
-                P: 'bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 border-orange-600/40',
-                C: 'bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 border-green-600/40',
-                R: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
-                X: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
-                H: 'bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 border-amber-600/40',
-                E: 'bg-sky-200/60 text-sky-800 dark:bg-sky-300/40 dark:text-sky-900 border-sky-600/40',
-            };
+            // status pill colours follow the status cards
+            const tones = { P: 'yellow', C: 'green', H: 'blue', R: 'red', X: 'red', E: 'sky' };
             const cols = ['siknbr', 'sikdate', 'sitename', 'storename', 'requestname', 'startdate', 'created_user', 'status'];
             let dt = null;
 
@@ -377,14 +376,14 @@
                         },
                         createdRow(row, r) { row.dataset.eid = r.eid; },
                         columns: [
-                            { data: 'siknbr', className: 'text-center dt-body-center', render: v => `<span class="inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700">${esc(v)}</span>` },
+                            { data: 'siknbr', render: v => `<span class="${window.listCls.doc}">${window.listDocText(esc(v))}</span>` },
                             { data: 'sikdate', render: fmt },
                             { data: 'sitename', render: esc },
                             { data: 'storename', render: (v, t, r) => `${esc(v)} <span class="text-xs text-gray-400">${esc([r.floor, r.unit].filter(Boolean).join(' / '))}</span>` },
                             { data: 'requestname', render: esc },
                             { data: 'startdate', render: (v, t, r) => `${fmt(v)} – ${fmt(r.enddate)}` + (r.totalextend > 0 ? ` <span class="ml-1 text-xs text-amber-600">(+${esc(r.totalextend)} ext)</span>` : '') },
                             { data: 'created_user', render: esc },
-                            { data: 'status', render: (v, t, r) => `<span class="${listBadge[v] || listBadge.H} pointer-events-none inline-block w-32 rounded border px-4 py-2 text-center font-semibold">${esc(r.status_label)}</span>` },
+                            { data: 'status', render: (v, t, r) => window.listBadge(tones[v] || 'slate', esc(r.status_label), true) },
                         ],
                     });
                     $('#sikTable tbody').on('click', 'tr', function () {
@@ -601,7 +600,7 @@
                 msgHtml(text) {
                     const known = new Set((this.detail?.mentionable || []).map(p => p.username.toLowerCase()));
                     return esc(text).replace(/@([\w.]+)/g, (all, u) => known.has(u.toLowerCase())
-                        ? `<span class="rounded bg-indigo-100 px-1 font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">@${u}</span>` : all);
+                        ? `<span class="rounded bg-blue-100 px-1 font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">@${u}</span>` : all);
                 },
                 async sendMessage() {
                     if (!this.chatText.trim()) return;
@@ -638,9 +637,16 @@
                     }
                 },
                 badge(s) { return badgeCls[s] || 'bg-gray-100 text-gray-600'; },
-                // same tint as the VPL view modal's status badge
+                // same pill colours as the list
                 modalBadge(s) {
-                    return { P: 'bg-yellow-300/30 text-yellow-600', C: 'bg-green-300/30 text-green-600', R: 'bg-red-300/30 text-red-600', X: 'bg-red-300/30 text-red-600', H: 'bg-blue-300/30 text-blue-600', E: 'bg-sky-300/30 text-sky-600' }[s] || 'bg-slate-300/30 text-slate-600';
+                    return {
+                        P: 'bg-yellow-50 text-yellow-700 ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30',
+                        C: 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30',
+                        R: 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30',
+                        X: 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30',
+                        H: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30',
+                        E: 'bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:ring-sky-500/30',
+                    }[s] || 'bg-slate-50 text-slate-600 ring-slate-200 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10';
                 },
                 // grouped facts, each [label, value, icon]
                 infoGroups(d) {

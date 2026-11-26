@@ -1,7 +1,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div id="nonStockBusyOverlay" class="hidden fixed inset-0 z-[9999] pointer-events-auto">
-    <div class="absolute inset-0 bg-black/40 pointer-events-auto"></div>
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm pointer-events-auto"></div>
 
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3 dark:bg-gray-800 dark:border-gray-700">
@@ -21,21 +21,21 @@
 
 <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-6">
     <div>
-        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Start Date</label>
+        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Start Date</label>
         <input type="date" id="ns_from"
-               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
+               class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">End Date</label>
+        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">End Date</label>
         <input type="date" id="ns_to"
-               class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
+               class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</label>
         <select id="ns_status"
-                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
+                class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
             <option value="">All Status</option>
             <option value="H">H</option>
             <option value="P">P</option>
@@ -44,9 +44,9 @@
     </div>
 
     <div>
-        <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Show</label>
+        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Show</label>
         <select id="ns_per_page"
-                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700">
+                class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
             <option value="25" selected>25</option>
             <option value="50">50</option>
             <option value="100">100</option>
@@ -55,14 +55,14 @@
 
     <div class="flex items-end">
         <button type="button" id="btnLoadNonStock"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700">
+                class="w-full inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
             Load
         </button>
     </div>
 
     <div class="flex items-end">
         <button type="button" id="btnProcessNonStock"
-                class="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                class="w-full inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">
             Process
         </button>
     </div>
@@ -70,7 +70,7 @@
 
 <div id="nsInfo" class="mb-3 hidden rounded-lg border px-4 py-3 text-sm"></div>
 
-<div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
     <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3 dark:bg-gray-900 dark:border-gray-700">
         <div class="text-sm text-gray-600 dark:text-gray-400">
             Total: <span class="font-semibold" id="nsTotal">0</span>
@@ -81,17 +81,17 @@
 
     <div class="overflow-x-auto">
         <table class="min-w-full table-fixed text-sm">
-            <thead class="bg-white dark:bg-gray-800">
+            <thead class="bg-gray-50 dark:bg-white/[0.03]">
             <tr class="border-b border-gray-200 text-left text-gray-600 dark:text-gray-400 dark:border-gray-700">
-                <th class="w-10 px-3 py-2 align-middle">
+                <th class="w-10 px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     <input type="checkbox" id="nsChkAll" class="rounded border-gray-300 dark:border-gray-700">
                 </th>
-                <th class="w-48 px-3 py-2 align-middle">Inventory ID</th>
-                <th class="w-[420px] px-3 py-2 align-middle">Description</th>
-                <th class="w-24 px-3 py-2 align-middle">UOM</th>
-                <th class="w-24 px-3 py-2 align-middle">Status</th>
-                <th class="w-[420px] px-3 py-2 align-middle">Response</th>
-                <th class="w-40 px-3 py-2 align-middle">Last Update</th>
+                <th class="w-48 px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Inventory ID</th>
+                <th class="w-[420px] px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</th>
+                <th class="w-24 px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">UOM</th>
+                <th class="w-24 px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                <th class="w-[420px] px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Response</th>
+                <th class="w-40 px-3 py-2 align-middle whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Update</th>
             </tr>
             </thead>
             <tbody id="nsTbody" class="divide-y divide-gray-100">

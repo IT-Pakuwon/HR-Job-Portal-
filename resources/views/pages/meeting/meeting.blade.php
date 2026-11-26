@@ -1,4 +1,8 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-event-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
     <style>
         /* =====================================
    🔥 GLOBAL (NO PAGE SCROLL)
@@ -74,7 +78,7 @@
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
         <div
-            class="{{ request()->boolean('embed') ? 'hidden' : '' }} mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm      dark:border-white/10 dark:bg-white/5">
+            class="{{ request()->boolean('embed') ? 'hidden' : '' }} mb-4 shrink-0 rounded-xl border border-gray-200 bg-white px-5 py-3.5 shadow-sm      dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -82,10 +86,7 @@
                 <div class="flex items-center gap-3">
 
                     {{-- ICON --}}
-                    <div
-                        class="{{ request()->is('meeting')
-                            ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10'
-                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10' }} flex h-10 w-10 items-center justify-center rounded-xl">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
 
                         @if (request()->is('meeting'))
                             <!-- calendar -->
@@ -106,10 +107,10 @@
 
                     {{-- TITLE --}}
                     <div>
-                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <h1 class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100">
                             {{ request()->is('meeting') ? 'Meeting Calendar' : 'Booking Teams / Zoom' }}
                         </h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             {{ request()->is('meeting')
                                 ? 'Manage and schedule meetings efficiently'
                                 : 'Schedule and manage your online meetings' }}
@@ -177,7 +178,7 @@
         <div
             class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0 dark:bg-gray-800">
 
-            <div class="relative flex-1 min-h-0 overflow-hidden">
+            <div class="fc-skin relative flex-1 min-h-0 overflow-hidden">
 
                 <div class="h-[90%] overflow-auto rounded-xl">
                     <div id="calendar" class="h-full w-full"></div>
@@ -189,13 +190,13 @@
 
 
         <!-- 🔥 CREATE MODAL -->
-        <div id="schedule-show" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4">
+        <div id="schedule-show" class="itm sf-field ev-ts fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4">
 
-            <div class="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl dark:bg-gray-900">
-                <div class="space-y-6 overflow-y-auto px-6 py-5">
+            <div class="itm-dialog flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+                <div class="overflow-y-auto">
                     {{-- HEADER --}}
                     <div
-                        class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                        class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                                 Create Meeting
@@ -206,7 +207,7 @@
                         </div>
 
                         <button type="button" id="closeScheduleModal"
-                            class="rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+                            class="itm-close rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
                             ✕
                         </button>
                     </div>
@@ -374,15 +375,15 @@
 
                         {{-- FOOTER --}}
                         <div
-                            class="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+                            class="itm-foot flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
 
                             <button type="button" id="cancelScheduleModal"
-                                class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-white">
+                                class="itm-btn text-sm text-gray-500 hover:text-gray-700 dark:hover:text-white">
                                 Cancel
                             </button>
 
                             <button type="button" id="submitBtn"
-                                class="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-black disabled:opacity-60">
+                                class="itm-primary inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-black disabled:opacity-60">
 
                                 <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -405,12 +406,12 @@
 
         <!-- 🔥 VIEW / EDIT MODAL -->
         <div id="event-show"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4  ">
+            class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4  ">
 
-            <div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 <!-- HEADER -->
-                <div class="flex items-center justify-between border-b bg-gray-50 px-6 py-4 dark:bg-gray-800">
+                <div class="itm-head flex items-center justify-between border-b bg-gray-50 px-6 py-4 dark:bg-gray-800">
                     <div class="flex items-center gap-3">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -426,7 +427,7 @@
                     </div>
 
                     <button id="closeEventModal"
-                        class="text-lg text-gray-400 hover:text-gray-700 dark:hover:text-white">
+                        class="itm-close text-lg text-gray-400 hover:text-gray-700 dark:hover:text-white">
                         ✕
                     </button>
                 </div>
@@ -513,7 +514,7 @@
 
                         <!-- RIGHT -->
                         <div class="md:col-span-2">
-                            <div class="flex h-full flex-col rounded-xl border bg-gray-50 p-4 dark:bg-gray-800">
+                            <div class="itm-card flex h-full flex-col rounded-xl border bg-gray-50 p-4 dark:bg-gray-800">
 
                                 <div class="mb-3 flex justify-between">
                                     <p class="text-sm font-semibold">Participants</p>
@@ -530,7 +531,7 @@
 
 
                 <!-- ONLINE MEETING LINK BAR (Teams or Zoom) -->
-                <div id="teamsBar" class="flex hidden items-center justify-between border-t bg-blue-50 px-6 py-3">
+                <div id="teamsBar" class="itm-foot flex hidden items-center justify-between border-t bg-blue-50 px-6 py-3">
 
                     <span id="teamsBarLabel" class="text-sm font-medium text-blue-700">
                         💬 Microsoft Teams Meeting
@@ -560,16 +561,16 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4 dark:bg-gray-900">
+                <div class="itm-foot flex items-center justify-between border-t bg-gray-50 px-6 py-4 dark:bg-gray-900">
 
                     <button id="closeEventModal2"
-                        class="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
+                        class="itm-btn rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
                         Close
                     </button>
 
                     <div class="flex gap-2">
                         <button id="editMeetingBtn"
-                            class="hidden rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                            class="itm-primary hidden rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                             Edit
                         </button>
 

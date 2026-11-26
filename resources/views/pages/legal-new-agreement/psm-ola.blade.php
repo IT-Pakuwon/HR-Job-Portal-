@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-list-styles />
     @include('pages.legal-agreement.partial.style')
 
     <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
@@ -125,10 +126,12 @@
                     @include('pages.legal-agreement.partial.section-jobs')
                 </div>
 
-                <div data-source-panel="psmola" class="mt-4 hidden">
-                    <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+                <div data-source-panel="psmola" class="hidden">
+                    <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                        <x-list-page-header title="From PSM / OLA" subtitle="Start from an existing PSM / OLA" />
+                        <div class="overflow-x-auto">
                         <table id="psmOlaSourceTable" class="w-full text-sm">
-                            <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                            <thead>
                                 <tr>
                                     <th class="px-4 py-3 text-left" style="width:60px;">Action</th>
                                     <th class="px-4 py-3 text-left">Agreement No</th>
@@ -144,6 +147,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
+                    </div>
                 </div>
             @else
                 @include('pages.legal-agreement.partial.section-jobs')
@@ -152,10 +156,11 @@
 
         {{-- Draft tab: saved from Review with "Save as Draft". Edit, then Process to make it Active. --}}
         <div data-tab-panel="draft" class="mt-4 hidden">
-            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'draft', 'noExport' => true])
-            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'draft', 'title' => 'Draft ' . $kind['label'], 'subtitle' => 'Saved drafts. Edit, then process to make them active', 'noExport' => true])
+                <div class="overflow-x-auto">
                 <table id="draftTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
@@ -171,15 +176,17 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
             </div>
         </div>
 
         {{-- Active tab: saved PSM/OLA Pembuatan agreements at step ACTIVE --}}
         <div data-tab-panel="active" class="mt-4 hidden">
-            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'active'])
-            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'active', 'title' => 'Active ' . $kind['label'], 'subtitle' => 'Agreements in progress'])
+                <div class="overflow-x-auto">
                 <table id="activeTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
@@ -196,14 +203,16 @@
                     <tbody></tbody>
                 </table>
             </div>
+            </div>
         </div>
 
         {{-- Completed tab: PSM/OLA Pembuatan agreements completed by their creator (read-only) --}}
         <div data-tab-panel="completed" class="mt-4 hidden">
-            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'completed'])
-            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'completed', 'title' => 'Completed ' . $kind['label'], 'subtitle' => 'Agreements completed by their creator'])
+                <div class="overflow-x-auto">
                 <table id="completedTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
@@ -218,16 +227,18 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
             </div>
         </div>
 
         {{-- Follow Up tab: PSM / OLAs and Addendums that moved on to Agreement FU. Read-only here; each opens its Agreement FU page. --}}
         @if ($kind['follow_up_types'])
         <div data-tab-panel="followup" class="mt-4 hidden">
-            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'followup', 'noExport' => true])
-            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'followup', 'title' => 'Follow Up', 'subtitle' => 'Agreements that moved on to Agreement FU', 'noExport' => true])
+                <div class="overflow-x-auto">
                 <table id="followupTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
@@ -243,15 +254,17 @@
                     <tbody></tbody>
                 </table>
             </div>
+            </div>
         </div>
         @endif
 
         {{-- Cancelled tab: cancelled agreements. Read-only; Reopen is in the agreement's Actions. --}}
         <div data-tab-panel="cancelled" class="mt-4 hidden">
-            @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'cancelled'])
-            <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="dt-pretty mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
+                @include('pages.legal-new-agreement.partial.list-filters', ['prefix' => 'cancelled', 'title' => 'Cancelled ' . $kind['label'], 'subtitle' => 'Cancelled agreements'])
+                <div class="overflow-x-auto">
                 <table id="cancelledTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">{{ $kind['no_label'] }}</th>
@@ -266,6 +279,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
             </div>
         </div>
     </div>
@@ -280,7 +294,7 @@
            panel > #newAgrScroll > #newAgrModalBody > .step-head + form > visible step panel > .step-body + .step-foot */
         #newAgrScroll, #newAgrModalBody, #newAgrModal .step-form, #newAgrModal [data-step-panel]:not(.hidden) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
         #newAgrModal .step-head { flex: none; padding: 1.5rem 1.5rem 0; }
-        #newAgrModal .step-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 1.5rem 1rem; }
+        #newAgrModal .step-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1rem 1.5rem; }
         #newAgrModal .step-foot { flex: none; margin: 0; padding: 1rem 1.5rem 1.5rem; }
         /* Review step: collapsible sections */
         #newAgrReview details.rv-sec > summary { list-style: none; }
@@ -1407,11 +1421,11 @@
 
             // Selected-card highlight, same look as the Tenant Support status cards (darker fill + border + shadow).
             const CARD_ACTIVE = {
-                jobs: 'border-2! p-[11px]! font-bold! bg-purple-100! border-purple-700! text-purple-700! shadow-[0_4px_14px_-4px_rgba(147,51,234,.55)]! -translate-y-px dark:bg-purple-500/20! dark:border-purple-400! dark:text-purple-200!',
+                jobs: 'border-2! p-[11px]! font-bold! bg-purple-100! border-purple-700! text-purple-700! shadow-[0_4px_14px_-4px_rgba(49,147,218,.55)]! -translate-y-px dark:bg-purple-500/20! dark:border-purple-400! dark:text-purple-200!',
                 draft: 'border-2! p-[11px]! font-bold! bg-pink-100! border-pink-700! text-pink-700! shadow-[0_4px_14px_-4px_rgba(219,39,119,.55)]! -translate-y-px dark:bg-pink-500/20! dark:border-pink-400! dark:text-pink-200!',
                 active: 'border-2! p-[11px]! font-bold! bg-green-100! border-green-700! text-green-700! shadow-[0_4px_14px_-4px_rgba(22,163,74,.55)]! -translate-y-px dark:bg-green-500/20! dark:border-green-400! dark:text-green-200!',
-                completed: 'border-2! p-[11px]! font-bold! bg-blue-100! border-blue-700! text-blue-700! shadow-[0_4px_14px_-4px_rgba(86, 177, 243,.55)]! -translate-y-px dark:bg-blue-500/20! dark:border-blue-400! dark:text-blue-200!',
-                followup: 'border-2! p-[11px]! font-bold! bg-indigo-100! border-indigo-700! text-indigo-700! shadow-[0_4px_14px_-4px_rgba(49, 147, 218,.55)]! -translate-y-px dark:bg-indigo-500/20! dark:border-indigo-400! dark:text-indigo-200!',
+                completed: 'border-2! p-[11px]! font-bold! bg-blue-100! border-blue-700! text-blue-700! shadow-[0_4px_14px_-4px_rgba(49,147,218,.55)]! -translate-y-px dark:bg-blue-500/20! dark:border-blue-400! dark:text-blue-200!',
+                followup: 'border-2! p-[11px]! font-bold! bg-indigo-100! border-indigo-700! text-indigo-700! shadow-[0_4px_14px_-4px_rgba(49,147,218,.55)]! -translate-y-px dark:bg-indigo-500/20! dark:border-indigo-400! dark:text-indigo-200!',
                 cancelled: 'border-2! p-[11px]! font-bold! bg-red-100! border-red-700! text-red-700! shadow-[0_4px_14px_-4px_rgba(220,38,38,.55)]! -translate-y-px dark:bg-red-500/20! dark:border-red-400! dark:text-red-200!',
             };
 
@@ -1464,7 +1478,7 @@
             });
 
             /* Addendum Jobs: two sources, IFCA staging jobs or an existing PSM / OLA. */
-            const ADN_ACTIVE = 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900';
+            const ADN_ACTIVE = 'bg-blue-600 text-white shadow-sm';
             const ADN_IDLE = 'text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-white/[0.06]';
             let currentAdnSource = 'ifca';
             let psmOlaSourceTable = null;

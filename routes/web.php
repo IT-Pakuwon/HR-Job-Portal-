@@ -1951,6 +1951,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/tags', 'tags')->name('tags');
             Route::get('/pic-users', 'picUsers')->name('pic-users');
             Route::post('/favorites/toggle', 'toggleFavorite')->name('favorites.toggle');
+            // Unread chat badges (Task Management sidebar / Message tab).
+            Route::get('/chat-unread', 'chatUnread')->name('chat-unread');
+            Route::post('/chat-read', 'chatRead')->name('chat-read');
             Route::post('/', 'store')->name('store');
             Route::post('/statuses', 'storeStatus')->name('statuses.store');
             Route::get('/{projectId}/detail', 'detail')->name('detail');

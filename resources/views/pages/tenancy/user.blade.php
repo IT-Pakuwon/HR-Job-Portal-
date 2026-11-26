@@ -1,14 +1,14 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
 
     <div class="max-w-9xl mx-auto w-full p-2" x-data="{ activeType: 'SUPERADMIN' }">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
 
-            <div class="flex flex-row items-start justify-between gap-4 rounded-t-xl border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center">
+            <div class="flex flex-row items-start justify-between gap-4 rounded-t-xl border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center set-head">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                        <i class="fas fa-users text-sm"></i>
-                    </span>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">User List</h2>
+                    
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-users"></i></span><span>User List<span class="set-hint">Tenant portal user accounts</span></span></h2>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="inline-flex h-10 items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -83,14 +83,11 @@
         <!-- COPY FROM MS_USER MODAL -->
         <div id="copyMsUserModal" class="tsModalBackdrop fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/60 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200">
             <div class="ts-modal-panel relative flex max-h-[90vh] w-full max-w-2xl scale-95 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-                <div class="flex items-start justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent">
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/80 to-white px-6 py-4 dark:border-white/[0.06] dark:from-indigo-500/10 dark:to-transparent set-head">
                     <div class="flex items-start gap-3">
-                        <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
-                            <i class="fas fa-user-plus"></i>
-                        </span>
+                        
                         <div>
-                            <h2 class="text-base font-semibold leading-tight text-gray-800 dark:text-gray-100">Copy from ms_user</h2>
-                            <p class="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400"><span id="copyMsUserHint">Superadmin / Admin / Checker: people with the <b>ACCESSTS</b> role who aren't in tenancy yet.</span></p>
+                            <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Copy from ms_user<span class="set-hint"><span id="copyMsUserHint">Superadmin / Admin / Checker: people with the <b>ACCESSTS</b> role who aren't in tenancy yet.</span></span></span></h2>
                         </div>
                     </div>
                     <button type="button" class="tsModalClose flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200" data-modal="copyMsUserModal" aria-label="Close"><i class="fas fa-times"></i></button>

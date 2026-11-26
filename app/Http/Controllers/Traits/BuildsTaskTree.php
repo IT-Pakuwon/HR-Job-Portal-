@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Traits;
 use App\Models\TrAttachment;
 use App\Models\TrProjectMessage;
 use App\Services\PmChatAccess;
+use App\Services\PrivateChatAudience;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -74,14 +75,12 @@ trait BuildsTaskTree
     {
         $byId = $all->keyBy('task_id');
         $user = Auth::user();
-        $admin = PmChatAccess::isAdmin($user);
         $audiences = PmChatAccess::audiences($taskDoctype, $all);
         $opens = fn ($id) => $canOpen === null || ($canOpen[$id] ?? false);
 
         // A row whose parent also has a parent is a checklist item.
         $tasks = $all->reject(fn ($t) => $byId->get($t->parent_task_id)?->parent_task_id)
-            ->filter(fn ($t) => $admin
-                || ($opens($t->task_id) && PmChatAccess::includes($audiences->get($t->task_id), $user)));
+            ->filter(fn ($t) => $opens($t->task_id) && PmChatAccess::includes($audiences->get($t->task_id), $user));
 
         $last = $this->latestMessages($taskDoctype, $tasks->pluck('task_id'));
 
@@ -91,9 +90,9 @@ trait BuildsTaskTree
                 'task_id' => $t->task_id,
                 'task_name' => $t->task_name,
                 'parent_name' => $byId->get($t->parent_task_id)?->task_name,
-                'locked' => (bool) $t->is_locked,
+                // Private itself or under a private Task: assignees only.
+                'locked' => $audiences->get($t->task_id) instanceof PrivateChatAudience,
                 'restricted' => $audiences->get($t->task_id) !== null,
-                // False for an admin outside a locked task: chat, but no popup.
                 'can_open' => $opens($t->task_id),
                 'last' => $last->get($t->task_id),
             ])->sortBy([

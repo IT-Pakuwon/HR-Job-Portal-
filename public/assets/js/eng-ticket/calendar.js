@@ -77,9 +77,8 @@ const EngTicketCalendar = {
                 activeStates.add(state);
             }
 
-            $(this)
-                .find('.calendar-status-card')
-                .toggleClass('ring-2 ring-offset-1 ring-current shadow-md', activeStates.has(state));
+            // the selected look follows .active on the card
+            $(this).toggleClass('active', activeStates.has(state));
 
             EngTicketCalendar.state.calendar?.refetchEvents();
         });

@@ -1,18 +1,20 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
 
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="flex flex-col gap-3 lg:flex-row">
 
             <!-- MASTER LIST -->
             <aside class="shrink-0 lg:w-64">
-                <div class="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:sticky lg:top-2">
+                <div class="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:sticky lg:top-2 set-card dt-pretty">
                     <div id="stNav" class="max-h-[78vh] space-y-3 overflow-y-auto p-1"></div>
                 </div>
             </aside>
 
             <!-- CONTENT -->
             <section class="min-w-0 flex-1">
-                <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
                         <div class="flex min-w-0 items-center gap-3">
                             <span id="stIcon" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"></span>

@@ -1,15 +1,16 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'attachments-master' ? 'Attachments Master' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
         <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📎 Attachment
-                    List</h2>
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-paperclip"></i></span><span>Attachment List<span class="set-hint">Find uploaded attachments</span></span></h2>
             </div>
 
             <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">

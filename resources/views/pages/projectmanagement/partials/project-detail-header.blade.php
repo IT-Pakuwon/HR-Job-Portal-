@@ -70,7 +70,11 @@
                 class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">
                 <i class="fas fa-pen text-[10px]"></i> Edit
             </button>
-            <button id="closeProjectDetailModal" type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10"><i class="fas fa-times"></i></button>
+            <button type="button" @click="fullscreen = !fullscreen" :title="fullscreen ? 'Exit full screen' : 'Full screen'"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-200">
+                <i class="fas text-xs" :class="fullscreen ? 'fa-compress' : 'fa-expand'"></i>
+            </button>
+            <button id="closeProjectDetailModal"type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10"><i class="fas fa-times"></i></button>
         </div>
     </div>
 

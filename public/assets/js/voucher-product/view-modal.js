@@ -71,10 +71,10 @@ const VplMasterViewModal = {
         VplMasterViewModal._setText('viewModal_productId', '...');
         document.getElementById('viewModal_status').innerHTML = '';
         document.getElementById('viewStockBody').innerHTML =
-            '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
+            '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-gray-400">Loading...</td></tr>';
         document.getElementById('viewStockTabs').innerHTML = '';
         document.getElementById('viewRelatedTrxBody').innerHTML =
-            '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
+            '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-gray-400">Loading...</td></tr>';
         VplMasterViewModal.currentStock = [];
         VplMasterViewModal.activeWhs = '';
         VplMasterViewModal.activeExp = '';
@@ -140,8 +140,8 @@ const VplMasterViewModal = {
         // Header
         VplMasterViewModal._setText('viewModal_productId', p.product_id);
         const statusHtml = p.status === 'A'
-            ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">Active</span>'
-            : '<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">Inactive</span>';
+            ? '<span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>'
+            : '<span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive</span>';
         document.getElementById('viewModal_status').innerHTML = statusHtml;
 
         // Tenant Info
@@ -190,17 +190,17 @@ const VplMasterViewModal = {
     _renderRelatedTransactions(rows) {
         const badgeClass = {
             'Transfer':        'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
-            'Return Transfer': 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+            'Return Transfer': 'bg-[#f3e8ff] text-[#7e22ce] dark:bg-[#a855f7]/20 dark:text-[#d8b4fe]',
             'Usage':           'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
             'Return Usage':    'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
         };
 
         let html = '';
         if (!rows.length) {
-            html = '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400">No on-progress transactions</td></tr>';
+            html = '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-gray-400">No on-progress transactions</td></tr>';
         } else {
             rows.forEach(row => {
-                const cls = badgeClass[row.type] ?? 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300';
+                const cls = badgeClass[row.type] ?? 'bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-300';
                 html += `
                     <tr>
                         <td class="px-4 py-2.5 text-sm">
@@ -209,8 +209,8 @@ const VplMasterViewModal = {
                         <td class="px-4 py-2.5 text-sm">
                             <a href="${row.url}" target="_blank" rel="noopener" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">${row.doc_no}</a>
                         </td>
-                        <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">${row.whs ?? '-'}</td>
-                        <td class="px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">${row.qty ?? 0}</td>
+                        <td class="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">${row.whs ?? '-'}</td>
+                        <td class="px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100">${row.qty ?? 0}</td>
                     </tr>`;
             });
         }
@@ -226,8 +226,8 @@ const VplMasterViewModal = {
         // Warehouse tabs: "All" plus one per distinct warehouse present.
         const whsList = [...new Set(stock.map(r => r.whs_id).filter(Boolean))].sort();
         const tabClass = (active) => active
-            ? 'vpl-stock-tab rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white'
-            : 'vpl-stock-tab rounded-md border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-white/[0.04] dark:text-blue-300 dark:hover:bg-blue-500/20';
+            ? 'vpl-stock-tab rounded-full border border-blue-600 bg-blue-600 px-3.5 py-1 text-xs font-semibold text-white shadow-sm'
+            : 'vpl-stock-tab rounded-full border border-gray-200 bg-white px-3.5 py-1 text-xs font-semibold text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-500/20';
 
         const tabsHtml = [`<button type="button" class="${tabClass(true)}" data-whs="">All</button>`]
             .concat(whsList.map(w => `<button type="button" class="${tabClass(false)}" data-whs="${w}">${w}</button>`))
@@ -275,16 +275,16 @@ const VplMasterViewModal = {
 
         let stockHtml = '';
         if (!filtered.length) {
-            stockHtml = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No stock data</td></tr>';
+            stockHtml = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-gray-400">No stock data</td></tr>';
         } else {
             filtered.forEach(row => {
                 const expRaw = row.expired_date ? String(row.expired_date).substring(0, 10) : '-';
                 const exp = expRaw === '1900-01-01' ? 'No Expired' : expRaw;
                 stockHtml += `
                     <tr>
-                        <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">${exp}</td>
-                        <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">${row.whs_id ?? '-'}</td>
-                        <td class="px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">${row.qty_available ?? 0}</td>
+                        <td class="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">${exp}</td>
+                        <td class="px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300">${row.whs_id ?? '-'}</td>
+                        <td class="px-4 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100">${row.qty_available ?? 0}</td>
                     </tr>`;
             });
         }

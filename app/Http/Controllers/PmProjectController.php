@@ -17,7 +17,9 @@ use App\Models\TrProjectTask;
 use App\Models\TrProjectTeam;
 use App\Models\TrTeamMember;
 use App\Models\User;
+use App\Models\TrProjectMessage;
 use App\Services\PmActivityLogger;
+use App\Services\PmChatUnread;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +46,7 @@ class PmProjectController extends Controller
 
     private function canBrowse(): bool
     {
-        return $this->hasProjectAccess() || $this->hasAdminAccess() || (bool) Auth::user()?->isPrimaryAdmin();
+        return $this->hasProjectAccess() || $this->hasAdminAccess();
     }
 
     // Creating Projects and managing them (edit, stage, link, archive,
@@ -52,7 +54,7 @@ class PmProjectController extends Controller
     // on Tasks only (see RequiresTaskAccess).
     private function canManageProjects(): bool
     {
-        return $this->hasAdminAccess() || (bool) Auth::user()?->isPrimaryAdmin();
+        return $this->hasAdminAccess();
     }
 
     private function assertCanManageProjects(): void
@@ -99,7 +101,7 @@ class PmProjectController extends Controller
             $teamIds->intersect($projectTeamIds)->isNotEmpty()
                 || $project->picUsernames()->contains($me)
                 || strtolower(trim((string) $project->created_by)) === $me
-                || Auth::user()->isPrimaryAdmin(),
+                || $this->hasAdminAccess(),
             403
         );
     }
@@ -467,10 +469,10 @@ class PmProjectController extends Controller
 
         $teamId = $request->query('team_id');
 
-        // Narrowing to one Team is only for that Team's members (myTeams()),
-        // module admins (every active Team), and the primary admin.
+        // Narrowing to one Team is only for that Team's members and module
+        // admins — myTeams() covers both.
         abort_if(
-            $teamId && !$teamIds->contains($teamId) && !Auth::user()->isPrimaryAdmin(),
+            $teamId && !$teamIds->contains($teamId),
             403,
             'You are not a member of this Team.'
         );
@@ -577,6 +579,35 @@ class PmProjectController extends Controller
         ]);
     }
 
+    // Unread chat counts for the sidebar's Teams / Projects, the Message tab
+    // and its chat list. Polled by the board page.
+    public function chatUnread()
+    {
+        abort_unless($this->canBrowse(), 403);
+
+        $unread = PmChatUnread::forUser(Auth::user(), $this->myTeams()->pluck('team_id'), $this->myProjectIds()->values());
+
+        // Cast so an empty list still reaches the page as an object.
+        return response()->json(['boards' => (object) $unread['boards'], 'threads' => (object) $unread['threads']]);
+    }
+
+    // The user has seen a chat thread up to message {last_id}.
+    public function chatRead(Request $request)
+    {
+        abort_unless($this->canBrowse(), 403);
+
+        $request->validate([
+            'doctype' => ['required', 'string', 'in:' . implode(',', TrProjectMessage::DOCTYPES)],
+            'refnbr' => ['required', 'string', 'max:20'],
+            'last_id' => ['required', 'integer', 'min:1'],
+        ]);
+        TrProjectTask::abortUnlessAccessible($request->doctype, $request->refnbr);
+
+        PmChatUnread::markRead(Auth::user(), $request->doctype, $request->refnbr, (int) $request->last_id);
+
+        return response()->json(['success' => true]);
+    }
+
     // Toggle a "My Favorite" star for a Team or Project in the sidebar.
     public function toggleFavorite(Request $request)
     {
@@ -638,7 +669,7 @@ class PmProjectController extends Controller
 
         $teamIds = collect($request->input('team_ids', []))->unique()->values();
         $myTeamIds = $this->myTeams()->pluck('team_id');
-        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isPrimaryAdmin(), 403);
+        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || $this->hasAdminAccess(), 403);
 
         $picEntries = $request->input('pics', []);
         $this->validatePicEntries($picEntries, $teamIds->all());
@@ -869,7 +900,7 @@ class PmProjectController extends Controller
 
         $teamIds = collect($request->input('team_ids', []))->unique()->values();
         $myTeamIds = $this->myTeams()->pluck('team_id');
-        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || Auth::user()->isPrimaryAdmin(), 403);
+        abort_unless($teamIds->every(fn ($t) => $myTeamIds->contains($t)) || $this->hasAdminAccess(), 403);
 
         $picEntries = $request->input('pics', []);
         $this->validatePicEntries($picEntries, $teamIds->all());

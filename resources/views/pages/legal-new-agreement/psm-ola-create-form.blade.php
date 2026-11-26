@@ -2,26 +2,26 @@
      Fetched over ajax into #newAgrModalBody on the PSM/OLA page. --}}
 {{-- Title + stepper stay pinned at the top of the modal; only the form body scrolls (see the .step-* rules on the page). --}}
 <div class="step-head">
-    <div class="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 pb-5 dark:border-white/[0.06]">
+    <div class="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-4 dark:border-white/[0.06]">
         <div class="flex items-center gap-3">
             <span
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-                <i class="fa-solid fa-file-signature text-lg"></i>
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                <i class="fa-solid fa-file-signature"></i>
             </span>
             <div>
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">{{ $isEdit ? 'Edit' : 'New' }}
+                <h3 class="text-base font-bold tracking-tight text-gray-800 dark:text-white">{{ $isEdit ? 'Edit' : 'New' }}
                     {{ $kind['label'] }}</h3>
                 <p class="text-xs text-slate-400">{{ $subtitle }}</p>
             </div>
         </div>
         <button type="button"
-            class="btn-close-new-agr flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.08] dark:hover:text-white">
+            class="btn-close-new-agr flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-white">
             <i class="fa-solid fa-xmark text-lg"></i>
         </button>
     </div>
 
     {{-- Stepper --}}
-    <ol class="mb-6 flex items-center gap-3 text-sm font-medium" id="newAgrStepper">
+    <ol class="mb-4 flex items-center gap-3 text-sm font-medium" id="newAgrStepper">
         <li class="step-pill flex items-center gap-2" data-step="1">
             <span class="step-num flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white">1</span>
             <span>Tenant Information</span>
@@ -56,6 +56,7 @@
     {{-- Step 1 --}}
     <div data-step-panel="1">
         <div class="step-body">
+                <div class="agr-card-block">
             {{-- Fields start locked; Edit unlocks them, Save keeps the changes (they
              are stored on the agreement when the whole form is saved at Review),
              Cancel puts back what was there before Edit. --}}
@@ -204,15 +205,16 @@
 
             </div>
 
+            </div>
         </div>
         <div
-            class="step-foot mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+            class="step-foot flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
             <button type="button"
-                class="btn-close-new-agr inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+                class="btn-close-new-agr inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-red-200 bg-red-50 font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
                 Close
             </button>
             <button type="button" id="btnNewAgrNext"
-                class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                 Next <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
@@ -222,6 +224,7 @@
     @if ($kind['checklist'])
         <div data-step-panel="2" class="hidden">
             <div class="step-body">
+                <div class="agr-card-block">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Document checklist</p>
                 <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Tick the documents the tenant has already
                     submitted, and add a note where needed.</p>
@@ -286,14 +289,15 @@
                 </template>
 
             </div>
+            </div>
             <div
-                class="step-foot mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+                class="step-foot flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
                 <button type="button" id="btnNewAgrBack"
-                    class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </button>
                 <button type="button" id="btnNewAgrNext2"
-                    class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                     Next <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
@@ -304,6 +308,7 @@
          The PIC pickers search users holding LEGALACCESS / LEASINGACCESS. --}}
     <div data-step-panel="3" class="hidden">
         <div class="step-body">
+                <div class="agr-card-block">
             <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $kind['label'] }} &amp; PIC</p>
             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Enter the agreement number and assign the people
                 in charge.</p>
@@ -368,15 +373,16 @@
                 </div>
             </div>
 
+            </div>
         </div>
         <div
-            class="step-foot mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+            class="step-foot flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
             <button type="button" id="btnNewAgrBack3"
-                class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </button>
             <button type="button" id="btnNewAgrNext3"
-                class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                 Next <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
@@ -392,9 +398,9 @@
 
         </div>
         <div
-            class="step-foot mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+            class="step-foot flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
             <button type="button" id="btnNewAgrBack2"
-                class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                 <i class="fa-solid fa-arrow-left"></i> Back
             </button>
             @if (!$isEdit || $isDraft)
@@ -411,7 +417,7 @@
                 </div>
             @else
                 <button type="submit"
-                    class="inline-flex h-10 items-center gap-2 rounded-lg bg-green-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-green-700">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition bg-blue-600 font-semibold text-white hover:bg-blue-500">
                     <i class="fa-solid fa-floppy-disk"></i> Save
                 </button>
             @endif

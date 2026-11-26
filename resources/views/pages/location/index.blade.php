@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'locations' ? 'Locations' : '';
     @endphp
@@ -6,14 +8,11 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <!-- TOP: LOCATION -->
         <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
                 <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📍 Location</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
-                        Klik 1 location untuk filter sub location.
-                    </p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-location-dot"></i></span><span>Location<span class="set-hint">Klik 1 location untuk filter sub location.</span></span></h2>
                 </div>
                 <button id="addLocationBtn"
                     class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -40,15 +39,11 @@
 
         <!-- BOTTOM: SUB LOCATION -->
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
                 <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧩 Sub
-                        Location</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
-                        Selected Location: <span id="selectedLocationText" class="font-semibold">-</span>
-                    </p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-map-pin"></i></span><span>Sub Location<span class="set-hint">Selected Location: <span id="selectedLocationText" class="font-semibold">-</span></span></span></h2>
                 </div>
                 <button id="addSubLocationBtn"
                     class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -74,7 +69,7 @@
         </div>
 
         <!-- LOCATION MODAL -->
-        <div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 set-pop">
             <div class="w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="locationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Location
                 </h2>
@@ -110,7 +105,7 @@
         </div>
 
         <!-- SUB LOCATION MODAL -->
-        <div id="subLocationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="subLocationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 set-pop">
             <div class="w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="subLocationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Sub
                     Location</h2>

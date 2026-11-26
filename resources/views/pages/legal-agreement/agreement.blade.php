@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-spp-list-styles />
     @include('pages.legal-agreement.partial.style')
 
     <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
@@ -60,11 +61,11 @@
         {{-- Agreement list section — hidden by default; Job is the landing view. --}}
         <div id="agreementSection" class="mt-4 hidden">
 
-            {{-- Toolbar --}}
-            <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-white/[0.06] dark:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between">
+            <div class="dt-pretty overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-white/[0.06] dark:bg-white/[0.02]">
 
-                <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                    <select id="agr_cpny_filter" class="agr-input agr-select2 sm:max-w-[200px]">
+            <x-list-page-header title="Agreements" subtitle="Follow up and track agreement progress">
+                <div class="w-full sm:w-60">
+                    <select id="agr_cpny_filter" class="agr-input agr-select2">
                         <option value="">All Companies</option>
                         @foreach ($allCompanies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_name }}</option>
@@ -72,20 +73,17 @@
                     </select>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    @if ($isManager ?? false)
-                    <a href="{{ route('legal-agreement.export') }}" class="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/[0.06]">
-                        <i class="fa-solid fa-file-excel"></i> Export
-                    </a>
-                    @endif
-                </div>
-
-            </div>
+                @if ($isManager ?? false)
+                <a href="{{ route('legal-agreement.export') }}" class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-semibold text-green-700 transition hover:bg-green-100 dark:border-green-800/60 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30">
+                    <i class="fa-solid fa-file-excel"></i> Export to Excel
+                </a>
+                @endif
+            </x-list-page-header>
 
             {{-- Table --}}
-            <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="overflow-x-auto">
                 <table id="agreementTable" class="w-full text-sm">
-                    <thead class="bg-slate-50 dark:bg-white/[0.03]">
+                    <thead>
                         <tr>
                             <th class="px-4 py-3 text-left">Agreement No</th>
                             <th class="px-4 py-3 text-left">Date</th>
@@ -102,6 +100,8 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+            </div>
+
             </div>
 
         </div>

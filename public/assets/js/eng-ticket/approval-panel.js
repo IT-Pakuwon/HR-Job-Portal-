@@ -83,6 +83,11 @@ const EngTicketApprovalPanel = {
         const hasPendingApprovals = EngTicketApprovalPanel.state.tickets.length > 0;
 
         $panel.toggleClass('hidden', !(calendarViewActive && hasPendingApprovals));
+
+        // the calendar gets narrower or wider with the panel: let it redraw, or its last days stay cut off
+        if (calendarViewActive && typeof EngTicketCalendar !== 'undefined') {
+            EngTicketCalendar.state.calendar?.updateSize();
+        }
     },
 
     renderError() {

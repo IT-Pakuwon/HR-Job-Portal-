@@ -75,7 +75,7 @@ class MsProject extends Model
             ->values();
     }
 
-    // Who may open this Project's Tasks and chats: admin / PROADMINACCESS,
+    // Who may open this Project's Tasks and chats: PROADMINACCESS,
     // its creator, a picked PIC person, or a member of a linked Team.
     // Answered with at most two EXISTS queries — it runs on every task,
     // comment and attachment request.
@@ -87,8 +87,7 @@ class MsProject extends Model
 
         $me = strtolower(trim((string) $user->username));
 
-        if ($user->isPrimaryAdmin()
-            || strtolower(trim((string) $this->created_by)) === $me
+        if (strtolower(trim((string) $this->created_by)) === $me
             || $user->hasRole('PROADMINACCESS')) {
             return true;
         }

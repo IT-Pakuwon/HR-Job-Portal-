@@ -18,8 +18,8 @@
                                         <input type="checkbox" class="toggleLocationStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                         <span class="slider round"></span>
                                     </label>
-                                    <button type="button" class="viewLocationBtn bg-gray-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-eye"></i></button>
-                                    <button type="button" class="editLocationBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-edit"></i></button>
+                                    <button type="button" class="viewLocationBtn ${window.listCls.view}" title="View" data-id="${data}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="editLocationBtn ${window.tsEditCls}" title="Edit" data-id="${data}"><i class="fas fa-edit"></i></button>
                                 </div>
                             `;
                         }
@@ -153,8 +153,8 @@
                                         <input type="checkbox" class="toggleFloorStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                         <span class="slider round"></span>
                                     </label>
-                                    <button type="button" class="viewFloorBtn bg-gray-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-eye"></i></button>
-                                    <button type="button" class="editFloorBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-edit"></i></button>
+                                    <button type="button" class="viewFloorBtn ${window.listCls.view}" title="View" data-id="${data}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="editFloorBtn ${window.tsEditCls}" title="Edit" data-id="${data}"><i class="fas fa-edit"></i></button>
                                 </div>
                             `;
                         }
@@ -298,8 +298,8 @@
                                         <input type="checkbox" class="toggleTenantStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
                                         <span class="slider round"></span>
                                     </label>
-                                    <button type="button" class="viewTenantBtn bg-gray-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-eye"></i></button>
-                                    <button type="button" class="editTenantBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}"><i class="fas fa-edit"></i></button>
+                                    <button type="button" class="viewTenantBtn ${window.listCls.view}" title="View" data-id="${data}"><i class="fas fa-eye"></i></button>
+                                    <button type="button" class="editTenantBtn ${window.tsEditCls}" title="Edit" data-id="${data}"><i class="fas fa-edit"></i></button>
                                 </div>
                             `;
                         }

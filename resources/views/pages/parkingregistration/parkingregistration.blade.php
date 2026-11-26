@@ -1,129 +1,49 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
+    <x-spp-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $canParkingAccess ? 'xl:grid-cols-8' : ($canViewMasterKendaraan ? 'xl:grid-cols-7' : 'xl:grid-cols-6') }}">
-
-            <a href="#" class="status-filter group block h-full" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($all) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="H">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">💾</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Draft</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($draft) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter active group block h-full" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Progress</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($onProgress) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($revise) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">❌</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Rejected</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($reject) }}</p>
-                </div>
-            </a>
-
-            <a href="#" class="status-filter group block h-full" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold">{{ number_format($completed) }}</p>
-                </div>
-            </a>
-            @if ($canParkingAccess)
-                <a href="#" class="scope-filter group block h-full" data-scope="all">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🅿️</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All Parking</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ number_format($allParkingCount) }}</p>
-                    </div>
-                </a>
-            @endif
-
-            @if ($canViewMasterKendaraan)
-                <a href="#" class="scope-filter group block h-full" data-scope="master">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-200/20 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚗</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">List Kendaraan</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ number_format($masterKendaraanCount) }}</p>
-                    </div>
-                </a>
-            @endif
-        </div>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', number_format($all), false],
+                [['data-status' => 'H'], 'Draft', '📝', 'pink', number_format($draft), false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', number_format($onProgress), true],
+                [['data-status' => 'D'], 'Revise', '✏️', 'blue', number_format($revise), false],
+                [['data-status' => 'R'], 'Rejected', '⛔', 'red', number_format($reject), false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', number_format($completed), false],
+            ];
+            if ($canParkingAccess) {
+                $statusCards[] = [['data-scope' => 'all'], 'All Parking', '🅿️', 'purple', number_format($allParkingCount), false, null, 'scope-filter', true];
+            }
+            if ($canViewMasterKendaraan) {
+                $statusCards[] = [['data-scope' => 'master'], 'List Kendaraan', '🚗', 'sky', number_format($masterKendaraanCount), false, null, 'scope-filter', true];
+            }
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         {{-- TABLE --}}
-        <div class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-                <h2 id="parkingTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                    Parking Registration - On Progress
-                </h2>
-                <div class="flex items-center gap-3">
-                    @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
-                        <a href="{{ route('kendaraan') }}"
-                            class="inline-flex h-10 items-center justify-center rounded-lg border border-indigo-600 px-4 text-sm font-medium text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-500/10">
-                            <i class="fas fa-car mr-2 text-xs"></i>Master Kendaraan
-                        </a>
-                    @endif
-                    <a id="createParkingBtn" href="{{ url('/createparkingregistration') }}"
-                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                        <i class="fas fa-plus mr-2 text-xs"></i>Create
+        <div class="dt-pretty mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Parking Registration - On Progress" title-id="parkingTitle" subtitle="Register vehicles for free parking and manage parking cards"
+                :create-url="url('/createparkingregistration')" create-id="createParkingBtn">
+                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                    <a href="{{ route('kendaraan') }}"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                        <i class="fa-solid fa-car mr-2 text-xs"></i>Master Kendaraan
                     </a>
-                </div>
-            </div>
+                @endif
+            </x-list-page-header>
 
-            <div id="masterFilterBox" class="mx-5 mt-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+            <div id="masterFilterBox" class="mx-5 mt-4 hidden rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Site Parking</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Site Parking</label>
                         <select id="filter_site_parking"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="">All Site</option>
                             @foreach ($masterSites ?? [] as $site)
                                 <option value="{{ $site->siteid }}">{{ $site->siteid }} - {{ $site->site_name }}</option>
@@ -132,9 +52,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Parking Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Parking Type</label>
                         <select id="filter_parking_type"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="">All Parking Type</option>
                             @foreach ($parkingTypes ?? [] as $row)
                                 <option value="{{ $row->categoryid }}">{{ $row->category_name }}</option>
@@ -143,9 +63,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Worker Type</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Worker Type</label>
                         <select id="filter_worker_type"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="">All Worker Type</option>
                             @foreach ($workerTypes ?? [] as $row)
                                 <option value="{{ $row->categoryid }}">{{ $row->category_name }}</option>
@@ -154,9 +74,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis Kendaraan</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jenis Kendaraan</label>
                         <select id="filter_jenis_kendaraan"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="">All Jenis</option>
                             <option value="Motor">Motor</option>
                             <option value="Mobil">Mobil</option>
@@ -164,9 +84,9 @@
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                         <select id="filter_department"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            class="sf-select h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                             <option value="">All Department</option>
                             @foreach ($masterDepartments ?? [] as $dept)
                                 <option value="{{ $dept }}">{{ $dept }}</option>
@@ -178,38 +98,34 @@
             </div>
 
             <div id="noKartuModal"
-                class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
-                <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
-                    <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-700">
-                        <h3 class="text-base font-bold text-gray-800 dark:text-white">
-                            Update No Kartu
-                        </h3>
+                class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
+                <div class="itm-dialog w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+                    <div class="itm-head">
+                        <div>
+                            <h3>Update No Kartu</h3>
+                            <p>Set the parking card number for this vehicle</p>
+                        </div>
 
-                        <button type="button" id="closeNoKartuModal"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
-                            ✕
+                        <button type="button" id="closeNoKartuModal" class="itm-close" aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
 
                     <input type="hidden" id="modal_kendaraan_id">
 
-                    <div class="mb-4">
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div class="itm-body px-6 py-5">
+                        <label for="modal_no_kartu" class="mb-1.5 block">
                             No Kartu
                         </label>
-                        <input type="text" id="modal_no_kartu"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                            placeholder="Input No Kartu">
+                        <input type="text" id="modal_no_kartu" class="w-full" placeholder="Input No Kartu">
                     </div>
 
-                    <div class="flex justify-end gap-2">
-                        <button type="button" id="cancelNoKartuModal"
-                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 dark:text-gray-300">
+                    <div class="itm-foot flex justify-end gap-2 px-6 py-4">
+                        <button type="button" id="cancelNoKartuModal" class="itm-btn font-semibold">
                             Close
                         </button>
 
-                        <button type="button" id="saveNoKartuBtn"
-                            class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        <button type="button" id="saveNoKartuBtn" class="itm-primary">
                             Save
                         </button>
                     </div>
@@ -217,55 +133,53 @@
             </div>
 
             <div id="companyDepartmentModal"
-                class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
-                <div class="w-full max-w-lg rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
-                    <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-700">
-                        <h3 class="text-base font-bold text-gray-800 dark:text-white">
-                            Change Company & Department
-                        </h3>
+                class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
+                <div class="itm-dialog w-full max-w-lg overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+                    <div class="itm-head">
+                        <div>
+                            <h3>Change Company &amp; Department</h3>
+                            <p>Move this vehicle to another company or department</p>
+                        </div>
 
-                        <button type="button" id="closeCompanyDepartmentModal"
-                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-400">
-                            X
+                        <button type="button" id="closeCompanyDepartmentModal" class="itm-close" aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
 
                     <input type="hidden" id="modal_company_department_id">
 
-                    <div class="mb-4">
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Company
-                        </label>
-                        <select id="modal_cpny_id"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    <div class="itm-body space-y-4 px-6 py-5">
+                        <div>
+                            <label for="modal_cpny_id" class="mb-1.5 block">
+                                Company
+                            </label>
+                            <select id="modal_cpny_id" class="w-full">
                             <option value="">Select Company</option>
                             @foreach ($masterCompanies ?? [] as $company)
                                 <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
                             @endforeach
-                        </select>
-                    </div>
+                            </select>
+                        </div>
 
-                    <div class="mb-4">
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Department
-                        </label>
-                        <select id="modal_department_id"
-                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                        <div>
+                            <label for="modal_department_id" class="mb-1.5 block">
+                                Department
+                            </label>
+                            <select id="modal_department_id" class="w-full">
                             <option value="">Select Department</option>
                             @foreach ($masterDepartmentOptions ?? [] as $department)
                                 <option value="{{ $department->department_id }}">{{ $department->department_id }} - {{ $department->department_name }}</option>
                             @endforeach
-                        </select>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="flex justify-end gap-2">
-                        <button type="button" id="cancelCompanyDepartmentModal"
-                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 dark:text-gray-300">
+                    <div class="itm-foot flex justify-end gap-2 px-6 py-4">
+                        <button type="button" id="cancelCompanyDepartmentModal" class="itm-btn font-semibold">
                             Close
                         </button>
 
-                        <button type="button" id="saveCompanyDepartmentBtn"
-                            class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        <button type="button" id="saveCompanyDepartmentBtn" class="itm-primary">
                             Save
                         </button>
                     </div>
@@ -273,7 +187,7 @@
             </div>
 
 
-            <div class="relative mt-4 overflow-x-hidden">
+            <div class="relative overflow-x-hidden">
                 <table id="parkingRegistrationTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm">
                     <thead id="parkingRegistrationThead"
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -362,38 +276,13 @@
             function statusBadge(v) {
                 v = String(v || '').toUpperCase();
 
-                if (v === 'A') {
-                    return `<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>`;
-                }
+                const map = {
+                    A: ['green', 'Active'], I: ['red', 'Inactive'], D: ['blue', 'Revise'], H: ['pink', 'Draft'],
+                    P: ['yellow', 'On Progress'], C: ['green', 'Completed'], R: ['red', 'Rejected'], X: ['red', 'Cancelled']
+                };
+                const [tone, text] = map[v] || ['slate', v || '-'];
 
-                if (v === 'I') {
-                    return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>`;
-                }
-                if (v === 'D') {
-                    return `<span class="inline-block w-24 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Revise</span>`;
-                }
-
-                if (v === 'H') {
-                    return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300">Draft</span>`;
-                }
-
-                if (v === 'P') {
-                    return `<span class="inline-block w-28 rounded bg-yellow-300/30 px-3 py-1.5 text-sm font-semibold text-yellow-600">On Progress</span>`;
-                }
-
-                if (v === 'C') {
-                    return `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Completed</span>`;
-                }
-
-                if (v === 'R') {
-                    return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Rejected</span>`;
-                }
-
-                if (v === 'X') {
-                    return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Cancelled</span>`;
-                }
-
-                return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-400">${v || '-'}</span>`;
+                return window.listBadge(tone, text, true);
             }
 
             function fileBadge(url) {
@@ -402,9 +291,8 @@
                 }
 
                 return `
-                    <a href="${url}" target="_blank"
-                        class="inline-block rounded bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-200 hover:underline">
-                        📎 View
+                    <a href="${url}" target="_blank" class="${window.listCls.action.blue}">
+                        <i class="fa-solid fa-paperclip"></i> View
                     </a>
                 `;
             }
@@ -460,7 +348,7 @@
                                         </label>
 
                                         <button type="button"
-                                            class="openNoKartuBtn inline-flex items-center justify-center rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                                            class="openNoKartuBtn ${window.listCls.view}"
                                             data-id="${id}"
                                             data-no-kartu="${escapeAttr(row.no_kartu)}"
                                             title="Update No Kartu">
@@ -468,7 +356,7 @@
                                         </button>
 
                                         <button type="button"
-                                            class="openCompanyDepartmentBtn inline-flex items-center justify-center rounded bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+                                            class="openCompanyDepartmentBtn ${window.listCls.action.amber}"
                                             data-id="${id}"
                                             data-cpny-id="${escapeAttr(row.cpny_id)}"
                                             data-department-id="${escapeAttr(row.department_id)}"
@@ -532,25 +420,27 @@
                             const text = data || '-';
 
                             let mainUrl = `/showparkingregistration/${row.eid}`;
-                            let mainCls = 'inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700';
+                            let mainCls = window.listCls.doc;
+                            let docText = window.listDocText(text, false);
 
                             if (['D', 'H'].includes(row.status) && row.created_by === currentUser) {
                                 mainUrl = `/editparkingregistration/${row.eid}`;
-                                mainCls = 'inline-flex w-[160px] justify-center rounded bg-yellow-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-yellow-700';
+                                mainCls = window.listCls.docEdit;
+                                docText = window.listDocText(text, true);
 
                                 return `
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-3 whitespace-nowrap">
                                         <a href="${mainUrl}"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             class="${mainCls}">
-                                            ${text}
+                                            ${docText}
                                         </a>
 
                                         <a href="/showparkingregistration/${row.eid}"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            class="inline-flex items-center justify-center rounded bg-gray-500 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+                                            class="${window.listCls.view}"
                                             title="View Detail">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
@@ -563,7 +453,7 @@
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="${mainCls}">
-                                    ${text}
+                                    ${docText}
                                 </a>
                             `;
                         }

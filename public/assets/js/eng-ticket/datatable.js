@@ -35,7 +35,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
     searching: true,
 
-    dom: "lrtip",
+    dom: '<"dt-toolbar"l>rtip',
 
     ordering: true,
 
@@ -76,7 +76,7 @@ const ticketTable = $("#ticketTable").DataTable({
     searchable: false,
 
     className:
-        "dtr-control px-5 py-4 text-center align-top",
+        "dtr-control px-3 py-4 text-center align-middle",
 
     width: "20px",
 },
@@ -85,202 +85,41 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "ticketid",
 
-            className:
-                "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-3 whitespace-nowrap align-middle",
 
-           render: function (data, type, row) {
+            render: function (data, type, row) {
+                const url = `/showoprtekticket/${row.eid}`;
+                const text = row.ticketid ?? "-";
+                const canView = row.actions?.can_view ?? true;
+                const canEdit =
+                    row.status === "P" &&
+                    row.status_pekerjaan === "CREATED" &&
+                    row.created_by === window.currentUser;
 
-    let url =
-        `/showoprtekticket/${row.eid}`;
+                if (canEdit) {
+                    return `<div class="flex items-center justify-start! gap-2 whitespace-nowrap">
+                        <button type="button" class="btn-edit-ticket ${listCls.docEdit}" data-id="${row.eid}" title="Edit ticket">${listDocText(text, true)}</button>
+                        <a href="${url}" class="${listCls.view}" title="View Ticket"><i class="fa-solid fa-eye"></i></a>
+                        <button type="button" class="btn-cancel-ticket ${listCls.cancel}" data-id="${row.eid}" title="Cancel Ticket"><i class="fa-solid fa-ban"></i></button>
+                    </div>`;
+                }
 
-    let cls = `
-         inline-flex items-center justify-center
-                        w-[150px]
-
-                        rounded-lg
-
-                        bg-slate-800
-                        dark:bg-slate-100
-
-                        px-3 py-1.5
-
-                        text-sm font-semibold
-
-                        text-white
-                        dark:text-slate-900
-
-                        transition-all duration-200
-
-                        hover:bg-slate-700
-                        dark:hover:bg-white
-    `;
-
-    const canView = row.actions?.can_view ?? true;
-
-    const canEdit =
-        row.status === "P" &&
-        row.status_pekerjaan === "CREATED" &&
-        row.created_by === window.currentUser;
-
-    if (canEdit) {
-
-        cls = `
-            inline-flex
-            items-center
-            justify-center
-
-            min-w-[150px]
-
-            rounded-lg
-
-            bg-amber-500
-            dark:bg-amber-400
-
-           px-3 py-1.5
-
-            text-sm
-            font-semibold
-
-            text-white
-            dark:text-slate-900
-
-            transition-all
-            duration-200
-
-            hover:bg-amber-600
-            dark:hover:bg-amber-300
-        `;
-
-    }
-
-    return `
-        <div class="flex items-center gap-2 whitespace-nowrap">
-
-            ${
-                canEdit
-                    ? `
-                        <button
-                            type="button"
-                            class="${cls} btn-edit-ticket"
-                            data-id="${row.eid}"
-                        >
-                            ${row.ticketid ?? "-"}
-                        </button>
-                    `
-                    : canView
-                        ? `
-                            <a
-                                href="${url}"
-                                class="${cls}"
-                            >
-                                ${row.ticketid ?? "-"}
-                            </a>
-                        `
-                        : `
-                            <span
-                                class="${cls} cursor-not-allowed opacity-50"
-                                title="You don't have access to view this ticket"
-                            >
-                                ${row.ticketid ?? "-"}
-                            </span>
-                        `
-            }
-
-            ${
-                canEdit
-                    ? `
-                        <a
-                            href="/showoprtekticket/${row.eid}"
-                            class="
-                                inline-flex
-                                h-9 w-9
-
-                                items-center
-                                justify-center
-
-                                rounded-lg
-
-                                border
-                                border-slate-200
-
-                                dark:border-white/[0.06]
-
-                                bg-white
-                                dark:bg-white/[0.04]
-
-                                text-slate-600
-                                dark:text-slate-300
-
-                                transition-all
-                                duration-200
-
-                                hover:bg-slate-100
-                                dark:hover:bg-white/[0.08]
-                            "
-                            title="View Ticket"
-                        >
-
-                            <i class="fa-regular fa-eye"></i>
-
-                        </a>
-
-                        <button
-                            type="button"
-                            class="
-                                btn-cancel-ticket
-
-                                inline-flex
-                                h-9 w-9
-
-                                items-center
-                                justify-center
-
-                                rounded-lg
-
-                                border
-                                border-red-200
-
-                                dark:border-red-500/20
-
-                                bg-red-50
-                                dark:bg-red-500/10
-
-                                text-red-600
-                                dark:text-red-300
-
-                                transition-all
-                                duration-200
-
-                                hover:bg-red-100
-                                dark:hover:bg-red-500/20
-                            "
-                            data-id="${row.eid}"
-                            title="Cancel Ticket"
-                        >
-
-                            <i class="fa-solid fa-ban"></i>
-
-                        </button>
-                    `
-                    : ""
-            }
-
-        </div>
-    `;
-
-
+                return `<div class="flex items-center justify-start! gap-2 whitespace-nowrap">
+                    ${canView
+                        ? `<a href="${url}" class="${listCls.doc}" title="Open">${listDocText(text, false)}</a>`
+                        : `<span class="${listCls.doc} pointer-events-none opacity-50" title="You don't have access to view this ticket">${listDocText(text, false)}</span>`}
+                </div>`;
             },
-
         },
                 {
             data: "ticketdate",
 
             name: "ticketdate",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
-                return formatDate(data);
+                return `<span class="whitespace-nowrap">${formatDate(data)}</span>`;
             },
         },
 
@@ -289,11 +128,11 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "ticket_type",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 return `
-                        <span class="inline-flex rounded-lg bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        <span class="inline-flex whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-white/10 dark:text-slate-300">
                             ${data ?? "-"}
                         </span>
                     `;
@@ -305,7 +144,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "ticket_category",
 
-            className: "px-5 py-4 align-top",
+            className: "px-3 py-4 align-middle",
 
             render: function (data, type, row) {
                 return `
@@ -329,7 +168,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "issue_summary",
 
-            className: "min-w-[260px] px-5 py-4 align-top",
+            className: "min-w-[260px] px-3 py-4 align-middle",
 
             render: function (data) {
                 return `
@@ -347,7 +186,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "created_by",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 if (!data) {
@@ -355,7 +194,7 @@ const ticketTable = $("#ticketTable").DataTable({
                 }
 
                 return `
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 whitespace-nowrap">
                         <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold uppercase text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                             ${data.charAt(0)}
                         </div>
@@ -370,7 +209,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "department_id",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 return data
@@ -384,7 +223,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "cpny_id",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 return data
@@ -397,7 +236,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "pic_ticket",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 if (!data) {
@@ -409,7 +248,7 @@ const ticketTable = $("#ticketTable").DataTable({
                 }
 
                 return `
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 whitespace-nowrap">
 
                             <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                 ${data.charAt(0)}
@@ -428,14 +267,12 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "priority_name",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
-                return `
-                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${priorityBadgeClass(data)}">
-                            ${data ?? "-"}
-                        </span>
-                    `;
+                const level = String(data || "").toLowerCase().replace(" priority", "");
+                const tone = { low: "slate", medium: "blue", high: "orange", urgent: "red" }[level];
+                return listBadge(tone, data ?? "-");
             },
         },
 
@@ -444,10 +281,19 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "status",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data, type, row) {
-                return renderTicketStatusBadge(data, row.status_pekerjaan);
+                // a revised ticket is still open, but it is waiting for the requester
+                const state = (row.status_pekerjaan || "").toUpperCase() === "REVISED"
+                    ? ["orange", "Revised"]
+                    : {
+                          P: ["yellow", "Open"],
+                          C: ["green", "Completed"],
+                          R: ["red", "Rejected"],
+                          X: ["slate", "Cancelled"],
+                      }[(data || "").toUpperCase()] || ["slate", "-"];
+                return listBadge(state[0], state[1], true);
             },
         },
 
@@ -458,10 +304,15 @@ const ticketTable = $("#ticketTable").DataTable({
 
                       name: "status_pekerjaan",
 
-                      className: "px-5 py-4 whitespace-nowrap align-top",
+                      className: "px-3 py-4 whitespace-nowrap align-middle",
 
                       render: function (data) {
-                          return renderWorkflowBadge(data);
+                          const tone = {
+                              CREATED: "blue", RESPONSE: "sky", PROCESS: "blue", PENDING: "yellow", APPROVED: "green",
+                              COMPLETE_REQUESTED: "purple", TRANSFER: "pink", COMPLETED: "green", REOPEN: "red",
+                              CANCEL: "slate", REJECTED: "red", REVISED: "orange",
+                          }[(data || "").toUpperCase()];
+                          return listBadge(tone, data ?? "-", true);
                       },
                   },
               ]
@@ -472,7 +323,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             name: "ticket_duedate",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-3 py-4 whitespace-nowrap align-middle",
 
             render: function (data, type, row) {
                 if (!data) {
@@ -491,7 +342,7 @@ const ticketTable = $("#ticketTable").DataTable({
                         : false;
 
                 return `
-                        <div class="flex flex-col leading-tight">
+                        <div class="flex flex-col whitespace-nowrap leading-tight">
 
                             <span class="${
                                 isOverdue
@@ -512,12 +363,12 @@ const ticketTable = $("#ticketTable").DataTable({
                                 ${
                                     isOverdue
                                         ? `
-                                            <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                                            <span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-red-600 dark:bg-red-900/30 dark:text-red-400">
                                                 Late
                                             </span>
                                         `
                                         : `
-                                            <span class="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                            <span class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600 dark:bg-green-900/30 dark:text-green-400">
                                                 On Time
                                             </span>
                                         `
@@ -537,7 +388,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
             searchable: false,
 
-            className:"px-5 py-3 text-center whitespace-nowrap align-middle",
+            className:"px-3 py-3 text-center whitespace-nowrap align-middle",
 
            render: function (data, type, row) {
 
@@ -553,17 +404,6 @@ const ticketTable = $("#ticketTable").DataTable({
             "transition duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/40",
         );
 
-        $(".dataTables_paginate > .pagination").addClass(
-            "flex items-center gap-2",
-        );
-
-        $(".paginate_button").addClass(
-            "rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
-        );
-
-        $(".paginate_button.current").addClass(
-            "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black",
-        );
     },
 });
 
@@ -617,40 +457,7 @@ function renderTicketActionDropdown(row) {
             <button
                 type="button"
 
-                class="
-                    ticket-action-btn
-
-                    inline-flex
-                    items-center
-                    justify-center
-
-                    h-8
-                    min-w-[36px]
-
-                    rounded-md
-
-                    border border-slate-200
-                    dark:border-white/[0.06]
-
-                    bg-slate-50
-                    dark:bg-white/[0.03]
-
-                    px-2
-
-                    text-slate-500
-                    dark:text-slate-300
-
-                    transition-all
-                    duration-150
-
-                    hover:border-slate-300
-                    hover:bg-slate-100
-                    hover:text-slate-700
-
-                    dark:hover:border-white/[0.12]
-                    dark:hover:bg-white/[0.06]
-                    dark:hover:text-white
-                "
+                class="ticket-action-btn ${listCls.view}"
             >
 
                 <i class="ti ti-dots text-[18px]"></i>
@@ -939,9 +746,9 @@ $(document).on(
 $(document).on("click", ".ticket-status-filter", function (e) {
     e.preventDefault();
 
-    $(".ticket-status-card").removeClass("active");
+    $(".ticket-status-filter").removeClass("active");
 
-    $(this).find(".ticket-status-card").addClass("active");
+    $(this).addClass("active");
 
     ticketStatusFilter = $(this).data("status");
 
@@ -985,8 +792,8 @@ function restoreFilterState() {
             $('#filter_ticket_type').val(state.ticket_type || '');
         }
 
-        $('#filter_category_id').val(state.category_id || '');
-        $('#filter_company_id').val(state.company_id || '');
+        $('#filter_category_id').val(state.category_id || '').trigger('change.select2');
+        $('#filter_company_id').val(state.company_id || '').trigger('change.select2');
         $('#filter_date_from').val(state.date_from || '');
         $('#filter_date_to').val(state.date_to || '');
 
@@ -994,7 +801,6 @@ function restoreFilterState() {
 
         if (ticketStatusFilter) {
             $(`.ticket-status-filter[data-status="${ticketStatusFilter}"]`)
-                .find('.ticket-status-card')
                 .addClass('active');
         }
     } catch (e) {
@@ -1018,7 +824,7 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';
-    $('.ticket-status-card').removeClass('active');
+    $('.ticket-status-filter').removeClass('active');
     ticketTable.ajax.reload();
 });
 
@@ -1028,6 +834,7 @@ $(document).ready(function () {
             theme: 'default',
             width: '100%',
             allowClear: true,
+            dropdownCssClass: 'sf-s2-dropdown',
             placeholder: function () {
                 return $(this).find('option[value=""]').text() || 'Select...';
             },

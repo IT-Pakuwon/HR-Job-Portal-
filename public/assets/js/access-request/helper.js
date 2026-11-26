@@ -910,3 +910,166 @@ function showValidationMessage(
         },
     });
 }
+
+/* =====================================================
+   PROCESS HARDWARE / SOFTWARE POPUPS (shared layout)
+===================================================== */
+
+function accessEscape(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    })[c]);
+}
+
+function renderAccessProcessInfo(access) {
+    const cell = (label, value, extra = "") => `
+        <div class="min-w-0 ${extra}">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">${label}</p>
+            <p class="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">${accessEscape(value || "-")}</p>
+        </div>`;
+
+    return `
+        <div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/[0.07] dark:bg-[#111c2d]">
+            <div class="grid grid-cols-2 gap-x-6 gap-y-3 px-5 py-4 md:grid-cols-4">
+                ${cell("Document", access.docid)}
+                ${cell("Requester", access.user_peminta)}
+                ${cell("Company", access.cpny_id)}
+                ${cell("Department", access.department_id)}
+                ${cell("Purpose / Info", access.keperluan, "col-span-2 border-t border-slate-100 pt-3 dark:border-white/[0.06] md:col-span-4")}
+            </div>
+        </div>`;
+}
+
+// Reloads an open process popup after Save / Done without the loader: the scroll position
+// and anything typed (but not yet saved) on the other items are kept.
+async function refreshAccessProcessModal(kind, hash, savedId) {
+    const title = kind === "hardware" ? "Hardware" : "Software";
+    const panel = $(`#process${title}Modal .modal-panel`);
+    const container = $(`#process${title}DetailContainer`);
+    const fields = `.${kind}-response, .${kind}-username, .${kind}-password`;
+
+    let res;
+
+    try {
+        res = await $.ajax({ url: `/access-request/detail/${hash}`, type: "GET" });
+    } catch (xhr) {
+        console.error(xhr);
+        swalWarning("Your changes were saved, but the popup could not be refreshed. Please close and open it again.");
+        return;
+    }
+
+    const access = res.access ?? {};
+    const details = (res.details ?? []).filter((item) => item.group_category === title.toUpperCase());
+
+    // read these after the request, so typing done while it was loading is included
+    const scrollTop = panel.scrollTop();
+    const drafts = container.find(fields).toArray()
+        .filter((el) => el.dataset.id !== String(savedId) && el.value !== el.defaultValue)
+        .map((el) => ({
+            selector: `.${[...el.classList].find((name) => name.startsWith(`${kind}-`))}[data-id="${el.dataset.id}"]`,
+            value: el.value,
+        }));
+
+    $(`#process${title}InfoContainer`).html(renderAccessProcessInfo(access));
+    container.html(renderAccessProcessItems(kind, access, details));
+
+    drafts.forEach((draft) => container.find(draft.selector).val(draft.value));
+    panel.scrollTop(scrollTop);
+}
+
+// kind: "hardware" or "software" (also the prefix of the field and button classes the page listens to)
+function renderAccessProcessItems(kind, access, details = []) {
+    const title = kind === "hardware" ? "Hardware" : "Software";
+    const icon = kind === "hardware" ? "fa-laptop" : "fa-window-maximize";
+    const pending = details.filter((item) => item.status !== "C").length;
+    const done = details.length - pending;
+
+    const label = "mb-1.5 block";
+    const field = "block w-full";
+    const readonlyBox = "mt-1 min-h-10 break-words rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-800 dark:bg-white/[0.04] dark:text-slate-100";
+    const readonlyLabel = "text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500";
+
+    const readonlyBody = (item) => `
+        <div class="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-2">
+            <div class="md:col-span-2">
+                <p class="${readonlyLabel}">Response</p>
+                <div class="${readonlyBox} whitespace-pre-line">${accessEscape(item.access_response ?? "-")}</div>
+            </div>
+            <div>
+                <p class="${readonlyLabel}">Username</p>
+                <div class="${readonlyBox} break-all">${accessEscape(item.access_username ?? "-")}</div>
+            </div>
+            <div>
+                <p class="${readonlyLabel}">Password</p>
+                <div class="${readonlyBox} break-all">${accessEscape(item.access_password ?? "-")}</div>
+            </div>
+        </div>`;
+
+    const formBody = (item) => `
+        <div class="grid grid-cols-1 gap-4 px-5 py-4 md:grid-cols-2">
+            <div class="md:col-span-2">
+                <label class="${label}">Response</label>
+                <textarea rows="2" class="${kind}-response ${field} px-3 py-2" data-id="${item.id}" placeholder="Input response ...">${accessEscape(item.access_response)}</textarea>
+            </div>
+            <div>
+                <label class="${label}">Username</label>
+                <input type="text" class="${kind}-username ${field}" data-id="${item.id}" value="${accessEscape(item.access_username)}" autocomplete="off" placeholder="Username">
+            </div>
+            <div>
+                <label class="${label}">Password</label>
+                <div class="relative">
+                    <input type="password" class="${kind}-password ${field} pr-10!" data-id="${item.id}" value="${accessEscape(item.access_password)}" autocomplete="new-password" placeholder="Password">
+                    <button type="button" class="btn-toggle-pw-input absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" data-visible="0" title="Show password">
+                        <i class="fa-solid fa-eye-slash text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2 rounded-b-xl border-t border-slate-100 bg-slate-50/70 px-5 py-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <button type="button" class="btn-save-${kind} inline-flex h-10 min-w-28 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                data-doc="${access.eid}" data-id="${item.id}" data-type="${access.access_type ?? ""}">
+                <i class="fa-solid fa-floppy-disk mr-2 text-xs"></i>Save
+            </button>
+            <button type="button" class="btn-complete-${kind} inline-flex h-10 min-w-28 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
+                data-doc="${access.eid}" data-id="${item.id}" data-type="${access.access_type ?? ""}">
+                <i class="fa-solid fa-check mr-2 text-xs"></i>Done
+            </button>
+        </div>`;
+
+    const cards = details.map((item) => {
+        const isCompleted = item.status === "C";
+
+        return `
+            <div class="rounded-xl border bg-white shadow-sm dark:bg-[#111c2d] ${isCompleted ? "border-slate-200 dark:border-white/[0.07]" : "border-blue-200 dark:border-blue-500/30"}">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 dark:border-white/[0.06]">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isCompleted ? "bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-300" : "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"}">
+                            <i class="fa-solid ${icon} text-sm"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <p class="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">${accessEscape(item.access_descr || "-")}</p>
+                            ${item.access_pic ? `<p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400"><i class="fa-solid fa-user mr-1.5 text-[10px]"></i>${accessEscape(item.access_pic)}</p>` : ""}
+                        </div>
+                    </div>
+                    ${isCompleted ? listBadge("green", "Completed") : listBadge("yellow", "Pending")}
+                </div>
+                ${isCompleted ? readonlyBody(item) : formBody(item)}
+            </div>`;
+    }).join("");
+
+    const empty = `
+        <div class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center text-sm text-slate-500 dark:border-slate-600 dark:bg-transparent dark:text-slate-400">
+            No ${kind} request available
+        </div>`;
+
+    return `
+        <div class="mt-1 flex flex-wrap items-center justify-between gap-2 px-1 py-2">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">${title} Request Detail</h3>
+            ${details.length ? `<p class="text-xs font-medium text-slate-500 dark:text-slate-400">${pending} pending &middot; ${done} completed</p>` : ""}
+        </div>
+        <div class="space-y-3">${cards || empty}</div>`;
+}

@@ -127,11 +127,11 @@ const VplMasterForm = {
             const $name = $('#product_name');
             if (hasStock) {
                 $name.prop('readonly', true)
-                     .addClass('bg-slate-100 cursor-not-allowed dark:bg-white/[0.04]')
+                     .addClass('bg-gray-100 cursor-not-allowed dark:bg-white/[0.04]')
                      .attr('title', 'Cannot change product name while stock exists');
             } else {
                 $name.prop('readonly', false)
-                     .removeClass('bg-slate-100 cursor-not-allowed dark:bg-white/[0.04]')
+                     .removeClass('bg-gray-100 cursor-not-allowed dark:bg-white/[0.04]')
                      .removeAttr('title');
             }
 

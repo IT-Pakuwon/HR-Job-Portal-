@@ -218,9 +218,9 @@ class VplMsProductController extends Controller
                 ->addIndexColumn()
                 ->addColumn('product_id', function ($row) {
                     $hash = Hashids::encode($row->id);
-                    return '<button class="view-product-btn inline-flex w-40 justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
-                        data-hash="' . $hash . '">'
-                        . $row->product_id . '</button>';
+                    return '<button type="button" class="view-product-btn group/doc inline-flex min-w-[120px] items-center gap-2 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"
+                        data-hash="' . $hash . '"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span><span>'
+                        . e($row->product_id) . '</span></button>';
                 })
                 ->addColumn('total_stock', function ($row) use ($stockByProduct) {
                     $details = $stockByProduct->get($row->product_id, collect());
@@ -244,25 +244,25 @@ class VplMsProductController extends Controller
                     ->get($row->product_id, collect())
                     ->sum('qty_available'))
                 ->addColumn('status', fn ($row) => $row->status === 'A'
-                    ? '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>'
-                    : '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>')
+                    ? '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>'
+                    : '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive</span>')
                 ->addColumn('action', function ($row) {
                     $active      = $row->status === 'A';
                     $toggleClass = $active ? 'deactivateProduct' : 'activateProduct';
                     $toggleLabel = $active ? 'Deactivate'        : 'Activate';
-                    $toggleIcon  = $active ? 'fa-ban text-red-500' : 'fa-circle-check text-green-600';
-                    $canEdit     = $this->canEditProduct($row);
+                    $toggleIcon  = $active ? 'fa-ban'            : 'fa-circle-check';
+                    $toggleColor = $active
+                        ? 'border-red-100 bg-red-50 text-red-600 hover:border-red-600 hover:bg-red-600'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-600 hover:bg-emerald-600';
+                    $button      = 'inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:text-white hover:shadow-md';
 
-                    return '
-                        <button class="action-btn inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
-                            data-id="'       . $row->id      . '"
-                            data-active="'   . ($active ? '1' : '0') . '"
-                            data-toggle="'   . $toggleClass   . '"
-                            data-label="'    . $toggleLabel   . '"
-                            data-icon="'     . $toggleIcon    . '"
-                            data-can-edit="' . ($canEdit ? '1' : '0') . '">
-                            Actions <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                        </button>';
+                    $edit = $this->canEditProduct($row)
+                        ? '<button type="button" class="master-edit-btn ' . $button . ' border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-500" data-id="' . $row->id . '"><i class="fa-solid fa-pen-to-square"></i>Edit</button>'
+                        : '';
+
+                    $toggle = '<button type="button" class="master-toggle-btn ' . $button . ' min-w-[104px] ' . $toggleColor . '" data-id="' . $row->id . '" data-toggle="' . $toggleClass . '"><i class="fa-solid ' . $toggleIcon . '"></i>' . $toggleLabel . '</button>';
+
+                    return '<div class="flex items-center justify-center gap-2">' . $edit . $toggle . '</div>';
                 })
                 ->rawColumns(['product_id', 'status', 'action'])
                 ->make(true);

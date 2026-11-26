@@ -71,7 +71,7 @@ class PmTaskMoveController extends Controller
 
     private function isPmAdmin(): bool
     {
-        return Auth::user()->isPrimaryAdmin() || Auth::user()->hasRole('PROADMINACCESS');
+        return Auth::user()->hasRole('PROADMINACCESS');
     }
 
     private function me(): string

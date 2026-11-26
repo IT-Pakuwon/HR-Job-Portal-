@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'grading' ? 'Grading' : '';
     @endphp
@@ -7,25 +9,25 @@
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
         <div>
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0 set-tabs">
                 <button type="button" id="tab-grade"
                     class="gradingTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
                     onclick="switchGradingTab('grade')">
-                    🎖️ Grading
+                    Grading
                 </button>
                 <button type="button" id="tab-subgrade"
                     class="gradingTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchGradingTab('subgrade')">
-                    🏷️ Sub Grading
+                    Sub Grading
                 </button>
             </div>
 
             {{-- ── TAB 1: Grading ──────────────────────────────────────────────── --}}
             <div id="panel-grade"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🎖️ Grading</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-medal"></i></span><span>Grading<span class="set-hint">Manage grades</span></span></h2>
                     <button id="addGradeBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Grade
@@ -53,11 +55,10 @@
 
             {{-- ── TAB 2: Sub Grading ─────────────────────────────────────────── --}}
             <div id="panel-subgrade"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏷️ Sub
-                        Grading</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-tag"></i></span><span>Sub Grading<span class="set-hint">Levels inside each grade</span></span></h2>
                     <button id="addSubGradeBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Sub Grade
@@ -87,7 +88,7 @@
         </div>
 
         <!-- Modal: Grading -->
-        <div id="gradeModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="gradeModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalGradeTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Grade</h2>
                 <form id="gradeForm">
@@ -132,7 +133,7 @@
         </div>
 
         <!-- Modal: Sub Grading -->
-        <div id="subGradeModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="subGradeModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalSubGradeTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Sub
                     Grade</h2>

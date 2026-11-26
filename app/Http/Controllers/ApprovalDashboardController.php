@@ -81,12 +81,16 @@ class ApprovalDashboardController extends Controller
             ->count();
     }
 
+    // Every dashboard's Waiting Approval tab reads this: longest waiting first, rows without a date last.
+    // Approval History (and the push sender) keep the collection's newest-first order.
     public function waitingJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
         return response()->json([
-            'data' => $this->getApprovalCollection($request, 'P'),
+            'data' => $this->getApprovalCollection($request, 'P')
+                ->sortBy(fn ($r) => (string) (($r['docdate'] ?? '') ?: '9999'))
+                ->values(),
         ]);
     }
 

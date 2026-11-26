@@ -1,7 +1,9 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     <div id="sendApprovalEmail" class="mx-auto w-full space-y-4 p-3"
         data-users="{{ route('send-email.users') }}" data-pending="{{ route('send-email.pending') }}" data-send="{{ route('send-email.send') }}">
-        <h1 class="text-base font-semibold text-gray-800 dark:text-gray-100">Send Email</h1>
+        <h1 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Send Email</span></h1>
         <form id="approvalEmailSearch" class="flex flex-wrap items-end gap-3 border-b border-gray-200 pb-4 dark:border-gray-700">
             <label class="min-w-0 flex-1 text-sm text-gray-700 dark:text-gray-200" style="min-width:min(100%,16rem);">Nama
                 <select id="approvalEmailUser" class="mt-1 w-full"><option value=""></option></select>

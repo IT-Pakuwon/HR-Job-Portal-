@@ -22,7 +22,7 @@ const VplTransferInit = {
 
         // Select2 on the "Transfer All" doctype filter (admin only — element absent otherwise)
         if ($('#f_doctype').length) {
-            $('#f_doctype').select2({ width: '100%' });
+            $('#f_doctype').select2({ width: '100%', minimumResultsForSearch: Infinity, dropdownCssClass: 'sppb-s2-dropdown' });
         }
 
         // DataTable + events

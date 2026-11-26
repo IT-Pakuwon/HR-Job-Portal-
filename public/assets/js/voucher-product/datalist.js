@@ -16,10 +16,12 @@ const VplMasterDatalist = {
             processing:   true,
             serverSide:   true,
             autoWidth:    false,
+            responsive:   true,
+            columnDefs:   [{ targets: 0, responsivePriority: 1 }, { targets: 9, responsivePriority: 2 }, { targets: 3, responsivePriority: 3 }, { targets: 8, responsivePriority: 4 }],
             order:        [[0, 'desc']],
             pageLength:   10,
             lengthMenu:   [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-            dom:          'lfrtip',
+            dom:          '<"dt-toolbar"l f>rtip',
             ajax: {
                 url:     VplMaster.routes.list,
                 type:    'GET',
@@ -41,68 +43,68 @@ const VplMasterDatalist = {
                 {
                     data:      'product_id',
                     name:      'product_id',
-                    className: 'px-5 py-4 whitespace-nowrap align-middle',
+                    className: 'px-4 py-3 whitespace-nowrap align-middle',
                     width:     '130px',
                 },
                 {
                     data:      'cpnyid',
                     name:      'cpnyid',
-                    className: 'px-5 py-4 text-center whitespace-nowrap align-middle',
+                    className: 'px-4 py-3 text-center whitespace-nowrap align-middle',
                     width:     '80px',
                 },
                 {
                     data:      'product_type',
                     name:      'product_type',
-                    className: 'px-5 py-4 text-center align-middle',
+                    className: 'px-4 py-3 text-center align-middle',
                     width:     '90px',
                     render:    d => d === 'V'
-                        ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Voucher</span>'
-                        : '<span class="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">Product</span>',
+                        ? '<span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">Voucher</span>'
+                        : '<span class="inline-flex items-center rounded-full border border-[#e9d5ff] bg-[#faf5ff] px-2.5 py-0.5 text-xs font-semibold text-[#7e22ce] dark:border-[#a855f7]/30 dark:bg-[#a855f7]/10 dark:text-[#d8b4fe]">Product</span>',
                 },
                 {
                     data:      'product_name',
                     name:      'product_name',
-                    className: 'px-5 py-4 align-middle',
+                    className: 'px-4 py-3 align-middle',
                 },
                 {
                     data:       'total_stock',
                     name:       'total_stock',
-                    className:  'px-5 py-4 text-right align-middle',
+                    className:  'px-4 py-3 text-right align-middle',
                     orderData:  [10],
                     searchable: false,
                     width:      '110px',
                     render: (data, type) => {
                         const total = data?.total ?? 0;
                         if (type !== 'display') return total;
-                        if (!total) return '<span class="text-slate-400">0</span>';
+                        if (!total) return '<span class="text-gray-400">0</span>';
 
                         const breakdown = encodeURIComponent(JSON.stringify(data?.breakdown ?? []));
-                        return `<span class="vpl-total-stock inline-flex cursor-default items-center gap-1 font-semibold text-slate-900 dark:text-slate-100" data-breakdown="${breakdown}">${VplMasterHelper.formatDisplay(total)}</span>`;
+                        return `<span class="vpl-total-stock inline-flex cursor-default items-center gap-1 font-semibold text-gray-900 dark:text-gray-100" data-breakdown="${breakdown}">${VplMasterHelper.formatDisplay(total)}</span>`;
                     },
                 },
                 {
                     data:           'product_category',
                     name:           'product_category',
-                    className:      'px-5 py-4 align-middle',
+                    className:      'px-4 py-3 align-middle',
                     defaultContent: '-',
                     width:          '120px',
                 },
                 {
                     data:           'product_source_company',
                     name:           'product_source_company',
-                    className:      'px-5 py-4 align-middle',
+                    className:      'px-4 py-3 align-middle',
                     defaultContent: '-',
                 },
                 {
                     data:           'product_source_tenant',
                     name:           'product_source_tenant',
-                    className:      'px-5 py-4 align-middle',
+                    className:      'px-4 py-3 align-middle',
                     defaultContent: '-',
                 },
                 {
                     data:      'status',
                     name:      'status',
-                    className: 'px-5 py-4 align-middle text-center',
+                    className: 'px-4 py-3 align-middle text-center',
                     orderable: false,
                     width:     '100px',
                     render:    d => `<div class="flex justify-center">${d}</div>`,
@@ -110,7 +112,7 @@ const VplMasterDatalist = {
                 {
                     data:       'action',
                     name:       'action',
-                    className:  'px-5 py-4 text-center align-middle',
+                    className:  'px-4 py-3 text-center align-middle',
                     orderable:  false,
                     searchable: false,
                     width:      '110px',
@@ -147,8 +149,8 @@ const VplMasterDatalist = {
     initStatusFilter() {
         $(document).on('click', '.status-filter', function (e) {
             e.preventDefault();
-            $('.status-filter').removeClass('active-card');
-            $(this).addClass('active-card');
+            $('.status-filter').removeClass('active-card active');
+            $(this).addClass('active-card active');
             const status = $(this).data('status') ?? '';
             VplMasterDatalist.statusFilter = status;
             $('#adminAllFilters')
@@ -166,61 +168,16 @@ const VplMasterDatalist = {
     },
 
     // --------------------------------------------------------
-    // ACTION MENU — fixed-position floating dropdown
+    // ROW ACTIONS — Edit / Activate / Deactivate buttons in the Action column
     // --------------------------------------------------------
-    initActionMenu() {
-        const $menu  = $('#actionMenu');
-        const MENU_W = 176;
-        const MARGIN = 8;
-
-        // ── open ──
-        $(document).on('click', '.action-btn', function (e) {
-            e.stopPropagation();
-
-            const $btn = $(this);
-            const rect = this.getBoundingClientRect();
-
-            const id      = $btn.data('id');
-            const toggle  = $btn.data('toggle');
-            const canEdit = String($btn.data('can-edit')) === '1';
-
-            $('#actionMenuEdit')
-                .data('id', id)
-                .toggle(canEdit);
-            $('#actionMenuDivider').toggle(canEdit);
-            $('#actionMenuToggle').data('id', id).data('toggle', toggle);
-            $('#actionMenuToggleLabel').text($btn.data('label'));
-            $('#actionMenuToggleIcon') .attr('class', 'fa-solid w-4 ' + $btn.data('icon'));
-
-            const MENU_H = canEdit ? 90 : 46;
-            let top  = rect.bottom + MARGIN;
-            let left = rect.right  - MENU_W;
-
-            if (top + MENU_H > window.innerHeight - MARGIN) {
-                top = rect.top - MENU_H - MARGIN;
-            }
-            left = Math.max(MARGIN, Math.min(left, window.innerWidth - MENU_W - MARGIN));
-            top  = Math.max(MARGIN, top);
-
-            $menu.css({ top, left }).removeClass('hidden');
-        });
-
-        // ── close ──
-        $(document).on('click', () => $menu.addClass('hidden'));
-        $(window)  .on('scroll resize', () => $menu.addClass('hidden'));
-
-        // ── Edit ──
-        $('#actionMenuEdit').on('click', function () {
-            $menu.addClass('hidden');
+    initRowActions() {
+        $(document).on('click', '.master-edit-btn', function () {
             VplMasterForm.loadEdit($(this).data('id'));
         });
 
-        // ── Deactivate / Activate ──
-        $('#actionMenuToggle').on('click', function () {
-            const id     = $(this).data('id');
-            const action = $(this).data('toggle');
-            $menu.addClass('hidden');
-            if (action === 'deactivateProduct') {
+        $(document).on('click', '.master-toggle-btn', function () {
+            const id = $(this).data('id');
+            if ($(this).data('toggle') === 'deactivateProduct') {
                 VplMasterForm.deactivate(id);
             } else {
                 VplMasterForm.activate(id);
@@ -247,11 +204,11 @@ const VplMasterDatalist = {
                 ? breakdown.map(b => {
                     const exp = b.exp && b.exp !== '1900-01-01' ? b.exp : 'No Expired';
                     return `<div class="flex items-center justify-between gap-4">
-                        <span>${b.whs_id ?? '-'} <span class="text-slate-400">(${exp})</span></span>
+                        <span>${b.whs_id ?? '-'} <span class="text-gray-400">(${exp})</span></span>
                         <span class="font-semibold">${VplMasterHelper.formatDisplay(b.qty)}</span>
                     </div>`;
                 }).join('')
-                : '<div class="text-slate-400">No stock detail</div>');
+                : '<div class="text-gray-400">No stock detail</div>');
 
             const rect = this.getBoundingClientRect();
             let left = rect.right - TIP_W;

@@ -47,6 +47,7 @@
                                         :class="teamId === f.id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                         <i class="fas fa-user-group text-xs" :class="teamId === f.id ? 'text-indigo-500' : 'text-gray-400'"></i>
                                         <span class="truncate" x-text="f.name"></span>
+                                        <span x-show="unreadOf('TEAM', f.id)" x-text="unreadLabel(unreadOf('TEAM', f.id))" title="Unread messages" class="pm-unread ml-auto"></span>
                                     </button>
                                 </template>
                                 <template x-if="f.type === 'project'">
@@ -55,6 +56,7 @@
                                         :class="projectId === f.id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                         <i class="fas shrink-0 text-xs" :class="projectId === f.id ? 'fa-folder-open' : 'fa-folder'" :style="`color:${statusColor(f.status_id)}`"></i>
                                         <span class="truncate" x-text="f.name"></span>
+                                        <span x-show="unreadOf('PRJ', f.id)" x-text="unreadLabel(unreadOf('PRJ', f.id))" title="Unread messages" class="pm-unread ml-auto"></span>
                                     </button>
                                 </template>
                                 <button @click.stop.prevent="toggleFavorite(f.type === 'team' ? 'TEAM' : 'PROJECT', f.id)" title="Unfavorite"
@@ -80,6 +82,7 @@
                                     :class="teamId === t.team_id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                     <i class="fas fa-user-group text-xs" :class="teamId === t.team_id ? 'text-indigo-500' : 'text-gray-400'"></i>
                                     <span class="truncate" x-text="t.team_name"></span>
+                                    <span x-show="unreadOf('TEAM', t.team_id)" x-text="unreadLabel(unreadOf('TEAM', t.team_id))" title="Unread messages" class="pm-unread ml-auto"></span>
                                 </button>
                                 <button @click.stop="toggleFavorite('TEAM', t.team_id)" title="Favorite"
                                     class="shrink-0 px-2 py-2 text-xs transition"
@@ -105,6 +108,7 @@
                                     :class="projectId === p.project_id ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'">
                                     <i class="fas shrink-0 text-xs" :class="projectId === p.project_id ? 'fa-folder-open' : 'fa-folder'" :style="`color:${statusColor(p.status_id)}`"></i>
                                     <span class="truncate" x-text="p.project_name"></span>
+                                    <span x-show="unreadOf('PRJ', p.project_id)" x-text="unreadLabel(unreadOf('PRJ', p.project_id))" title="Unread messages" class="pm-unread ml-auto"></span>
                                 </button>
                                 <button @click.stop.prevent="toggleFavorite('PROJECT', p.project_id)" title="Favorite"
                                     class="shrink-0 px-2 py-2 text-xs transition"
@@ -128,16 +132,19 @@
                         <i class="fas fa-plus text-xs"></i>
                     </button>
                     <button @click="sidebarOpen = true" title="My Favorite"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-amber-400 dark:hover:bg-gray-800">
+                        class="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-amber-400 dark:hover:bg-gray-800">
                         <i class="fas fa-star text-sm"></i>
+                        <span x-show="favoriteItems.some(f => unreadOf(f.type === 'team' ? 'TEAM' : 'PRJ', f.id))" class="pm-unread-dot"></span>
                     </button>
                     <button @click="sidebarOpen = true" title="Teams"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
+                        class="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                         <i class="fas fa-users text-sm"></i>
+                        <span x-show="teams.some(t => unreadOf('TEAM', t.team_id))" class="pm-unread-dot"></span>
                     </button>
                     <button @click="sidebarOpen = true" title="Projects"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
+                        class="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                         <i class="fas fa-folder text-sm"></i>
+                        <span x-show="projects.some(p => unreadOf('PRJ', p.project_id))" class="pm-unread-dot"></span>
                     </button>
                 </div>
             </div>
@@ -150,7 +157,7 @@
             <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
                 <div class="flex min-w-0 items-center gap-2">
                     <h2 class="truncate text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📁 <span x-text="headerTitle"></span></h2>
-                    <button x-show="isPrimaryAdmin && (teamId || projectId)" x-cloak @click="openStatusPanel()" title="Status settings"
+                    <button x-show="isProjectAdmin && (teamId || projectId)" x-cloak @click="openStatusPanel()" title="Status settings"
                         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-50 hover:text-indigo-600 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                         <i class="fas fa-gear text-sm"></i>
                     </button>
@@ -189,11 +196,26 @@
                     :class="tab === 'message' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
                     class="inline-flex items-center gap-1.5 rounded-t-lg px-4 py-2 text-sm font-medium">
                     <i class="fas fa-comments text-xs"></i> Message
+                    <span x-show="unreadOf(teamId ? 'TEAM' : 'PRJ', teamId || projectId)" x-cloak x-text="unreadLabel(unreadOf(teamId ? 'TEAM' : 'PRJ', teamId || projectId))" class="pm-unread"></span>
                 </button>
+
+                {{-- Moves the Kanban one status column left / right, in place
+                     of a horizontal scrollbar. Only shown when the columns
+                     don't all fit — see updateKanbanArrows(). --}}
+                <div x-show="tab === 'kanban' && kanbanArrows.overflow" x-cloak class="ml-auto flex items-center gap-1.5 pb-1.5">
+                    <button type="button" @click="scrollKanban(-1)" :disabled="kanbanArrows.atStart" title="Previous status"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:pointer-events-none disabled:opacity-30 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <button type="button" @click="scrollKanban(1)" :disabled="kanbanArrows.atEnd" title="Next status"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 disabled:pointer-events-none disabled:opacity-30 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
 
             <div x-show="teams.length || projects.length" class="flex-1 overflow-y-auto p-4">
-                <div id="kanbanPanel" class="overflow-x-auto">
+                <div id="kanbanPanel" class="overflow-x-auto" @scroll="updateKanbanArrows()">
                     {{-- Placeholder until the first board render replaces it. --}}
                     <div class="flex gap-4 p-4 animate-pulse" aria-label="Loading board">
                         @foreach (range(1, 4) as $i)
@@ -734,14 +756,16 @@
     <div id="projectDetailModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div class="relative flex h-full items-center justify-center p-4">
-            <div id="pmProjectShowRoot" x-data="pmProjectShow()" class="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10">
+            <div id="pmProjectShowRoot" x-data="pmProjectShow()" class="flex w-full flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-black/5 dark:bg-[#0f172a] dark:ring-white/10"
+                :class="fullscreen ? 'fixed inset-0 rounded-none' : 'max-h-[92vh] max-w-5xl rounded-2xl'">
 
                 @include('pages.projectmanagement.partials.project-detail-header')
 
-                {{-- TABS — a Subtask (kind 'subtask') shows Overview and Sub
-                     Task side-by-side instead (see the grid below), since
-                     Chat/File don't apply that deep, so the whole bar hides. --}}
-                <div x-show="kind !== 'subtask'" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
+                {{-- TABS — normal size only. Full screen shows everything in
+                     two columns instead (see below), and a Subtask (kind
+                     'subtask') shows Overview and Sub Task side-by-side, since
+                     Chat/File don't apply that deep. --}}
+                <div x-show="!fullscreen && kind !== 'subtask'" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
                     <button @click="tab = 'overview'" :class="tab === 'overview' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Overview</button>
                     <button @click="tab = 'tasks'; renderTaskTab()" :class="tab === 'tasks' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Sub Task</button>
                     <button x-show="canChat" @click="tab = 'chat'" :class="tab === 'chat' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Chat</button>
@@ -750,25 +774,36 @@
                 </div>
 
                 <p x-show="kind === 'task' && !canChat" x-cloak class="shrink-0 px-6 pt-3 text-xs text-gray-400">
-                    <i class="fas fa-user-lock mr-1 text-[10px]"></i> Chat and files are only for the people assigned to this task, its creator and project admins.
+                    <i class="fas fa-user-lock mr-1 text-[10px]"></i>
+                    <span x-text="chatPrivate ? 'This task is private: chat and files are only for the people assigned to it.' : 'Chat and files are only for the people assigned to this task, its creator and project admins.'"></span>
                 </p>
 
-                {{-- For kind 'subtask' the two panels below render together
-                     (see their own x-show: "kind === 'subtask' || tab === …")
-                     inside this grid; for 'project'/'task' the wrapping divs
-                     get no extra classes and the old tab-switched layout applies. --}}
-                <div class="min-h-0 flex-1 overflow-y-auto p-6">
-                    <div :class="kind === 'subtask' ? 'grid grid-cols-1 gap-8 lg:grid-cols-5 lg:items-start' : ''">
-                        <div :class="kind === 'subtask' ? 'lg:col-span-2 lg:border-r lg:border-gray-100 lg:pr-7 dark:lg:border-white/[0.06]' : ''">
-                            @include('pages.projectmanagement.partials.project-detail-tab-overview')
+                {{-- Which panel is on screen is decided by shows() in
+                     pmProjectShow(). Full screen: Overview, Sub Task and File
+                     stacked on the left, Chat / Activity List tabbed on the
+                     right. Normal size: one tab at a time ('contents' makes
+                     the left wrapper disappear), except kind 'subtask', which
+                     lays its panels out on a grid. --}}
+                <div class="min-h-0 flex-1" :class="fullscreen ? 'overflow-hidden' : 'overflow-y-auto p-6'">
+                    <div :class="fullscreen ? 'flex h-full flex-col overflow-y-auto lg:flex-row lg:overflow-hidden' : (kind === 'subtask' ? 'grid grid-cols-1 gap-8 lg:grid-cols-5 lg:items-start' : '')">
+                        <div :class="fullscreen ? 'min-w-0 shrink-0 space-y-8 p-6 lg:flex-1 lg:overflow-y-auto lg:border-r lg:border-gray-100 dark:lg:border-white/[0.06]' : 'contents'">
+                            <div :class="!fullscreen && kind === 'subtask' ? 'lg:col-span-2 lg:border-r lg:border-gray-100 lg:pr-7 dark:lg:border-white/[0.06]' : ''">
+                                @include('pages.projectmanagement.partials.project-detail-tab-overview')
+                            </div>
+                            <div :class="fullscreen ? 'border-t border-gray-100 pt-8 dark:border-white/[0.06]' : (kind === 'subtask' ? 'lg:col-span-3' : '')">
+                                @include('pages.projectmanagement.partials.project-detail-tab-subtask')
+                            </div>
+                            @include('pages.projectmanagement.partials.project-detail-tab-file')
                         </div>
-                        <div :class="kind === 'subtask' ? 'lg:col-span-3' : ''">
-                            @include('pages.projectmanagement.partials.project-detail-tab-subtask')
-                        </div>
-                        @include('pages.projectmanagement.partials.project-detail-tab-file')
-                        @include('pages.projectmanagement.partials.project-detail-tab-chat')
-                        <div :class="kind === 'subtask' ? 'border-t border-gray-100 pt-6 lg:col-span-5 dark:border-white/[0.06]' : ''">
-                            @include('pages.projectmanagement.partials.project-detail-tab-activity')
+                        <div :class="fullscreen ? 'flex min-w-0 shrink-0 flex-col border-t border-gray-100 lg:min-h-0 lg:flex-1 lg:border-t-0 dark:border-white/[0.06]' : (kind === 'subtask' ? 'border-t border-gray-100 pt-6 lg:col-span-5 dark:border-white/[0.06]' : '')">
+                            <div x-show="fullscreen" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
+                                <button type="button" x-show="canChat && kind !== 'subtask'" @click="sideTab = 'chat'" :class="sidePanel === 'chat' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Chat</button>
+                                <button type="button" x-show="kind !== 'project'" @click="sideTab = 'activity'; loadTaskActivity()" :class="sidePanel === 'activity' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Activity List</button>
+                            </div>
+                            <div :class="fullscreen ? 'flex min-h-0 flex-1 flex-col p-6' : ''">
+                                @include('pages.projectmanagement.partials.project-detail-tab-chat')
+                                @include('pages.projectmanagement.partials.project-detail-tab-activity')
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -912,6 +947,24 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <style>
+        /* The Kanban scrolls with the left / right buttons above it. Swipe,
+           Shift+wheel and dragging a card to the edge still scroll it too. */
+        #kanbanPanel { scrollbar-width: none; }
+        #kanbanPanel::-webkit-scrollbar { display: none; }
+
+        /* Unread chat count (sidebar, Message tab, chat list) and the
+           collapsed sidebar's dot. */
+        .pm-unread {
+            display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center;
+            min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9999px;
+            background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; line-height: 1;
+        }
+        .pm-unread-dot {
+            position: absolute; top: 5px; right: 5px; width: 9px; height: 9px;
+            border-radius: 9999px; background: #ef4444; box-shadow: 0 0 0 2px #fff;
+        }
+        .dark .pm-unread-dot { box-shadow: 0 0 0 2px #0f172a; }
+
         /* Subtask/task description — Quill editor, styled to match the
            modal's inputs. Class-scoped (.task-quill) rather than tied to
            #task_description_editor's id, so any Quill container on this
@@ -1291,7 +1344,7 @@
                 quickAddParentId: null,
                 quickAddParentName: '',
                 // Status Settings side panel — admin (not adminsby) only.
-                isPrimaryAdmin: @json(auth()->user()->isPrimaryAdmin()),
+                isProjectAdmin: @json(auth()->user()->hasRole('PROADMINACCESS')),
                 statusPanelOpen: false,
                 statusRows: [],
                 newStatusRow: { status_id: '', status_name: '', color: '#56b1f3', sort_order: '' },
@@ -1326,6 +1379,44 @@
 
                 defaultApplied: false,
                 prefetch: null,
+
+                // Unread chat counts: boards 'TEAM/{id}' | 'PRJ/{id}' (Task
+                // chats included), threads '{doctype}/{id}'.
+                unread: { boards: {}, threads: {} },
+
+                unreadOf(type, id) {
+                    return this.unread.boards[`${type}/${id}`] || 0;
+                },
+
+                unreadLabel(n) {
+                    return n > 99 ? '99+' : n;
+                },
+
+                loadUnread() {
+                    $.get('{{ route('projects.chat-unread') }}', (res) => {
+                        this.unread = res;
+                        renderBoardThreads();
+                    });
+                },
+
+                // The Kanban's left / right buttons (in place of a scrollbar).
+                kanbanArrows: { overflow: false, atStart: true, atEnd: true },
+                kanbanBoardShown: null,
+
+                updateKanbanArrows() {
+                    const el = document.getElementById('kanbanPanel');
+                    const max = el.scrollWidth - el.clientWidth;
+                    this.kanbanArrows = {
+                        overflow: el.clientWidth > 0 && max > 1,
+                        atStart: el.scrollLeft <= 1,
+                        atEnd: el.scrollLeft >= max - 1,
+                    };
+                },
+
+                // direction: -1 left, 1 right — one column (w-72 + gap-4) a click.
+                scrollKanban(direction) {
+                    document.getElementById('kanbanPanel').scrollBy({ left: direction * 304, behavior: 'smooth' });
+                },
 
                 get headerTitle() {
                     if (this.teamId) {
@@ -1385,6 +1476,18 @@
                         };
                     }
                     this.loadSidebar();
+                    this.loadUnread();
+                    setInterval(() => {
+                        if (document.visibilityState === 'visible') this.loadUnread();
+                    }, 30000);
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState !== 'visible') return;
+                        markEntityChatRead();
+                        this.loadUnread();
+                    });
+                    // Window, sidebar or tab changes alter whether columns fit.
+                    new ResizeObserver(() => this.updateKanbanArrows())
+                        .observe(document.getElementById('kanbanPanel'));
                 },
 
                 // Hand back the prefetched requests when they are for the
@@ -2079,11 +2182,17 @@
                 // Task tree instead. Cards are top-level Tasks only (their
                 // own children live inside the Task Detail drill-down).
                 renderTeamKanban() {
+                    const boardId = this.teamId || this.projectId;
+                    // A redraw stays where it was; another board starts at the left.
+                    const scrollLeft = this.kanbanBoardShown === boardId ? $('#kanbanPanel').scrollLeft() : 0;
+                    this.kanbanBoardShown = boardId;
                     const panel = $('#kanbanPanel').empty();
-                    const wrap = $('<div class="flex gap-4 min-w-max pb-2"></div>');
+                    // min-h leaves room for a column's sort menu on a near-empty board.
+                    const wrap = $('<div class="flex gap-4 min-w-max min-h-[18rem] pb-2"></div>');
 
                     this.teamTaskStatuses.forEach(status => {
-                        const items = this.teamTasks.filter(t => t.status_id === status.status_id);
+                        const sortKey = kanbanSortOf(boardId, status.status_id);
+                        const items = sortKanbanCards(this.teamTasks.filter(t => t.status_id === status.status_id), sortKey);
                         const col = $(`
                             <div class="w-72 shrink-0 rounded-lg" style="background:${hexToRgba(status.color, 0.08)}">
                                 <div class="group flex items-center gap-2 px-3 py-2.5">
@@ -2098,13 +2207,14 @@
                                             <i class="fas fa-trash text-[10px]"></i>
                                         </button>
                                     </div>
+                                    ${kanbanSortMenuHtml(sortKey)}
                                 </div>
-                                <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
                                 <div class="px-2 pb-2">
                                     <button class="add-card-btn flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 px-2 py-2 text-xs font-medium text-gray-400 transition hover:border-indigo-300 hover:bg-white/60 hover:text-indigo-500 dark:border-gray-700 dark:hover:border-indigo-500/60 dark:hover:bg-gray-800 dark:hover:text-indigo-400">
                                         <i class="fas fa-plus text-[10px]"></i> Add card
                                     </button>
                                 </div>
+                                <div class="kanban-col space-y-2 px-2 pb-2 min-h-[40px]" data-status-id="${status.status_id}"></div>
                             </div>
                         `);
 
@@ -2114,6 +2224,16 @@
                         col.find('.add-card-btn').on('click', () => this.openQuickAddCard(status.status_id));
                         col.find('.edit-status-btn').on('click', () => this.openEditStatusModal(status));
                         col.find('.delete-status-btn').on('click', () => this.deleteStatusColumn(status));
+                        col.find('.kanban-sort-btn').on('click', (e) => {
+                            e.stopPropagation();
+                            const $menu = col.find('.kanban-sort-menu');
+                            $('.kanban-sort-menu').not($menu).addClass('hidden');
+                            $menu.toggleClass('hidden');
+                        });
+                        col.find('.kanban-sort-option').on('click', (e) => {
+                            setKanbanSort(boardId, status.status_id, $(e.currentTarget).data('sort'));
+                            this.renderTeamKanban();
+                        });
 
                         wrap.append(col);
                     });
@@ -2129,16 +2249,27 @@
                     wrap.append(addStatusBtn);
 
                     panel.append(wrap);
+                    panel.scrollLeft(scrollLeft);
+                    this.updateKanbanArrows();
 
                     panel.find('.kanban-col').each((i, el) => {
                         Sortable.create(el, {
                             group: 'team-tasks-kanban',
                             animation: 150,
+                            // Columns are always sorted, so their order is
+                            // fixed; cards can still be dragged between them.
+                            sort: false,
                             onEnd: (evt) => {
+                                if (evt.from === evt.to) return;
                                 const taskId = evt.item.dataset.taskId;
                                 const statusId = evt.to.dataset.statusId;
                                 $.post(`${this.taskApiBase}/${taskId}/status`, { status_id: statusId, _token: '{{ csrf_token() }}' })
                                     .fail(xhr => { toastr.error(xhr.responseJSON?.message || 'Could not move this task.'); this.refreshTaskBoard(); });
+                                // Redraw so the column counts and its sort
+                                // apply to the moved card straight away.
+                                const task = this.teamTasks.find(t => String(t.task_id) === String(taskId));
+                                if (task) task.status_id = statusId;
+                                setTimeout(() => this.renderTeamKanban());
                             }
                         });
                     });
@@ -3411,6 +3542,42 @@
         function pmProjectShow() {
             return {
                 tab: 'overview',
+                // Detail modal size — opens full screen; the header's toggle
+                // shrinks it, and that choice lasts until the page reloads.
+                fullscreen: true,
+                // The open Task is private (or under a private one).
+                chatPrivate: false,
+                // Full screen's right column: 'chat' | 'activity'.
+                sideTab: 'chat',
+
+                // The right column's panel actually on show — a Project has no
+                // Activity List, and a Subtask (or someone outside the chat)
+                // has no Chat.
+                get sidePanel() {
+                    if (this.kind === 'project') return 'chat';
+                    if (!this.canChat || this.kind === 'subtask') return 'activity';
+                    return this.sideTab;
+                },
+
+                // Is this panel on screen? Full screen has no main tab bar:
+                // Overview, Sub Task and File are all visible beside the
+                // right column. Normal size follows `tab`.
+                shows(panel) {
+                    const isSubtask = this.kind === 'subtask';
+                    switch (panel) {
+                        case 'overview':
+                        case 'tasks':
+                            return this.fullscreen || isSubtask || this.tab === panel;
+                        case 'attachments':
+                            return this.fullscreen ? this.canChat && !isSubtask : this.tab === panel;
+                        case 'chat':
+                            return this.fullscreen ? this.sidePanel === panel : this.tab === panel;
+                        case 'activity':
+                            return this.kind !== 'project'
+                                && (this.fullscreen ? this.sidePanel === panel : isSubtask || this.tab === panel);
+                    }
+                    return false;
+                },
                 // 'project': showing a Project (Overview's Team/Linked
                 // Projects sections apply). 'task': showing a Task/Team-Task
                 // (openTaskEntityDetail() below) — those sections hide.
@@ -3982,6 +4149,85 @@
         // whichever value the caller displays (a parent task's own
         // progress_percent is overridden by its children's completion
         // everywhere else in this file, so late-ness follows the same rule).
+        // ── Kanban column sort (Team and Project boards) ─────────────────
+        // Each viewer's own choice per column, remembered in this browser.
+        // The first entry is the default.
+        const KANBAN_SORTS = [
+            { key: 'progress', label: 'Unfinished → Completed' },
+            { key: 'due', label: 'Due date (soonest)' },
+            { key: 'created_desc', label: 'Created date (newest)' },
+            { key: 'created_asc', label: 'Created date (oldest)' },
+        ];
+        const KANBAN_DEFAULT_SORT = KANBAN_SORTS[0].key;
+        const KANBAN_SORT_STORE = 'pmKanbanSort';
+        let kanbanSortChoices = null;
+
+        function kanbanSortStore() {
+            if (!kanbanSortChoices) {
+                try { kanbanSortChoices = JSON.parse(localStorage.getItem(KANBAN_SORT_STORE)) || {}; }
+                catch (e) { kanbanSortChoices = {}; }
+            }
+            return kanbanSortChoices;
+        }
+
+        function kanbanSortOf(boardId, statusId) {
+            return kanbanSortStore()[`${boardId}:${statusId}`] || KANBAN_DEFAULT_SORT;
+        }
+
+        function setKanbanSort(boardId, statusId, key) {
+            const store = kanbanSortStore();
+            if (key !== KANBAN_DEFAULT_SORT) store[`${boardId}:${statusId}`] = key;
+            else delete store[`${boardId}:${statusId}`];
+            // Storage can be blocked; the choice then lasts until reload.
+            try { localStorage.setItem(KANBAN_SORT_STORE, JSON.stringify(store)); } catch (e) {}
+        }
+
+        function sortKanbanCards(items, key) {
+            // Tasks without a due date go last.
+            const byDue = (a, b) => (a.end_date || '9999').localeCompare(b.end_date || '9999');
+            const byCreated = (a, b) => (a.created_at || '').localeCompare(b.created_at || '');
+            // Same completion figure as the card: its Subtasks' if it has
+            // any, else its own. Cancelled Tasks go after completed ones.
+            const progress = t => {
+                if (t.status === 'C') return 101;
+                const children = (t.children || []).filter(c => c.status !== 'C');
+                if (!children.length) return Math.round(t.progress_percent || 0);
+                return Math.round(children.filter(c => c.progress_percent >= 100).length / children.length * 100);
+            };
+            const compare = {
+                due: byDue,
+                created_desc: (a, b) => byCreated(b, a),
+                created_asc: byCreated,
+                progress: (a, b) => progress(a) - progress(b) || byDue(a, b),
+            }[key];
+            return compare ? [...items].sort(compare) : items;
+        }
+
+        function kanbanSortMenuHtml(activeKey) {
+            const active = KANBAN_SORTS.find(s => s.key === activeKey) || KANBAN_SORTS[0];
+            // Highlighted only when it differs from the default.
+            const tone = active.key !== KANBAN_DEFAULT_SORT
+                ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300'
+                : 'text-gray-400 hover:bg-gray-200 hover:text-indigo-600 dark:hover:bg-gray-700';
+            const options = KANBAN_SORTS.map(s => `
+                <button type="button" data-sort="${s.key}" class="kanban-sort-option flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs transition hover:bg-gray-50 dark:hover:bg-white/5 ${s === active ? 'font-semibold text-indigo-600 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'}">
+                    ${s.label}
+                    ${s === active ? '<i class="fas fa-check text-[10px]"></i>' : ''}
+                </button>`).join('');
+            return `
+                <div class="relative shrink-0">
+                    <button type="button" class="kanban-sort-btn rounded p-1 transition ${tone}" title="Sort: ${active.label}">
+                        <i class="fas fa-arrow-down-wide-short text-[11px]"></i>
+                    </button>
+                    <div class="kanban-sort-menu absolute right-0 top-full z-20 mt-1 hidden w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#1e293b]">
+                        <p class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Sort cards by</p>
+                        ${options}
+                    </div>
+                </div>`;
+        }
+
+        $(document).on('click', () => $('.kanban-sort-menu').addClass('hidden'));
+
         function isLate(endDate, progressPct, cancelled) {
             if (!endDate || cancelled || progressPct >= 100) return false;
             return dayjs(endDate).isBefore(dayjs(), 'day');
@@ -4408,8 +4654,9 @@
         let addPeoplePicked = new Set();
 
         function renderAddPeoplePicker(task, eligible) {
-            // Assigning opens the task's chat, so only its audience may (can_chat).
-            const canAssign = !!task && task.can_chat !== false;
+            // Assigning opens the task's chat, so not everyone may. Project
+            // Tasks send can_assign; Team Tasks follow can_chat.
+            const canAssign = !!task && (task.can_assign ?? task.can_chat) !== false;
             $('#detailAddPeopleWrap').toggleClass('hidden', !canAssign);
             $('#detailAddPeopleMenu').addClass('hidden');
             if (!canAssign) return;
@@ -4676,7 +4923,9 @@
             // Overview + Sub Task make sense that deep.
             root.kind = taskDetailStack.length > 0 ? 'subtask' : 'task';
             root.tab = 'overview';
+            root.sideTab = 'chat';
             root.canChat = entityCanChat = task.can_chat !== false;
+            root.chatPrivate = !!task.chat_private;
             // Sub Task panel used to only refresh when its tab was clicked
             // (@click="tab='tasks'; renderTaskTab()"); now that 'subtask'
             // kind shows it unconditionally (side-by-side with Overview),
@@ -4688,7 +4937,9 @@
             $('#detailBackBtn').toggleClass('hidden', taskDetailStack.length === 0);
 
             $('#detailProjectName').text(task.task_name);
-            $('#detailProjectDescription').html(task.task_description || '—');
+            // An emptied editor still saves '<p><br></p>'.
+            const hasDescr = stripHtml(task.task_description || '') !== '';
+            $('#detailProjectDescription').html(hasDescr ? task.task_description : '<span class="italic text-gray-400">No description.</span>');
             $('#detailProjectDates').text(`${formatDate(task.start_date)} → ${formatDate(task.end_date)}`);
             $('#detailProjectCancelledBadge').toggleClass('hidden', task.status !== 'C');
             renderTaskLockState(task);
@@ -4715,8 +4966,7 @@
             } else {
                 $statusPill.addClass('hidden');
             }
-            $('#detailProjectStatusMeta').text(status?.status_name || '—');
-            $('#detailProjectDueDate').text(task.end_date || '—');
+            renderOverviewDue(task.end_date, task.progress_percent, task.status === 'C');
 
             const pics = task.assignee_people || [];
             const $picsHeader = $('#detailProjectPics').empty();
@@ -4732,42 +4982,20 @@
                 <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="fas fa-users text-[9px]"></i> ${t.team_name}</span>
             `));
 
-            const $picList = $('#detailProjectPicList').empty();
-            picTeams.forEach(t => $picList.append(`
-                <div class="flex items-center gap-2.5">
-                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="fas fa-users text-[11px]"></i></span>
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${t.team_name}</span>
-                    <span class="text-[11px] text-gray-400">Team</span>
-                </div>
-            `));
-            if (pics.length) {
-                pics.forEach(p => $picList.append(`
-                    <div class="flex items-center gap-2.5">
-                        ${p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}" class="h-7 w-7 rounded-full object-cover">` : initialsAvatar(p.name, 28)}
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${p.name}</span>
-                    </div>
-                `));
-            } else if (!picTeams.length) {
-                $picList.append('<p class="text-sm text-gray-400">Unassigned.</p>');
-            }
+            renderOverviewPics([
+                ...picTeams.map(t => ({ name: t.team_name, isTeam: true })),
+                ...pics,
+            ]);
 
-            const $tags = $('#detailProjectTags').empty();
-            if (task.tags && task.tags.length) {
-                task.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>`));
-            } else {
-                $tags.append('<span class="text-sm text-gray-400">No tags.</span>');
-            }
+            renderOverviewTags(task.tags);
 
             // Chat participants + assignee picker pool — same eligible-users
             // source pattern already used by openTaskModal()/openSubtaskModal().
             const eligible = currentTaskDoctype === 'TTK'
                 ? (window.PM_CURRENT_TEAM_MEMBERS || [])
                 : (root.eligibleUsers || []);
-            const $chatParticipants = $('#chatParticipants').empty();
-            eligible.slice(0, 6).forEach((u, i) => $chatParticipants.append(
-                `<span title="${u.name}" style="margin-left:${i === 0 ? '0' : '-8px'}" class="inline-block rounded-full ring-2 ring-white dark:ring-[#0f172a]">${initialsAvatar(u.name, 22)}</span>`
-            ));
-            $('#chatParticipantsLabel').text(eligible.length ? `${eligible.length} people in this chat` : '');
+            // This chat's own people, not the whole board's.
+            loadTaskChatParticipants(task.task_id);
             $('#chatSelfAvatar').html(initialsAvatar(PM_CURRENT_USER.name, 30));
 
             renderAddPeoplePicker(task, eligible);
@@ -4915,7 +5143,7 @@
             const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
             fillTaskPicSelect($('#task_assignees'), currentTaskDoctype, eligible, root.projectTeams || [],
                 task.assignees || [], (task.teams || []).map(t => t.team_id));
-            const picsLocked = task.can_chat === false;
+            const picsLocked = (task.can_assign ?? task.can_chat) === false;
             $('#task_assignees').prop('disabled', picsLocked);
             $('#taskAssigneesNote').toggleClass('hidden', !picsLocked);
             loadTagOptions($('#task_tags'), (task.tags || []).map(t => t.tag_name));
@@ -4933,6 +5161,90 @@
             $('#taskModalTitle').text('Edit ' + setTaskModalNoun(!!task.parent_task_id) + ' — ' + task.task_name);
             $('#taskAttachmentField').toggleClass('hidden', !entityCanChat);
             $('#taskModal').removeClass('hidden');
+        }
+
+        // ── Overview facts card (Project and Task share it) ─────────────
+        // endDate is 'YYYY-MM-DD'. The hint says how close or late it is.
+        function renderOverviewDue(endDate, progressPct, cancelled) {
+            $('#detailProjectDueDate').text(formatDate(endDate));
+
+            const gray = 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300';
+            const yellow = 'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-300';
+            let label = '', tone = gray;
+
+            if (endDate && !cancelled) {
+                const days = dayjs(endDate).startOf('day').diff(dayjs().startOf('day'), 'day');
+                const count = n => `${n} day${n === 1 ? '' : 's'}`;
+
+                if (progressPct >= 100) {
+                    [label, tone] = ['Done', 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-300'];
+                } else if (days < 0) {
+                    [label, tone] = [`${count(-days)} overdue`, 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300'];
+                } else if (days === 0) {
+                    [label, tone] = ['Due today', yellow];
+                } else {
+                    [label, tone] = [`${count(days)} left`, days <= 3 ? yellow : gray];
+                }
+            }
+
+            $('#detailProjectDueHint')
+                .attr('class', label ? `rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone}` : 'hidden')
+                .text(label);
+        }
+
+        function renderOverviewTags(tags) {
+            const $tags = $('#detailProjectTags').empty();
+            if (!tags || !tags.length) {
+                $tags.append('<span class="text-xs italic text-gray-400">None</span>');
+                return;
+            }
+            tags.forEach(tag => {
+                const color = tag.color || '#56b1f3';
+                $('<span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold"></span>')
+                    .css({ background: hexToRgba(color, 0.12), color })
+                    .text(tag.tag_name)
+                    .prepend($('<span class="h-1.5 w-1.5 rounded-full"></span>').css('background', color))
+                    .appendTo($tags);
+            });
+        }
+
+        // people: [{ name, photo_url?, isTeam? }]
+        const OVERVIEW_PIC_LIMIT = 8;
+        function renderOverviewPics(people) {
+            const esc = s => $('<div>').text(s ?? '').html().replace(/"/g, '&quot;');
+            const $list = $('#detailProjectPicList').empty();
+            if (!people.length) {
+                $list.append('<span class="text-xs italic text-gray-400">Unassigned</span>');
+                return;
+            }
+            people.forEach(p => {
+                const avatar = p.isTeam
+                    ? '<span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="fas fa-users text-[9px]"></i></span>'
+                    : p.photo_url
+                        ? `<img src="${esc(p.photo_url)}" alt="" class="h-5 w-5 shrink-0 rounded-full object-cover">`
+                        : initialsAvatar(esc(p.name), 20);
+                $list.append(`
+                    <span class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 py-0.5 pl-0.5 pr-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+                        ${avatar}
+                        <span class="truncate text-xs font-medium text-gray-700 dark:text-gray-200">${esc(p.name)}</span>
+                        ${p.isTeam ? '<span class="text-[10px] text-gray-400">Team</span>' : ''}
+                    </span>
+                `);
+            });
+
+            // Folding away a single chip would save no room, hence the + 1.
+            if (people.length <= OVERVIEW_PIC_LIMIT + 1) return;
+            const $extra = $list.children().slice(OVERVIEW_PIC_LIMIT).hide();
+            const more = `+${$extra.length} more`;
+            let expanded = false;
+            $('<button type="button" class="h-6 rounded-full px-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-900/30"></button>')
+                .text(more)
+                .on('click', function () {
+                    expanded = !expanded;
+                    $extra.toggle(expanded);
+                    $(this).text(expanded ? 'Show less' : more);
+                })
+                .appendTo($list);
         }
 
         function renderLinkedProjects(links) {
@@ -4969,7 +5281,7 @@
                 currentProjectDetail = data;
 
                 $('#detailProjectName').text(data.project_name);
-                $('#detailProjectDescription').text(data.project_description || '—');
+                $('#detailProjectDescription').text(data.project_description || 'No description.');
                 $('#detailProjectDates').text(`${formatDate(data.start_date)} → ${formatDate(data.end_date)}`);
                 $('#detailProjectCancelledBadge').addClass('hidden');
                 renderTaskLockState(null);
@@ -4993,9 +5305,8 @@
                 } else {
                     $statusPill.addClass('hidden');
                 }
-                $('#detailProjectStatusMeta').text(data.status?.status_name || '—');
                 $('#detailProjectTeam').text((data.teams || []).map(t => t.team_name).join(', ') || '—');
-                $('#detailProjectDueDate').text(data.end_date || '—');
+                renderOverviewDue(data.end_date_raw, data.progress_percent, false);
 
                 const pics = data.pics || [];
                 const $picsHeader = $('#detailProjectPics').empty();
@@ -5004,24 +5315,9 @@
                     : `<span title="${p.name}${p.pic_type === 'TEAM' ? ' (Team)' : ''}" style="margin-left:${i === 0 ? '0' : '-8px'}" class="inline-block rounded-full ring-2 ring-white dark:ring-[#0f172a]">${initialsAvatar(p.name, 24)}</span>`
                 ));
 
-                const $picList = $('#detailProjectPicList').empty();
-                if (pics.length) {
-                    pics.forEach(p => $picList.append(`
-                        <div class="flex items-center gap-2.5">
-                            ${p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}" class="h-7 w-7 rounded-full object-cover">` : initialsAvatar(p.name, 28)}
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">${p.name}${p.pic_type === 'TEAM' ? ' <span class=\'text-xs text-gray-400\'>(Team)</span>' : ''}</span>
-                        </div>
-                    `));
-                } else {
-                    $picList.append('<p class="text-sm text-gray-400">Unassigned.</p>');
-                }
+                renderOverviewPics(pics.map(p => ({ ...p, isTeam: p.pic_type === 'TEAM' })));
 
-                const $tags = $('#detailProjectTags').empty();
-                if (data.tags && data.tags.length) {
-                    data.tags.forEach(tag => $tags.append(`<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white" style="background:${tag.color || '#56b1f3'}">${tag.tag_name}</span>`));
-                } else {
-                    $tags.append('<span class="text-sm text-gray-400">No tags.</span>');
-                }
+                renderOverviewTags(data.tags);
 
                 // Chat tab — everyone on the project's team can join in, not
                 // just the PICs, so the participant strip uses eligible_users.
@@ -5046,6 +5342,8 @@
                 root.projectTeams = data.teams || [];
 
                 $('#projectDetailModal').removeClass('hidden');
+                // Full screen shows Sub Task straight away, not on a tab click.
+                root.renderTaskTab();
                 refreshEntityAttachments();
                 loadEntityComments();
             }).fail(function () {
@@ -5124,12 +5422,18 @@
             const badge = fileTypeBadge(fullName);
             const esc = s => $('<div>').text(s ?? '').html();
             const iconBtn = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 opacity-0 transition hover:bg-white group-hover:opacity-100 dark:hover:bg-white/10';
+            const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes((at.extention || '').toLowerCase());
+            const thumb = isImage && at.url
+                ? `<img src="${esc(at.url)}" alt="" loading="lazy" class="h-10 w-10 shrink-0 rounded-lg bg-gray-100 object-cover dark:bg-white/5">`
+                : `<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold" style="background:${badge.bg};color:${badge.color}">${esc(badge.label)}</span>`;
+            const size = !at.size ? '' : at.size >= 1048576 ? (at.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(at.size / 1024)) + ' KB';
+            const meta = [size, at.created_by || '—', at.created_at || '—'].filter(Boolean).join(' · ');
             return `
-                <div class="attachment-row group flex items-center gap-3.5 rounded-xl bg-gray-50 px-4 py-3 transition dark:bg-white/[0.03] ${at.url ? 'cursor-pointer hover:bg-indigo-50/60 dark:hover:bg-indigo-900/10' : ''}" data-id="${at.id}" data-url="${esc(at.url)}" data-name="${esc(fullName)}" data-label="${esc(at.name)}">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold" style="background:${badge.bg};color:${badge.color}">${esc(badge.label)}</span>
+                <div class="attachment-row group flex min-w-0 items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 transition dark:border-white/10 dark:bg-white/[0.03] ${at.url ? 'cursor-pointer hover:border-indigo-300 hover:shadow-sm dark:hover:border-indigo-500/50' : ''}" data-id="${at.id}" data-url="${esc(at.url)}" data-name="${esc(fullName)}" data-label="${esc(at.name)}">
+                    ${thumb}
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100">${esc(fullName)}</p>
-                        <p class="mt-0.5 text-xs text-gray-400">${esc(at.created_by || '—')} · ${esc(at.created_at || '—')}</p>
+                        <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100" title="${esc(fullName)}">${esc(fullName)}</p>
+                        <p class="mt-0.5 truncate text-xs text-gray-400" title="${esc(meta)}">${esc(meta)}</p>
                     </div>
                     ${at.url ? `<a href="${esc(at.url)}" target="_blank" onclick="event.stopPropagation()" title="Download" class="attachment-download ${iconBtn} hover:text-indigo-600 dark:hover:text-indigo-400"><i class="fas fa-arrow-down-to-bracket text-xs"></i></a>` : ''}
                     <button type="button" title="Rename" class="attachment-rename ${iconBtn} hover:text-amber-600 dark:hover:text-amber-400"><i class="fas fa-pen text-xs"></i></button>
@@ -5309,7 +5613,29 @@
         let entityCanChat = true;
         const currentEntityKey = () => `${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`;
 
+        // The File panel's picked-but-not-uploaded files.
+        function renderStagedAttachments() {
+            const files = Array.from($('#projectAttachFiles')[0].files);
+            $('#projectAttachStaged').toggleClass('hidden', !files.length).toggleClass('flex', !!files.length);
+            const $names = $('#projectAttachStagedNames').empty();
+            files.forEach(f => $('<span class="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs text-gray-600 shadow-sm dark:bg-white/10 dark:text-gray-200"><i class="fas fa-paperclip text-[10px] text-gray-400"></i><span class="truncate"></span></span>')
+                .find('.truncate').text(f.name).end()
+                .appendTo($names));
+        }
+
+        function clearStagedAttachments() {
+            $('#projectAttachFiles').val('');
+            renderStagedAttachments();
+        }
+
+        let lastAttachmentsEntityKey = null;
         function refreshEntityAttachments() {
+            // Switched to a different Project/Task — drop files picked for the old one.
+            if (currentEntityKey() !== lastAttachmentsEntityKey) {
+                lastAttachmentsEntityKey = currentEntityKey();
+                clearStagedAttachments();
+                $('#projectAttachmentList').empty();
+            }
             if (!entityCanChat) { entityAttachmentsById = {}; $('#projectAttachmentList').empty(); return; }
             const key = currentEntityKey();
             const listUrl = `{{ url('attachments') }}/${key}`;
@@ -5320,10 +5646,8 @@
                 renderEntityComments();
 
                 const $list = $('#projectAttachmentList').empty();
-                if (!res.success || !res.attachments || !res.attachments.length) {
-                    $list.append('<p class="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400 dark:border-white/10">No attachments yet.</p>');
-                    return;
-                }
+                // No files: the list stays empty and only the drop zone shows.
+                if (!res.success || !res.attachments) return;
                 res.attachments.forEach(at => $list.append(attachmentRowHtml(at)));
             });
         }
@@ -5344,7 +5668,49 @@
                 if (key !== currentEntityKey()) return;
                 entityCommentsCache = res.comments || [];
                 renderEntityComments();
+                markEntityChatRead();
             });
+        }
+
+        // The avatars and head count above a Task popup's Chat — the same
+        // list the Message tab shows.
+        function loadTaskChatParticipants(taskId) {
+            const $avatars = $('#chatParticipants').empty();
+            const $label = $('#chatParticipantsLabel').text('');
+            if (!entityCanChat) return;
+
+            $.get(`${currentTaskApiBase}/${taskId}/mentionable-users`, { people: 1 }).done(list => {
+                if (currentDetailTaskId !== taskId) return;
+                const people = Array.isArray(list) ? list : [];
+                $avatars.empty();
+                people.slice(0, 6).forEach((u, i) => $('<span class="inline-block rounded-full ring-2 ring-white dark:ring-[#0f172a]"></span>')
+                    .attr('title', u.name || u.username)
+                    .css('margin-left', i ? '-8px' : '0')
+                    .html(initialsAvatar(u.name || u.username, 22))
+                    .appendTo($avatars));
+                $label.text(people.length ? `${people.length} ${people.length === 1 ? 'person' : 'people'} assigned` : 'No one assigned yet');
+            });
+        }
+
+        // Tells the server a chat thread has been seen up to its newest
+        // message, which clears its unread badges.
+        const chatReadUpTo = {};
+        function markChatRead(doctype, id, messages) {
+            if (!['PRJ', 'TEAM', 'TSK', 'TTK'].includes(doctype) || !messages.length || document.visibilityState !== 'visible') return;
+            const key = `${doctype}/${id}`;
+            const lastId = Math.max(...messages.map(m => Number(m.id) || 0));
+            if (!lastId || chatReadUpTo[key] >= lastId) return;
+            chatReadUpTo[key] = lastId;
+
+            $.post('{{ route('projects.chat-read') }}', { doctype, refnbr: id, last_id: lastId, _token: '{{ csrf_token() }}' })
+                .done(() => Alpine.$data(document.getElementById('pmPortfolioRoot')).loadUnread())
+                .fail(() => delete chatReadUpTo[key]);
+        }
+
+        // The detail popup's Chat — only once it is actually on screen.
+        function markEntityChatRead() {
+            if (lastCommentsEntityKey !== currentEntityKey() || !$('#projectCommentList').is(':visible')) return;
+            markChatRead(PM_ENTITY_DOCTYPE, PM_ENTITY_ID, entityCommentsCache);
         }
 
         function renderEntityComments() {
@@ -5519,7 +5885,7 @@
             if (task) {
                 title = task.task_name;
                 subtitle = task.parent_name ? `Subtask of ${task.parent_name}` : 'Task chat';
-                if (task.locked) subtitle += ' · Private, assignees and project admins only';
+                if (task.locked) subtitle += ' · Private, assignees only';
                 else if (task.restricted) subtitle += ' · Assignees, creator and project admins only';
             }
 
@@ -5568,6 +5934,8 @@
             const preview = last
                 ? `${esc((last.username || '').trim().toLowerCase() === me ? 'You' : String(last.name || '').split(' ')[0])}: ${esc(last.text)}`
                 : '<span class="italic">No messages yet</span>';
+            const portfolio = Alpine.$data(document.getElementById('pmPortfolioRoot'));
+            const unread = portfolio.unread.threads[`${doctype}/${id}`] || 0;
 
             return `
                 <button type="button" data-doctype="${doctype}" data-id="${esc(id)}"
@@ -5580,7 +5948,10 @@
                             <span class="shrink-0 text-[11px] text-gray-400">${last ? boardThreadTime(last.date) : ''}</span>
                         </span>
                         ${parent ? `<span class="block truncate text-[11px] text-gray-400">↳ ${esc(parent)}</span>` : ''}
-                        <span class="block truncate text-xs text-gray-500 dark:text-gray-400">${preview}</span>
+                        <span class="flex items-center gap-2">
+                            <span class="min-w-0 flex-1 truncate text-xs text-gray-500 dark:text-gray-400">${preview}</span>
+                            ${unread ? `<span class="pm-unread">${portfolio.unreadLabel(unread)}</span>` : ''}
+                        </span>
                     </span>
                 </button>`;
         }
@@ -5657,6 +6028,7 @@
                 const messages = (res.comments || []).slice().reverse(); // oldest first
 
                 const finish = () => {
+                    if ($('#boardChatList').is(':visible')) markChatRead(boardChat.doctype, boardChat.id, messages);
                     const sig = messages.map(m => m.id).join(',');
                     if (sig === boardChat.sig && !scrollToEnd) return;
                     boardChat.sig = sig;
@@ -5685,15 +6057,21 @@
         function loadBoardChatPeople() {
             const url = boardChatMentionUrl(), key = boardChatKey();
             if (!url) return;
-            $.get(url).done(list => {
+            // A Task chat shows only its assigned people; the board's own
+            // thread shows everyone, the viewer added to the list.
+            const task = isTaskThread();
+            $.get(url, task ? { people: 1 } : {}).done(list => {
                 if (key !== boardChatKey()) return;
-                const people = [{ username: PM_CURRENT_USER.username, name: PM_CURRENT_USER.name }, ...(Array.isArray(list) ? list : [])];
+                const others = Array.isArray(list) ? list : [];
+                const people = task ? others : [{ username: PM_CURRENT_USER.username, name: PM_CURRENT_USER.name }, ...others];
                 const shown = people.slice(0, 5).map((p, i) =>
                     `<span class="inline-block rounded-full ring-2 ring-white dark:ring-gray-900" style="margin-left:${i ? '-8px' : '0'}">${initialsAvatar(p.name || p.username, 28)}</span>`).join('');
                 const more = people.length > 5 ? `<span class="-ml-2 flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-gray-100 px-1.5 text-[10px] font-semibold text-gray-500 ring-2 ring-white dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-900">+${people.length - 5}</span>` : '';
+                const noun = `${people.length === 1 ? 'person' : 'people'}${task ? ' assigned' : ''}`;
+                const count = people.length ? `${people.length} ${noun}` : 'No one assigned';
                 $('#boardChatPeople')
                     .attr('title', people.map(p => p.name || p.username).join(', '))
-                    .html(`<div class="flex items-center">${shown}${more}</div><span class="ml-2 hidden text-xs text-gray-400 sm:inline">${people.length} ${people.length === 1 ? 'person' : 'people'}</span>`);
+                    .html(`<div class="flex items-center">${shown}${more}</div><span class="ml-2 hidden text-xs text-gray-400 sm:inline">${count}</span>`);
             });
         }
 
@@ -6334,12 +6712,34 @@
             $('#btnUploadProjectAttachment').on('click', function () {
                 const files = Array.from($('#projectAttachFiles')[0].files);
                 if (!files.length) { toastr.warning('Choose at least one file.'); return; }
-                uploadFilesToProjectAttachments(files, PM_ENTITY_DOCTYPE, PM_ENTITY_ID, () => {
+                const $btn = $(this).prop('disabled', true);
+                uploadFilesToProjectAttachments(files, PM_ENTITY_DOCTYPE, PM_ENTITY_ID, (res) => {
+                    $btn.prop('disabled', false);
+                    // Failed or nothing accepted — keep the picked files.
+                    if (!res) return;
                     toastr.success('Uploaded.');
-                    $('#projectAttachFiles').val('');
+                    clearStagedAttachments();
                     refreshEntityAttachments();
                 });
             });
+            $('#projectAttachFiles').on('change', renderStagedAttachments);
+            $('#projectAttachClear').on('click', clearStagedAttachments);
+            $('#projectAttachDrop')
+                .on('dragover', function (e) {
+                    e.preventDefault();
+                    $(this).addClass('ring-2 ring-indigo-400');
+                })
+                .on('dragleave', function (e) {
+                    if (!this.contains(e.originalEvent.relatedTarget)) $(this).removeClass('ring-2 ring-indigo-400');
+                })
+                .on('drop', function (e) {
+                    e.preventDefault();
+                    $(this).removeClass('ring-2 ring-indigo-400');
+                    const files = e.originalEvent.dataTransfer?.files;
+                    if (!files?.length) return;
+                    $('#projectAttachFiles')[0].files = files;
+                    renderStagedAttachments();
+                });
 
             $(document).on('click', '.attachment-row', function () {
                 openFilePreview($(this).data('name'), $(this).data('url'), $(this).data('id'));

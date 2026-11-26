@@ -1,13 +1,20 @@
 <x-app-layout>
-    <div class="mx-auto max-w-9xl px-4 py-6">
-        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <style>
+        .tab-btn:hover { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+        .tab-btn.is-on { border-color: var(--color-blue-600); background: var(--color-blue-600); color: #fff; }
+    </style>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             {{-- Header utama --}}
-            <div class="border-b border-gray-200 px-6 py-5 dark:border-gray-700">
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">IFCA Integration</h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Scheduler & Integration Master & Transaction Data</p>
+            <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-3.5 dark:border-white/[0.06]">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-right-left"></i></span>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100">IFCA Integration</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Scheduler &amp; Integration Master &amp; Transaction Data</p>
+                </div>
             </div>
 
-            <div class="p-6">
+            <div class="p-5">
                 {{-- ===================== --}}
                 {{-- SECTION : IFCA        --}}
                 {{-- ===================== --}}
@@ -32,47 +39,47 @@
                             {{-- tab kanan --}}
                             <div class="flex flex-wrap gap-1.5 lg:pl-1">
                                 <button type="button" data-tab="tab-nonstock"
-                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Non Stock
                                 </button>
 
                                 <button type="button" data-tab="tab-stock"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Stock
                                 </button>
 
                                 <button type="button" data-tab="tab-supplier"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Supplier
                                 </button>
 
                                 <button type="button" data-tab="tab-po"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     PO
                                 </button>
 
                                 <button type="button" data-tab="tab-sttb"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     GRN
                                 </button>
 
                                 <button type="button" data-tab="tab-grn-return"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     GRN Return
                                 </button>
 
                                 <button type="button" data-tab="tab-bast"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     BAST
                                 </button>
 
                                 <button type="button" data-tab="tab-issue"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Issue
                                 </button>
 
                                 <button type="button" data-tab="tab-issue-return"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Issue Return
                                 </button>
 
@@ -105,17 +112,17 @@
                             {{-- tab kanan --}}
                             <div class="flex flex-wrap gap-1.5 lg:pl-1">
                                 <button type="button" data-tab="tab-po-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     PO Solomon
                                 </button>
 
                                 <button type="button" data-tab="tab-grn-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     GRN Solomon
                                 </button>
 
                                 <button type="button" data-tab="tab-issue-sl"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white dark:text-gray-400">
+                                    class="tab-btn rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-gray-600 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Issue Solomon
                                 </button>
                             </div>
@@ -211,21 +218,7 @@
                 .filter(Boolean);
 
             function resetButtons() {
-                tabButtons.forEach(btn => {
-                    btn.classList.remove(
-                        'bg-white',
-                        'border-gray-200',
-                        'shadow-sm',
-                        'text-gray-800',
-                        'ring-1',
-                        'ring-gray-200'
-                    );
-
-                    btn.classList.add(
-                        'border-transparent',
-                        'text-gray-600'
-                    );
-                });
+                tabButtons.forEach(btn => btn.classList.remove('is-on'));
             }
 
             function hideAllPanels() {
@@ -239,15 +232,7 @@
 
                     resetButtons();
 
-                    btn.classList.add(
-                        'bg-white',
-                        'border-gray-200',
-                        'shadow-sm',
-                        'text-gray-800',
-                        'ring-1',
-                        'ring-gray-200'
-                    );
-                    btn.classList.remove('border-transparent', 'text-gray-600');
+                    btn.classList.add('is-on');
 
                     hideAllPanels();
 

@@ -100,6 +100,58 @@
             };
             $walk($rootMenus ?? collect(), []);
         }
+
+        // Settings menus are hardcoded in sidebar_menu.blade.php, not in the menu table, so the
+        // walk above finds nothing for them. Keep this list in step with that sidebar block.
+        if ($headerTitle === '' && empty($crumbs)) {
+            $settingsPages = [
+                '' => ['access_control_studio' => 'Access Control Studio'],
+                'Organization Setup' => [
+                    'users' => 'Users', 'users-sby' => 'Users', 'user-data-sync' => 'Update Data User', 'autonbrs' => 'Autonbrs',
+                    'companies' => 'Companies', 'locations' => 'Locations', 'categories' => 'Categories', 'department' => 'Department',
+                    'sys-calendar' => 'Calendar Exception',
+                ],
+                'Workflow' => [
+                    'approvals' => 'Approvals', 'approvals-sby' => 'Approvals', 'manage-approvals' => 'Manage Approval',
+                    'manage-approvals-sby' => 'Manage Approval', 'attachments-master' => 'Attachments Master', 'send-email' => 'Send Email',
+                ],
+                'HRGA Setup' => [
+                    'grading' => 'Grading', 'kendaraan' => 'Kendaraan', 'group_acc_specific' => 'Group Access Specific',
+                    'performance-management' => 'Performance Management', 'reschedule_email_queue' => 'Reschedule Email Queue',
+                ],
+                'Purchasing Setup' => [
+                    'tops' => 'TOPS', 'tenants' => 'Tenants', 'vendors' => 'Vendors', 'groupbiayanonpurch' => 'Group Biaya Non Purch',
+                ],
+                'Tenancy Setup' => [
+                    'tenancy.user.index' => 'User', 'tenancy.settings.index' => 'Settings', 'tenancy.approval.index' => 'Approval',
+                    'tenancy.organization.index' => 'Master Data',
+                ],
+                'Integration Setup' => [
+                    'integration.ifcaintegration' => 'IFCA Integration', 'integration.acumvms.index' => 'ACUM VMS Integration',
+                ],
+                'Project Setup' => [
+                    'project-archive' => 'Project Archive', 'task-archive' => 'Task Archive', 'project-status.index' => 'Status Master',
+                ],
+                'Dashboard Setup' => [
+                    'dashboard-setup' => 'Dashboard Layout', 'dashboard-menu' => 'Dashboard Menu', 'summary-setup' => 'Summary Setup',
+                    'summary-setup.home' => 'Summary Setup',
+                ],
+                'VMS Setup' => [
+                    'vms-setup.document' => 'Document', 'vms-setup.vendor-category' => 'Vendor Category',
+                    'vms-setup.company-department' => 'Company & Department', 'vms-setup.bank' => 'Bank', 'vms-setup.users' => 'Users',
+                ],
+            ];
+            $currentName = Route::currentRouteName();
+            foreach ($settingsPages as $group => $pages) {
+                if ($currentName && isset($pages[$currentName])) {
+                    $crumbs = array_map(
+                        fn ($label) => ['label' => $label, 'url' => null],
+                        array_values(array_filter(['Settings', $group, $pages[$currentName]]))
+                    );
+                    break;
+                }
+            }
+        }
     @endphp
 
     <div class="hidden min-w-0 flex-1 items-center pl-2 lg:flex">

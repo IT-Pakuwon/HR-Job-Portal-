@@ -1,9 +1,9 @@
 {{-- Task Detail — Activity List: everything that happened to this task and
      its subtasks (edits, status moves, chat, files), newest first with the
-     exact date/time. Its own tab for a top-level task; for a drilled-in
-     subtask (no tab bar) it sits below Overview/Sub Task. Filled by
-     loadTaskActivity() in projects.blade.php. --}}
-<div x-show="kind !== 'project' && (kind === 'subtask' || tab === 'activity')">
+     exact date/time. Its own tab (in full screen, a right-column tab); for a
+     drilled-in subtask at normal size it sits below Overview/Sub Task. Filled
+     by loadTaskActivity() in projects.blade.php. --}}
+<div x-show="shows('activity')" :class="fullscreen ? 'flex min-h-0 flex-1 flex-col' : ''">
     <div class="mb-3 flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
             <h3 class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -16,5 +16,6 @@
             <i class="fas fa-rotate-right text-[11px]"></i>
         </button>
     </div>
-    <div id="taskActivityList" class="custom-scrollbar max-h-[28rem] overflow-y-auto pr-1"></div>
+    <div id="taskActivityList" class="custom-scrollbar max-h-[28rem] overflow-y-auto pr-1"
+        :class="fullscreen ? 'min-h-0 flex-1' : ''" :style="fullscreen ? 'max-height: none' : ''"></div>
 </div>

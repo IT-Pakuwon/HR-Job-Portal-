@@ -4,6 +4,7 @@
         --agr-card: #ffffff;
         --agr-border: #e2e8f0;
         --agr-border-soft: #edf2f7;
+        --agr-field-border: #d1d5db;
         --agr-text: #0f172a;
         --agr-muted: #64748b;
         --agr-muted-2: #94a3b8;
@@ -20,6 +21,7 @@
         --agr-card: #0f172a;
         --agr-border: rgba(255, 255, 255, .08);
         --agr-border-soft: rgba(255, 255, 255, .04);
+        --agr-field-border: rgba(255, 255, 255, .14);
         --agr-text: #f8fafc;
         --agr-muted: #cbd5e1;
         --agr-muted-2: #64748b;
@@ -54,14 +56,17 @@
 
     .agr-label {
         display: block;
-        margin-bottom: 10px;
-        font-size: 13px;
+        margin-bottom: 6px;
+        font-size: 11px;
         font-weight: 600;
+        letter-spacing: .05em;
+        text-transform: uppercase;
         color: var(--agr-muted);
     }
 
     .agr-section {
-        background: var(--agr-bg);
+        background: var(--agr-card);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
         transition: border-color .18s ease;
     }
 
@@ -100,9 +105,9 @@
         align-items: center;
         gap: 12px;
         width: 100%;
-        min-height: 48px;
-        padding: 0 16px;
-        border: 1px dashed var(--agr-border);
+        min-height: 44px;
+        padding: 0 14px;
+        border: 1px dashed var(--agr-field-border);
         border-radius: 8px;
         background: var(--agr-card);
         color: var(--agr-muted-2);
@@ -150,21 +155,22 @@
     .agr-input,
     .agr-textarea {
         width: 100%;
-        border: 1px solid var(--agr-border);
+        border: 1px solid var(--agr-field-border);
         background: var(--agr-card);
         border-radius: 8px;
         font-size: 14px;
         color: var(--agr-text);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
         transition: all .18s ease;
     }
 
     .agr-input {
-        height: 48px;
-        padding: 0 16px;
+        height: 40px;
+        padding: 0 12px;
     }
 
     .agr-textarea {
-        padding: 14px 16px;
+        padding: 10px 12px;
         resize: none;
     }
 
@@ -200,7 +206,7 @@
     .agr-input:focus,
     .agr-textarea:focus {
         border-color: var(--agr-primary) !important;
-        box-shadow: 0 0 0 4px var(--agr-primary-soft);
+        box-shadow: 0 0 0 3px var(--agr-primary-soft);
         outline: none;
     }
 
@@ -371,13 +377,15 @@
     }
 
     .agr-select2 + .select2-container .select2-selection--single {
-        height: 48px !important;
+        height: 40px !important;
         border-radius: 8px !important;
-        border-color: var(--agr-border) !important;
+        border-color: var(--agr-field-border) !important;
         background: var(--agr-card);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
         display: flex;
         align-items: center;
-        padding: 0 16px;
+        padding: 0 12px;
+        font-size: 14px;
         transition: all .18s ease;
     }
 
@@ -402,11 +410,13 @@
     }
 
     .agr-select2 + .select2-container .select2-selection--multiple {
-        min-height: 48px !important;
+        min-height: 40px !important;
         border-radius: 8px !important;
-        border-color: var(--agr-border) !important;
+        border-color: var(--agr-field-border) !important;
         background: var(--agr-card);
-        padding: 6px 8px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+        padding: 2px 8px 6px;
+        font-size: 14px;
         transition: all .18s ease;
     }
 
@@ -520,5 +530,114 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 14px -4px currentColor;
         background-color: color-mix(in srgb, currentColor 14%, transparent);
+    }
+
+    /* ---- List tables (cards tagged dt-pretty) ---- */
+    .dt-pretty table.dataTable thead th,
+    .dt-pretty table thead th {
+        padding: 10px 14px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .dt-pretty table tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .dt-pretty table tbody tr:hover td {
+        background: #f8fafc;
+    }
+
+    .dark .dt-pretty table thead th {
+        background: rgba(255, 255, 255, .03);
+        border-color: rgba(255, 255, 255, .08);
+        color: #9ca3af;
+    }
+
+    .dark .dt-pretty table tbody td {
+        border-color: rgba(255, 255, 255, .05);
+        color: #e5e7eb;
+    }
+
+    .dark .dt-pretty table tbody tr:hover td {
+        background: rgba(255, 255, 255, .04);
+    }
+
+    /* Agreement number: the same soft blue document link as the other lists */
+    .dt-pretty td .btn-view-agr,
+    .dt-pretty td .btn-view-agreement {
+        width: auto;
+        min-width: 130px;
+        padding: 4px 12px;
+        border: 1px solid #dbeafe;
+        border-radius: 6px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .dt-pretty td .btn-view-agr:hover,
+    .dt-pretty td .btn-view-agreement:hover {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+    .dark .dt-pretty td .btn-view-agr,
+    .dark .dt-pretty td .btn-view-agreement {
+        border-color: rgba(96, 165, 250, .25);
+        background: rgba(37, 99, 235, .15);
+        color: #93c5fd;
+    }
+
+    .dark .dt-pretty td .btn-view-agr:hover,
+    .dark .dt-pretty td .btn-view-agreement:hover {
+        background: #2563eb;
+        color: #ffffff;
+    }
+
+    /* ---- Create / edit popup (New Agreement): white header and footer, grey body, white card ---- */
+    #newAgrModal .step-head {
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    #newAgrModal .step-body {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        background: #f9fafb;
+    }
+
+    #newAgrModal .step-foot {
+        margin: 0;
+    }
+
+    .agr-card-block {
+        padding: 1.25rem;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        background: var(--agr-card);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    }
+
+    .dark #newAgrModal .step-head {
+        border-color: rgba(255, 255, 255, .06);
+    }
+
+    .dark #newAgrModal .step-body {
+        background: rgba(255, 255, 255, .02);
+    }
+
+    .dark .agr-card-block {
+        border-color: rgba(255, 255, 255, .06);
     }
 </style>

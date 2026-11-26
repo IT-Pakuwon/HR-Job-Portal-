@@ -154,7 +154,7 @@ const VplUsageForm = {
             const exp  = item.expired_date ? item.expired_date.substring(0, 10) : '—';
             const name = VplUsageForm._escape(item.product_name);
             const tr = document.createElement('tr');
-            tr.className = 'border-t border-slate-100 dark:border-white/10';
+            tr.className = 'border-t border-gray-100 dark:border-white/10';
             tr.dataset.productId    = item.product_id;
             tr.dataset.productName  = item.product_name;
             tr.dataset.whsId        = item.whs_id;
@@ -166,7 +166,7 @@ const VplUsageForm = {
                 <td class="px-3 py-2">${exp}</td>
                 <td class="px-3 py-2 text-right">${Number(item.qty_available ?? 0).toLocaleString()}</td>
                 <td class="px-3 py-2 text-right">
-                    <input type="number" class="${prefix}-picker-received-input w-20 cursor-not-allowed rounded border border-slate-200 bg-slate-100 px-2 py-1 text-right text-xs text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400"
+                    <input type="number" class="${prefix}-picker-received-input w-20 cursor-not-allowed rounded-lg border border-gray-200 bg-gray-100 px-2 py-1.5 text-right text-xs text-gray-500 dark:border-gray-700 dark:bg-white/[0.04] dark:text-gray-400"
                         readonly tabindex="-1" max="${item.qty_available ?? 0}" value="${item.qty}">
                 </td>
             `;
@@ -679,7 +679,7 @@ const VplUsageForm = {
         document.getElementById('c_attachBody').innerHTML = `
             <tr id="c_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;
@@ -740,15 +740,15 @@ const VplUsageForm = {
                     data-expired-date="${exp}" data-qty="${Number(qty ?? 0)}" data-purpose-id="${d.purpose_id ?? ''}"
                     data-product-name="${d.product_name ?? ''}">
                     <td class="px-4 py-2">
-                        <div class="text-sm font-medium text-slate-800 dark:text-white">${d.product_id}</div>
-                        <div class="text-xs text-slate-500">${d.product_name ?? ''}</div>
+                        <div class="text-sm font-medium text-gray-800 dark:text-white">${d.product_id}</div>
+                        <div class="text-xs text-gray-500">${d.product_name ?? ''}</div>
                     </td>
                     <td class="px-4 py-2 text-xs">${d.whs_id ?? ''}</td>
                     <td class="px-4 py-2 text-xs">${expDisplay}</td>
                     <td class="px-4 py-2 text-right text-xs font-semibold">${Number(qty ?? 0).toLocaleString()}</td>
                     <td class="px-4 py-2 text-xs">${d.purpose_id ?? ''}</td>
                     <td class="px-4 py-2 text-center">
-                        <button type="button" class="e-del-exist-detail text-red-400 hover:text-red-600"
+                        <button type="button" class="e-del-exist-detail inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10"
                             data-detail-id="${d.id}">
                             <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
@@ -764,10 +764,10 @@ const VplUsageForm = {
             const url = `/usagevp/attachment/${a.id}/view`;
             eAttachBody.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center justify-between px-4 py-2" data-attach-id="${a.id}">
-                    <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
+                    <a href="${url}" target="_blank" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
                         <i class="fa-regular fa-file mr-1 text-xs"></i>${a.name ?? a.attachfile}
                     </a>
-                    <button type="button" class="e-del-exist-attach text-red-400 hover:text-red-600 ml-4"
+                    <button type="button" class="e-del-exist-attach ml-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10"
                         data-attach-id="${a.id}">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
@@ -963,13 +963,13 @@ const VplUsageForm = {
 
         const headerEl = document.getElementById(`${prefix}_previewHeader`);
         headerEl.innerHTML = `
-            <div><div class="text-xs text-slate-500">Company</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${cpnyid}</div></div>
-            <div><div class="text-xs text-slate-500">Department</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${dept}</div></div>
-            <div><div class="text-xs text-slate-500">V/P Type</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${vpLabel}</div></div>
-            <div><div class="text-xs text-slate-500">Usage Type</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${typeLabel}</div></div>
-            ${refId ? `<div><div class="text-xs text-slate-500">Reference Doc</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${refId}</div></div>` : ''}
-            ${usageDate ? `<div><div class="text-xs text-slate-500">Usage Date</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${usageDate}</div></div>` : ''}
-            <div class="md:col-span-5"><div class="text-xs text-slate-500">Remark</div><div class="mt-1 text-slate-700 dark:text-slate-200">${remark || '—'}</div></div>
+            <div><div class="text-xs text-gray-500">Company</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${cpnyid}</div></div>
+            <div><div class="text-xs text-gray-500">Department</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${dept}</div></div>
+            <div><div class="text-xs text-gray-500">V/P Type</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${vpLabel}</div></div>
+            <div><div class="text-xs text-gray-500">Usage Type</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${typeLabel}</div></div>
+            ${refId ? `<div><div class="text-xs text-gray-500">Reference Doc</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${refId}</div></div>` : ''}
+            ${usageDate ? `<div><div class="text-xs text-gray-500">Usage Date</div><div class="mt-1 font-medium text-gray-800 dark:text-gray-100">${usageDate}</div></div>` : ''}
+            <div class="md:col-span-5"><div class="text-xs text-gray-500">Remark</div><div class="mt-1 text-gray-700 dark:text-gray-200">${remark || '—'}</div></div>
         `;
 
         const detailBody = document.getElementById(`${prefix}_previewDetailBody`);

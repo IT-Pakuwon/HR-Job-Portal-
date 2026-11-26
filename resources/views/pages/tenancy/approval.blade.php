@@ -1,14 +1,15 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
 
-            <div class="flex flex-wrap items-center justify-between gap-4 rounded-t-xl border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <div class="flex flex-wrap items-center justify-between gap-4 rounded-t-xl border-b border-gray-100 bg-gray-50/60 px-5 py-4 dark:border-white/[0.06] dark:bg-white/[0.02] set-head">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400"><i class="fas fa-check-double text-sm"></i></span>
+                    
                     <div>
-                        <h2 class="text-base font-semibold leading-tight tracking-tight text-gray-800 dark:text-gray-100">Approval List</h2>
-                        <p class="text-xs text-gray-400">Approver flow per doctype, site &amp; department</p>
+                        <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-clipboard-check"></i></span><span>Approval List<span class="set-hint">Approver flow per doctype, site &amp; department</span></span></h2>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">

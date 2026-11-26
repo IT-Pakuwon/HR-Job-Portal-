@@ -37,8 +37,8 @@ class VplWarehouseSetupController extends Controller
         return DataTables::of(MsVplWarehouse::orderBy('cpnyid')->orderBy('whs_id')->get())
             ->addIndexColumn()
             ->addColumn('status_badge', fn ($row) => $row->status === 'A'
-                ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Active</span>'
-                : '<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Inactive</span>')
+                ? '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>'
+                : '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive</span>')
             ->rawColumns(['status_badge'])
             ->make(true);
     }
@@ -130,8 +130,8 @@ class VplWarehouseSetupController extends Controller
         return DataTables::of($query->get())
             ->addIndexColumn()
             ->addColumn('status_badge', fn ($row) => $row->status === 'A'
-                ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Active</span>'
-                : '<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Inactive</span>')
+                ? '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"><span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>Active</span>'
+                : '<span class="inline-flex min-w-[92px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Inactive</span>')
             ->rawColumns(['status_badge'])
             ->make(true);
     }

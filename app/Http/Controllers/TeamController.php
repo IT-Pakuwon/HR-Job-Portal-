@@ -35,7 +35,7 @@ class TeamController extends Controller
     {
         $user = Auth::user();
 
-        return $team->isCaptain($user->username) || $user->isPrimaryAdmin();
+        return $team->isCaptain($user->username) || $user->hasRole('PROADMINACCESS');
     }
 
     public function index()

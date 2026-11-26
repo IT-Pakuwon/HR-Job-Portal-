@@ -103,7 +103,7 @@
             docEdit: doc + 'hover:text-white dark:hover:text-white ' + amber,
             view: icon + blue,
             cancel: icon + red,
-            action: { blue: action + blue, amber: action + amber, green: action + green, slate: action + slate }
+            action: { blue: action + blue, amber: action + amber, green: action + green, slate: action + slate, red: action + red }
         };
     })();
 

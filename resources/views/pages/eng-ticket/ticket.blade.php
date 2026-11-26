@@ -1,7 +1,32 @@
 <x-app-layout>
     @include('pages.ticket.partial.style')
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
+    <x-it-modal-skin />
+    <x-spp-form-styles />
 
     <style>
+        /* ---- calendar: same buttons and headings as the rest of the app ---- */
+        #ticketCalendar .fc-toolbar-title { font-size: 1.125rem; font-weight: 700; color: #1f2937; }
+        #ticketCalendar .fc-button-primary {
+            background: #fff; border: 1px solid #d1d5db; color: #374151; font-size: .8125rem; font-weight: 600;
+            text-transform: capitalize; box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+        }
+        #ticketCalendar .fc-button-primary:not(:disabled):hover { background: #f3f4f6; border-color: #d1d5db; color: #111827; }
+        #ticketCalendar .fc-button-primary:not(:disabled).fc-button-active,
+        #ticketCalendar .fc-button-primary:not(:disabled).fc-button-active:hover { background: var(--color-blue-600); border-color: var(--color-blue-600); color: #fff; }
+        #ticketCalendar .fc-button-primary:focus, #ticketCalendar .fc-button-primary:not(:disabled):active:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, .2); }
+        #ticketCalendar .fc-button-primary:disabled { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; }
+        #ticketCalendar .fc-col-header-cell { background: #f9fafb; }
+        #ticketCalendar .fc-col-header-cell-cushion { padding: .5rem; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #6b7280; }
+        #ticketCalendar .fc-day-today { background: rgba(59, 130, 246, .08) !important; }
+        #ticketCalendar .fc-event { border-radius: .375rem; cursor: pointer; }
+        .dark #ticketCalendar .fc-toolbar-title { color: #f3f4f6; }
+        .dark #ticketCalendar .fc-button-primary { background: #1f2937; border-color: #4b5563; color: #e5e7eb; }
+        .dark #ticketCalendar .fc-button-primary:not(:disabled):hover { background: #374151; color: #fff; }
+        .dark #ticketCalendar .fc-button-primary:not(:disabled).fc-button-active { background: var(--color-blue-600); border-color: var(--color-blue-600); color: #fff; }
+        .dark #ticketCalendar .fc-col-header-cell { background: rgba(255, 255, 255, .04); }
+
         /* Event hover tooltip */
         .ectk-tip-wrapper {
             display: none;
@@ -75,535 +100,78 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
-        <div id="ticketStatusFilterRow"
-            class="{{ $isEng ? '2xl:grid-cols-13' : '2xl:grid-cols-8' }} hidden grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-
-            {{-- All --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700 dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            🎫
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                All
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="all">
-                            {{ $counts['all'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            @if ($isEng)
-                {{-- My Ticket --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="MY_TICKET">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                👤
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    My Ticket
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="my_ticket">
-                                {{ $counts['my_ticket'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            @if ($isEng)
-                {{-- Created --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="CREATED">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                🆕
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Created
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="created">
-                                {{ $counts['created'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-
-                {{-- Response --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="RESPONSE">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-cyan-700 bg-cyan-200/20 p-3 text-cyan-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-cyan-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                📩
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Response
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="response">
-                                {{ $counts['response'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            {{-- Process --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="PROCESS">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ⚙️
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Process
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="process">
-                            {{ $counts['process'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Pending --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="PENDING">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ⏳
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Pending
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="pending">
-                            {{ $counts['pending'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            @if ($isEng)
-                {{-- Complete Requested --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="COMPLETE_REQUESTED">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-200/20 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                👍
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Awaiting Approval
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="complete_requested">
-                                {{ $counts['complete_requested'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-
-                {{-- Transfer --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="TRANSFER">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                🔄
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Transfer
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="transfer">
-                                {{ $counts['transfer'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            {{-- Completed --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="COMPLETED">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ✅
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Completed
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="completed">
-                            {{ $counts['completed'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Reopen --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="REOPEN">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ♻️
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Reopen
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="reopen">
-                            {{ $counts['reopen'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Cancel --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="CANCEL">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-zinc-700 bg-zinc-200/20 p-3 text-zinc-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-zinc-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ❌
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Cancel
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="cancel">
-                            {{ $counts['cancel'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="REVISED">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            🔁
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Revised
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="revise">
-                            {{ $counts['revise'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Rejected --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="REJECTED">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-rose-700 bg-rose-200/20 p-3 text-rose-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-rose-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ⛔
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Rejected
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="rejected">
-                            {{ $counts['rejected'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-        </div>
-
+        @php
+            // [status sent to the list, label, icon, colour, count key, count]
+            $ticketCards = array_values(array_filter([
+                ['', 'All', '🎫', 'all', 'all', $counts['all'] ?? 0],
+                $isEng ? ['MY_TICKET', 'My Ticket', '👤', 'purple', 'my_ticket', $counts['my_ticket'] ?? 0] : null,
+                $isEng ? ['CREATED', 'Created', '🆕', 'blue', 'created', $counts['created'] ?? 0] : null,
+                $isEng ? ['RESPONSE', 'Response', '📩', 'sky', 'response', $counts['response'] ?? 0] : null,
+                ['PROCESS', 'Process', '⚙️', 'blue', 'process', $counts['process'] ?? 0],
+                ['PENDING', 'Pending', '⏳', 'yellow', 'pending', $counts['pending'] ?? 0],
+                $isEng ? ['COMPLETE_REQUESTED', 'Awaiting Approval', '👍', 'purple', 'complete_requested', $counts['complete_requested'] ?? 0] : null,
+                $isEng ? ['TRANSFER', 'Transfer', '🔄', 'pink', 'transfer', $counts['transfer'] ?? 0] : null,
+                ['COMPLETED', 'Completed', '✅', 'green', 'completed', $counts['completed'] ?? 0],
+                ['REOPEN', 'Reopen', '♻️', 'red', 'reopen', $counts['reopen'] ?? 0],
+                ['CANCEL', 'Cancel', '❌', 'all', 'cancel', $counts['cancel'] ?? 0],
+                ['REVISED', 'Revised', '🔁', 'orange', 'revise', $counts['revise'] ?? 0],
+                ['REJECTED', 'Rejected', '⛔', 'red', 'rejected', $counts['rejected'] ?? 0],
+            ]));
+            // the number keeps its data-count so the page script can refresh it
+            $statusCards = array_map(fn ($c) => [
+                ['data-status' => $c[0]], $c[1], $c[2], $c[3],
+                new \Illuminate\Support\HtmlString('<span data-count="' . e($c[4]) . '">' . e($c[5]) . '</span>'),
+                false, null, 'ticket-status-filter',
+            ], $ticketCards);
+
+            // calendar legend: [state, label, dot colour (same as the events), card colour]
+            $calendarCards = array_map(fn ($c) => [
+                ['data-state' => $c[0]], $c[1],
+                new \Illuminate\Support\HtmlString('<span class="h-3 w-3 rounded-full ' . $c[2] . '"></span>'),
+                $c[3],
+                new \Illuminate\Support\HtmlString('<span data-count="' . $c[0] . '">0</span>'),
+                false, null, 'calendar-status-filter', true,
+            ], [
+                ['UNSCHEDULED', 'Unscheduled', 'bg-gray-600', 'all'],
+                ['SCHEDULED', 'Scheduled', 'bg-blue-500', 'blue'],
+                ['RESCHEDULE', 'Reschedule', 'bg-orange-500', 'orange'],
+                ['REVISED', 'Revised', 'bg-amber-500', 'yellow'],
+                ['LATE', 'Late', 'bg-red-500', 'red'],
+                ['COMPLETED', 'Completed', 'bg-green-500', 'green'],
+                ['CANCELLED', 'Cancelled', 'bg-slate-600', 'all'],
+                ['REJECTED', 'Rejected', 'bg-rose-600', 'red'],
+            ]);
+        @endphp
+        <x-status-filter-cards id="ticketStatusFilterRow" :class="'hidden ' . ($isEng ? 'xl:grid-cols-7!' : '')" :custom="$statusCards" />
 
         {{-- Calendar Status Filter --}}
-        <div id="ticketCalendarStatusFilterRow"
-            class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-8">
-
-            <button type="button" class="calendar-status-filter text-left" data-state="UNSCHEDULED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-600 bg-gray-300/30 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-300 dark:hover:bg-gray-700">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-gray-600"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Unscheduled</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="UNSCHEDULED">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="SCHEDULED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-blue-500"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Scheduled</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="SCHEDULED">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="RESCHEDULE">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-orange-500"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Reschedule</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="RESCHEDULE">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="REVISED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-amber-500"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Revised</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="REVISED">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="LATE">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-red-500"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Late</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="LATE">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="COMPLETED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-green-500"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Completed</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="COMPLETED">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="CANCELLED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:text-slate-400 dark:hover:bg-slate-700">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-slate-600"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Cancelled</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="CANCELLED">0</p>
-                </div>
-            </button>
-
-            <button type="button" class="calendar-status-filter text-left" data-state="REJECTED">
-                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-rose-700 bg-rose-200/20 p-3 text-rose-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-rose-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
-                        <span class="h-3 w-3 rounded-full bg-rose-600"></span>
-                    </div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="whitespace-normal break-words text-sm font-medium">Rejected</p>
-                    </div>
-                    <p class="shrink-0 text-base font-bold" data-count="REJECTED">0</p>
-                </div>
-            </button>
-
-        </div>
+        <x-status-filter-cards id="ticketCalendarStatusFilterRow" :custom="$calendarCards" />
 
                 {{-- Filter Toolbar --}}
         @if ($isEng)
             <div id="ticketFilterToolbar"
-                class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                class="sf-field mt-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-8">
 
                     {{-- Search --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Search
 
                         </label>
 
                         <input type="text" id="filter_search" placeholder="Ticket / Summary / PIC"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
 
                     </div>
 
                     {{-- Status --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Status
 
@@ -625,7 +193,7 @@
                     {{-- Workflow --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Workflow
 
@@ -654,14 +222,14 @@
                     {{-- Category --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Category
 
                         </label>
 
                         <select id="filter_category_id"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
                             <option value="">
                                 All Category
@@ -680,7 +248,7 @@
                     {{-- Ticket Type --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Ticket Type
 
@@ -704,14 +272,14 @@
                     {{-- Company --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Company
 
                         </label>
 
                         <select id="filter_company_id"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
                             <option value="">
                                 All Company
@@ -730,38 +298,38 @@
                     {{-- Date From --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Date From
 
                         </label>
 
                         <input type="date" id="filter_date_from"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
 
                     </div>
 
                     {{-- Date To --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Date To
 
                         </label>
 
                         <input type="date" id="filter_date_to"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
 
                     </div>
 
                 </div>
 
                 {{-- Filter Action Buttons --}}
-                <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
+                <div class="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
 
                     <button type="button" id="btn_reset_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -772,7 +340,7 @@
                     </button>
 
                     <button type="button" id="btn_apply_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
@@ -783,7 +351,7 @@
                     </button>
 
                     <button type="button" id="btn_export_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-4 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-4 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
@@ -804,23 +372,12 @@
             <div id="ticketCalendarWrapper"
                 class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        Ticket Calendar
-                    </h2>
-
-                    <div class="flex flex-wrap items-center gap-4">
-
+                <x-list-page-header title="Ticket Calendar" subtitle="Tickets by schedule date">
                         <button type="button"
                             class="js-toggle-ticket-view inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-                            📋 Table View
+                            <i class="fa-solid fa-table-list text-xs"></i> Table View
                         </button>
-
-                    </div>
-
-                </div>
+                </x-list-page-header>
 
                 <div class="p-4">
                     <div id="ticketCalendar"></div>
@@ -829,24 +386,12 @@
             </div>
             {{-- Table Wrapper --}}
             <div id="ticketTableWrapper"
-                class="mt-4 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="dt-pretty mt-4 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
-
-                <div>
-
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        Ticket Support
-                    </h2>
-
-                </div>
-
-                <div class="flex items-center gap-3">
-
+            <x-list-page-header title="Ticket Support" subtitle="Report issues and follow their progress">
                     <button type="button"
                         class="js-toggle-ticket-view inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-                        📅 Calendar View
+                        <i class="fa-solid fa-calendar-days text-xs"></i> Calendar View
                     </button>
 
                     <button type="button" id="btn_create_ticket"
@@ -859,10 +404,7 @@
                         Create Ticket
 
                     </button>
-
-                </div>
-
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
 
@@ -953,11 +495,11 @@
                 class="hidden w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80 flex">
 
                 <div
-                    class="shrink-0 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white p-4 dark:border-white/[0.06] dark:from-amber-900/10 dark:to-transparent">
+                    class="shrink-0 border-b border-gray-100 px-4 py-3.5 dark:border-white/[0.06]">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
                             <span
-                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
                                 <i class="fa-solid fa-stamp text-sm"></i>
                             </span>
                             <div>
@@ -983,7 +525,7 @@
             </div>
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
-            class="ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
+            class="itm sf-field ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             {{-- Backdrop --}}
             <div
@@ -992,11 +534,11 @@
 
             {{-- Panel --}}
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- Header --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
@@ -1005,7 +547,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
+                        class="itm-close btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white dark:bg-gray-800 dark:border-slate-700">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -1014,7 +556,7 @@
                 </div>
 
                 {{-- Content --}}
-                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+                <div class="itm-body space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
                     <form id="createTicketForm" class="space-y-4">
 
@@ -1024,7 +566,7 @@
 
                         {{-- Ticket Information --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -1133,7 +675,7 @@
 
                         {{-- Classification --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -1192,7 +734,7 @@
 
                         {{-- Location --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -1251,7 +793,7 @@
 
                         {{-- Issue Detail --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -1304,7 +846,7 @@
                                     <textarea id="issue_descr" name="issue_descr" class="hidden"></textarea>
 
                                     <div id="issue_descr_editor"
-                                        class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        class="itm-card rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
                                         style="min-height: 140px;"></div>
 
                                 </div>
@@ -1315,7 +857,7 @@
 
                         {{-- Attachment --}}
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div
                                 class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -1335,7 +877,7 @@
                                     class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                        class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -1371,12 +913,12 @@
 
                         {{-- Footer --}}
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex items-center justify-end gap-3">
 
                                 <button type="button"
-                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
+                                    class="itm-btn btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 dark:bg-gray-800 dark:border-slate-700">
 
                                     Cancel
 
@@ -1404,7 +946,7 @@
         </div>
 
         {{-- DETAIL TICKET MODAL --}}
-        <div id="ticketDetailModal" class="ticket-modal fixed inset-0 z-[50] hidden p-4">
+        <div id="ticketDetailModal" class="itm sf-field ticket-modal fixed inset-0 z-[50] hidden p-4">
 
             {{-- Backdrop --}}
             <div
@@ -1414,11 +956,11 @@
             <div class="mx-auto flex min-h-screen w-full max-w-[95vw] items-center justify-center xl:max-w-7xl">
 
                 <div
-                    class="modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 transition-all duration-200 dark:bg-gray-900">
+                    class="itm-dialog modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 transition-all duration-200 dark:bg-gray-900">
 
                     {{-- Header --}}
                     <div
-                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 xl:flex-row xl:items-start xl:justify-between dark:border-gray-800 dark:bg-gray-900">
+                        class="itm-head sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 xl:flex-row xl:items-start xl:justify-between dark:border-gray-800 dark:bg-gray-900">
 
                         <div>
 
@@ -1481,7 +1023,7 @@
                             </button>
 
                             <button type="button"
-                                class="btn-close-modal inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10">
+                                class="itm-close btn-close-modal inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10">
 
                                 <i class="ti ti-x text-[18px]"></i>
 
@@ -1783,7 +1325,7 @@
                                 class="border-b border-gray-200 bg-gray-50/70 px-6 py-2 dark:border-gray-800 dark:bg-gray-900/60">
 
                                 <div
-                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                    class="itm-card inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                                     <button type="button"
                                         class="ticket-detail-tab active inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200"
@@ -1876,7 +1418,7 @@
                                             <input type="hidden" id="comment_ticket_id">
 
                                             <div
-                                                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-blue-500 dark:focus-within:ring-blue-500/10">
+                                                class="itm-card overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-blue-500 dark:focus-within:ring-blue-500/10">
 
                                                 <textarea id="comment_message" rows="1" placeholder="Write discussion, progress update, or response..."
                                                     class="w-full resize-none border-0 bg-transparent px-5 py-2 text-sm leading-7 text-gray-700 outline-none ring-0 placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"></textarea>

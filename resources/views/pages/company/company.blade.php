@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'companies' ? 'Companies' : '';
     @endphp
@@ -7,46 +9,45 @@
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
         <div>
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0 set-tabs">
                 <button type="button" id="tab-company"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
                     onclick="switchCpnyTab('company')">
-                    🏢 Company
+                    Company
                 </button>
                 <button type="button" id="tab-site"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('site')">
-                    📍 Site
+                    Site
                 </button>
                 <button type="button" id="tab-placementlocation"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('placementlocation')">
-                    🎯 Placement Location
+                    Placement Location
                 </button>
                 <button type="button" id="tab-businessunit"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('businessunit')">
-                    🏬 Business Unit
+                    Business Unit
                 </button>
                 <button type="button" id="tab-companybudget"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('companybudget')">
-                    💰 Company Budget
+                    Company Budget
                 </button>
                 <button type="button" id="tab-entity"
                     class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchCpnyTab('entity')">
-                    🗂️ Entity
+                    Entity
                 </button>
             </div>
 
             {{-- ── TAB 1: Company ──────────────────────────────────────────────── --}}
             <div id="panel-company"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Company
-                        List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-building"></i></span><span>Company List<span class="set-hint">Manage companies</span></span></h2>
                     <button id="addCompanyBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Company
@@ -76,11 +77,10 @@
 
             {{-- ── TAB 2: Site ─────────────────────────────────────────────────── --}}
             <div id="panel-site"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📍 Site
-                        List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-location-dot"></i></span><span>Site List<span class="set-hint">Manage sites</span></span></h2>
                     <button id="addSiteBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Site
@@ -110,11 +110,10 @@
 
             {{-- ── TAB: Placement Location ────────────────────────────────────── --}}
             <div id="panel-placementlocation"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🎯 Placement
-                        Location List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-bullseye"></i></span><span>Placement Location List<span class="set-hint">Manage placement locations</span></span></h2>
                     <button id="addPlacementLocationBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Placement Location
@@ -145,11 +144,10 @@
 
             {{-- ── TAB 3: Business Unit ───────────────────────────────────────── --}}
             <div id="panel-businessunit"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏬 Business
-                        Unit List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-store"></i></span><span>Business Unit List<span class="set-hint">Manage business units</span></span></h2>
                     <button id="addBusinessUnitBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Business Unit
@@ -206,11 +204,10 @@
 
             {{-- ── TAB 4: Company Budget ──────────────────────────────────────── --}}
             <div id="panel-companybudget"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💰 Company
-                        Budget List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-wallet"></i></span><span>Company Budget List<span class="set-hint">Manage company budgets</span></span></h2>
                     <button id="addCompanyBudgetBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Company Budget
@@ -237,11 +234,10 @@
 
             {{-- ── TAB 5: Entity ───────────────────────────────────────────────── --}}
             <div id="panel-entity"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Entity
-                        List</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-folder-tree"></i></span><span>Entity List<span class="set-hint">Manage entities</span></span></h2>
                     <button id="addEntityBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Entity
@@ -269,7 +265,7 @@
         </div>
 
         <!-- Modal: Company -->
-        <div id="companyModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="companyModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Company</h2>
                 <form id="companyForm">
@@ -377,7 +373,7 @@
         </div>
 
         <!-- Modal: Site -->
-        <div id="siteModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="siteModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalSiteTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Site</h2>
                 <form id="siteForm">
@@ -470,7 +466,7 @@
         </div>
 
         <!-- Modal: Placement Location -->
-        <div id="placementLocationModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="placementLocationModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalPlacementLocationTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
                     Placement Location</h2>
@@ -552,7 +548,7 @@
         </div>
 
         <!-- Modal: Business Unit -->
-        <div id="businessUnitModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+        <div id="businessUnitModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 set-pop">
             <div class="relative w-full max-w-3xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalBuTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Business
                     Unit</h2>
@@ -626,7 +622,7 @@
         </div>
 
         <!-- Modal: Company Budget -->
-        <div id="companyBudgetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+        <div id="companyBudgetModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 set-pop">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalCompanyBudgetTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
                     Company Budget</h2>
@@ -680,7 +676,7 @@
         </div>
 
         <!-- Modal: Entity -->
-        <div id="entityModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+        <div id="entityModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4 set-pop">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalEntityTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
                     Entity</h2>

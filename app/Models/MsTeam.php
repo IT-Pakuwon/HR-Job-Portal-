@@ -64,15 +64,14 @@ class MsTeam extends Model
     }
 
     // Who may open this Team's board and its Message thread: its members,
-    // plus admin / PROADMINACCESS.
+    // plus PROADMINACCESS.
     public function isAccessibleBy(?User $user): bool
     {
         if (!$user) {
             return false;
         }
 
-        return $user->isPrimaryAdmin()
-            || $user->hasRole('PROADMINACCESS')
+        return $user->hasRole('PROADMINACCESS')
             || $this->members()->whereRaw('lower(trim(username)) = ?', [strtolower(trim($user->username))])->exists();
     }
 }

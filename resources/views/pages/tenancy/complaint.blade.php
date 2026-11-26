@@ -1,6 +1,5 @@
 <x-app-layout>
     @php
-        $ctl = 'h-10 rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-slate-200';
         $cards = [
             ['C', 'Jobs', '🆕', 'yellow'],
             ['P', 'On Progress', '🛠️', 'blue'],
@@ -17,31 +16,36 @@
             @endforeach
         </div>
 
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Complaint Jobs</h2>
-                <div class="flex flex-wrap items-center gap-2">
-                    <select x-model="f.year" @change="reload()" class="{{ $ctl }}">
+        <x-ts-list-assets />
+
+        <div class="dt-pretty rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-ts-list-header title="Complaint Jobs" hint="Tenant complaints: process, complete or transfer to a work order" icon="fa-triangle-exclamation">
+                <x-ts-filter icon="fa-calendar" class="w-40">
+                    <select x-model="f.year" @change="reload()" class="ts-s2" title="Year">
                         <option value="">All Years</option>
-                        @foreach ($years as $y)<option value="{{ $y }}">{{ $y }}</option>@endforeach
+                        @foreach ($years as $y)<option value="{{ $y }}" @selected($y == now()->year)>{{ $y }}</option>@endforeach
                     </select>
-                    <select x-model="f.siteid" @change="reload()" class="{{ $ctl }} w-44">
+                </x-ts-filter>
+                <x-ts-filter icon="fa-building" class="w-52">
+                    <select x-model="f.siteid" @change="reload()" class="ts-s2" title="Site">
                         <option value="">All Sites</option>
                         @foreach ($sites as $s)<option value="{{ $s->siteid }}">{{ $s->sitename }}</option>@endforeach
                     </select>
-                    <select x-model="f.category" @change="reload()" class="{{ $ctl }} w-48">
+                </x-ts-filter>
+                <x-ts-filter icon="fa-tag" class="w-56">
+                    <select x-model="f.category" @change="reload()" class="ts-s2" title="Category">
                         <option value="">All Categories</option>
                         @foreach ($categories as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
                     </select>
-                </div>
-            </div>
+                </x-ts-filter>
+            </x-ts-list-header>
 
-            <div class="p-2" x-ignore>
-                <table id="complaintTable" class="w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
+            <div class="relative overflow-x-auto" x-ignore>
+                <table id="complaintTable" class="ts-rows w-full min-w-full border-separate border-spacing-0 text-sm" style="width:100%">
                     <thead>
                         <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <th class="px-4 py-3 text-center font-medium" style="text-align:center">Action</th>
-                            <th class="px-4 py-3 text-center font-medium" style="text-align:center">Complaint No</th>
+                            <th class="px-4 py-3 text-left font-medium">Complaint No</th>
                             <th class="px-4 py-3 text-left font-medium">Date</th>
                             <th class="px-4 py-3 text-left font-medium">Site</th>
                             <th class="px-4 py-3 text-left font-medium">Tenant</th>
@@ -60,7 +64,7 @@
         <div x-show="detail" x-cloak @keydown.escape.window="detail = null" class="fixed inset-0 z-[60] flex items-center justify-center p-4"
             x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm dark:bg-black/70" @click="detail = null"></div>
-            <div class="relative z-10 flex max-h-[92vh] min-h-[600px] w-full max-w-[1500px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="relative z-10 flex max-h-[92vh] min-h-[600px] w-full max-w-[1500px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 dark:bg-[#0f172a] dark:ring-white/10">
                 <template x-if="detail">
                     <div class="flex min-h-0 flex-1 flex-col">
                         {{-- Action prompt: Process (date + description), Complete / Cancel (notes required) --}}
@@ -121,8 +125,8 @@
 
                                         {{-- Footer --}}
                                         <div class="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-white/10 dark:bg-white/[0.02]">
-                                            <button type="button" @click="ask = null; err = ''" class="h-11 rounded-xl border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Back</button>
-                                            <button type="button" :disabled="busy" @click="confirmAsk()" class="inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60" :class="askUi().btn">
+                                            <button type="button" @click="ask = null; err = ''" class="h-10 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-transparent dark:text-gray-300">Back</button>
+                                            <button type="button" :disabled="busy" @click="confirmAsk()" class="inline-flex h-10 items-center gap-2 rounded-lg px-6 text-sm font-semibold text-white shadow-sm transition disabled:opacity-60" :class="askUi().btn">
                                                 <i class="fa-solid" :class="busy ? 'fa-circle-notch fa-spin' : askUi().icon"></i><span x-text="busy ? 'Submitting…' : askUi().cta"></span>
                                             </button>
                                         </div>
@@ -132,21 +136,24 @@
                         </div>
 
                         {{-- Header --}}
-                        <div class="flex flex-col gap-4 border-b border-gray-200 px-6 py-5 lg:flex-row lg:items-start lg:justify-between dark:border-gray-800">
-                            <div class="min-w-0">
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <h2 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white" x-text="detail.complaintnbr"></h2>
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold" :class="badge(detail.status)" x-text="detail.status_label"></span>
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-3.5 dark:border-white/[0.06]">
+                            <div class="flex min-w-0 items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2.5">
+                                        <h2 class="text-base! font-bold tracking-tight text-gray-800 dark:text-white" x-text="detail.complaintnbr"></h2>
+                                        <span class="rounded-full px-3 py-0.5 text-xs font-semibold" :class="badge(detail.status)" x-text="detail.status_label"></span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400" x-text="[detail.category, detail.storename].filter(Boolean).join(' · ') || '-'"></p>
                                 </div>
-                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400" x-text="[detail.category, detail.storename].filter(Boolean).join(' · ') || '-'"></p>
                             </div>
                             <div class="flex flex-wrap items-center justify-end gap-2" x-data="{ menu: false }" @click.outside="menu = false">
                                 <div class="relative" x-show="['C','P'].includes(detail.status)">
                                     <button type="button" :disabled="busy" @click="menu = !menu"
-                                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-200 dark:hover:bg-[#182132]">
+                                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50">
                                         <i class="fa-solid fa-bolt text-[14px]"></i><span>Actions</span><i class="fa-solid fa-chevron-down text-[11px] transition" :class="menu && 'rotate-180'"></i>
                                     </button>
-                                    <div x-show="menu" x-cloak x-transition.opacity class="absolute right-0 top-[calc(100%+8px)] z-50 w-60 overflow-hidden rounded-lg border border-gray-200 bg-white p-2 shadow-xl dark:border-white/[0.06] dark:bg-[#111827]">
+                                    <div x-show="menu" x-cloak x-transition.opacity class="absolute right-0 top-[calc(100%+8px)] z-50 w-60 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-white/[0.06] dark:bg-[#111827]">
                                         <button type="button" x-show="detail.status === 'C'" @click="menu = false; ask = 'process'; err = ''; actDate = ''; notes = ''; $nextTick(() => $refs.askNotes && $refs.askNotes.focus())" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-blue-50 dark:hover:bg-white/5"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-xs text-blue-600 dark:bg-blue-500/20"><i class="fa-solid fa-play"></i></span>Process Complaint</button>
                                         <button type="button" x-show="detail.status === 'P'" @click="menu = false; ask = 'complete'; err = ''; $nextTick(() => $refs.askNotes && $refs.askNotes.focus())" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-green-50 dark:hover:bg-white/5"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-xs text-green-600 dark:bg-green-500/20"><i class="fa-solid fa-check"></i></span>Completed</button>
                                         <a x-show="!hasWo()" :href="'{{ url('/createwos') }}?complaint=' + detail.eid" target="_blank" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-violet-50 dark:hover:bg-white/5"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 text-xs text-violet-600 dark:bg-violet-500/20"><i class="fa-solid fa-share-from-square"></i></span>Transfer to WO</a>
@@ -154,16 +161,20 @@
                                         <button type="button" @click="menu = false; ask = 'cancel'; err = ''; $nextTick(() => $refs.askNotes && $refs.askNotes.focus())" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-white/5"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-xs text-red-600 dark:bg-red-500/20"><i class="fa-solid fa-xmark"></i></span>Cancel</button>
                                     </div>
                                 </div>
-                                <button type="button" @click="detail = null" class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10"><i class="fa-solid fa-xmark text-[16px]"></i></button>
+                                <button type="button" @click="detail = null" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200" aria-label="Close"><i class="fa-solid fa-xmark text-[16px]"></i></button>
                             </div>
                         </div>
 
                         {{-- Body --}}
                         <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-12 xl:overflow-hidden">
                             {{-- Left: information --}}
-                            <div class="min-h-0 border-b border-gray-200 p-6 xl:col-span-7 xl:overflow-y-auto xl:border-b-0 xl:border-r dark:border-gray-800">
-                                <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Complaint Information</h3>
-                                <div class="space-y-4">
+                            <div class="min-h-0 space-y-4 border-b border-gray-100 bg-slate-50 p-4 xl:col-span-7 xl:overflow-y-auto xl:border-b-0 xl:border-r dark:border-white/[0.06] dark:bg-[#0b1220]">
+                                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                <div class="flex items-center gap-2.5 border-b border-gray-100 px-5 py-3 dark:border-white/10">
+                                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-circle-info"></i></span>
+                                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Complaint Information</h3>
+                                </div>
+                                <div class="grid grid-cols-1 gap-x-6 gap-y-4 p-5 sm:grid-cols-2">
                                     <template x-for="f in [
                                         ['Created By', detail.created_user || '-'],
                                         ['Complaint Date', String(detail.complaintdate || '').substring(0, 16) || '-'],
@@ -174,24 +185,31 @@
                                         ['Tenant', [detail.storename, detail.tenantcompanyname].filter(Boolean).join(' · ') || '-'],
                                         ['Floor / Unit', [detail.floor, detail.unit].filter(Boolean).join(' / ') || '-'],
                                     ]" :key="f[0]">
-                                        <div><label class="text-xs text-gray-400" x-text="f[0]"></label><p class="mt-1 text-sm font-medium text-gray-800 dark:text-white" x-text="f[1]"></p></div>
+                                        <div class="min-w-0"><label class="text-[11px] font-semibold uppercase tracking-wider text-gray-400" x-text="f[0]"></label><p class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-white" x-text="f[1]"></p></div>
                                     </template>
                                 </div>
 
-                                <h3 class="mb-3 mt-8 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</h3>
-                                <div class="whitespace-pre-line rounded-lg bg-gray-50 px-4 py-3 text-sm leading-7 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200" x-text="detail.description"></div>
+                                </section>
 
-                                <p x-show="err && !ask" x-text="err" class="mt-6 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-500/10 dark:text-red-400"></p>
+                                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    <div class="flex items-center gap-2.5 border-b border-gray-100 px-5 py-3 dark:border-white/10">
+                                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-align-left"></i></span>
+                                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Description</h3>
+                                    </div>
+                                    <div class="whitespace-pre-line break-words px-5 py-4 text-sm leading-7 text-gray-800 dark:text-gray-200" x-text="detail.description"></div>
+                                </section>
+
+                                <p x-show="err && !ask" x-text="err" class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-500/10 dark:text-red-400"></p>
                             </div>
 
                             {{-- Right: Tracking / Discussion / Attachments --}}
                             <div class="flex min-h-[480px] min-w-0 flex-col xl:col-span-5 xl:min-h-0">
-                                <div class="border-b border-gray-200 bg-gray-50/70 px-6 py-2 dark:border-gray-800 dark:bg-gray-900/60">
-                                    <div class="inline-flex max-w-full items-center gap-1 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                <div class="border-b border-gray-100 px-5 py-2.5 dark:border-white/[0.06]">
+                                    <div class="flex max-w-full items-center gap-1 overflow-x-auto">
                                         <template x-for="t in [['activity', 'Tracking', 'fa-clock-rotate-left'], ['messages', 'Discussion', 'fa-comments'], ['files', 'Attachments', 'fa-paperclip']]" :key="t[0]">
                                             <button type="button" @click="tab = t[0]; $nextTick(() => scrollChat())"
-                                                class="inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200"
-                                                :class="tab === t[0] ? 'bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'">
+                                                class="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-200"
+                                                :class="tab === t[0] ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white'">
                                                 <i class="fa-solid text-[12px]" :class="t[2]"></i><span x-text="t[1]"></span>
                                                 <span class="rounded-full px-1.5 text-[10px]" :class="tab === t[0] ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/10'"
                                                     x-text="t[0] === 'activity' ? (detail.activities || []).length : (t[0] === 'messages' ? (detail.messages || []).length : (detail.attachments || []).length)"></span>
@@ -202,7 +220,7 @@
 
                                 {{-- Tracking timeline --}}
                                 <div x-show="tab === 'activity'" class="flex-1 overflow-y-auto p-6">
-                                    <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Tracking Timeline</h3>
+                                    <h3 class="mb-4 text-sm font-bold text-gray-800 dark:text-gray-100">Tracking Timeline</h3>
                                     <div class="space-y-3">
                                         <template x-for="(a, i) in (detail.activities || [])" :key="i">
                                             <div class="relative flex gap-3">
@@ -210,7 +228,7 @@
                                                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm text-white" :class="tl(a.type).circle"><i class="fa-solid" :class="tl(a.type).icon"></i></span>
                                                     <span x-show="i < (detail.activities || []).length - 1" class="mt-1 w-px flex-1 bg-gray-200 dark:bg-white/10"></span>
                                                 </div>
-                                                <div class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-white/[0.06] dark:bg-[#111827]">
+                                                <div class="min-w-0 flex-1 rounded-xl border border-gray-100 bg-white p-3 shadow-sm dark:border-white/[0.06] dark:bg-[#111827]">
                                                     <div class="flex items-start justify-between gap-3">
                                                         <div class="min-w-0">
                                                             <div class="text-sm font-semibold text-gray-900 dark:text-white" x-text="tl(a.type).title || a.label"></div>
@@ -233,7 +251,7 @@
                                             <div :class="m.created_user === me ? 'items-end' : 'items-start'" class="flex flex-col">
                                                 <div class="mb-0.5 flex items-center gap-2 text-[11px] text-gray-400"><span class="font-semibold text-gray-600 dark:text-gray-300" x-text="m.name || m.created_user"></span><span x-text="String(m.created_datetime || '').substring(0, 16)"></span></div>
                                                 <div class="max-w-[90%] whitespace-pre-line break-words rounded-2xl px-3.5 py-2 text-sm shadow-sm"
-                                                    :class="m.created_user === me ? 'rounded-tr-sm bg-slate-900 text-white dark:bg-blue-600' : 'rounded-tl-sm bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-200'" x-html="msgHtml(m.message, m.created_user === me)"></div>
+                                                    :class="m.created_user === me ? 'rounded-tr-sm bg-blue-600 text-white' : 'rounded-tl-sm bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-200'" x-html="msgHtml(m.message, m.created_user === me)"></div>
                                             </div>
                                         </template>
                                     </div>
@@ -255,7 +273,7 @@
                                                 @keydown.escape.stop="mention.open = false"
                                                 @keydown.enter.prevent="if (mention.open && mentionList().length) pickMention(mentionList()[mention.index]); else if (!$event.shiftKey) sendMessage()"
                                                 class="max-h-24 min-h-9 flex-1 resize-none border-0 bg-transparent px-2 py-1.5 text-sm text-gray-700 outline-none ring-0 placeholder:text-gray-400 focus:ring-0 dark:text-gray-200"></textarea>
-                                            <button type="button" @click="sendMessage()" :disabled="busy || !chatText.trim()" class="h-9 rounded-lg bg-slate-900 px-3.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50 dark:bg-blue-600"><i class="fa-solid fa-paper-plane"></i></button>
+                                            <button type="button" @click="sendMessage()" :disabled="busy || !chatText.trim()" class="h-9 rounded-lg bg-blue-600 px-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"><i class="fa-solid fa-paper-plane"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -277,8 +295,8 @@
                                     </div>
                                     <div class="border-t border-gray-200 p-4 dark:border-gray-800">
                                         <p x-show="fileErr" x-text="fileErr" class="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-500/10"></p>
-                                        <label class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200" :class="busy && 'pointer-events-none opacity-50'">
-                                            <i class="fa-solid fa-paperclip text-xs"></i><span x-text="busy ? 'Uploading…' : 'Upload attachment'"></span>
+                                        <label class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-blue-300 py-2.5 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 dark:border-blue-500/40 dark:text-blue-300 dark:hover:bg-blue-500/10" :class="busy && 'pointer-events-none opacity-50'">
+                                            <i class="fa-solid fa-plus text-xs"></i><span x-text="busy ? 'Uploading…' : 'Upload attachment'"></span>
                                             <input type="file" class="hidden" accept=".jpg,.jpeg,.png,video/*" @change="upload($event)">
                                         </label>
                                         <p class="mt-2 text-center text-[11px] text-gray-400">JPG, JPEG, PNG or video · max 5 MB per file</p>
@@ -296,13 +314,14 @@
         function complaintLog() {
             const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
             const cols = ['', 'complaintnbr', 'complaintdate', 'sitename', 'storename', 'category', 'description', 'created_user', 'status'];
-            // same badge look as the other lists (tinted background + border, square corners)
-            const listBadge = {
-                C: 'bg-yellow-200/60 text-yellow-800 dark:bg-yellow-300/40 dark:text-yellow-900 border-yellow-600/40',
-                P: 'bg-blue-200/60 text-blue-800 dark:bg-blue-300/40 dark:text-blue-900 border-blue-600/40',
-                W: 'bg-violet-200/60 text-violet-800 dark:bg-violet-300/40 dark:text-violet-900 border-violet-600/40',
-                D: 'bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 border-green-600/40',
-                X: 'bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 border-red-600/40',
+            // status pill colours follow the status cards (W = transferred to WO)
+            const tones = { C: 'yellow', P: 'blue', W: 'purple', D: 'green', X: 'red' };
+            const pills = {
+                C: 'bg-yellow-50 text-yellow-700 ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30',
+                P: 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30',
+                W: 'bg-[#f3e8ff]/60 text-[#7e22ce] ring-[#e9d5ff] dark:bg-[#a855f7]/10 dark:text-[#d8b4fe] dark:ring-[#a855f7]/30',
+                D: 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30',
+                X: 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30',
             };
             let dt = null;
             return {
@@ -311,13 +330,13 @@
                 askUi() {
                     const t = {
                         process: { title: 'Process Complaint', cta: 'Submit', icon: 'fa-play', to: 'P', toLabel: 'On Progress',
-                            soft: 'border-amber-100 bg-gradient-to-r from-amber-50 to-white dark:border-white/10 dark:from-amber-500/10 dark:to-transparent',
+                            soft: 'border-amber-100 bg-amber-50/60 dark:border-white/10 dark:bg-amber-500/10',
                             tile: 'bg-amber-500 ring-amber-100 dark:ring-amber-500/20', btn: 'bg-amber-500 hover:bg-amber-600', focus: 'focus:border-amber-400 focus:ring-amber-100 dark:focus:ring-amber-500/10' },
                         complete: { title: 'Complete Complaint', cta: 'Mark as Completed', icon: 'fa-check', to: 'D', toLabel: 'Completed',
-                            soft: 'border-emerald-100 bg-gradient-to-r from-emerald-50 to-white dark:border-white/10 dark:from-emerald-500/10 dark:to-transparent',
+                            soft: 'border-emerald-100 bg-emerald-50/60 dark:border-white/10 dark:bg-emerald-500/10',
                             tile: 'bg-emerald-500 ring-emerald-100 dark:ring-emerald-500/20', btn: 'bg-emerald-600 hover:bg-emerald-700', focus: 'focus:border-emerald-400 focus:ring-emerald-100 dark:focus:ring-emerald-500/10' },
                         cancel: { title: 'Cancel Complaint', cta: 'Cancel Complaint', icon: 'fa-ban', to: 'X', toLabel: 'Cancelled',
-                            soft: 'border-rose-100 bg-gradient-to-r from-rose-50 to-white dark:border-white/10 dark:from-rose-500/10 dark:to-transparent',
+                            soft: 'border-rose-100 bg-rose-50/60 dark:border-white/10 dark:bg-rose-500/10',
                             tile: 'bg-rose-500 ring-rose-100 dark:ring-rose-500/20', btn: 'bg-rose-600 hover:bg-rose-700', focus: 'focus:border-rose-400 focus:ring-rose-100 dark:focus:ring-rose-500/10' },
                     }[this.ask] || {};
                     return { ...t, sub: [this.detail?.complaintnbr, this.detail?.category, this.detail?.storename].filter(Boolean).join(' · ') };
@@ -453,15 +472,15 @@
                         },
                         columns: [
                             { data: null, orderable: false, className: 'text-center dt-body-center', render: (v, t, r) => r.status === 'C'
-                                ? '<button type="button" class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"><i class="fa-solid fa-play mr-1.5 text-[10px]"></i>Process</button>' : '' },
-                            { data: 'complaintnbr', className: 'text-center dt-body-center', render: v => `<span class="inline-flex min-w-[120px] items-center justify-center whitespace-nowrap rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-gray-700">${esc(v)}</span>` },
+                                ? `<button type="button" class="${window.listCls.action.blue}"><i class="fa-solid fa-play text-[10px]"></i>Process</button>` : '' },
+                            { data: 'complaintnbr', render: v => `<span class="${window.listCls.doc}">${window.listDocText(esc(v))}</span>` },
                             { data: 'complaintdate', render: v => esc(String(v || '').substring(0, 16)) },
                             { data: 'sitename', render: (v, t, r) => esc(v || r.siteid || '—') },
                             { data: 'storename', render: v => esc(v || '—') },
                             { data: 'category', render: v => esc(v || '—') },
                             { data: 'description', render: v => `<span class="block max-w-xs truncate" title="${esc(v)}">${esc(v)}</span>` },
                             { data: 'created_user', render: v => esc(v || '—') },
-                            { data: 'status', render: (v, t, r) => `<span class="${listBadge[v] || listBadge.D} pointer-events-none inline-block w-32 rounded border px-4 py-2 text-center font-semibold">${esc(r.status_label)}</span>` },
+                            { data: 'status', render: (v, t, r) => window.listBadge(tones[v] || 'slate', esc(r.status_label), true) },
                         ],
                     });
                     $('#complaintTable tbody').on('click', 'tr', function () {
@@ -472,7 +491,7 @@
                 reload() { dt && dt.ajax.reload(null, true); },
                 // The Action (Process) column only matters for new jobs (status C).
                 setStatus(s) { this.f.status = s; dt && dt.column(0).visible(s === 'C'); this.reload(); },
-                badge(s) { return listBadge[s] || 'bg-slate-100 text-slate-600'; },
+                badge(s) { return 'ring-1 ring-inset ' + (pills[s] || 'bg-slate-50 text-slate-600 ring-slate-200'); },
             };
         }
     </script>

@@ -1,4 +1,8 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
@@ -62,41 +66,28 @@
         <div id="operationalPanel">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Operational Car List
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            List of all operational vehicles.
-                        </p>
-                    </div>
-
+                <x-list-page-header title="Operational Car List" subtitle="List of all operational vehicles.">
                     <button type="button" onclick="openCreateVehicleModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
 
                         <span>
                             Add Vehicle
                         </span>
 
                     </button>
+                </x-list-page-header>
 
-                </div>
+                <div class="relative">
 
-                <div class="overflow-x-auto p-5">
-
-                    <table id="vehicleTable" class="display w-full border-collapse text-sm">
+                    <table id="vehicleTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Vehicle License Plate</th>
@@ -122,41 +113,28 @@
         <div id="driverPanel" class="hidden">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Driver List
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            List of operational drivers.
-                        </p>
-                    </div>
-
+                <x-list-page-header title="Driver List" subtitle="List of operational drivers.">
                     <button type="button" onclick="openCreateDriverModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
 
                         <span>
                             Add Driver
                         </span>
 
                     </button>
+                </x-list-page-header>
 
-                </div>
+                <div class="relative">
 
-                <div class="overflow-x-auto p-5">
-
-                    <table id="driverTable" class="display w-full border-collapse text-sm">
+                    <table id="driverTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th>No</th>
                                 <th>Driver Name</th>
@@ -180,37 +158,24 @@
         <div id="categoryPanel" class="hidden">
 
             <div
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+                class="dt-pretty ga-table rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                <div
-                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-
-                    <div>
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            Category List
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            List of booking categories.
-                        </p>
-                    </div>
-
+                <x-list-page-header title="Category List" subtitle="List of booking categories.">
                     <button type="button" onclick="openCreateCategoryModal()"
-                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
-                        <span>＋</span>
+                        <i class="fa-solid fa-plus text-xs"></i>
                         <span>Add Category</span>
 
                     </button>
+                </x-list-page-header>
 
-                </div>
+                <div class="relative">
 
-                <div class="overflow-x-auto p-5">
-
-                    <table id="categoryTable" class="display w-full border-collapse text-sm">
+                    <table id="categoryTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
-                            <tr>
+                            <tr class="bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:bg-white/[0.02] dark:text-gray-400">
                                 <th>No</th>
                                 <th>Category ID</th>
                                 <th>Category Name</th>
@@ -229,12 +194,12 @@
         </div>
 
         {{-- Create Vehicle Modal --}}
-        <div id="createVehicleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createVehicleModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -247,7 +212,7 @@
                     </div>
 
                     <button type="button" onclick="closeCreateVehicleModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -292,17 +257,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateVehicleModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+                            class="itm-primary rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
                             Save Vehicle
 
@@ -317,12 +282,12 @@
         </div>
 
         {{-- Create Driver Modal --}}
-        <div id="createDriverModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createDriverModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -335,7 +300,7 @@
                     </div>
 
                     <button type="button" onclick="closeCreateDriverModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -380,17 +345,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateDriverModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
+                            class="itm-primary rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
 
                             Save Driver
 
@@ -405,16 +370,16 @@
         </div>
 
         {{-- Create Category Modal --}}
-        <div id="createCategoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="createCategoryModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                     <h2 class="text-lg font-semibold">
                         Add Category
                     </h2>
 
-                    <button type="button" onclick="closeCreateCategoryModal()">
+                    <button class="itm-close" type="button" onclick="closeCreateCategoryModal()">
                         ✕
                     </button>
                 </div>
@@ -460,17 +425,17 @@
                     </div>
 
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeCreateCategoryModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700">
+                            class="itm-primary rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700">
 
                             Save Category
 
@@ -485,12 +450,12 @@
         </div>
 
         {{-- Edit Vehicle Modal --}}
-        <div id="editVehicleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editVehicleModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -503,7 +468,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditVehicleModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -550,17 +515,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditVehicleModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+                            class="itm-primary rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
 
                             Update Vehicle
 
@@ -575,12 +540,12 @@
         </div>
 
         {{-- Edit Driver Modal --}}
-        <div id="editDriverModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editDriverModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
                 {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -593,7 +558,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditDriverModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -639,17 +604,17 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditDriverModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
+                            class="itm-primary rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
 
                             Update Driver
 
@@ -664,11 +629,11 @@
         </div>
 
         {{-- Edit Category Modal --}}
-        <div id="editCategoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="editCategoryModal" class="itm sf-field fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+            <div class="itm-dialog w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                <div class="itm-head flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -681,7 +646,7 @@
                     </div>
 
                     <button type="button" onclick="closeEditCategoryModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                        class="itm-close rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
 
@@ -738,17 +703,17 @@
                     </div>
 
                     <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                        class="itm-foot flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
                         <button type="button" onclick="closeEditCategoryModal()"
-                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
+                            class="itm-btn rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
 
                             Cancel
 
                         </button>
 
                         <button type="submit"
-                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700">
+                            class="itm-primary rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700">
 
                             Update Category
 

@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $maSby = Route::is('manage-approvals-sby') || Route::is('manage-approvals-sby.*');
         $maBase = $maSby ? '/manage-approvals-sby' : '/manage-approvals';
@@ -48,8 +50,7 @@
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </div>
                     <div>
-                        <h1 class="text-base font-bold text-gray-800 dark:text-white">Manage Approval</h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Search approval lines by document, approver, or status — then set their status or correct them directly.</p>
+                        <h1 class="set-title"><span class="set-ico"><i class="fa-solid fa-list-check"></i></span><span>Manage Approval<span class="set-hint">Search approval lines by document, approver, or status — then set their status or correct them directly.</span></span></h1>
                     </div>
                 </div>
 
@@ -143,11 +144,7 @@
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>
                     </div>
                     <div>
-                        <h1 class="text-base font-bold text-gray-800 dark:text-white">Transfer Pending Approvals</h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Move every currently-waiting approval from one user to another (e.g. when someone resigns).
-                            Only steps with status <strong>Waiting</strong> are affected; approved/rejected history is untouched.
-                        </p>
+                        <h1 class="set-title"><span class="set-ico"><i class="fa-solid fa-right-left"></i></span><span>Transfer Pending Approvals<span class="set-hint">Move every currently-waiting approval from one user to another (e.g. when someone resigns). Only steps with status <strong>Waiting</strong> are affected; approved/rejected history is untouched.</span></span></h1>
                     </div>
                 </div>
 
@@ -230,7 +227,7 @@
 
     {{-- ===================== MODAL: Set Status ===================== --}}
     <div id="setStatusModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 dark:bg-black/70">
-        <div class="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a] set-fields">
             <div class="flex items-center justify-between border-b border-slate-200 bg-rose-50/60 px-5 py-3 dark:border-white/10 dark:bg-rose-500/5">
                 <h2 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-white">
                     <i class="fa-solid fa-sliders text-rose-500"></i> Set Approval Status
@@ -273,7 +270,7 @@
 
     {{-- ===================== MODAL: Edit Line ===================== --}}
     <div id="editLineModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4 dark:bg-black/70">
-        <div class="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a] set-fields">
             <div class="flex items-center justify-between border-b border-slate-200 bg-indigo-50/60 px-5 py-3 dark:border-white/10 dark:bg-indigo-500/5">
                 <h2 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-white">
                     <i class="fa-solid fa-pen text-indigo-500"></i> Edit Approval Line

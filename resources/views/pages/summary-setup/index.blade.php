@@ -4,20 +4,20 @@
         x-data="summarySetup(@js($widgets), @js(route('summary-setup.save', $p)), @js(route('summary-setup.reset', $p)), @js($period))">
 
         {{-- Header --}}
-        <div class="mb-4 flex flex-wrap items-center gap-3 {{ $embedded ? 'justify-end' : '' }}">
+        <div class="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3.5 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] {{ $embedded ? 'justify-end' : '' }}">
             @unless ($embedded)
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                 <i class="fa-solid fa-chart-pie"></i>
             </div>
             <div class="min-w-0 flex-1">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">{{ $label }} Summary — Layout</h1>
+                <h1 class="text-base! font-bold tracking-tight text-gray-800 dark:text-white">{{ $label }} Summary — Layout</h1>
                 <p class="text-xs text-gray-500 dark:text-gray-400">Design what the {{ $label }} Summary panel shows. Drag cards to reorder, click one to change it. Applies to everyone who opens the panel.</p>
             </div>
             <div class="flex shrink-0 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700">
                 @foreach (['om' => 'OM', 'gm' => 'GM'] as $key => $tab)
                     <a href="{{ route('summary-setup', $key) }}"
                         @click="if (dirty && !confirm('Discard unsaved changes?')) $event.preventDefault()"
-                        class="rounded-md px-3 py-1 text-xs font-semibold {{ $p === $key ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-800 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300' }}">{{ $tab }}</a>
+                        class="rounded-md px-3 py-1 text-xs font-semibold {{ $p === $key ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-300' }}">{{ $tab }}</a>
                 @endforeach
             </div>
             @endunless
@@ -33,9 +33,9 @@
             <span x-show="dirty" x-cloak class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Unsaved changes</span>
             <div class="flex shrink-0 items-center gap-2">
                 <button type="button" @click="reset()" :disabled="busy"
-                    class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">Reset to default</button>
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Reset to default</button>
                 <button type="button" @click="save()" :disabled="busy || !dirty"
-                    class="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50">Save layout</button>
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">Save layout</button>
             </div>
         </div>
 
@@ -64,7 +64,7 @@
                                 :style="`grid-column: span ${w.span} / span ${w.span}; min-height: ${tileH(w)}px`"
                                 class="group relative cursor-grab overflow-hidden rounded-2xl border bg-white p-3 pt-4 shadow-sm transition active:cursor-grabbing dark:bg-gray-900"
                                 :class="[
-                                    sel === w.id ? 'border-indigo-500 ring-2 ring-indigo-400/60' : 'border-gray-200 hover:border-indigo-300 dark:border-gray-700',
+                                    sel === w.id ? 'border-blue-500 ring-2 ring-blue-400/60' : 'border-gray-200 hover:border-blue-300 dark:border-gray-700',
                                     dragId === w.id ? 'opacity-40' : '',
                                     overId === w.id && dragId && dragId !== w.id ? 'scale-[0.98] ring-2 ring-emerald-400' : ''
                                 ]">
@@ -73,8 +73,8 @@
 
                                 {{-- hover controls --}}
                                 <div class="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
-                                    <button type="button" @click.stop="move(w.id, -1)" class="flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-[10px] text-gray-500 shadow ring-1 ring-gray-200 hover:text-indigo-600 dark:bg-gray-800 dark:ring-gray-600" title="Earlier"><i class="fa-solid fa-arrow-left"></i></button>
-                                    <button type="button" @click.stop="move(w.id, 1)" class="flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-[10px] text-gray-500 shadow ring-1 ring-gray-200 hover:text-indigo-600 dark:bg-gray-800 dark:ring-gray-600" title="Later"><i class="fa-solid fa-arrow-right"></i></button>
+                                    <button type="button" @click.stop="move(w.id, -1)" class="flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-[10px] text-gray-500 shadow ring-1 ring-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:ring-gray-600" title="Earlier"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <button type="button" @click.stop="move(w.id, 1)" class="flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-[10px] text-gray-500 shadow ring-1 ring-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:ring-gray-600" title="Later"><i class="fa-solid fa-arrow-right"></i></button>
                                     <button type="button" @click.stop="w.is_visible = false; touch(); if (sel === w.id) sel = null" class="flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-[10px] text-gray-500 shadow ring-1 ring-gray-200 hover:text-rose-600 dark:bg-gray-800 dark:ring-gray-600" title="Hide"><i class="fa-solid fa-eye-slash"></i></button>
                                 </div>
 
@@ -90,8 +90,8 @@
                         {{-- + Add card: opens the picker of every All Reports card not on the panel --}}
                         <button type="button" @click="openPicker()" x-show="hiddenList.length" x-cloak
                             style="grid-column: span 3 / span 3; min-height: 120px"
-                            class="group flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 text-gray-400 transition hover:border-indigo-400 hover:bg-indigo-50/50 hover:text-indigo-600 dark:border-gray-600 dark:bg-transparent dark:hover:border-indigo-400">
-                            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-lg transition group-hover:bg-indigo-100 dark:bg-gray-800"><i class="fa-solid fa-plus"></i></span>
+                            class="group flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 text-gray-400 transition hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-600 dark:border-gray-600 dark:bg-transparent dark:hover:border-blue-400">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-lg transition group-hover:bg-blue-100 dark:bg-gray-800"><i class="fa-solid fa-plus"></i></span>
                             <span class="text-xs font-semibold">Add card</span>
                             <span class="text-[10px]" x-text="hiddenList.length + ' available'"></span>
                         </button>
@@ -100,7 +100,7 @@
 
                 {{-- ============ Card picker ============ --}}
                 <div x-show="picker" x-cloak x-transition.opacity @keydown.escape.window="picker = false"
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" @click.self="picker = false">
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm" @click.self="picker = false">
                     <div class="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800" @click.stop>
                         <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-700">
                             <div class="min-w-0 flex-1">
@@ -110,7 +110,7 @@
                             <div class="relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                                 <input type="text" x-model="q" x-ref="pickerSearch" placeholder="Search cards…"
-                                    class="w-56 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-indigo-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                    class="w-56 rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                             </div>
                             <button type="button" @click="picker = false" class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"><i class="fa-solid fa-xmark"></i></button>
                         </div>
@@ -122,12 +122,12 @@
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                         <template x-for="w in g.items" :key="w.id">
                                             <button type="button" @click="add(w.id)"
-                                                class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-3 pt-4 text-left transition hover:border-indigo-400 hover:shadow-md dark:border-gray-600 dark:bg-gray-900">
+                                                class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-3 pt-4 text-left transition hover:border-blue-400 hover:shadow-md dark:border-gray-600 dark:bg-gray-900">
                                                 <div class="absolute inset-x-0 top-0 h-1" :style="`background: linear-gradient(to right, ${hex(w.color)[0]}, ${hex(w.color)[1]})`"></div>
                                                 <p class="truncate text-xs font-bold text-gray-800 dark:text-white" x-text="w.title || w.id"></p>
                                                 <p class="mb-2 text-[10px] uppercase tracking-wider text-gray-400" x-text="w.type"></p>
                                                 <div class="pointer-events-none h-20 overflow-hidden" x-html="preview(w)"></div>
-                                                <span class="absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-500 transition group-hover:bg-indigo-600 group-hover:text-white dark:bg-gray-700"><i class="fa-solid fa-plus"></i></span>
+                                                <span class="absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-500 transition group-hover:bg-blue-600 group-hover:text-white dark:bg-gray-700"><i class="fa-solid fa-plus"></i></span>
                                             </button>
                                         </template>
                                     </div>
@@ -141,10 +141,10 @@
 
             {{-- ============ Inspector ============ --}}
             <aside class="xl:col-span-4 2xl:col-span-3">
-                <div class="sticky top-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="sticky top-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <template x-if="!cur">
                         <div class="py-10 text-center">
-                            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10"><i class="fa-solid fa-hand-pointer"></i></div>
+                            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-500 dark:bg-blue-500/10"><i class="fa-solid fa-hand-pointer"></i></div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Pick a card</p>
                             <p class="mt-1 text-xs text-gray-400">Click a card in the preview to change its title, size and colour.</p>
                         </div>
@@ -171,7 +171,7 @@
                                 <div class="grid grid-cols-4 gap-1.5">
                                     @foreach ($spans as $s)
                                         <button type="button" @click="cur.span = {{ $s }}; touch()"
-                                            :class="cur.span === {{ $s }} ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300' : 'border-gray-200 text-gray-500 hover:border-indigo-300 dark:border-gray-600'"
+                                            :class="cur.span === {{ $s }} ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' : 'border-gray-200 text-gray-500 hover:border-blue-300 dark:border-gray-600'"
                                             class="rounded-lg border px-1 py-1.5 text-center text-[11px] font-semibold transition">
                                             <span class="mb-1 block h-1.5 rounded-full bg-current opacity-60" style="width: {{ round($s / 12 * 100) }}%"></span>
                                             {{ $s === 12 ? 'Full' : $s . '/12' }}
@@ -196,7 +196,7 @@
                                 <label class="mb-1 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-400">
                                     <span>Chart height</span><span class="normal-case text-gray-500" x-text="cur.height + ' px'"></span>
                                 </label>
-                                <input type="range" min="150" max="600" step="10" x-model.number="cur.height" @input="touch()" class="w-full accent-indigo-600">
+                                <input type="range" min="150" max="600" step="10" x-model.number="cur.height" @input="touch()" class="w-full accent-blue-600">
                             </div>
 
                             <div class="flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-700">
@@ -282,7 +282,7 @@
                         case 'split': return `<div class="flex justify-between"><div class="text-xl font-extrabold text-gray-800 dark:text-white">87%</div><div class="text-xl font-extrabold text-gray-400">120</div></div><div class="mt-2">${bar(70)}</div>`;
                         case 'table': return [1, 2, 3, 4].map(i => `<div class="mb-1.5 flex gap-2"><div class="h-2 w-1/4 ${BAR} bg-gray-200 dark:bg-gray-700"></div><div class="h-2 flex-1 ${BAR} bg-gray-100 dark:bg-gray-700/60"></div><div class="h-2 w-8 ${BAR}" style="${g};opacity:.7"></div></div>`).join('');
                         case 'list': return [1, 2, 3].map(i => `<div class="mb-2 flex items-center gap-2"><span class="h-2 w-2 shrink-0 ${BAR}" style="background:${c[0]}"></span><div class="h-2 flex-1 ${BAR} bg-gray-100 dark:bg-gray-700"></div></div>`).join('');
-                        case 'insight': return `<div class="flex gap-4">${[60, 45, 52].map(x => `<div class="flex flex-1 items-center gap-1.5"><span class="h-2 w-2 ${BAR} bg-indigo-400"></span><div class="h-2 ${BAR} bg-gray-100 dark:bg-gray-700" style="width:${x}%"></div></div>`).join('')}</div>`;
+                        case 'insight': return `<div class="flex gap-4">${[60, 45, 52].map(x => `<div class="flex flex-1 items-center gap-1.5"><span class="h-2 w-2 ${BAR} bg-blue-400"></span><div class="h-2 ${BAR} bg-gray-100 dark:bg-gray-700" style="width:${x}%"></div></div>`).join('')}</div>`;
                         case 'donut': return `<svg viewBox="0 0 36 36" class="mx-auto h-24 w-24 -rotate-90"><circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" stroke-width="5"/><circle cx="18" cy="18" r="14" fill="none" stroke="${c[0]}" stroke-width="5" stroke-dasharray="52 88"/><circle cx="18" cy="18" r="14" fill="none" stroke="${c[1]}" stroke-width="5" stroke-dasharray="22 88" stroke-dashoffset="-52" opacity=".7"/></svg>`;
                         case 'mix': return `<div class="flex h-3 gap-0.5 overflow-hidden ${BAR}"><div class="w-[3%] bg-rose-400"></div><div class="w-[3%] bg-amber-400"></div><div class="flex-1 bg-emerald-400"></div></div>${[1, 2, 3].map(() => `<div class="mt-2 flex gap-2"><div class="h-2 w-2 ${BAR} bg-gray-300"></div><div class="h-2 flex-1 ${BAR} bg-gray-100 dark:bg-gray-700"></div><div class="h-2 w-8 ${BAR} bg-gray-200 dark:bg-gray-600"></div></div>`).join('')}`;
                         case 'column': return `<div class="flex h-24 items-end gap-2">${[40, 60, 50, 75, 65, 90].map(h => `<div class="flex-1 rounded-t" style="height:${h}%;background:linear-gradient(to top,${c[0]},${c[1]});opacity:${h / 100 + .15}"></div>`).join('')}</div>`;

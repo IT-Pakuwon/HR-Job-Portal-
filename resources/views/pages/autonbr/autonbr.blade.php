@@ -1,11 +1,12 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     <div class="max-w-9xl mx-auto w-full p-2">
         <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🔢 Autonumber
-                    Setup</h2>
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-hashtag"></i></span><span>Autonumber Setup<span class="set-hint">Running numbers for each document type</span></span></h2>
                 <button id="addAutonbrBtn"
                     class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Autonbr
@@ -32,7 +33,7 @@
         </div>
 
         {{-- Modal --}}
-        <div id="autonbrModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="autonbrModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="autonbrModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                     Add Autonbr

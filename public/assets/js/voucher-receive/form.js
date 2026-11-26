@@ -496,10 +496,10 @@ const VplReceiveForm = {
 
         // Existing details — with UOM + Price columns
         let dHtml = d.details.length === 0
-            ? '<tr><td colspan="8" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>'
+            ? '<tr><td colspan="8" class="px-4 py-3 text-center text-xs text-gray-400">No details.</td></tr>'
             : '';
         d.details.forEach(row => {
-            const rawExp = (row.expired_date || '').split('T')[0];
+            const rawExp = String(row.expired_date || '').substring(0, 10);
             const exp = (!rawExp || rawExp === '1900-01-01') ? 'No Expired' : (VplReceiveHelper.formatDateLong(rawExp) ?? rawExp);
             dHtml += `<tr>
                 <td class="px-4 py-2 text-xs">${row.product_name || row.product_id}</td>
@@ -510,7 +510,7 @@ const VplReceiveForm = {
                 <td class="px-4 py-2 text-xs">${row.product_uom || '—'}</td>
                 <td class="px-4 py-2 text-xs">${row.whs_id}</td>
                 <td class="px-4 py-2">
-                    <button type="button" class="e-del-exist-detail rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" data-id="${row.id}">Del</button>
+                    <button type="button" class="e-del-exist-detail inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10" data-id="${row.id}" title="Delete" aria-label="Delete line"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </td>
             </tr>`;
         });
@@ -518,12 +518,12 @@ const VplReceiveForm = {
 
         // Existing attachments
         let aHtml = d.attachments.length === 0
-            ? '<div class="p-4 text-xs text-slate-400">No attachments.</div>'
+            ? '<div class="p-4 text-xs text-gray-400">No attachments.</div>'
             : '';
         d.attachments.forEach(a => {
-            aHtml += `<div class="flex items-center justify-between px-5 py-2 hover:bg-slate-50">
-                <span class="text-sm text-slate-700">${a.name}</span>
-                <button type="button" class="e-del-exist-attach rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50" data-id="${a.id}">Del</button>
+            aHtml += `<div class="flex items-center justify-between px-5 py-2 hover:bg-gray-50">
+                <span class="text-sm text-gray-700">${a.name}</span>
+                <button type="button" class="e-del-exist-attach inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10" data-id="${a.id}" title="Delete" aria-label="Delete attachment"><i class="fa-solid fa-trash-can text-sm"></i></button>
             </div>`;
         });
         $('#e_existAttachBody').html(aHtml);

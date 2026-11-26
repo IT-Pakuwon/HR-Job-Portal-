@@ -8,15 +8,14 @@
      pmProjectShow(). #taskKanbanPanel/#taskGanttPanel stay in the DOM
      (hidden) since renderKanban()/renderGantt() in pmProjectShow() still
      target them if a board/timeline view is ever wired back in (Project
-     mode only). For kind 'subtask' this renders unconditionally, side-by-side
-     with the Overview panel (see projects.blade.php's grid), instead of
-     tab-gated. --}}
-<div x-show="kind === 'subtask' || tab === 'tasks'">
+     mode only). In full screen, and for kind 'subtask', it shows alongside
+     the other panels — see shows() in projects.blade.php. --}}
+<div x-show="shows('tasks')">
     {{-- Viewing a Subtask: its children are Checklist items (name + checkbox
          only) — renderTaskTab() relabels this heading and swaps the "Add
          subtask" button for an inline add box. Task → Subtask → Checklist is
          the deepest the tree goes. --}}
-    <div x-show="kind === 'subtask'" class="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
+    <div x-show="fullscreen || kind === 'subtask'" class="mb-4flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
         <i class="fas fa-list-check text-[10px]"></i> <span id="subtaskTabHeading">Sub Tasks</span>
     </div>
 

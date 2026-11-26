@@ -1,5 +1,8 @@
 <x-app-layout>
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <x-spp-form-styles />
+    <x-it-modal-skin />
+    <x-ga-styles />
+    <div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-3.5 shadow-sm dark:bg-gray-800 dark:border-gray-700">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -7,20 +10,19 @@
             <div class="flex items-center gap-3">
 
                 <!-- ICON -->
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
-                    🚕
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+                    <i class="fa-solid fa-taxi"></i>
                 </div>
 
                 <!-- TITLE -->
                 <div>
 
-                    <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-200">
+                    <h1 class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100">
 
                         Taxi Booking
                     </h1>
 
-                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
                         Manage booking requests and taxi vouchers
                     </p>
 
@@ -35,7 +37,7 @@
                 <button id="toggleList"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
 
-                    <span>📋</span>
+                    <i class="fa-solid fa-list text-xs"></i>
 
                     <span>
                         Listing
@@ -45,11 +47,9 @@
 
                 @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                     <a href="{{ route('vouchertaxi.setup.index') }}"
-                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+                        class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
 
-                        <span class="text-base">
-                            ⚙️
-                        </span>
+                        <i class="fa-solid fa-gear text-xs"></i>
 
                         <span>
                             Voucher Taxi Setup
@@ -60,7 +60,7 @@
 
                 <!-- CREATE -->
                 <button type="button" id="openCreateVoucherModal"
-                    class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                     <i class="fa-solid fa-plus text-xs"></i>
 
@@ -78,7 +78,7 @@
 
         <!-- 📅 CALENDAR -->
         <div id="calendarWrapper"
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
+            class="fc-skin overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-6 py-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
@@ -107,7 +107,7 @@
 
         <!-- 📋 LIST PANEL -->
         <div id="voucherListPanel"
-            class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
+            class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
 
             <div class="shrink-0 border-b border-gray-100 px-5 py-5 dark:border-white/10">
 
@@ -215,16 +215,16 @@
     </div>
 
     {{-- CREATE MODAL --}}
-    <div id="createVoucherModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div id="createVoucherModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
                         Create Voucher Taxi
@@ -235,7 +235,7 @@
                 </div>
 
                 <button type="button" id="closeCreateVoucherModal"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -246,7 +246,7 @@
                     @csrf
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                             <h3
                                 class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -342,7 +342,7 @@
                     </div>
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
@@ -425,7 +425,7 @@
                     </div>
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                             <h3
@@ -484,17 +484,17 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-end gap-3">
 
                     <button type="button" id="closeCreateVoucherModalFooter"
-                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                        class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
                         Cancel
                     </button>
 
                     <button type="submit" form="voucherTaxiForm"
-                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                        class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                         <i class="fa-solid fa-paper-plane text-xs"></i>
 
@@ -510,17 +510,17 @@
     </div>
 
     {{-- EDIT MODAL --}}
-    <div id="editVoucherTaxiModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div id="editVoucherTaxiModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
@@ -533,7 +533,7 @@
                 </div>
 
                 <button type="button" id="closeEditVoucherModal"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
 
@@ -549,7 +549,7 @@
                     <input type="hidden" id="edit_eid">
                     {{-- BASIC INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
                             <h3
@@ -639,7 +639,7 @@
 
                     {{-- TRIP INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
@@ -728,7 +728,7 @@
                     </div>
                     {{-- REVISION REASON --}}
                     <div id="editReviseReasonWrapper"
-                        class="hidden overflow-hidden rounded-lg border border-amber-200 bg-white dark:border-amber-500/20 dark:bg-[#0f172a]">
+                        class="itm-card hidden overflow-hidden rounded-lg border border-amber-200 bg-white dark:border-amber-500/20 dark:bg-[#0f172a]">
 
                         <div class="border-b border-amber-200 px-5 py-2 dark:border-amber-500/20">
 
@@ -747,7 +747,7 @@
 
                     {{-- FINANCE INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -813,12 +813,12 @@
 
             {{-- FOOTER --}}
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-between">
 
                     <button type="button" id="closeEditVoucherModalFooter"
-                        class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        class="itm-btn text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
 
                         Cancel
 
@@ -836,7 +836,7 @@
                         </button>
 
                         <button type="submit" form="editVoucherTaxiForm"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                            class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                             <i class="fa-solid fa-paper-plane text-xs"></i>
 
@@ -855,20 +855,20 @@
     </div>
 
     {{-- DETAIL MODAL --}}
-    <div id="viewVoucherModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+    <div id="viewVoucherModal" class="itm sf-field fixed inset-0 z-[60] hidden items-center justify-center p-4">
 
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <input type="hidden" id="view_eid">
             <input type="hidden" id="view_docid">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
 
@@ -900,7 +900,7 @@
                     </a>
 
                     <button type="button" id="closeViewVoucherModal"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -915,7 +915,7 @@
                 <div class="space-y-4">
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -1013,7 +1013,7 @@
                     </div>
 
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
@@ -1125,12 +1125,12 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-between">
 
                     <button type="button" id="closeViewVoucherModalFooter"
-                        class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        class="itm-btn text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
 
                         Close
 
@@ -1146,14 +1146,14 @@
                         </button>
 
                         <button type="button" id="openEditFromViewBtn"
-                            class="hidden rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                            class="itm-primary hidden rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                             Edit Voucher
 
                         </button>
 
                         <button type="button" id="processVoucherBtn"
-                            class="hidden rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
+                            class="itm-primary hidden rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
 
                             <i class="fa-solid fa-taxi mr-1.5"></i>
                             Process
@@ -1171,14 +1171,14 @@
     </div>
 
     {{-- PROCESS MODAL --}}
-    <div id="processVoucherModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4">
+    <div id="processVoucherModal" class="itm sf-field fixed inset-0 z-[80] hidden items-center justify-center p-4">
 
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <form id="processVoucherForm">
 
@@ -1186,16 +1186,10 @@
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center gap-4">
 
-                        <div
-                            class="flex h-12 w-12 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-
-                            <i class="fa-solid fa-money-bill-wave text-lg"></i>
-
-                        </div>
 
                         <div>
 
@@ -1212,7 +1206,7 @@
                     </div>
 
                     <button type="button" id="closeProcessVoucherModal"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -1225,7 +1219,7 @@
 
                     {{-- DOCUMENT INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -1313,7 +1307,7 @@
 
                     {{-- PROCESS VOUCHER --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
+                        class="itm-card overflow-hidden rounded-lg border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
 
                         <div
                             class="border-b border-emerald-100 bg-emerald-50 px-5 py-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
@@ -1493,19 +1487,19 @@
 
                 {{-- FOOTER --}}
                 <div
-                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center justify-end gap-3">
 
                         <button type="button" id="closeProcessVoucherModalFooter"
-                            class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                            class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
 
                             Cancel
 
                         </button>
 
                         <button type="submit" id="submitProcessVoucherBtn"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                            class="itm-primary inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700">
 
                             <i class="fa-solid fa-floppy-disk text-xs"></i>
 

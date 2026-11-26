@@ -17,14 +17,14 @@ let warningTable = $('#tenantWarningsTable').DataTable({
     dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
     columns: [
         { data: 'id', orderable: false, searchable: false,
-          render: id => `<div class="flex justify-center"><button type="button" class="manageWarningBtn bg-amber-500 text-white px-3 py-1 rounded" data-id="${id}" title="Warning & documents"><i class="fas fa-exclamation-triangle"></i> Manage</button></div>` },
+          render: id => `<div class="flex justify-center"><button type="button" class="manageWarningBtn ${window.listCls.action.amber}" data-id="${id}" title="Warning & documents"><i class="fas fa-exclamation-triangle text-[10px]"></i> Manage</button></div>` },
         { data: 'location.locationname', defaultContent: '-' },
         { data: 'floor.floor', defaultContent: '-' },
         { data: 'tenant_company.tenantcompanyname', defaultContent: '-' },
         { data: 'storename' },
         { data: 'unit', render: d => d || '-' },
         { data: 'is_warned', render: d => d == 1
-            ? '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-1 rounded">Warned</span>'
+            ? window.listBadge('red', 'Warned')
             : '<span class="text-gray-400">-</span>' },
         { data: 'warning_reason', render: (d, t, r) => r.is_warned == 1 && d
             ? `<span class="block max-w-[18rem] truncate text-left" title="${esc(d)}">${esc(d)}</span>`

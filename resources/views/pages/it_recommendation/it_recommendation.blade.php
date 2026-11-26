@@ -2,6 +2,8 @@
     @include('pages.it_recommendation.partial.style')
     <x-spp-list-styles />
     <x-spp-list-scripts />
+    <x-spp-form-styles />
+    <x-it-modal-skin />
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
@@ -98,17 +100,17 @@
         </div>
 
         {{-- Create Modal --}}
-        <div id="createModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="createModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -123,7 +125,7 @@
                     </div>
 
                     <button id="btnCloseCreateModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -131,7 +133,7 @@
 
                 </div>
 
-                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+                <div class="itm-body space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
                     <div id="show_notes" class="space-y-2"></div>
 
@@ -140,7 +142,7 @@
                         @csrf
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
@@ -253,7 +255,7 @@
                         </div>
 
                         <div
-                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            class="itm-card overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div
                                 class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -271,7 +273,7 @@
                                     class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                     <div
-                                        class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                        class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -301,7 +303,7 @@
                         </div>
 
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="itm-foot sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -321,7 +323,7 @@
                                 <div class="flex items-center justify-end gap-3">
 
                                     <button id="btnCancelCreate" type="button"
-                                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                                        class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
 
                                         Cancel
 
@@ -351,17 +353,17 @@
         </div>
 
         {{-- View Modal --}}
-        <div id="showModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+        <div id="showModal" class="itm sf-field fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
@@ -394,7 +396,7 @@
                         </button>
 
                         <button id="btnCloseShowModal" type="button"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                            class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                             <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -404,13 +406,13 @@
 
                 </div>
 
-                    <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
+                    <div class="itm-body grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
 
                         <div class="space-y-4 lg:col-span-4">
 
                             {{-- REQUEST INFORMATION --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -431,7 +433,7 @@
 
                             {{-- RECOMMENDATION --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -452,7 +454,7 @@
 
                             {{-- ITEMS --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -508,7 +510,7 @@
 
                             {{-- ATTACHMENT --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -535,7 +537,7 @@
 
                             {{-- TIMELINE --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -599,10 +601,10 @@
 
                 {{-- STICKY FOOTER --}}
                 <div
-                    class="sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="itm-foot sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <button type="button" id="btnCloseShowModalFooter"
-                        class="text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        class="itm-btn text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
                         Close
                     </button>
 
@@ -615,18 +617,18 @@
         </div>
 
         {{-- Process Modal --}}
-        <div id="processModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="processModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
@@ -676,7 +678,7 @@
                         </button>
 
                         <button id="btnCloseProcessModal" type="button"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                            class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                             <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -693,14 +695,14 @@
 
                     <input type="hidden" id="process_hash">
 
-                    <div class="flex-1 overflow-y-auto">
+                    <div class="itm-body flex-1 overflow-y-auto">
 
                         {{-- LEFT --}}
                         <div class="space-y-2 p-2">
 
                             {{-- REQUEST INFORMATION --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -721,7 +723,7 @@
 
                             {{-- RECOMMENDATION --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -802,7 +804,7 @@
 
                             {{-- ITEMS --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div
                                     class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -867,7 +869,7 @@
 
                             {{-- ATTACHMENTS --}}
                             <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -886,7 +888,7 @@
                                         class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                         <div
-                                            class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                            class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                             <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -929,18 +931,18 @@
         </div>
 
         {{-- Edit Recommendation Modal --}}
-        <div id="editRecommendationModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="editRecommendationModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="itm-dialog modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="itm-head sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
@@ -964,7 +966,7 @@
                     </div>
 
                     <button id="btnCloseEditRecommendationModal" type="button"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        class="itm-close inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -979,7 +981,7 @@
 
                     <input type="hidden" id="edit_recommendation_hash">
 
-                    <div class="flex-1 overflow-y-auto">
+                    <div class="itm-body flex-1 overflow-y-auto">
 
                         <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-1">
 
@@ -1006,7 +1008,7 @@
 
                                 {{-- REQUEST INFORMATION --}}
                                 <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                     <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -1027,7 +1029,7 @@
 
                                 {{-- RECOMMENDATION --}}
                                 <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                     <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -1104,7 +1106,7 @@
 
                                 {{-- RECOMMENDATION ITEMS --}}
                                 <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                     <div
                                         class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -1146,7 +1148,7 @@
 
                                 {{-- ATTACHMENTS --}}
                                 <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                    class="itm-card rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                     <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
@@ -1164,7 +1166,7 @@
                                             class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
                                             <div
-                                                class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+                                                class="itm-card flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
                                                 <i class="fa-solid fa-cloud-arrow-up"></i>
 
@@ -1202,12 +1204,12 @@
 
                     {{-- FOOTER --}}
                     <div
-                        class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                        class="itm-foot sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                         <div class="flex items-center justify-end gap-3">
 
                             <button type="button" id="btnCloseEditRecommendationFooter"
-                                class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                                class="itm-btn inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
 
                                 Cancel
 
@@ -1232,15 +1234,15 @@
 
         </div>
 
-        <div id="attachmentModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="attachmentModal" class="itm sf-field fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div class="modal-backdrop absolute inset-0 bg-slate-900/60"></div>
 
             <div
-                class="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.35)] dark:border-white/10 dark:bg-[#0f172a]">
+                class="itm-dialog relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.35)] dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
+                    class="itm-head flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
 
                     <div>
 
@@ -1256,7 +1258,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10 dark:text-slate-400">
+                        class="itm-close btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10 dark:text-slate-400">
 
                         <i class="fa-solid fa-xmark"></i>
 
@@ -1264,7 +1266,7 @@
 
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-6">
+                <div class="itm-body flex-1 overflow-y-auto p-6">
 
                     <input type="hidden" id="attachment_hash">
 
@@ -1307,10 +1309,10 @@
                 </div>
 
                 <div
-                    class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.02]">
+                    class="itm-foot flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.02]">
 
                     <button type="button"
-                        class="btn-close-attachment-modal inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
+                        class="itm-btn btn-close-attachment-modal inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
 
                         <i class="fa-solid fa-xmark"></i>
 

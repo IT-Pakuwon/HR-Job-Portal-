@@ -1,11 +1,13 @@
 {{-- Project Detail Modal — Chat tab (project-level comments, @mention aware) --}}
-<div x-show="tab === 'chat'" class="flex h-full flex-col">
+<div x-show="shows('chat')" x-effect="shows('chat') && $nextTick(() => markEntityChatRead())"
+    class="flex flex-col" :class="fullscreen ? 'min-h-0 flex-1' : 'h-full'">
     <div class="mb-3 flex shrink-0 items-center gap-2.5">
         <div id="chatParticipants" class="flex items-center"></div>
         <span id="chatParticipantsLabel" class="text-xs text-gray-400"></span>
     </div>
 
-    <div id="projectCommentList" class="custom-scrollbar max-h-96 flex-1 space-y-3 overflow-y-auto pr-1"></div>
+    <div id="projectCommentList" class="custom-scrollbar max-h-96 flex-1 space-y-3 overflow-y-auto pr-1"
+        :style="fullscreen ? 'max-height: none' : ''"></div>
 
     {{-- Files picked (or pasted) into the chat — uploaded to this item's Files on Send --}}
     <div id="chatStagedFiles" class="mt-3 hidden flex-wrap gap-1.5"></div>

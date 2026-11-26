@@ -1,13 +1,12 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php $currentPage = 'Update Data User'; @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2" x-data="userDataSync()" x-init="init()">
         <div class="mb-3 flex flex-wrap items-end justify-between gap-2">
             <div>
-                <h1 class="text-lg font-extrabold text-gray-800 dark:text-white">Update Data User</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-300">
-                    Every active account is checked against Talenta. Pick a card to see what needs fixing, then act per row or in bulk.
-                </p>
+                <h1 class="set-title"><span class="set-ico"><i class="fa-solid fa-user-pen"></i></span><span>Update Data User<span class="set-hint">Every active account is checked against Talenta. Pick a card to see what needs fixing, then act per row or in bulk.</span></span></h1>
             </div>
             <button type="button" @click="load()" :disabled="loading" class="btn border-gray-200 text-xs dark:border-gray-700">
                 <span x-text="loading ? 'Loading...' : 'Refresh'"></span>

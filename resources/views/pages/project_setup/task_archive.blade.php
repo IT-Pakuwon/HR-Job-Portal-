@@ -1,16 +1,15 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'task-archive' ? 'Task Archive' : '';
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2" x-data="taskArchive()" x-init="load()">
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between set-head">
                 <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        <i class="fas fa-box-archive mr-1.5 text-gray-400"></i> Task Archive
-                    </h2>
-                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Archived tasks (hidden from Team and Project boards) and cancelled Team tasks. Restoring an archived task also restores the subtasks archived with it.</p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-box-archive"></i></span><span>Task Archive<span class="set-hint">Archived tasks (hidden from Team and Project boards) and cancelled Team tasks. Restoring an archived task also restores the subtasks archived with it.</span></span></h2>
                 </div>
                 <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                     {{-- Status segmented toggle --}}

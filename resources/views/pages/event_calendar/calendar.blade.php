@@ -1,482 +1,364 @@
 <x-app-layout>
+    <x-spp-form-styles />
+    <x-event-form-styles />
 
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
-
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-            <div class="flex items-center gap-3">
-
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
-                    📅
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Event Calendar"
+                subtitle="Manage casual leasing exhibition, promotion, and mall sales promotion events"
+                icon='<i class="fa-solid fa-calendar-days"></i>'>
+                <div class="flex flex-wrap items-center gap-2 lg:mr-2">
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#FFF6DB] px-3 py-1 text-xs font-semibold text-[#8A6600] ring-1 ring-inset ring-[#F3DF9B]">
+                            <span class="h-2 w-2 rounded-full bg-[#8A6600]"></span>Booked
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#E4F6EC] px-3 py-1 text-xs font-semibold text-[#1B7A43] ring-1 ring-inset ring-[#BAE3CB]">
+                            <span class="h-2 w-2 rounded-full bg-[#1B7A43]"></span>Confirmed
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#E5EEFF] px-3 py-1 text-xs font-semibold text-[#2149B3] ring-1 ring-inset ring-[#C3D4FB]">
+                            <span class="h-2 w-2 rounded-full bg-[#2149B3]"></span>Paid
+                        </span>
                 </div>
 
-                <div>
-                    <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-200">
-                        Event Calendar
-                    </h1>
-                    <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                        Manage casual leasing exhibition, promotion, and mall sales promotion events
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="flex items-center gap-2">
-
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                        <span class="h-3.5 w-3.5 rounded-full bg-[#E0A800]"></span> Booked
-                    </span>
-                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                        <span class="h-3.5 w-3.5 rounded-full bg-[#2E9E5B]"></span> Confirmed
-                    </span>
-                    <span class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                        <span class="h-3.5 w-3.5 rounded-full bg-[#2F6FED]"></span> Paid
-                    </span>
-                </div>
-
-                @if (auth()->check() && in_array('admin', auth()->user()->roles(), true))
-                    <a href="{{ route('event-calendar.setup.index') }}"
-                        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                {{-- same role the Setup page itself requires (ADEVENTACCESS) --}}
+                @if ($isAdmin)
+                    <a href="{{ route('event-calendar.setup.index') }}" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                         <i class="fa-solid fa-gear text-xs"></i>
                         Setup
                     </a>
                 @endif
 
                 @if ($canCreate)
-                    <button type="button" id="openCreateEventModal"
-                        class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                    <button type="button" id="openCreateEventModal" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
                         <i class="fa-solid fa-plus text-xs"></i>
                         New Event
                     </button>
                 @endif
+            </x-list-page-header>
 
+            <div class="p-4">
+                @if ($locations->isEmpty())
+                    <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 py-16 text-center dark:border-gray-700">
+                        <span class="mb-1 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </span>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">No event locations available to you yet</p>
+                        <p class="text-xs text-gray-400">Ask an admin to set up a location for your company and department.</p>
+                    </div>
+                @else
+                    <div id="calendar"></div>
+                @endif
             </div>
-
-        </div>
-
-    </div>
-
-    <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
-        <div class="p-4">
-            @if ($locations->isEmpty())
-                <div class="flex flex-col items-center justify-center gap-2 py-16 text-center">
-                    <span class="text-3xl">📍</span>
-                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">No event locations available to you yet</p>
-                    <p class="text-xs text-slate-400">Ask an admin to set up a location for your company and department.</p>
-                </div>
-            @else
-                <div id="calendar"></div>
-            @endif
         </div>
     </div>
 
     <style>
-        /* Event bar content: title + creator avatar */
-        #calendar .fc-event {
-            border-radius: 6px !important;
-            padding: 6px 10px !important;
-            min-height: 30px;
-            font-weight: 600;
-            font-size: 12.5px;
-        }
+        /* Selectors start with #calendar so they win over the global FullCalendar rules in layouts/calendar. */
 
-        #calendar .fc-event-main-frame {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            overflow: hidden;
+        /* ---- Toolbar ---- */
+        #calendar .fc-header-toolbar { margin-bottom: 14px; padding: 0; gap: 10px; }
+        #calendar .fc-toolbar-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: #1f2937; }
+        #calendar .fc-button-group { display: inline-flex; gap: 0; padding: 0; background: transparent; }
+        #calendar .fc-button {
+            display: inline-flex; align-items: center; justify-content: center; height: 36px; min-width: 36px; padding: 0 12px !important;
+            background: #fff !important; border: 1px solid #d1d5db !important; border-radius: 8px; color: #374151 !important;
+            font-size: 13px; font-weight: 600; text-transform: capitalize; box-shadow: 0 1px 2px rgba(0, 0, 0, .05) !important;
+            transition: background-color .15s, border-color .15s, color .15s;
         }
+        #calendar .fc-button:hover:not(:disabled) { background: #eff6ff !important; border-color: #93c5fd !important; color: #1d4ed8 !important; }
+        #calendar .fc-button:focus-visible { outline: 2px solid #93c5fd; outline-offset: 1px; }
+        #calendar .fc-button:disabled { opacity: 1; color: #9ca3af !important; background: #f9fafb !important; border-color: #e5e7eb !important; box-shadow: none !important; cursor: default; }
+        #calendar .fc-button-group > .fc-button { border-radius: 0; }
+        #calendar .fc-button-group > .fc-button:first-child { border-radius: 8px 0 0 8px; }
+        #calendar .fc-button-group > .fc-button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
 
-        #calendar .fc-event-main-frame .fc-event-title {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .dark #calendar .fc-toolbar-title { color: #f1f5f9; }
+        .dark #calendar .fc-button { background: #1f2937 !important; border-color: #4b5563 !important; color: #e5e7eb !important; }
+        .dark #calendar .fc-button:hover:not(:disabled) { background: rgba(59, 130, 246, .16) !important; border-color: #60a5fa !important; color: #bfdbfe !important; }
+        .dark #calendar .fc-button:disabled { background: transparent !important; border-color: #374151 !important; color: #6b7280 !important; }
+
+        /* ---- Grid frame (clip, not hidden, so the sticky date header keeps working) ---- */
+        #calendar .fc-view-harness { border: 1px solid #e5e7eb; border-radius: 12px; overflow: clip; }
+        .dark #calendar .fc-view-harness { border-color: rgba(255, 255, 255, .08); }
+        #calendar.fc-theme-standard td, #calendar.fc-theme-standard th,
+        #calendar .fc-theme-standard td, #calendar .fc-theme-standard th { border-color: #eef2f6 !important; }
+        .dark #calendar.fc-theme-standard td, .dark #calendar.fc-theme-standard th,
+        .dark #calendar .fc-theme-standard td, .dark #calendar .fc-theme-standard th { border-color: rgba(255, 255, 255, .07) !important; }
+        #calendar .fc-resource-timeline-divider { width: 1px; border-width: 0 1px 0 0; border-color: #e5e7eb !important; background: transparent; }
+        .dark #calendar .fc-resource-timeline-divider { border-color: rgba(255, 255, 255, .1) !important; }
+
+        /* ---- Date header ---- */
+        #calendar .fc-timeline-header, #calendar .fc-datagrid-header { background: #f9fafb; }
+        .dark #calendar .fc-timeline-header, .dark #calendar .fc-datagrid-header { background: #111c2f; }
+        .dark #calendar .fc-datagrid-header * { background-color: transparent !important; }
+        .dark #calendar .fc-datagrid-header .fc-datagrid-cell-frame { border: 0; }
+        #calendar .fc-timeline-header .fc-timeline-slot-cushion { padding: 5px 2px; font-size: 11px; font-weight: 600; color: #6b7280; }
+        #calendar .fc-timeline-header tr:first-child .fc-timeline-slot-cushion { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
+        #calendar .fc-timeline-header tr:last-child .fc-timeline-slot-cushion {
+            display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0; margin: 2px 0;
+            border-radius: 9999px; font-size: 12px; font-weight: 700; color: #374151;
         }
+        .dark #calendar .fc-timeline-header .fc-timeline-slot-cushion { color: #9ca3af; }
+        .dark #calendar .fc-timeline-header tr:last-child .fc-timeline-slot-cushion { color: #e5e7eb; }
 
-        #calendar .fc-event-creator-avatar {
-            flex-shrink: 0;
-            margin-left: auto;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 9999px;
-            background: rgba(0, 0, 0, 0.14);
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1;
-        }
+        /* Off days (weekends + national holidays): soft red on the day labels and the body lane */
+        #calendar .fc-offday-slot { background: rgba(239, 68, 68, .055) !important; }
+        #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion { color: #dc2626; }
+        .dark #calendar .fc-offday-slot { background: rgba(248, 113, 113, .09) !important; }
+        .dark #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion { color: #f87171; }
 
-        /* Off-day date columns (weekends + Libur Nasional / Cuti Bersama): header label + body lane, both tinted red */
-        #calendar .fc-offday-slot {
-            background: rgba(220, 38, 38, 0.08) !important;
-        }
+        /* Today */
+        #calendar .fc-timeline-slot-lane.fc-day-today { background: rgba(59, 130, 246, .09) !important; }
+        #calendar .fc-timeline-header tr:last-child .fc-day-today .fc-timeline-slot-cushion { background: #2563eb; color: #fff; }
 
-        #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
-            color: #dc2626;
-            font-weight: 700;
-        }
-
-        .dark #calendar .fc-offday-slot {
-            background: rgba(248, 113, 113, 0.12) !important;
-        }
-
-        .dark #calendar .fc-timeline-header .fc-offday-slot .fc-timeline-slot-cushion {
-            color: #f87171;
-        }
-
-        /* ── Resource grid (Company / Department / Location) — elevated look ── */
+        /* ---- Resource column ---- */
+        #calendar .fc-datagrid-cell { height: 40px !important; padding: 0 !important; vertical-align: middle; }
+        #calendar .fc-timeline-lane { height: 40px !important; border-bottom-width: 1px !important; border-bottom-color: #eef2f6 !important; }
+        .dark #calendar .fc-timeline-lane { border-bottom-color: rgba(255, 255, 255, .06) !important; }
+        .dark #calendar .fc-datagrid-body .fc-datagrid-cell-frame { background: transparent; border-right: 0; }
         #calendar .fc-datagrid-header .fc-datagrid-cell-cushion {
-            padding: 10px 12px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #64748b;
+            padding: 10px 16px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #6b7280;
         }
+        .dark #calendar .fc-datagrid-header .fc-datagrid-cell-cushion { color: #9ca3af; }
+        #calendar .fc-datagrid-body .fc-datagrid-cell-cushion { padding: 6px 12px; font-size: 12.5px; line-height: 1.35; color: #374151; white-space: normal; }
+        .dark #calendar .fc-datagrid-body .fc-datagrid-cell-cushion { color: #cbd5e1; }
+        #calendar .fc-datagrid-body .fc-datagrid-cell-cushion { display: flex; align-items: center; }
+        #calendar .fc-datagrid-body .fc-datagrid-cell-main { min-width: 0; }
+        #calendar .fc-datagrid-expander { margin-right: 6px; cursor: pointer; }
+        #calendar .fc-datagrid-body tr:not(:has(.fc-resource-group)):hover .fc-datagrid-cell { background: #f8fafc; }
+        .dark #calendar .fc-datagrid-body tr:not(:has(.fc-resource-group)):hover .fc-datagrid-cell { background: rgba(255, 255, 255, .03); }
 
-        .dark #calendar .fc-datagrid-header .fc-datagrid-cell-cushion {
-            color: #94a3b8;
-        }
-
-        #calendar .fc-datagrid-cell-cushion {
-            padding: 9px 12px;
-        }
-
-        /* Company + Department now render together as one full-width group
-           header (see resourceGroupLabelContent in calendar.js), so lay the
-           two spans out on a single line with a divider between them. */
-        #calendar .fc-datagrid-cell-cushion:has(.fc-group-company) {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        #calendar .fc-group-company {
-            font-weight: 700;
-            font-size: 12.5px;
-            letter-spacing: 0.02em;
-            color: #0f172a;
-        }
-
-        .dark #calendar .fc-group-company {
-            color: #f1f5f9;
-        }
-
+        /* Company + Department render as one full-width group band (see resourceGroupLabelContent in calendar.js) */
+        #calendar .fc-datagrid-cell.fc-resource-group, #calendar .fc-timeline-lane.fc-resource-group, #calendar .fc-cell-shaded { background: #f1f5f9 !important; }
+        .dark #calendar .fc-datagrid-cell.fc-resource-group, .dark #calendar .fc-timeline-lane.fc-resource-group, .dark #calendar .fc-cell-shaded { background: #172338 !important; }
+        #calendar .fc-datagrid-cell-cushion:has(.fc-group-company) { display: flex; align-items: center; }
+        #calendar .fc-datagrid-cell-main:has(.fc-group-company) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
+        #calendar .fc-group-company { font-size: 12px; font-weight: 700; letter-spacing: .01em; color: #0f172a; }
+        .dark #calendar .fc-group-company { color: #f1f5f9; }
         #calendar .fc-group-dept {
-            padding-left: 10px;
-            border-left: 1px solid #e2e8f0;
+            display: inline-flex; align-items: center; padding: 1px 8px; border: 1px solid #bfdbfe; border-radius: 9999px;
+            background: #eff6ff; color: #1d4ed8; font-size: 10px; font-weight: 700; letter-spacing: .04em;
+        }
+        #calendar .fc-group-dept.fc-dept-loyalty { border-color: #e9d5ff; background: #faf5ff; color: #7e22ce; }
+        .dark #calendar .fc-group-dept { border-color: rgba(96, 165, 250, .3); background: rgba(59, 130, 246, .15); color: #bfdbfe; }
+        .dark #calendar .fc-group-dept.fc-dept-loyalty { border-color: rgba(192, 132, 252, .3); background: rgba(147, 51, 234, .18); color: #e9d5ff; }
+
+        /* ---- Event bars: title + creator avatar, accent stripe in the status colour ---- */
+        #calendar .fc-timeline-event { margin: 0 1px 3px; padding: 0 !important; border-radius: 7px !important; overflow: hidden; cursor: pointer; font-size: 12px; font-weight: 600; transition: filter .15s, box-shadow .15s; }
+        #calendar .fc-timeline-event:hover { filter: brightness(.96); box-shadow: 0 4px 10px -4px rgba(15, 23, 42, .35); }
+        #calendar .fc-timeline-events { padding-top: 5px; padding-bottom: 2px; }
+        #calendar .fc-timeline-event .fc-event-main { padding: 4px 6px 4px 10px; box-shadow: inset 3px 0 0 currentColor; }
+        #calendar .fc-event-main-frame { display: flex; align-items: center; gap: 6px; min-height: 20px; overflow: hidden; }
+        #calendar .fc-event-main-frame .fc-event-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 600; }
+        #calendar .fc-event-creator-avatar {
+            flex-shrink: 0; margin-left: auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+            border-radius: 9999px; background: rgba(255, 255, 255, .75); font-size: 9px; font-weight: 700; line-height: 1;
+        }
+        #calendar .fc-highlight { background: rgba(59, 130, 246, .18); }
+
+        @media (max-width: 768px) {
+            #calendar .fc-header-toolbar { flex-direction: row; flex-wrap: wrap; align-items: center; }
+            #calendar .fc-view-harness { min-width: 760px; }
+            #calendar .fc-timeline-lane { height: 40px !important; }
         }
 
-        .dark #calendar .fc-group-dept {
-            border-left-color: rgba(255, 255, 255, 0.1);
-        }
+        /* ---- Event hover tooltip (tippy.js) ---- */
+        .tippy-box[data-theme~='light-border'] { border-radius: 12px; border-color: #e5e7eb; box-shadow: 0 12px 28px -8px rgba(15, 23, 42, .25); }
+        .ecap-tip { min-width: 200px; padding: 4px 2px; text-align: left; }
+        .ecap-tip-title { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 700; color: #0f172a; }
+        .ecap-tip-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 5px; font-size: 12px; line-height: 1.4; color: #475569; }
+        .ecap-tip-row:last-child { margin-bottom: 0; }
+        .ecap-tip-row i { width: 12px; flex-shrink: 0; margin-top: 2px; text-align: center; color: #94a3b8; }
 
-        /* Department group header: muted text, no filled tag */
-        #calendar .fc-dept-loyalty,
-        #calendar .fc-dept-promo {
-            display: inline-flex;
-            align-items: center;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            color: #64748b;
-        }
-
-        .dark #calendar .fc-dept-loyalty,
-        .dark #calendar .fc-dept-promo {
-            color: #94a3b8;
-        }
-
-        /* FullCalendar's own default shading for group-header lanes reads as
-           dull/gray next to our colored tags above — keep it plain instead. */
-        #calendar .fc-cell-shaded {
-            background: #ffffff !important;
-        }
-
-        .dark #calendar .fc-cell-shaded {
-            background: transparent !important;
-        }
-
-        /* Event hover tooltip (tippy.js) */
-        .ecap-tip {
-            min-width: 180px;
-            padding: 2px;
-            text-align: left;
-        }
-
-        .ecap-tip-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 6px;
-        }
-
-        .ecap-tip-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #475569;
-            margin-bottom: 4px;
-        }
-
-        .ecap-tip-row i {
-            width: 12px;
-            flex-shrink: 0;
-            opacity: 0.6;
-        }
-
-        .ecap-tip-status {
-            display: inline-block;
-            margin-top: 4px;
-            padding: 2px 9px;
-            border-radius: 9999px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-        }
-
-        /* View modal: status badges + PIC chips */
-        .ecap-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
+        /* ---- View modal: status badges + PIC chips ---- */
+        .ecap-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; }
+        .ecap-badge::before { content: ''; width: 6px; height: 6px; border-radius: 9999px; background: currentColor; }
         .ecap-chip {
-            display: inline-flex;
-            align-items: center;
-            margin: 0 6px 6px 0;
-            padding: 3px 10px;
-            border-radius: 9999px;
-            background: #e3f3ff;
-            color: #1c71ae;
-            font-size: 12px;
-            font-weight: 600;
+            display: inline-flex; align-items: center; margin: 0 6px 6px 0; padding: 3px 10px; border: 1px solid #bfdbfe; border-radius: 9999px;
+            background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 600;
         }
-
-        .dark .ecap-chip {
-            background: rgba(86, 177, 243, 0.18);
-            color: #b6e1ff;
-        }
+        .dark .ecap-chip { border-color: rgba(96, 165, 250, .3); background: rgba(59, 130, 246, .18); color: #bfdbfe; }
     </style>
 
     {{-- CREATE / EDIT MODAL --}}
-    <div id="eventModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div id="eventModal" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4">
 
-        <div
-            class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
-        </div>
+        <div class="modal-backdrop absolute inset-0 bg-slate-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/70"></div>
 
-        <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="modal-panel relative z-10 flex max-h-[92vh] w-full translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-2xl bg-white opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 dark:bg-gray-800 dark:ring-white/10 max-w-3xl">
 
-            <form id="eventForm" class="flex flex-col">
+            <form id="eventForm" class="flex min-h-0 flex-col">
 
                 @csrf
 
                 <input type="hidden" id="event_row_id" name="id">
 
-                <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
-
-                    <div>
-                        <h2 id="eventModalTitle" class="text-sm font-bold text-slate-900 dark:text-white">
-                            Create Event
-                        </h2>
-                        <p id="eventModalSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            Schedule a new calendar event.
-                        </p>
+                <div class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><i class="fa-solid fa-calendar-plus"></i></span>
+                        <div>
+                            <h2 id="eventModalTitle" class="text-base font-bold text-gray-800 dark:text-white">Create Event</h2>
+                            <p id="eventModalSubtitle" class="text-xs text-gray-500 dark:text-gray-400">Schedule a new calendar event.</p>
+                        </div>
                     </div>
+                    <button type="button" id="closeEventModal" aria-label="Close"
+                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
 
-                    <button type="button" id="closeEventModal"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                <div class="modal-scroll min-h-0 space-y-4 overflow-y-auto bg-gray-50 p-5 dark:bg-gray-900/60">
+
+                    <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-calendar-day"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Event Information</h3>
+                                <p class="text-xs text-gray-400">What the event is and where it stands</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                            <div class="sm:col-span-3">
+                                <label for="event_name" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Event Name</label>
+                                <input id="event_name" name="event_name" type="text" required placeholder="e.g. Ramadan Bazaar"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="event_company_name" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tenant / Event Company Name</label>
+                                <input id="event_company_name" name="event_company_name" type="text" placeholder="e.g. PT Sinar Jaya"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                            <div class="sf-field sm:col-span-2">
+                                <label for="event_type" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Event Type</label>
+                                <select id="event_type" name="event_type" required class="select2 w-full">
+                                    <option value="">Select Event Type</option>
+                                    @foreach ($eventTypes as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sf-field sm:col-span-2">
+                                <label for="event_status" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Event Status</label>
+                                <select id="event_status" name="event_status" required class="select2 w-full">
+                                    <option value="">Select Event Status</option>
+                                    @foreach ($eventStatuses as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="event_total_contract" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Contract</label>
+                                <div class="relative">
+                                    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">Rp</span>
+                                    <input type="text" inputmode="numeric" id="event_total_contract" name="event_total_contract" placeholder="e.g. 1.000.000"
+                                        class="h-10 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                                </div>
+                            </div>
+
+                            <div id="statusActiveField" class="hidden items-end sm:col-span-6">
+                                <label class="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 transition has-[:checked]:border-[#bbf7d0] has-[:checked]:bg-[#f0fdf4] dark:border-gray-600 dark:bg-gray-700/40 dark:has-[:checked]:border-green-500/30 dark:has-[:checked]:bg-green-500/10">
+                                    <input type="checkbox" id="status_active" checked
+                                        class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-400 dark:border-gray-500">
+                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Active</span>
+                                    <span class="text-xs text-gray-400">Untick to remove this event from the calendar</span>
+                                </label>
+                                <input type="hidden" id="status" name="status" value="A">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-location-dot"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Schedule &amp; Location</h3>
+                                <p class="text-xs text-gray-400">Where and when it takes place</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                            <div class="ev-ts sm:col-span-6">
+                                <label for="location_row_id" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Location</label>
+                                <select id="location_row_id" name="location_row_id" required class="w-full">
+                                    <option value=""></option>
+                                    @foreach ($locations as $l)
+                                        <option value="{{ $l->id }}">{{ $l->event_location_name }}{{ optional($l->company)->cpny_name ? ' - '.$l->company->cpny_name : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="event_start_date" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Start Date</label>
+                                <input id="event_start_date" name="event_start_date" type="date" required
+                                    class="ev-date h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="event_end_date" class="req mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">End Date</label>
+                                <input id="event_end_date" name="event_end_date" type="date" required
+                                    class="ev-date h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                            <div class="hidden">
+                                <label for="product_check_exp" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Product Check Expiry</label>
+                                <input type="date" id="product_check_exp" name="product_check_exp" class="ev-date h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-user-group"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Person in Charge</h3>
+                                <p class="text-xs text-gray-400">Who is responsible, inside and outside</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-6">
+                            <div class="ev-ts sm:col-span-6">
+                                <label for="pic_event" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PIC Event</label>
+                                <select id="pic_event" name="pic_event[]" multiple class="w-full">
+                                    @foreach ($users as $u)
+                                        <option value="{{ $u->name }}">{{ $u->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="pic_event_external" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PIC External</label>
+                                <input id="pic_event_external" name="pic_event_external" type="text" placeholder="e.g. John Doe"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="pic_event_external_hp" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PIC External Phone Number</label>
+                                <input id="pic_event_external_hp" name="pic_event_external_hp" type="text" placeholder="e.g. 0812xxxxxxx"
+                                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-align-left"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Description</h3>
+                                <p class="text-xs text-gray-400">Anything else the team should know</p>
+                            </div>
+                        </div>
+                        <textarea id="event_description" name="event_description" rows="2" aria-label="Description" placeholder="Describe the event..."
+                            class="min-h-[4.5rem] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm transition placeholder:text-gray-400 hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"></textarea>
+                    </section>
+
+                </div>
+
+                <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                    <button type="button" id="deleteEventBtn" class="hidden inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                        Delete Event
                     </button>
 
-                </div>
+                    <div class="ml-auto flex items-center gap-3">
+                        <button type="button" id="cancelEventBtn" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Cancel</button>
 
-                <div class="space-y-4 bg-slate-50 p-5 dark:bg-[#0b1220]">
-
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Event Name *
-                            </label>
-                            <input type="text" id="event_name" name="event_name" required
-                                placeholder="e.g. Ramadan Bazaar"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Tenant / Event Company Name
-                            </label>
-                            <input type="text" id="event_company_name" name="event_company_name"
-                                placeholder="e.g. PT Sinar Jaya"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Location *
-                            </label>
-                            <select id="location_row_id" name="location_row_id" required
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value=""></option>
-                                @foreach ($locations as $l)
-                                    <option value="{{ $l->id }}">{{ $l->event_location_name }}{{ optional($l->company)->cpny_name ? ' - '.$l->company->cpny_name : '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                PIC Event
-                            </label>
-                            <select id="pic_event" name="pic_event[]" multiple
-                                class="w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                @foreach ($users as $u)
-                                    <option value="{{ $u->name }}">{{ $u->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                PIC External
-                            </label>
-                            <input type="text" id="pic_event_external" name="pic_event_external"
-                                placeholder="e.g. John Doe"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                PIC External Phone Number
-                            </label>
-                            <input type="text" id="pic_event_external_hp" name="pic_event_external_hp"
-                                placeholder="e.g. 0812xxxxxxx"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Event Type *
-                            </label>
-                            <select id="event_type" name="event_type" required
-                                class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value="">Select Event Type</option>
-                                @foreach ($eventTypes as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Event Status *
-                            </label>
-                            <select id="event_status" name="event_status" required
-                                class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                                <option value="">Select Event Status</option>
-                                @foreach ($eventStatuses as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Start Date *
-                            </label>
-                            <input type="date" id="event_start_date" name="event_start_date" required
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                End Date *
-                            </label>
-                            <input type="date" id="event_end_date" name="event_end_date" required
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div class="hidden">
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Product Check Expiry
-                            </label>
-                            <input type="date" id="product_check_exp" name="product_check_exp"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                Total Contract
-                            </label>
-                            <input type="text" inputmode="numeric" id="event_total_contract" name="event_total_contract"
-                                placeholder="e.g. 1.000.000"
-                                class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
-                        </div>
-
-                        <div id="statusActiveField" class="hidden items-end">
-                            <label class="inline-flex cursor-pointer items-center gap-2.5">
-                                <input type="checkbox" id="status_active" checked
-                                    class="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 dark:border-white/20">
-                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                    Active
-                                </span>
-                            </label>
-                            <input type="hidden" id="status" name="status" value="A">
-                        </div>
-
-                    </div>
-
-                    <div>
-                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                            Description
-                        </label>
-                        <textarea id="event_description" name="event_description" rows="3"
-                            placeholder="Describe the event..."
-                            class="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm dark:border-white/10 dark:bg-[#0f172a] dark:text-white"></textarea>
-                    </div>
-
-                </div>
-
-                <div
-                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
-
-                    <div class="flex items-center justify-between">
-
-                        <button type="button" id="deleteEventBtn"
-                            class="hidden text-sm font-semibold text-red-600 hover:text-red-700">
-                            Delete Event
+                        <button type="submit" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            <i class="fa-solid fa-floppy-disk text-xs"></i>
+                            Save Event
                         </button>
-
-                        <div class="ml-auto flex items-center gap-3">
-                            <button type="button" id="cancelEventBtn"
-                                class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-                                Cancel
-                            </button>
-
-                            <button type="submit"
-                                class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-                                <i class="fa-solid fa-floppy-disk text-xs"></i>
-                                Save Event
-                            </button>
-                        </div>
-
                     </div>
-
                 </div>
 
             </form>
@@ -486,152 +368,149 @@
     </div>
 
     {{-- VIEW MODAL --}}
-    <div id="eventViewModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+    <div id="eventViewModal" class="fixed inset-0 z-[1000] hidden items-center justify-center p-4">
 
-        <div
-            class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
-        </div>
+        <div class="modal-backdrop absolute inset-0 bg-slate-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/70"></div>
 
-        <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="modal-panel relative z-10 flex max-h-[92vh] w-full translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-2xl bg-white opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 dark:bg-gray-800 dark:ring-white/10 max-w-2xl">
 
-            <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex min-w-0 items-center gap-3">
+                    {{-- background is recoloured by the script to match the event status --}}
+                    <span id="eventViewStatusDot" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"><i class="fa-solid fa-calendar-check"></i></span>
+                    <div class="min-w-0">
+                        <h2 id="eventViewTitle" class="break-words text-base font-bold leading-tight text-gray-800 dark:text-white">Event Details</h2>
+                        <p id="eventViewSubtitle" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                    </div>
+                </div>
+                <button type="button" id="closeEventViewModal" aria-label="Close"
+                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+            </div>
 
-                <div class="flex items-center gap-3">
-                    <span id="eventViewStatusDot" class="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300"></span>
-                    <div>
-                        <h2 id="eventViewTitle" class="text-sm font-bold text-slate-900 dark:text-white">
-                            Event Details
-                        </h2>
-                        <p id="eventViewSubtitle" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        </p>
+            <div class="modal-scroll min-h-0 space-y-4 overflow-y-auto bg-gray-50 p-5 dark:bg-gray-900/60">
+
+                {{-- Tenant + status badges --}}
+                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <p id="view_event_name" class="hidden">-</p>
+                    <dl>
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-building w-3 text-center text-[10px]"></i> Tenant / Event Company Name
+                                </dt>
+                                <dd id="view_event_company_name" class="mt-1 break-words text-base font-bold text-gray-900 dark:text-white">-</dd>
+                            </div>
+                    </dl>
+                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700">
+                        <span id="view_event_status">-</span>
+                        <span id="view_status">-</span>
+                        <span id="view_event_type" class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-white/10 dark:text-gray-200">-</span>
                     </div>
                 </div>
 
-                <button type="button" id="closeEventViewModal"
-                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-location-dot"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Schedule &amp; Location</h3>
+                                <p class="text-xs text-gray-400">Where and when it takes place</p>
+                            </div>
+                        </div>
+                        <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-calendar-day w-3 text-center text-[10px]"></i> Start Date
+                                </dt>
+                                <dd id="view_event_start_date" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-calendar-check w-3 text-center text-[10px]"></i> End Date
+                                </dt>
+                                <dd id="view_event_end_date" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-location-dot w-3 text-center text-[10px]"></i> Location
+                                </dt>
+                                <dd id="view_event_location" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-ruler-combined w-3 text-center text-[10px]"></i> Location Total Area (m²)
+                                </dt>
+                                <dd id="view_event_total_area" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                {{-- Total Contract: shown to GM only (toggled by the script) --}}
+                <dl id="view_event_total_contract_card" class="hidden rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] p-4 dark:border-green-500/30 dark:bg-green-500/10">
+                            <div class="">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-file-contract w-3 text-center text-[10px]"></i> Total Contract
+                                </dt>
+                                <dd id="view_event_total_contract" class="mt-1 break-words text-lg font-bold text-green-700 dark:text-green-300">-</dd>
+                            </div>
+                </dl>
+
+                <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-user-group"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Person in Charge</h3>
+                                <p class="text-xs text-gray-400">Who is responsible, inside and outside</p>
+                            </div>
+                        </div>
+                        <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-user w-3 text-center text-[10px]"></i> PIC Event
+                                </dt>
+                                <dd id="view_pic_event" class="mt-1 break-words text-sm text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div id="view_pic_event_external_card" class="hidden">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-user-tie w-3 text-center text-[10px]"></i> PIC External
+                                </dt>
+                                <dd id="view_pic_event_external" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div id="view_pic_event_external_hp_card" class="hidden">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-phone w-3 text-center text-[10px]"></i> PIC External Phone Number
+                                </dt>
+                                <dd id="view_pic_event_external_hp" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <dt class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    <i class="fa-solid fa-user-pen w-3 text-center text-[10px]"></i> Created By
+                                </dt>
+                                <dd id="view_created_by" class="mt-1 break-words text-sm font-semibold text-gray-800 dark:text-gray-100">-</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                <section class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="mb-4 flex items-center gap-2.5">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-align-left"></i></span>
+                            <div>
+                                <h3 class="text-sm font-bold leading-tight text-gray-800 dark:text-gray-100">Description</h3>
+                                <p class="text-xs text-gray-400">Notes on this event</p>
+                            </div>
+                        </div>
+                        <p id="view_event_description" class="whitespace-pre-line break-words text-sm text-gray-700 dark:text-gray-200">-</p>
+                    </section>
+
+            </div>
+
+            <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800 !justify-end">
+                <button type="button" id="closeEventViewBtn" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Close</button>
+
+                <button type="button" id="editEventFromViewBtn" class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                    Edit
                 </button>
-
-            </div>
-
-            <div class="space-y-5 bg-slate-50 p-5 dark:bg-[#0b1220]">
-
-                {{-- Hero: name + tenant --}}
-                <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                    <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        <i class="fa-solid fa-tag text-[10px]"></i> Event Name
-                    </p>
-                    <p id="view_event_name" class="mt-1 text-base font-bold text-slate-900 dark:text-white">-</p>
-
-                    <div class="mt-3 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:border-white/10">
-                        <i class="fa-solid fa-building text-[10px]"></i> Tenant / Event Company Name
-                    </div>
-                    <p id="view_event_company_name" class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">-</p>
-                </div>
-
-                {{-- Status badges --}}
-                <div class="flex flex-wrap items-center gap-2">
-                    <span id="view_event_status">-</span>
-                    <span id="view_status">-</span>
-                    <span id="view_event_type" class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-200">-</span>
-                </div>
-
-                {{-- Detail cards --}}
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-location-dot text-[10px]"></i> Location
-                        </p>
-                        <p id="view_event_location" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-ruler-combined text-[10px]"></i> Location Total Area (m²)
-                        </p>
-                        <p id="view_event_total_area" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-calendar-day text-[10px]"></i> Start Date
-                        </p>
-                        <p id="view_event_start_date" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-calendar-check text-[10px]"></i> End Date
-                        </p>
-                        <p id="view_event_end_date" class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div id="view_event_total_contract_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-file-contract text-[10px]"></i> Total Contract
-                        </p>
-                        <p id="view_event_total_contract" class="mt-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400">-</p>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-user text-[10px]"></i> PIC Event
-                        </p>
-                        <p id="view_pic_event" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div id="view_pic_event_external_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-user-tie text-[10px]"></i> PIC External
-                        </p>
-                        <p id="view_pic_event_external" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div id="view_pic_event_external_hp_card" class="hidden rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-phone text-[10px]"></i> PIC External Phone Number
-                        </p>
-                        <p id="view_pic_event_external_hp" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03] sm:col-span-2">
-                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            <i class="fa-solid fa-user-pen text-[10px]"></i> Created By
-                        </p>
-                        <p id="view_created_by" class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">-</p>
-                    </div>
-
-                </div>
-
-                {{-- Description --}}
-                <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        <i class="fa-solid fa-align-left text-[10px]"></i> Description
-                    </p>
-                    <p id="view_event_description" class="mt-1.5 whitespace-pre-line text-sm text-slate-700 dark:text-slate-200">-</p>
-                </div>
-
-            </div>
-
-            <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
-
-                <div class="flex items-center justify-end gap-3">
-                    <button type="button" id="closeEventViewBtn"
-                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-                        Close
-                    </button>
-
-                    <button type="button" id="editEventFromViewBtn"
-                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-                        <i class="fa-solid fa-pen text-xs"></i>
-                        Edit
-                    </button>
-                </div>
-
             </div>
 
         </div>

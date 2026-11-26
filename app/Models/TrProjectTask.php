@@ -195,8 +195,8 @@ class TrProjectTask extends Model
     //   TEAM      — an active Team's members
     //   PRJ       — whoever can open the Project
     //   TSK       — whoever can open the Project, gets past the locks AND is in
-    //               the Task's chat audience (see PmChatAccess); project
-    //               admins take part regardless of locks and assignees
+    //               the Task's chat audience (see PmChatAccess); a private
+    //               Task's chat is for its assignees only
     //   TTK       — whoever can open the Team and is in the chat audience
     //   TSKCOVER  — the card image: whoever can open the Task
     //   TTKCOVER  — the card image: whoever can open the Team
@@ -229,8 +229,8 @@ class TrProjectTask extends Model
                     return $task->isAccessibleBy($user);
                 }
 
-                return PmChatAccess::isAdmin($user)
-                    || ($task->isAccessibleBy($user) && PmChatAccess::includes(PmChatAccess::audience('TSK', $task), $user));
+                return $task->isAccessibleBy($user)
+                    && PmChatAccess::includes(PmChatAccess::audience('TSK', $task), $user);
 
             case 'TTK':
             case 'TTKCOVER':

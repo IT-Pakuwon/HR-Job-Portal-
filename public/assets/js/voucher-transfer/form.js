@@ -68,7 +68,7 @@ const VplTransferForm = {
                 {
                     data: null, title: '', orderable: false, searchable: false,
                     render: (_, __, row) =>
-                        `<button type="button" class="btn-pick-product rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+                        `<button type="button" class="btn-pick-product rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"
                             data-product-id="${row.product_id}"
                             data-product-name="${(row.product_name ?? '').replace(/"/g, '&quot;')}"
                             data-qty-available="${row.qty_pickable ?? 0}"
@@ -618,7 +618,7 @@ const VplTransferForm = {
         document.getElementById('c_attachBody').innerHTML = `
             <tr id="c_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;
@@ -674,8 +674,8 @@ const VplTransferForm = {
             existBody.insertAdjacentHTML('beforeend', `
                 <tr data-detail-id="${d.id}">
                     <td class="px-4 py-2">
-                        <div class="text-sm font-medium text-slate-800 dark:text-white">${d.product_id}</div>
-                        <div class="text-xs text-slate-500">${d.product_name ?? ''}</div>
+                        <div class="text-sm font-medium text-gray-800 dark:text-white">${d.product_id}</div>
+                        <div class="text-xs text-gray-500">${d.product_name ?? ''}</div>
                     </td>
                     <td class="px-4 py-2 text-xs">${d.from_whs_id ?? ''}</td>
                     <td class="px-4 py-2 text-xs">${d.to_whs_id ?? ''}</td>
@@ -683,7 +683,7 @@ const VplTransferForm = {
                     <td class="px-4 py-2 text-right text-xs">${Number(d.qty_available ?? 0).toLocaleString()}</td>
                     <td class="px-4 py-2 text-right text-xs font-semibold">${Number(d.qty_transfer ?? 0).toLocaleString()}</td>
                     <td class="px-4 py-2 text-center">
-                        <button type="button" class="e-del-exist-detail text-red-400 hover:text-red-600"
+                        <button type="button" class="e-del-exist-detail inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10"
                             data-detail-id="${d.id}">
                             <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
@@ -699,10 +699,10 @@ const VplTransferForm = {
             const url = `/transfervp/attachment/${a.id}/view`;
             eAttachBody.insertAdjacentHTML('beforeend', `
                 <div class="flex items-center justify-between px-4 py-2" data-attach-id="${a.id}">
-                    <a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
+                    <a href="${url}" target="_blank" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
                         <i class="fa-regular fa-file mr-1 text-xs"></i>${a.name ?? a.attachfile}
                     </a>
-                    <button type="button" class="e-del-exist-attach text-red-400 hover:text-red-600 ml-4"
+                    <button type="button" class="e-del-exist-attach ml-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-500/10"
                         data-attach-id="${a.id}">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
@@ -894,7 +894,7 @@ const VplTransferForm = {
         document.getElementById('e_attachBody').innerHTML = `
             <tr id="e_attach_0">
                 <td class="py-1 pr-2">
-                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm dark:border-white/10">
+                    <input type="file" name="attachment[]" class="w-full rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:border-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 </td>
                 <td class="py-1 pl-1"></td>
             </tr>`;

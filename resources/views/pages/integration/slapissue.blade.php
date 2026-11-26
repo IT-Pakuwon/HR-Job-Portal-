@@ -1,7 +1,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div id="slIssueBusyOverlay" class="hidden fixed inset-0 z-[9999] pointer-events-auto">
-    <div class="absolute inset-0 bg-black/40 pointer-events-auto"></div>
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm pointer-events-auto"></div>
 
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3 dark:bg-gray-800 dark:border-gray-700">
@@ -31,37 +31,37 @@
     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-900 dark:border-gray-700">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Start Date</label>
                 <input type="date" id="slIssueFrom"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">End Date</label>
                 <input type="date" id="slIssueTo"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                 <select id="slIssueCompany"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                     <option value="">All Company</option>
                 </select>
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</label>
                 <select id="slIssueStatus"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                     <option value="">All Status</option>
                 </select>
             </div>
 
             <div class="md:col-span-2">
-                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Show</label>
+                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Show</label>
                 <select id="slIssuePerPage"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700">
+                    class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition hover:border-blue-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
@@ -98,21 +98,21 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
                     <tr>
-                        <th class="w-10 px-4 py-2 text-left">
+                        <th class="w-10 px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                             <input type="checkbox" id="slIssueChkAll" class="rounded border-gray-300 dark:border-gray-700">
                         </th>
-                        <th class="px-4 py-2 text-left">Integration Type</th>
-                        <th class="px-4 py-2 text-left">Cpny</th>
-                        <th class="px-4 py-2 text-left">Issue ID</th>
-                        <th class="px-4 py-2 text-left">Issue Date</th>
-                        <th class="px-4 py-2 text-left">Dept</th>
-                        <th class="px-4 py-2 text-left">Peminta</th>
-                        <th class="px-4 py-2 text-left">WOID</th>
-                        <th class="px-4 py-2 text-right">Total</th>
-                        <th class="px-4 py-2 text-left">Created</th>
-                        <th class="px-4 py-2 text-center">Status</th>
-                        <th class="px-4 py-2 text-left">Response</th>
-                        <th class="px-4 py-2 text-left">Last Update</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Integration Type</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Cpny</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Issue ID</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Issue Date</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Dept</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Peminta</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">WOID</th>
+                        <th class="px-4 py-2 text-right whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Created</th>
+                        <th class="px-4 py-2 text-center whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Response</th>
+                        <th class="px-4 py-2 text-left whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Update</th>
                     </tr>
                 </thead>
 

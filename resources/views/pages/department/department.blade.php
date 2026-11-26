@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'department' ? 'Departments' : '';
     @endphp
@@ -7,41 +9,40 @@
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
         <div>
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0 set-tabs">
                 <button type="button" id="tab-master"
                     class="deptTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
                     onclick="switchDeptTab('master')">
-                    🏢 Master Department
+                    Master Department
                 </button>
                 <button type="button" id="tab-finmaster"
                     class="deptTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchDeptTab('finmaster')">
-                    🏦 Maintain Department Fin
+                    Maintain Department Fin
                 </button>
                 <button type="button" id="tab-fin"
                     class="deptTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchDeptTab('fin')">
-                    🔗 Assign Department Fin to Department
+                    Assign Department Fin to Department
                 </button>
                 <button type="button" id="tab-hr"
                     class="deptTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchDeptTab('hr')">
-                    👥 Department & Division HR
+                    Department & Division HR
                 </button>
                 <button type="button" id="tab-division"
                     class="deptTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchDeptTab('division')">
-                    🗂️ Maintain Division
+                    Maintain Division
                 </button>
             </div>
 
             {{-- ── TAB 1: Master Department ───────────────────────────────────── --}}
             <div id="panel-master"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Master
-                        Department</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-building"></i></span><span>Master Department<span class="set-hint">Manage departments</span></span></h2>
                     <button id="addDepartmentBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department
@@ -68,11 +69,10 @@
 
             {{-- ── TAB: Maintain Department Fin ───────────────────────────────── --}}
             <div id="panel-finmaster"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏦 Maintain
-                        Department Fin</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-building-columns"></i></span><span>Maintain Department Fin<span class="set-hint">Finance departments</span></span></h2>
                     <button id="addFinMasterBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department Fin
@@ -98,11 +98,10 @@
 
             {{-- ── TAB 2: Assign Department Fin to Department ─────────────────── --}}
             <div id="panel-fin"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🔗 Assign
-                        Department Fin to Department</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-link"></i></span><span>Assign Department Fin to Department<span class="set-hint">Link departments to finance departments</span></span></h2>
                     <button id="addDepartmentFinBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Assign Department Fin
@@ -131,11 +130,10 @@
 
             {{-- ── TAB 3: Department & Division HR ────────────────────────────── --}}
             <div id="panel-hr"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">👥 Department
-                        & Division HR</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-users"></i></span><span>Department & Division HR<span class="set-hint">HR departments and their divisions</span></span></h2>
                     <button id="addDepartmentHrBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department HR
@@ -163,11 +161,10 @@
 
             {{-- ── TAB 4: Maintain Division ───────────────────────────────────── --}}
             <div id="panel-division"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
                 <div
-                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Maintain
-                        Division</h2>
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-folder-tree"></i></span><span>Maintain Division<span class="set-hint">Manage divisions</span></span></h2>
                     <button id="addDivisionBtn"
                         class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Division
@@ -194,7 +191,7 @@
         </div>
 
         <!-- Modal: Master Department -->
-        <div id="departmentModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="departmentModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Department</h2>
                 <form id="departmentForm">
@@ -229,7 +226,7 @@
         </div>
 
         <!-- Modal: Assign Department Fin to Department -->
-        <div id="departmentFinModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="departmentFinModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalFinTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Assign Department Fin to Department</h2>
                 <form id="departmentFinForm">
@@ -288,7 +285,7 @@
         </div>
 
         <!-- Modal: Maintain Department Fin -->
-        <div id="finMasterModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="finMasterModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalFinMasterTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Department Fin</h2>
                 <form id="finMasterForm">
@@ -317,7 +314,7 @@
         </div>
 
         <!-- Modal: Department & Division HR -->
-        <div id="departmentHrModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="departmentHrModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalHrTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Department HR</h2>
                 <form id="departmentHrForm">
@@ -367,7 +364,7 @@
         </div>
 
         <!-- Modal: Maintain Division -->
-        <div id="divisionModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="divisionModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalDivisionTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Division</h2>
                 <form id="divisionForm">

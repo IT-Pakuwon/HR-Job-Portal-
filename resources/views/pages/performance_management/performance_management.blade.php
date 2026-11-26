@@ -1,33 +1,33 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
         <div>
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0 set-tabs">
                 <button type="button" id="tab-compare"
                     class="pmTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
                     onclick="switchPmTab('compare')">
-                    🔄 Comparison
+                    Comparison
                 </button>
                 <button type="button" id="tab-user"
                     class="pmTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchPmTab('user')">
-                    👤 User
+                    User
                 </button>
                 <button type="button" id="tab-duplicates"
                     class="pmTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                     onclick="switchPmTab('duplicates')">
-                    🧬 Duplicates
+                    Duplicates
                 </button>
             </div>
 
             {{-- ── TAB 1: Comparison ──────────────────────────────────────────── --}}
             <div id="panel-compare"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        🔄 Talenta (Live) vs Local Cache (users_talenta)
-                    </h2>
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Talenta (Live) vs Local Cache (users_talenta)</span></h2>
                     <div class="flex items-center gap-3">
                         <span id="pendingCount" class="text-xs font-medium text-gray-500 dark:text-gray-400"></span>
                         <button id="syncAllBtn"
@@ -106,11 +106,9 @@
 
             {{-- ── TAB 2: User ─────────────────────────────────────────────────── --}}
             <div id="panel-user"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        👤 Talenta People Without a User Account
-                    </h2>
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Talenta People Without a User Account</span></h2>
                 </div>
 
                 <div class="relative overflow-x-auto">
@@ -130,10 +128,8 @@
                     </table>
                 </div>
 
-                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        🚫 Users Whose Talenta Record Has Resigned
-                    </h2>
+                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Users Whose Talenta Record Has Resigned</span></h2>
                 </div>
 
                 <div class="relative overflow-x-auto">
@@ -154,10 +150,8 @@
                     </table>
                 </div>
 
-                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        🔗 das Users with user_id_talenta = NULL
-                    </h2>
+                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>das Users with user_id_talenta = NULL</span></h2>
                     <span class="text-xs text-gray-400 dark:text-gray-500">Matched to Local Cache (users_talenta) where employee_id = NPK</span>
                 </div>
 
@@ -181,11 +175,9 @@
 
             {{-- ── TAB 3: Duplicates ───────────────────────────────────────────── --}}
             <div id="panel-duplicates"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        🧬 Local Cache — Possible Duplicate People
-                    </h2>
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Local Cache — Possible Duplicate People</span></h2>
                     <span class="text-xs text-gray-400 dark:text-gray-500">Same name + birth date + identity number</span>
                 </div>
 
@@ -208,10 +200,8 @@
                     </table>
                 </div>
 
-                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06]">
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        🧬 Talenta (Live) — Possible Duplicate People
-                    </h2>
+                <div class="flex items-center justify-between border-b border-t border-gray-100 px-5 py-2 dark:border-white/[0.06] set-head">
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Talenta (Live) — Possible Duplicate People</span></h2>
                     <span class="text-xs text-gray-400 dark:text-gray-500">Same name + birth date + identity number</span>
                 </div>
 
@@ -237,9 +227,9 @@
         </div>
 
         <!-- Modal: Create User -->
-        <div id="createUserModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+        <div id="createUserModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 set-pop">
             <div class="relative w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Create User</h2>
+                <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-sliders"></i></span><span>Create User</span></h2>
                 <form id="createUserForm">
                     @csrf
                     <input type="hidden" id="cu_user_id" name="user_id">

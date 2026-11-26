@@ -160,17 +160,18 @@ class PmActivityLogger
     {
         $user = Auth::user();
 
-        if (!$taskIds || PmChatAccess::isAdmin($user)) {
+        if (!$taskIds) {
             return $taskIds;
         }
 
-        [$model, $scopeColumn] = $scopeType === 'PROJECT'
-            ? [TrProjectTask::class, 'project_id']
-            : [TrTeamTask::class, 'team_id'];
+        // Only Project Tasks can be private.
+        [$model, $scopeColumn, $columns] = $scopeType === 'PROJECT'
+            ? [TrProjectTask::class, 'project_id', ['task_id', 'parent_task_id', 'created_by', 'is_locked']]
+            : [TrTeamTask::class, 'team_id', ['task_id', 'parent_task_id', 'created_by']];
 
         // The whole board, so every task's parents are at hand.
         $audiences = PmChatAccess::audiences($taskDoctype,
-            $model::where($scopeColumn, $scopeId)->get(['task_id', 'parent_task_id', 'created_by']));
+            $model::where($scopeColumn, $scopeId)->get($columns));
 
         return array_values(array_filter($taskIds,
             fn ($id) => PmChatAccess::includes($audiences->get($id), $user)));

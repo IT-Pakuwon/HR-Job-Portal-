@@ -121,4 +121,6 @@
         }
         .dt-pretty td button.bg-blue-500:hover, .dt-pretty td button.bg-red-500:hover, .dt-pretty td button.bg-amber-500:hover { transform: translateY(-1px); box-shadow: 0 4px 10px -3px rgba(0,0,0,.3); }
         .dt-pretty .dataTables_wrapper .dataTables_processing { background: transparent; }
+        /* the global 8px table inset must also lower min-w-full, or the table sticks out of the card on the right */
+        .dt-pretty .dataTables_wrapper.dt-inset > table.dataTable { min-width: calc(100% - 16px) !important; }
 </style>

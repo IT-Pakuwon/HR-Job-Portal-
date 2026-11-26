@@ -4,12 +4,12 @@
     <div class="max-w-9xl mx-auto w-full p-2"
         x-data="dashboardLayoutEditor(@js($dashboards), @js($catalog), @js($spans), @js($maxRows), @js(url('dashboard-setup')), @js(request('dash')), @js($refreshChoices), @js($limits))">
 
-        <div class="mb-5 flex flex-wrap items-center gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-600 to-violet-700 text-xl text-white shadow-lg shadow-indigo-500/30">
+        <div class="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3.5 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                 <i class="fa-solid fa-table-cells-large"></i>
             </div>
             <div class="min-w-0 flex-1">
-                <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Dashboard Setup</h1>
+                <h1 class="text-base! font-bold tracking-tight text-gray-800 dark:text-white">Dashboard Setup</h1>
                 <p class="mt-0.5 max-w-3xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">Pick a dashboard, then drag its blocks into rows and columns. Everyone assigned to it sees the same arrangement; the data inside is still filtered by each user's company.</p>
             </div>
             <div class="flex shrink-0 flex-wrap items-center gap-2">
@@ -17,11 +17,11 @@
                     <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500"></span> Unsaved changes
                 </span>
                 <button type="button" @click="reset()" :disabled="busy || !current.custom"
-                    class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-600 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 border border-gray-300 bg-white font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                     <i class="fa-solid fa-rotate-left text-[11px]"></i> Reset to standard
                 </button>
                 <button type="button" @click="save()" :disabled="busy || !changed"
-                    class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none">
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500">
                     <i class="fa-solid text-[11px]" :class="busy ? 'fa-spinner fa-spin' : 'fa-floppy-disk'"></i> Save arrangement
                 </button>
             </div>
@@ -31,16 +31,16 @@
             :class="ok ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'"
             class="mb-3 rounded-lg border px-3 py-2 text-sm" x-text="msg"></div>
 
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex flex-wrap items-end gap-x-6 gap-y-3">
 
                 {{-- Dashboard switcher --}}
                 <div class="relative w-full sm:w-96" @click.outside="dashOpen = false" @keydown.escape="dashOpen = false">
                     <span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-gray-400">Dashboard</span>
                     <button type="button" @click="dashOpen = !dashOpen; if (dashOpen) $nextTick(() => $refs.dashSearch.focus())" aria-haspopup="listbox" :aria-expanded="dashOpen"
-                        :class="dashOpen ? 'border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-500/20' : 'border-gray-200 hover:border-indigo-300 dark:border-gray-600'"
+                        :class="dashOpen ? 'border-blue-500 ring-2 ring-blue-100 dark:ring-blue-500/20' : 'border-gray-200 hover:border-blue-300 dark:border-gray-600'"
                         class="flex w-full items-center gap-3 rounded-xl border bg-white px-3 py-2.5 text-left shadow-sm transition focus:outline-none dark:bg-gray-700/40">
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300"><i class="fa-solid fa-table-cells-large text-sm"></i></span>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300"><i class="fa-solid fa-table-cells-large text-sm"></i></span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="current.name"></span>
                             <span class="block truncate font-mono text-[11px] text-gray-400" x-text="current.code"></span>
@@ -59,20 +59,20 @@
                             <div class="relative">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400"></i>
                                 <input type="text" x-ref="dashSearch" x-model="dashQ" placeholder="Search dashboard…"
-                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 py-1.5 pl-8 pr-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
                             </div>
                         </div>
                         <div class="max-h-72 overflow-y-auto p-1.5">
                             <template x-for="d in dashList" :key="d.code">
                                 <button type="button" role="option" :aria-selected="d.code === dash" @click="choose(d.code)"
-                                    :class="d.code === dash ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'"
+                                    :class="d.code === dash ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'"
                                     class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition">
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm text-gray-800 dark:text-gray-100" x-text="d.name"></span>
                                         <span class="block truncate font-mono text-[11px] text-gray-400" x-text="d.code"></span>
                                     </span>
                                     <span x-show="d.custom" class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Custom</span>
-                                    <i class="fa-solid fa-check w-3 text-xs text-indigo-600" :class="d.code === dash ? '' : 'invisible'"></i>
+                                    <i class="fa-solid fa-check w-3 text-xs text-blue-600" :class="d.code === dash ? '' : 'invisible'"></i>
                                 </button>
                             </template>
                             <p x-show="!dashList.length" class="px-3 py-6 text-center text-xs text-gray-400">No matching dashboard.</p>
@@ -85,16 +85,16 @@
                     <span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-gray-400">This dashboard has</span>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium"
-                            :class="current.tiles ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
+                            :class="current.tiles ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
                             <i class="fa-solid fa-bars text-[10px]"></i>
                             <span x-text="current.tiles ? current.tiles + (current.tiles === 1 ? ' menu tile' : ' menu tiles') : 'No menu tiles'"></span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium"
-                            :class="current.has.kpis ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
+                            :class="current.has.kpis ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
                             <i class="fa-solid fa-gauge-high text-[10px]"></i> <span x-text="current.has.kpis ? 'KPI cards' : 'No KPI cards'"></span>
                         </span>
                         <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium"
-                            :class="current.has.tabs ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
+                            :class="current.has.tabs ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'">
                             <i class="fa-solid fa-folder-open text-[10px]"></i> <span x-text="current.has.tabs ? 'Work tabs' : 'No work tabs'"></span>
                         </span>
                     </div>
@@ -105,9 +105,9 @@
         </div>
 
         {{-- Heading and auto-refresh of this dashboard (stored with the arrangement, in the same row) --}}
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="mb-3 flex flex-wrap items-center gap-2">
-                <i class="fa-solid fa-sliders text-sm text-indigo-500"></i>
+                <i class="fa-solid fa-sliders text-sm text-blue-500"></i>
                 <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Page settings</h2>
                 <span class="text-[11px] text-gray-400">Leave a field empty to keep what the dashboard has by default.</span>
             </div>
@@ -115,22 +115,22 @@
                 <label class="lg:col-span-4">
                     <span class="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">Title <span class="font-medium normal-case tracking-normal" x-text="form.title.length + '/' + limits.title"></span></span>
                     <input type="text" x-model="form.title" :maxlength="limits.title" :placeholder="current.headerDefault.title"
-                        class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-100">
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-100">
                 </label>
                 <label class="lg:col-span-5">
                     <span class="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">Subtitle <span class="font-medium normal-case tracking-normal" x-text="form.subtitle.length + '/' + limits.subtitle"></span></span>
                     <input type="text" x-model="form.subtitle" :maxlength="limits.subtitle" :placeholder="current.headerDefault.subtitle"
-                        class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-100">
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700/40 dark:text-gray-100">
                 </label>
                 <div class="lg:col-span-3">
                     <span class="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-400">Refresh every</span>
                     <div class="flex flex-wrap items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-900/40" role="group" aria-label="Auto-refresh interval">
                         <button type="button" @click="form.refresh = null" :aria-pressed="form.refresh === null"
-                            :class="form.refresh === null ? 'bg-white text-indigo-700 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'"
+                            :class="form.refresh === null ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-700 dark:text-blue-300' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'"
                             class="rounded-lg px-2.5 py-1.5 text-xs font-semibold transition" title="Every dashboard, tab and panel refreshes every {{ \App\Services\Dashboard\DashboardLayout::DEFAULT_REFRESH }} seconds unless you pick another value">Default ({{ \App\Services\Dashboard\DashboardLayout::DEFAULT_REFRESH }}s)</button>
                         <template x-for="n in refreshChoices" :key="n">
                             <button type="button" @click="form.refresh = n" :aria-pressed="form.refresh === n"
-                                :class="form.refresh === n ? 'bg-white text-indigo-700 shadow-sm dark:bg-gray-700 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'"
+                                :class="form.refresh === n ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-700 dark:text-blue-300' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'"
                                 class="rounded-lg px-2.5 py-1.5 text-xs font-semibold tabular-nums transition" x-text="n < 60 ? n + 's' : (n / 60) + 'm'"></button>
                         </template>
                     </div>
@@ -149,14 +149,14 @@
                             <div class="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-900/40" role="group" aria-label="Number of columns in this row">
                                 <template x-for="n in [1, 2, 3]" :key="n">
                                     <button type="button" @click="setColumnCount(ri, n)" :aria-pressed="row.columns.length === n" :title="n + (n === 1 ? ' column' : ' columns')"
-                                        :class="row.columns.length === n ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'text-gray-500 hover:text-gray-800'"
+                                        :class="row.columns.length === n ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' : 'text-gray-500 hover:text-gray-800'"
                                         class="h-6 min-w-7 rounded-md px-2 text-xs font-bold transition" x-text="n"></button>
                                 </template>
                             </div>
                             <div x-show="row.columns.length > 1" x-cloak class="flex flex-wrap items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-900/40" role="group" aria-label="Column widths in this row">
                                 <template x-for="t in layoutsFor(row.columns.length)" :key="t.join('-')">
                                     <button type="button" @click="applyTemplate(ri, t)" :aria-pressed="sameSpans(ri, t)" :title="t.join(' / ')"
-                                        :class="sameSpans(ri, t) ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'text-gray-400 hover:text-gray-700'"
+                                        :class="sameSpans(ri, t) ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300' : 'text-gray-400 hover:text-gray-700'"
                                         class="flex h-6 w-14 items-center gap-0.5 rounded-md px-1.5 transition">
                                         <template x-for="(s, i) in t" :key="i"><span class="h-3 rounded-sm bg-current opacity-70" :style="'flex:' + s + ' 1 0'"></span></template>
                                     </button>
@@ -171,7 +171,7 @@
                         <div class="flex items-stretch gap-2">
                             <template x-for="(c, ci) in row.columns" :key="ci">
                                 <div class="flex min-h-24 min-w-0 flex-col gap-2 rounded-lg border-2 border-dashed p-2 transition"
-                                    :class="over === ri + '-' + ci ? 'border-indigo-400 bg-indigo-50/60 dark:bg-indigo-500/10' : 'border-gray-300 dark:border-gray-600'"
+                                    :class="over === ri + '-' + ci ? 'border-blue-400 bg-blue-50/60 dark:bg-blue-500/10' : 'border-gray-300 dark:border-gray-600'"
                                     :style="'flex:' + c.span + ' 1 0'"
                                     @dragover.prevent="over = ri + '-' + ci" @dragleave="over = null" @drop.prevent="drop(ri, ci, c.blocks.length)">
                                     <div class="px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400" x-text="'Column ' + (ci + 1) + ' · ' + c.span + '/12'"></div>
@@ -182,7 +182,7 @@
                                             :class="dragged === id ? 'opacity-40' : ''"
                                             class="cursor-grab rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm active:cursor-grabbing dark:border-gray-600 dark:bg-gray-800">
                                             <div class="flex items-start gap-2.5">
-                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300"><i class="fa-solid text-sm" :class="info(id).icon"></i></span>
+                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300"><i class="fa-solid text-sm" :class="info(id).icon"></i></span>
                                                 <span class="min-w-0 flex-1">
                                                     <span class="block text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="info(id).label"></span>
                                                     <span class="block text-[11px] text-gray-500 dark:text-gray-400" x-text="info(id).desc"></span>
@@ -208,16 +208,16 @@
                 </template>
 
                 <button type="button" @click="addRow()" :disabled="rows.length >= maxRows"
-                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-indigo-300 bg-indigo-50/50 py-2 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-50 disabled:opacity-40 dark:border-indigo-500/40 dark:bg-indigo-500/5 dark:text-indigo-300">
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-blue-300 bg-blue-50/50 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 disabled:opacity-40 dark:border-blue-500/40 dark:bg-blue-500/5 dark:text-blue-300">
                     <i class="fa-solid fa-plus text-[10px]"></i> Add a row
                 </button>
                 <p class="text-[11px] text-gray-500 dark:text-gray-400">Blocks that do not apply to a dashboard are skipped when it is shown (for example Main Menu without tiles), and an emptied column or row folds away. A block taken off the KPI cards or Work tabs stays on the page out of sight, because the dashboard's script reads it. On small screens everything stacks in this order.</p>
             </section>
 
             {{-- Blocks not on this dashboard --}}
-            <aside class="self-start rounded-2xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-label="Available blocks"
+            <aside class="self-start rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-label="Available blocks"
                 @dragover.prevent="over = 'tray'" @dragleave="over = null" @drop.prevent="dropTray()"
-                :class="over === 'tray' ? 'ring-2 ring-indigo-300' : ''">
+                :class="over === 'tray' ? 'ring-2 ring-blue-300' : ''">
                 <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Not on this dashboard</h2>
                 <p class="mb-3 mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">Drag a block into a column to add it, or drag one back here to take it off.</p>
                 <div class="space-y-2">
@@ -229,7 +229,7 @@
                                 <span class="block text-sm font-semibold text-gray-700 dark:text-gray-200" x-text="info(id).label"></span>
                                 <span class="block truncate text-[11px] text-gray-500 dark:text-gray-400" x-text="info(id).desc"></span>
                             </span>
-                            <button type="button" @click="add(id)" class="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700" :aria-label="'Add ' + info(id).label">Add</button>
+                            <button type="button" @click="add(id)" class="shrink-0 inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 bg-blue-600 font-semibold text-white hover:bg-blue-500" :aria-label="'Add ' + info(id).label">Add</button>
                         </div>
                     </template>
                     <p x-show="!tray.length" x-cloak class="py-3 text-center text-xs text-gray-400">Every block is on this dashboard.</p>

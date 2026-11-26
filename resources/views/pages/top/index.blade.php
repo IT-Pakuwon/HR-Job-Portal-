@@ -1,4 +1,6 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-setting-skin />
     @php
         $currentPage = Route::currentRouteName() == 'tops' ? 'TOP' : '';
     @endphp
@@ -6,13 +8,11 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <!-- TOP: HEADER TABLE -->
         <div
-            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
                 <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💳 Terms Of
-                        Payment (TOP)</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-credit-card"></i></span><span>Terms Of Payment (TOP)<span class="set-hint">Klik TOP untuk menampilkan detail di bawah.</span></span></h2>
                 </div>
                 <button id="addTopBtn"
                     class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -43,15 +43,11 @@
 
         <!-- BOTTOM: DETAIL TABLE -->
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] set-card dt-pretty">
             <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center set-head">
                 <div>
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧾 TOP
-                        Detail</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
-                        Selected TOP: <span id="selectedTopText" class="font-semibold">-</span>
-                    </p>
+                    <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-receipt"></i></span><span>TOP Detail<span class="set-hint">Selected TOP: <span id="selectedTopText" class="font-semibold">-</span></span></span></h2>
                 </div>
                 <button id="addTopDetailBtn"
                     class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -83,7 +79,7 @@
         </div>
 
         <!-- TOP MODAL -->
-        <div id="topModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="topModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 set-pop">
             <div class="w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="topModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP</h2>
                 <form id="topForm">
@@ -135,7 +131,7 @@
         </div>
 
         <!-- TOP DETAIL MODAL -->
-        <div id="topDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="topDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 set-pop">
             <div class="w-full max-w-3xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="topDetailModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP
                     Detail

@@ -30,7 +30,7 @@ const VplMasterModal = {
         // always unlock product name on reset (new stock)
         $('#product_name')
             .prop('readonly', false)
-            .removeClass('bg-slate-100 cursor-not-allowed')
+            .removeClass('bg-gray-100 cursor-not-allowed')
             .removeAttr('title');
 
         // reset all select2 fields

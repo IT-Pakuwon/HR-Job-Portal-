@@ -19,24 +19,27 @@ const VplUsageDatalist = {
                 },
             },
             columns: [
-                { data: 'action',            name: 'action',            orderable: false, searchable: true },
-                { data: 'usage_date_fmt',    name: 'usage_date',        orderable: true },
-                { data: 'event_date_fmt',    name: 'event_date',        orderable: false, defaultContent: '-' },
+                { data: 'action',            name: 'action',            orderable: false, searchable: true , render: (data, type, row) => type === 'display' ? window.vplDocButton('btn-view-usage', row.id, row.usage_id) : row.usage_id },
+                { data: 'usage_date_fmt', className: 'whitespace-nowrap',    name: 'usage_date',        orderable: true },
+                { data: 'event_date_fmt', className: 'whitespace-nowrap',    name: 'event_date',        orderable: false, defaultContent: '-' },
                 { data: 'cpnyid',            name: 'cpnyid' },
                 { data: 'department',        name: 'department' },
-                { data: 'vp_type_label',     name: 'vp_type' },
+                { data: 'vp_type_label',     name: 'vp_type', render: (data, type) => type === 'display' ? window.vplTypePill(data) : data },
                 { data: 'usagetype_label',   name: 'usagetype' },
                 { data: 'ref_usage_id',      name: 'ref_usage_id',      defaultContent: '-' },
                 { data: 'usage_remark',      name: 'usage_remark',      defaultContent: '-' },
-                { data: 'status_badge',      name: 'status',            orderable: false, searchable: true },
+                { data: 'status_badge',      name: 'status',            orderable: false, searchable: true, render: (data, type, row) => type === 'display' ? window.vplStatusBadge(row.status) : window.vplStatusText(row.status) },
             ],
             order: [[1, 'desc']],
             pageLength: 10,
+            responsive: true,
+            columnDefs: [{ targets: 0, responsivePriority: 1 }, { targets: 9, responsivePriority: 2 }, { targets: 1, responsivePriority: 3 }],
+            dom: '<"dt-toolbar"l f>rtip',
             createdRow(row) {
                 $(row).addClass(
-                    'border-b border-gray-100 hover:bg-slate-50/60 dark:border-white/[0.05] dark:hover:bg-white/[0.02] transition-colors duration-100'
+                    'border-b border-gray-100 hover:bg-gray-50/60 dark:border-white/[0.05] dark:hover:bg-white/[0.02] transition-colors duration-100'
                 );
-                $('td', row).addClass('px-4 py-3 text-sm text-slate-700 dark:text-slate-300');
+                $('td', row).addClass('px-4 py-3 text-sm text-gray-700 dark:text-gray-300');
             },
         });
     },
@@ -44,8 +47,8 @@ const VplUsageDatalist = {
     initFilterButtons() {
         $(document).on('click', '.status-filter', function (e) {
             e.preventDefault();
-            $('.status-filter').removeClass('active-card');
-            $(this).addClass('active-card');
+            $('.status-filter').removeClass('active-card active');
+            $(this).addClass('active-card active');
             const status = $(this).data('status');
             VplUsage.state.currentStatus = status;
             $('#adminAllFilters')
