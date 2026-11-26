@@ -17,7 +17,17 @@
 
         <div
             class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <x-list-page-header title="Rfca" subtitle="Rfca jobs, submissions and payments" title-id="pageTitle"></x-list-page-header>
+            <x-list-page-header title="Rfca" subtitle="Rfca jobs, submissions and payments" title-id="pageTitle">
+                <div id="rfcaTypeFilterWrap" class="flex items-center gap-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Rfca Type</span>
+                    <input type="hidden" id="rfcaTypeFilter" value="">
+                    <div class="inline-flex items-center gap-0.5 rounded-full bg-gray-100 p-0.5 dark:bg-white/10" role="group" aria-label="Filter by Rfca Type">
+                        <button type="button" data-type="" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">All</button>
+                        <button type="button" data-type="RFCA" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFCA</button>
+                        <button type="button" data-type="RFP" class="rfca-type-btn rounded-full px-3 py-1 text-xs font-semibold transition-colors">RFP</button>
+                    </div>
+                </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
                 <table id="rfcaTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">

@@ -1,66 +1,5 @@
 <x-app-layout>
-    <style>
-        /* === SAMAKAN TINGGI DENGAN INPUT DATE === */
-        .select2-container--default .select2-selection--single {
-            height: 38px !important;
-            border: 1px solid #d1d5db;
-            /* gray-300 */
-            border-radius: 0.375rem;
-            /* rounded-md */
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-            /* text-sm */
-        }
-
-        /* === TEXT USER (NAME) === */
-        .select2-container--default .select2-selection__rendered {
-            font-size: 0.875rem;
-            /* text-sm */
-            line-height: 1.25rem;
-            padding-left: 0.5rem;
-            padding-right: 1.5rem !important;
-            /* kasih ruang utk ❌ + arrow */
-            color: #111827;
-            /* gray-900 */
-        }
-
-        /* === TOMBOL CLEAR (❌) DI KANAN === */
-        .select2-container--default .select2-selection__clear {
-            position: absolute;
-            right: 5rem;
-            /* sebelum arrow */
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: #9ca3af;
-            /* gray-400 */
-        }
-
-        .select2-container--default .select2-selection__clear:hover {
-            color: #ef4444;
-            /* red-500 */
-        }
-
-        /* === ARROW DROPDOWN === */
-        .select2-container--default .select2-selection__arrow {
-            height: 38px;
-            right: 0.5rem;
-        }
-
-        /* === DARK MODE === */
-        .dark .select2-container--default .select2-selection--single {
-            background-color: #374151;
-            /* gray-700 */
-            border-color: #4b5563;
-            /* gray-600 */
-        }
-
-        .dark .select2-container--default .select2-selection__rendered {
-            color: #f9fafb;
-            /* gray-50 */
-        }
-    </style>
+    <x-spp-form-styles />
 
 
     @php
@@ -96,8 +35,8 @@
         };
 
         $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
-        $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
-        $value = 'break-words font-medium text-gray-900 dark:text-gray-100 sm:flex-1';
+        $label = 'flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 sm:min-w-40';
+        $value = 'break-words text-sm font-medium text-gray-800 dark:text-gray-100 sm:flex-1';
 
         $sppbDisplay = e($kontrak->sppbjktid);
         if (!empty($sppbUrl)) {
@@ -127,44 +66,25 @@
     @endphp
 
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">
-
-
-            <div class="flex gap-3">
-                @if ($isOwner && $isHold)
-                    <button id="submitKontrakBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-200 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="h-4 w-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                        </svg>
-                        Submit
-                    </button>
-                @endif
-            </div>
-        </div>
+        
 
          <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- Left card (Kontrak Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-                            <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
-                            {{ $kontrak->kontrakid }}
-                        </h1>
-
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
-                                {{ $statusText }}
-                            </span>
+                <div class="flex-1 flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">{{ $kontrak->kontrakid }}</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Contract information</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
+                            </div>
                         </div>
-                    </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-2">
                         @php
@@ -255,8 +175,30 @@
                 </div>
 
                 {{-- Right card (Form + Attachment/Comments tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <div class="p-4">
+                <div class="flex-1 flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Kontrak Details</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Category, period and note</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if ($isOwner && $isHold)
+                    <button id="submitKontrakBtn"
+                        class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="h-4 w-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                        </svg>
+                        Submit
+                    </button>
+                @endif
+                            </div>
+                        </div>
+                    <div class="px-6 py-5">
                         <form id="kontrakForm" class="space-y-4" @submit.prevent>
                             @csrf
                             <input type="hidden" name="kontrakid" value="{{ $kontrak->kontrakid }}">
@@ -270,7 +212,7 @@
                                         Type</label>
                                     @if ($isHold)
                                         <select id="kontraktype" name="kontraktype"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             <option value="">Select</option>
                                             <option value="New"
                                                 {{ ($kontrak->kontraktype ?? '') === 'New' ? 'selected' : '' }}>New
@@ -281,7 +223,7 @@
                                         </select>
                                     @else
                                         <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ $kontrak->kontraktype ?? '-' }}
                                         </div>
                                     @endif
@@ -290,7 +232,7 @@
                                 {{-- Kontrak Category --}}
                                 {{-- No SK --}}
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         No SK
                                     </label>
 
@@ -298,21 +240,21 @@
                                         <input type="text" id="nosk" name="nosk" readonly
                                             value="{{ old('nosk', $kontrak->nosk ?? '') }}"
                                             placeholder="Input No SK..."
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @else
-                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        <div class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ $kontrak->nosk ?? '-' }}
                                         </div>
                                     @endif
                                 </div>
-                                <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Kontrak Category
                                     </label>
 
                                     @if ($isHold)
                                         <select id="kontrakcategory" name="kontrakcategory"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             <option value="">Select</option>
 
                                             @foreach(($kontrakCategories ?? []) as $cat)
@@ -351,7 +293,7 @@
                                         @endphp
 
                                         <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ $readonlyText }}
                                         </div>
                                     @endif
@@ -363,16 +305,16 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {{-- Kontrak Date --}}
                                 {{-- <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Kontrak Date
                                     </label>
 
                                     @if ($isHold)
                                         <input type="date" id="kontrakdate" name="kontrakdate"
                                             value="{{ old('kontrakdate', optional($kontrak->kontrakdate)->format('Y-m-d') ?? $kontrak->kontrakdate) }}"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @else
-                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        <div class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ optional($kontrak->kontrakdate)->format('d M Y') ?? ($kontrak->kontrakdate ?? '-') }}
                                         </div>
                                     @endif
@@ -384,30 +326,30 @@
                             {{-- ROW 3: Start Date + End Date --}}
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Start
                                         Date</label>
                                     @if ($isHold)
                                         <input type="date" id="startdate" name="startdate"
                                             value="{{ old('startdate', optional($kontrak->startdate)->format('Y-m-d') ?? $kontrak->startdate) }}"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @else
                                         <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ optional($kontrak->startdate)->format('d M Y') ?? ($kontrak->startdate ?? '-') }}
                                         </div>
                                     @endif
                                 </div>
 
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">End
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">End
                                         Date</label>
                                     @if ($isHold)
                                         <input type="date" id="enddate" name="enddate"
                                             value="{{ old('enddate', optional($kontrak->enddate)->format('Y-m-d') ?? $kontrak->enddate) }}"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @else
                                         <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            class="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ optional($kontrak->enddate)->format('d M Y') ?? ($kontrak->enddate ?? '-') }}
                                         </div>
                                     @endif
@@ -417,15 +359,15 @@
 
                             {{-- Note --}}
                             <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak
+                                <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Kontrak
                                     Note</label>
                                 @if ($isHold)
                                     <textarea id="kontraknote" name="kontraknote" rows="4"
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                         placeholder="Write kontrak note...">{{ old('kontraknote', $kontrak->kontaknote ?? '') }}</textarea>
                                 @else
                                     <div
-                                        class="whitespace-pre-wrap rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        class="whitespace-pre-wrap flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                         {{ $kontrak->kontaknote ?? '-' }}
                                     </div>
                                 @endif
@@ -436,28 +378,29 @@
 
             </div>
             {{-- ===================== DETAIL SECTION ===================== --}}
-        <div class="rounded-xl bg-white dark:bg-gray-800">
-            <header class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-700 rounded-t-xl">
-                <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <span class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
-                        DETAIL
-                    </span>
-                    TrBQCSDetail
-                </h2>
-            </header>
+        <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Kontrak Detail</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Items and vendor prices from the canvass sheet</p>
+                                </div>
+                            </div>
+                        </div>
 
             <div class="max-h-150 overflow-auto p-4">
                 <table class="min-w-full text-sm">
-                    <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <th class="p-3 text-left font-semibold">BQ No</th>
-                            <th class="p-3 text-left font-semibold">Line</th>
-                            <th class="p-3 text-left font-semibold">Description</th>
-                            <th class="p-3 text-right font-semibold">Qty</th>
-                            <th class="p-3 text-left font-semibold">UOM</th>
+                    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900">
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                            <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">BQ No</th>
+                            <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Line</th>
+                            <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</th>
+                            <th class="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Qty</th>
+                            <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">UOM</th>
                             {{-- <th class="p-3 text-left font-semibold">Kontrak Category</th> --}}
-                            <th class="p-3 text-right font-semibold">Duration Qty</th>
-                            <th class="p-3 text-left font-semibold">Price</th>
+                            <th class="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Duration Qty</th>
+                            <th class="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Price</th>
                         </tr>
                     </thead>
 
@@ -571,6 +514,7 @@
             });
 
             $('#kontrakcategory').select2({
+                dropdownCssClass: 'sf-s2-dropdown',
                 placeholder: 'Select Category',
                 allowClear: true,
                 width: '100%',

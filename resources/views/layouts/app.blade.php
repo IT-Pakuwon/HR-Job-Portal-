@@ -59,6 +59,16 @@
     <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+    <script>
+        // A <label> around (or pointing at) a Select2 dropdown would also open the browser's own list for the
+        // hidden <select>, on top of Select2. Cancel that label action; Select2 itself opens on mousedown.
+        document.addEventListener('click', function(e) {
+            const label = e.target.closest && e.target.closest('label');
+            if (label && label.control && label.control.classList.contains('select2-hidden-accessible')) {
+                e.preventDefault();
+            }
+        }, true);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Flatpickr -->

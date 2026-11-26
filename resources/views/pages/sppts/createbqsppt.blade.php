@@ -418,6 +418,7 @@
             const addTile = document.getElementById('addAttachmentTile');
             const picker = document.getElementById('hiddenPicker');
             const hiddenInputs = document.getElementById('hiddenInputs');
+            if (!addTile) return; // photo section is only shown after an import
 
             // ❗ Kalau belum ada tempData / belum render section Photo Before,
             // elemen-elemen di atas NULL. Jangan lanjut, langsung stop script.

@@ -19,6 +19,7 @@ use App\Models\TrProjectTaskTag;
 use App\Models\TrProjectTaskTeam;
 use App\Models\User;
 use App\Services\PmActivityLogger;
+use App\Services\PmChatAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -51,34 +52,9 @@ class PmTaskController extends Controller
     {
         $project = MsProject::where('project_id', $projectId)->firstOrFail();
 
-        abort_unless($this->canAccessProject($project), 403);
+        abort_unless($project->isAccessibleBy(Auth::user()), 403);
 
         return $project;
-    }
-
-    // Same rule as eligibleUsernames() (creator, a picked PIC person, or a
-    // member of a linked Team) but answered with at most two EXISTS queries
-    // instead of loading every Team and member just to test one username —
-    // this guard runs on every task endpoint. Admins skip the lookup.
-    private function canAccessProject(MsProject $project): bool
-    {
-        $user = Auth::user();
-        $me = strtolower(trim((string) $user->username));
-
-        if ($user->isPrimaryAdmin()
-            || strtolower(trim((string) $project->created_by)) === $me
-            || $user->hasRole('PROADMINACCESS')) {
-            return true;
-        }
-
-        return \App\Models\TrProjectPic::where('project_id', $project->project_id)
-                ->where('status', 'A')->where('pic_type', 'USER')
-                ->whereRaw('lower(trim(ref_id)) = ?', [$me])->exists()
-            || \App\Models\TrTeamMember::where('status', 'A')
-                ->whereRaw('lower(trim(username)) = ?', [$me])
-                ->whereIn('team_id', \App\Models\TrProjectTeam::where('project_id', $project->project_id)
-                    ->where('status', 'A')->select('team_id'))
-                ->exists();
     }
 
     // A Task of this Project that the current user is allowed into — a
@@ -321,15 +297,20 @@ class PmTaskController extends Controller
 
         $task = TrProjectTask::where('status', 'A')->findOrFail($id);
         $this->project($task->project_id);
-        abort_unless($task->isAccessibleBy(Auth::user()), 403, 'This task is private. Only its assignees can open it.');
 
         $user = Auth::user();
+        $canOpen = $task->isAccessibleBy($user);
+        // An admin outside a locked task still takes part in its chat, so a
+        // notification link lands them on that chat instead.
+        $chatOnly = !$canOpen && PmChatAccess::isAdmin($user);
+        abort_unless($canOpen || $chatOnly, 403, 'This task is private. Only its assignees can open it.');
 
         return view('pages.projectmanagement.projects', [
-            'initialTab' => 'kanban',
+            'initialTab' => $chatOnly ? 'message' : 'kanban',
             'canCreateProject' => $user->hasRole('PROADMINACCESS') || $user->isPrimaryAdmin(),
             'openProjectBoardId' => $task->project_id,
-            'openTaskEid' => $eid,
+            'openTaskEid' => $chatOnly ? null : $eid,
+            'openChatTaskId' => $chatOnly ? $task->task_id : null,
         ]);
     }
 
@@ -400,16 +381,23 @@ class PmTaskController extends Controller
         // out of the board entirely — not even a masked card.
         $tasks = $tasks->filter(fn ($t) => $canOpen[$t->task_id] ?? true);
 
-        $taskTeams = $allTaskTeams->only($tasks->pluck('task_id')->all());
+        // Chat and files are narrower than the card: see PmChatAccess.
+        $audiences = PmChatAccess::audiences('TSK', $tasks, $effective);
+
+        // toBase(): these are groups keyed by task_id, and Eloquent's only()
+        // expects models — it failed as soon as any task had a PIC Team.
+        $taskTeams = $allTaskTeams->toBase()->only($tasks->pluck('task_id')->all());
         $teamIdsOnBoard = $taskTeams->flatten()->pluck('team_id')->unique();
         $teamNames = $teamIdsOnBoard->isEmpty() ? collect() : MsTeam::whereIn('team_id', $teamIdsOnBoard)->pluck('team_name', 'team_id');
 
         [$fileCounts, $commentCounts] = $this->taskCardCounts('TSK', $tasks->pluck('task_id'));
 
-        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $resolve, $effective, $me, $taskTeams, $teamNames, $fileCounts, $commentCounts) {
+        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $resolve, $effective, $me, $taskTeams, $teamNames, $fileCounts, $commentCounts, $audiences) {
             $canAccess = $resolve($t->task_id);
+            $canChat = $canAccess && PmChatAccess::includes($audiences->get($t->task_id), Auth::user());
 
             return [
+                'can_chat' => $canChat,
                 'is_locked' => (bool) $t->is_locked,
                 'locked_by' => $t->locked_by,
                 'can_access' => $canAccess,
@@ -428,8 +416,8 @@ class PmTaskController extends Controller
                 'status_id' => $t->status_id,
                 'progress_percent' => (float) $t->progress_percent,
                 // Masked like description/tags for a locked task the viewer can't open.
-                'file_count' => $canAccess ? (int) ($fileCounts[$t->task_id] ?? 0) : null,
-                'comment_count' => $canAccess ? (int) ($commentCounts[$t->task_id] ?? 0) : null,
+                'file_count' => $canChat ? (int) ($fileCounts[$t->task_id] ?? 0) : null,
+                'comment_count' => $canChat ? (int) ($commentCounts[$t->task_id] ?? 0) : null,
                 'created_by' => $t->created_by,
                 'created_at' => optional($t->created_at)->toDateTimeString(),
                 'assignees' => ($assignees->get($t->task_id) ?? collect())->pluck('username'),
@@ -603,6 +591,21 @@ class PmTaskController extends Controller
             'A private task needs at least one PIC — make it public first.'
         );
 
+        // Same conditions as the two syncs below. Saving the form with the
+        // PICs untouched stays open to every task editor.
+        $picsChanged = (($request->has('assignees') || $request->boolean('pic_submitted'))
+                && PmChatAccess::listChanged(
+                    TrProjectTaskAssignee::where('task_id', $task->task_id)->where('status', 'A')->pluck('username'),
+                    $request->input('assignees', [])))
+            || (($request->has('team_ids') || $request->boolean('pic_submitted'))
+                && PmChatAccess::listChanged(
+                    TrProjectTaskTeam::where('task_id', $task->task_id)->where('status', 'A')->pluck('team_id'),
+                    $request->input('team_ids', [])));
+
+        if ($picsChanged) {
+            PmChatAccess::abortUnlessCanAssign('TSK', $task);
+        }
+
         $username = Auth::user()->username;
         $now = now();
         $before = $this->taskSnapshot($task);
@@ -708,6 +711,7 @@ class PmTaskController extends Controller
         $task = $this->accessibleTask($projectId, $taskId);
 
         $this->abortIfChecklistItem($this->parentMap($projectId), $taskId, 'assignees');
+        PmChatAccess::abortUnlessCanAssign('TSK', $task);
         $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
 
         $eligible = $this->eligibleUsernames($project);
@@ -780,6 +784,14 @@ class PmTaskController extends Controller
         $parents = $this->parentMap($projectId);
         $this->assertCanMoveUnder($parents, $taskId, $parentId);
         $oldParentId = $task->parent_task_id;
+
+        abort_if(
+            PmChatAccess::moveWouldOpen('TSK',
+                TrProjectTask::where('project_id', $projectId)->where('status', 'A')->get(['task_id', 'parent_task_id', 'created_by']),
+                $taskId, $parentId, Auth::user()),
+            403,
+            'This move would open a task chat you are not part of. Ask an assignee, the creator or a project admin.'
+        );
 
         $values = ['parent_task_id' => $parentId];
         if (!$parentId && $request->filled('status_id')) {
@@ -947,16 +959,36 @@ class PmTaskController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // @mention autocomplete for a Task's chat — same eligible pool as the
-    // parent Project (union of members across every linked Team).
+    // Chat list of the Project board's Message tab.
+    public function chatThreads(string $projectId)
+    {
+        $this->project($projectId);
+
+        $all = TrProjectTask::where('project_id', $projectId)->where('status', 'A')
+            ->get(['task_id', 'parent_task_id', 'task_name', 'is_locked', 'created_by']);
+
+        return response()->json($this->buildChatThreads('PRJ', $projectId, 'TSK', $all,
+            TrProjectTask::accessMap($all, Auth::user())));
+    }
+
+    // @mention autocomplete for a Task's chat — the people of the parent
+    // Project (union of members across every linked Team) who take part in
+    // this chat.
     public function mentionableUsers(string $projectId, string $taskId)
     {
         $project = $this->project($projectId);
-        $this->accessibleTask($projectId, $taskId);
+        $task = TrProjectTask::where('project_id', $projectId)->where('task_id', $taskId)->firstOrFail();
+        TrProjectTask::abortUnlessAccessible('TSK', $taskId);
+
         $usernames = $this->eligibleUsernames($project)
             ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+        $people = User::whereIn(DB::raw('lower(username)'), $usernames->all())->get(['username', 'name', 'user_role']);
 
-        $users = User::whereIn(DB::raw('lower(username)'), $usernames->all())->get(['username', 'name']);
+        // Same rule as the thread's own guard, answered in bulk.
+        $audience = PmChatAccess::audience('TSK', $task);
+        $openers = $task->usersWhoCanOpen($people)->pluck('username')->flip();
+        $users = $people->filter(fn ($u) => PmChatAccess::isAdmin($u)
+            || ($openers->has($u->username) && PmChatAccess::includes($audience, $u)))->values();
 
         return response()->json($users->map(fn ($u) => ['username' => $u->username, 'name' => $u->name]));
     }

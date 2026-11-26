@@ -1,35 +1,30 @@
 <x-app-layout>
-    <div class="mx-auto w-full space-y-3 p-2 md:px-4">
+    <x-spp-form-styles />
+    <div class="max-w-9xl mx-auto w-full space-y-4 p-2">
         @php
             $creating = !$evaluation->exists;
-            $lbl = 'flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400';
-            $ctl = 'block w-full rounded-lg border border-gray-300 bg-white text-sm font-normal normal-case tracking-normal text-gray-800 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100';
+            $lbl = 'flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400';
+            $ctl = 'block w-full rounded-lg border border-gray-300 bg-white text-sm font-normal normal-case tracking-normal text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100';
             $box = 'height:2.5rem;line-height:1.25rem;padding:0 .75rem;';
             $sel = $box . "appearance:none;-webkit-appearance:none;padding-right:2.25rem;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right .75rem center;background-size:1rem;";
         @endphp
-        <div class="flex items-center gap-3">
-            <a href="{{ route('evaluasivendor') }}" title="Kembali ke Penilaian Vendor" aria-label="Kembali ke Penilaian Vendor" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </a>
-            <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                    <h1 class="text-lg font-bold leading-tight">{{ $creating ? 'Input Penilaian Vendor' : 'Edit Penilaian Vendor' }}</h1>
-                    @unless($creating)<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">{{ $evaluation->vendor_perfomance_id }}</span>@endunless
-                </div>
-                <p class="text-xs text-gray-500">Penilaian Vendor &rsaquo; {{ $creating ? 'Input baru' : 'Edit' }}</p>
-            </div>
-        </div>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="rounded-lg bg-red-50 p-3 text-red-700"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
         @if(!$creating && $evaluation->status === 'D')
             <div class="rounded-lg border border-orange-300 bg-orange-50 p-3 text-sm text-orange-800"><strong>Penilaian perlu direvisi.</strong><p class="mt-1 whitespace-pre-line">{{ $evaluation->template_vpe_aspect_comment ?: 'Periksa dan perbaiki informasi penilaian.' }}</p><p class="mt-2">Perbarui informasi dan skor, lalu submit ulang untuk approval.</p></div>
         @endif
-        <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
-            <div class="flex items-center justify-between gap-3 border-b border-gray-100 bg-gray-50/70 px-5 py-3 dark:border-gray-700 dark:bg-gray-800/50">
-                <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h7l5 5v11a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z"/></svg>
-                    Informasi Dokumen
-                </h2>
+        <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 4h7l5 5v11a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z"/></svg></span>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 class="text-base font-bold text-gray-800 dark:text-white">{{ $creating ? 'Input Penilaian Vendor' : 'Edit Penilaian Vendor' }}</h1>
+                            @unless($creating)<span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">{{ $evaluation->vendor_perfomance_id }}</span>@endunless
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Informasi dokumen yang dinilai</p>
+                    </div>
+                </div>
                 <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">{{ $evaluation->vendor_perfomance_type }}</span>
             </div>
             <dl class="grid grid-cols-1 gap-x-6 gap-y-4 p-5 text-sm sm:grid-cols-2 xl:grid-cols-3">
@@ -47,34 +42,36 @@
                 <input type="hidden" name="source_id" value="{{ $sourceId }}">
             @endif
             <fieldset @disabled(!$editable) class="space-y-3">
-                <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                    <div class="flex items-center gap-2 border-b border-gray-100 bg-gray-50/70 px-5 py-3 dark:border-gray-700 dark:bg-gray-800/50">
-                        <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
-                        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Periode &amp; Template Evaluasi</h2>
+                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg></span>
+                            <div><h2 class="text-base font-bold text-gray-800 dark:text-white">Periode &amp; Template Evaluasi</h2><p class="text-xs text-gray-500 dark:text-gray-400">Tanggal penilaian dan jenis pekerjaan</p></div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_2fr]">
                         <label class="{{ $lbl }}"><span>Tanggal Evaluasi</span><input type="date" name="vendor_perfomance_date" required value="{{ old('vendor_perfomance_date', $evaluation->vendor_perfomance_date) }}" class="{{ $ctl }}" style="{{ $box }}"></label>
                         <label class="{{ $lbl }}"><span>Periode Mulai</span><input type="date" name="vendor_perfomance_start_date" required value="{{ old('vendor_perfomance_start_date', $evaluation->vendor_perfomance_start_date) }}" class="{{ $ctl }}" style="{{ $box }}"></label>
                         <label class="{{ $lbl }}"><span>Periode Selesai</span><input type="date" name="vendor_perfomance_end_date" required value="{{ old('vendor_perfomance_end_date', $evaluation->vendor_perfomance_end_date) }}" class="{{ $ctl }}" style="{{ $box }}"></label>
-                        <label class="{{ $lbl }} sm:col-span-3 xl:col-span-1"><span>Jenis Pekerjaan / Template <span class="text-red-600">*</span></span>
-                            <select name="template_vpe_id" id="template-select" required class="w-full">
+                        <div class="sf-field {{ $lbl }} sm:col-span-3 xl:col-span-1"><span>Jenis Pekerjaan / Template <span class="text-red-600">*</span></span>
+                            <select name="template_vpe_id" id="template-select" required aria-label="Jenis Pekerjaan / Template" class="w-full">
                                 <option value="">Pilih jenis pekerjaan</option>
                                 @foreach($templates as $template)<option value="{{ $template->template_vpe_id }}" @selected(old('template_vpe_id', $evaluation->template_vpe_id) === $template->template_vpe_id)>{{ $template->template_vpe_descr }}</option>@endforeach
                             </select>
-                        </label>
+                        </div>
                     </div>
                 </section>
-                <section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50/70 px-5 py-3 dark:border-gray-700 dark:bg-gray-800/50">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-3">
-                                <h2 class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                    <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a1 1 0 001-1V4a1 1 0 00-1-1H5a1 1 0 00-1 1v16a1 1 0 001 1z"/></svg>
-                                    Aspek Penilaian (KPI)
-                                </h2>
-                                @include('pages.evaluasivendor.partials.score-guide-button')
+                <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a1 1 0 001-1V4a1 1 0 00-1-1H5a1 1 0 00-1 1v16a1 1 0 001 1z"/></svg></span>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Aspek Penilaian (KPI)</h2>
+                                    @include('pages.evaluasivendor.partials.score-guide-button')
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p>
                             </div>
-                            <p class="mt-1 text-xs text-gray-500">Skor 1–5 dikonversi ke nilai 40, 60, 80, 100, 120. Nilai terbobot = nilai × bobot / 100.</p>
                         </div>
                         <span id="kpi-progress" class="hidden rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600"></span>
                     </div>
@@ -96,44 +93,50 @@
                         <label class="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"><span>Catatan Evaluasi</span><textarea name="vendor_perfomance_note" rows="3" maxlength="10000" placeholder="Tulis catatan umum hasil evaluasi…" class="kpi-text" style="min-height:5.5rem;text-transform:none;letter-spacing:normal;font-weight:400">{{ old('vendor_perfomance_note', $evaluation->vendor_perfomance_note) }}</textarea></label>
                         <label class="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"><span>Komentar / Rekomendasi</span><textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" placeholder="Tulis komentar atau rekomendasi untuk vendor…" class="kpi-text" style="min-height:5.5rem;text-transform:none;letter-spacing:normal;font-weight:400">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
                     </div>
-                    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-indigo-100 bg-linear-to-r from-indigo-50 to-white px-5 py-4 text-indigo-900 dark:border-gray-700 dark:from-indigo-500/10 dark:to-transparent dark:text-indigo-200">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-blue-100 bg-blue-50 px-6 py-4 text-blue-900 dark:border-gray-700 dark:bg-blue-500/10 dark:text-blue-200">
                         <span class="text-sm font-semibold uppercase tracking-wide">Total Nilai KPI</span>
                         <div class="flex items-center gap-3"><span id="score-total" class="text-3xl font-bold leading-none">{{ $evaluation->template_vpe_aspect_grandtotal_score ?? '0.00' }}</span><span id="score-result" class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-200 empty:hidden dark:bg-gray-800 dark:text-indigo-300 dark:ring-indigo-500/40">{{ $evaluation->template_vpe_aspect_result }}</span></div>
                     </div>
-                    @if($editable)
-                        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-white px-5 py-4 dark:border-gray-700 dark:bg-gray-900">
-                            <p class="text-xs text-gray-500">Pastikan semua subaspek sudah dinilai sebelum submit.</p>
-                            <button id="save-evaluation" type="submit" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
+                        <a href="{{ route('evaluasivendor') }}" class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 mr-auto">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                            <span>Back</span>
+                        </a>
+                        @if($editable)
+                            <div class="flex flex-wrap items-center justify-end gap-3">
+                                <p class="text-xs text-gray-500">Pastikan semua subaspek sudah dinilai sebelum submit.</p>
+                                <button id="save-evaluation" type="submit" class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m-6 6l6-6 6 6"/></svg>
                                 {{ !$creating && $evaluation->status === 'D' ? 'Submit Ulang Approval' : 'Submit Approval' }}
                             </button>
-                        </div>
-                    @endif
+                            </div>
+                        @endif
+                    </div>
                 </section>
             </fieldset>
         </form>
         @if($evaluation->exists && $evaluation->status === 'P')
-            <form method="POST" action="{{ route('evaluasivendor.status', $evaluation->id) }}" class="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900">
+            <form method="POST" action="{{ route('evaluasivendor.status', $evaluation->id) }}" class="space-y-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 p-6">
                 @csrf
-                <h2 class="font-bold">Proses Penilaian</h2>
-                <label class="block text-sm">Komentar Proses (wajib untuk Rejected / Revised)<textarea name="comment" maxlength="10000" rows="2" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-800">{{ old('comment') }}</textarea></label>
+                <h2 class="-mx-6 -mt-6 border-b border-gray-100 px-6 py-4 text-base font-bold text-gray-800 dark:border-gray-700 dark:text-white">Proses Penilaian</h2>
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Komentar Proses (wajib untuk Rejected / Revised)<textarea name="comment" maxlength="10000" rows="2" class="mt-1.5 w-full rounded-lg border-gray-300 text-sm font-normal normal-case tracking-normal text-gray-800 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">{{ old('comment') }}</textarea></label>
                 <p class="text-xs text-gray-500">Simpan perubahan skor terlebih dahulu. Completed dan Rejected akan mengunci penilaian.</p>
                 <div class="flex flex-wrap justify-end gap-2">
-                    <button name="status" value="R" class="rounded border border-red-300 px-4 py-2 text-sm text-red-600">Rejected</button>
-                    <button name="status" value="D" class="rounded border border-orange-300 px-4 py-2 text-sm text-orange-600">Revised</button>
-                    <button name="status" value="C" class="rounded bg-green-600 px-4 py-2 text-sm text-white">Completed</button>
+                    <button name="status" value="R" class="rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">Rejected</button>
+                    <button name="status" value="D" class="rounded-lg border border-orange-200 bg-orange-50 px-5 py-2.5 text-sm font-medium text-orange-700 transition hover:bg-orange-500 hover:text-white dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">Revised</button>
+                    <button name="status" value="C" class="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700">Completed</button>
                 </div>
             </form>
         @endif
     </div>
     @include('pages.evaluasivendor.partials.score-guide')
-    <dialog id="kpi-attachment-dialog" aria-labelledby="kpi-attachment-title" class="w-full max-w-xl rounded-xl border-0 p-0 shadow-xl backdrop:bg-black/50">
-        <div class="space-y-4 p-5">
-            <div class="flex items-start justify-between gap-3"><div><h2 id="kpi-attachment-title" class="text-lg font-bold">Attachment KPI</h2><p id="kpi-attachment-aspect" class="mt-1 text-sm text-gray-500"></p></div><button type="button" id="kpi-attachment-close" aria-label="Tutup" class="text-xl text-gray-500">&times;</button></div>
+    <dialog id="kpi-attachment-dialog" aria-labelledby="kpi-attachment-title" class="w-full max-w-xl rounded-2xl border-0 bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm dark:bg-gray-800 dark:text-gray-100">
+        <div class="space-y-4 p-6">
+            <div class="-mx-6 -mt-6 flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700"><div><h2 id="kpi-attachment-title" class="text-base font-bold">Attachment KPI</h2><p id="kpi-attachment-aspect" class="text-xs text-gray-500"></p></div><button type="button" id="kpi-attachment-close" aria-label="Tutup" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button></div>
             <div><span class="block text-sm font-medium">Pilih file</span><label class="kpi-file-picker" for="kpi-attachment-files"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg> Pilih file<input id="kpi-attachment-files" type="file" multiple></label></div>
             <p class="text-xs text-gray-500">Maksimal 10 file baru per detail, masing-masing 10 MB. File disimpan saat submit.</p>
             <ul id="kpi-attachment-list" class="max-h-64 space-y-2 overflow-y-auto text-sm"></ul>
-            <div class="flex justify-end"><button type="button" id="kpi-attachment-done" class="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Selesai</button></div>
+            <div class="-mx-6 -mb-6 flex justify-end border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]"><button type="button" id="kpi-attachment-done" class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">Selesai</button></div>
         </div>
     </dialog>
     <style>
@@ -184,18 +187,7 @@
         .kpi-clip{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border:1px solid #b6e1ff;border-radius:.5rem;background:#e3f3ff;color:#1c71ae;font-size:.75rem;font-weight:600;transition:background .15s}
         .kpi-clip:hover{background:#d1ecff}
         html.dark .kpi-clip{background:rgb(86 177 243/.15);border-color:rgb(86 177 243/.4);color:#b6e1ff}
-        .select2-filter .select2-selection--single{height:2.5rem!important;border-radius:.5rem;border-color:#d1d5db;background:#fff;box-shadow:0 1px 2px rgb(0 0 0/.04)}
-        .select2-filter .select2-selection--single:hover{border-color:#9ca3af}
-        .select2-filter .select2-selection__rendered{text-transform:none!important;font-weight:400!important;letter-spacing:normal!important;color:#1f2937;font-size:.875rem!important;line-height:2.4rem!important;padding-left:.75rem;padding-right:2rem}
-        .select2-filter .select2-selection__arrow{height:2.4rem!important;right:.5rem!important}
-        .select2-filter.select2-container--focus .select2-selection--single,.select2-filter.select2-container--open .select2-selection--single{border-color:#56b1f3;box-shadow:0 0 0 2px rgb(86 177 243/.3)}
-        .select2-dropdown.select2-filter{border-color:#d1d5db;border-radius:.5rem;box-shadow:0 8px 24px rgb(0 0 0/.12);overflow:hidden;font-size:.875rem}
-        .select2-dropdown.select2-filter .select2-results__option{padding:.5rem .75rem;text-transform:none;letter-spacing:normal;font-weight:400}
-        .select2-dropdown.select2-filter .select2-results__option--highlighted[aria-selected]{background:#3193da;color:#fff}
-        .select2-dropdown.select2-filter .select2-results__option[aria-selected=true]{background:#e3f3ff;color:#1c71ae;font-weight:600}
-        html.dark .select2-filter .select2-selection--single{background:#1f2937;border-color:#4b5563}
-        html.dark .select2-filter .select2-selection__rendered{color:#e5e7eb}
-        html.dark .select2-dropdown.select2-filter{background:#1f2937;border-color:#4b5563;color:#e5e7eb}
+        .sf-field .select2-container{text-transform:none;letter-spacing:normal;font-weight:400}
         #kpi-attachment-dialog { position: fixed; inset: 0; margin: auto; width: min(36rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
         .kpi-file-picker { position: relative; display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 9px 14px; border: 1px solid #3193da; border-radius: 8px; background: #e3f3ff; color: #1c71ae; font-size: 13px; font-weight: 600; cursor: pointer; }
         .kpi-file-picker:hover { background: #d1ecff; }
@@ -444,7 +436,7 @@
                 }
             }
             const select = document.getElementById('template-select');
-            $(select).select2({containerCssClass: 'select2-filter', dropdownCssClass: 'select2-filter', width: '100%', placeholder: 'Pilih jenis pekerjaan', disabled: !editable})
+            $(select).select2({dropdownCssClass: 'sf-s2-dropdown', width: '100%', placeholder: 'Pilih jenis pekerjaan', disabled: !editable})
                 .on('select2:select select2:clear', () => select.dispatchEvent(new Event('change')));
             const originalTemplate = @json($evaluation->template_vpe_id);
             requiredMessage(select, 'Jenis Pekerjaan wajib dipilih.');

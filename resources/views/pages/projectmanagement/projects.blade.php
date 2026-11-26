@@ -8,6 +8,7 @@
             'guessProjectId' => $guessProjectId ?? null,
             'openProjectBoardId' => $openProjectBoardId ?? null,
             'openTaskEid' => $openTaskEid ?? null,
+            'openChatTaskId' => $openChatTaskId ?? null,
         ];
     @endphp
     <div id="pmPortfolioRoot" class="mx-auto flex h-[calc(100dvh-72px)] w-full max-w-9xl gap-4 p-2" x-data='pmPortfolio(@json($pmPortfolioOpts))'>
@@ -207,20 +208,40 @@
                 <div id="calendarPanel" class="hidden h-full"></div>
                 <div id="spreadsheetPanel" class="hidden"></div>
 
-                {{-- MESSAGE — one thread per Team ('TEAM') / Project ('PRJ',
-                     same thread as the Project Detail modal's Chat tab).
+                {{-- MESSAGE — chat list on the left (the Team / Project thread,
+                     then one per Task), the open conversation on the right.
+                     The 'PRJ' thread is the same as the Project Detail modal's
+                     Chat tab; a Task's is the same as its detail popup's.
+                     Narrow screens show one of the two at a time.
                      Driven by openBoardChat() below. --}}
                 <div id="messagePanel" class="hidden h-full">
-                    <div class="relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.06] dark:bg-gray-900">
+                    <div class="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.06] dark:bg-gray-900">
+                    <aside id="boardThreadPane" class="flex w-full shrink-0 flex-col border-gray-100 dark:border-white/[0.06] md:flex md:w-80 md:border-r">
+                        <div class="shrink-0 border-b border-gray-100 p-3 dark:border-white/[0.06]">
+                            <div class="flex items-center gap-2 rounded-full bg-gray-50 px-3 dark:bg-white/[0.04]">
+                                <i class="fas fa-magnifying-glass text-xs text-gray-400"></i>
+                                <input type="search" id="boardThreadSearch" autocomplete="off" placeholder="Search tasks…"
+                                    class="w-full border-none bg-transparent py-2 text-sm text-gray-800 focus:outline-none focus:ring-0 dark:text-white">
+                            </div>
+                        </div>
+                        <div id="boardThreadList" class="custom-scrollbar flex-1 overflow-y-auto"></div>
+                    </aside>
+                    <div id="boardChatPane" class="relative hidden min-w-0 flex-1 flex-col md:flex">
                         <div class="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-white/[0.06]">
+                            <button type="button" id="boardChatBackBtn" title="Back to chats" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 md:hidden">
+                                <i class="fas fa-arrow-left text-xs"></i>
+                            </button>
                             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                                <i class="fas fa-comments text-sm"></i>
+                                <i id="boardChatIcon" class="fas fa-comments text-sm"></i>
                             </span>
                             <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100" x-text="headerTitle"></p>
-                                <p class="text-xs text-gray-400" x-text="teamId ? 'Everyone in this Team can read and reply here' : 'Everyone on this Project can read and reply here'"></p>
+                                <p id="boardChatTitle" class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
+                                <p id="boardChatSubtitle" class="truncate text-xs text-gray-400"></p>
                             </div>
-                            <div id="boardChatPeople" class="flex shrink-0 items-center"></div>
+                            <button type="button" id="boardChatOpenTaskBtn" class="hidden h-8 shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-medium text-gray-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-white/10 dark:text-gray-300 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-300">
+                                <i class="fas fa-up-right-from-square text-[11px]"></i><span class="hidden sm:inline">Open task</span>
+                            </button>
+                            <div id="boardChatPeople" class="hidden shrink-0 items-center sm:flex"></div>
                         </div>
 
                         <div id="boardChatList" class="custom-scrollbar flex-1 overflow-y-auto px-4 py-4"></div>
@@ -233,10 +254,10 @@
                         <div id="boardChatStagedFiles" class="hidden shrink-0 flex-wrap gap-1.5 px-4 pt-2"></div>
 
                         <div class="flex shrink-0 items-end gap-2.5 border-t border-gray-100 px-4 py-3 dark:border-white/[0.06]">
-                            <div class="flex flex-1 items-end gap-1 rounded-2xl border border-gray-200 bg-gray-50 pl-4 pr-1.5 dark:border-white/10 dark:bg-white/[0.04]">
+                            <div class="flex min-w-0 flex-1 items-end gap-1 rounded-2xl border border-gray-200 bg-gray-50 pl-4 pr-1.5 dark:border-white/10 dark:bg-white/[0.04]">
                                 <textarea id="boardChatInput" rows="1" maxlength="500"
                                     placeholder="Message everyone… use @ to mention, paste a link or a file. Shift+Enter for a new line"
-                                    class="max-h-32 flex-1 resize-none border-none bg-transparent py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-0 dark:text-white"></textarea>
+                                    class="max-h-32 min-w-0 flex-1 resize-none border-none bg-transparent py-2.5 text-sm text-gray-800 placeholder:truncate focus:outline-none focus:ring-0 dark:text-white"></textarea>
                                 <button type="button" id="boardChatMentionBtn" title="Mention someone" class="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400">@</button>
                                 <button type="button" id="boardChatAttachBtn" title="Attach files (max 5MB each)" class="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white hover:text-indigo-600 dark:hover:bg-white/10 dark:hover:text-indigo-400"><i class="fas fa-paperclip text-xs"></i></button>
                                 <input type="file" id="boardChatFileInput" multiple class="hidden">
@@ -244,6 +265,7 @@
                             <button type="button" id="boardChatSendBtn" title="Send"
                                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-wait disabled:opacity-60"><i class="fas fa-paper-plane text-xs"></i></button>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -722,10 +744,14 @@
                 <div x-show="kind !== 'subtask'" class="flex shrink-0 items-center gap-1 border-b border-gray-100 px-5 pt-2 dark:border-white/[0.06]">
                     <button @click="tab = 'overview'" :class="tab === 'overview' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Overview</button>
                     <button @click="tab = 'tasks'; renderTaskTab()" :class="tab === 'tasks' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Sub Task</button>
-                    <button @click="tab = 'chat'" :class="tab === 'chat' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Chat</button>
-                    <button @click="tab = 'attachments'" :class="tab === 'attachments' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">File</button>
+                    <button x-show="canChat" @click="tab = 'chat'" :class="tab === 'chat' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Chat</button>
+                    <button x-show="canChat" @click="tab = 'attachments'" :class="tab === 'attachments' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">File</button>
                     <button x-show="kind === 'task'" @click="tab = 'activity'; loadTaskActivity()" :class="tab === 'activity' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'" class="rounded-t-lg px-4 py-2 text-sm font-medium">Activity List</button>
                 </div>
+
+                <p x-show="kind === 'task' && !canChat" x-cloak class="shrink-0 px-6 pt-3 text-xs text-gray-400">
+                    <i class="fas fa-user-lock mr-1 text-[10px]"></i> Chat and files are only for the people assigned to this task, its creator and project admins.
+                </p>
 
                 {{-- For kind 'subtask' the two panels below render together
                      (see their own x-show: "kind === 'subtask' || tab === …")
@@ -820,13 +846,14 @@
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-user-group text-[10px] text-gray-300 dark:text-gray-500"></i> Assigned</label>
                             {{-- No name attr — #taskForm's submit splits TEAM:/USER: values into assignees[]/team_ids[] (splitTaskPicValues()). --}}
                             <select id="task_assignees" class="select2 w-full" multiple data-placeholder="Assign team(s) and/or person(s) in charge"></select>
+                            <p id="taskAssigneesNote" class="mt-1.5 hidden text-xs text-gray-400"><i class="fas fa-user-lock mr-1 text-[10px]"></i> Only the people assigned to this task, its creator and project admins can change this.</p>
                         </div>
                         <div>
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-tag text-[10px] text-gray-300 dark:text-gray-500"></i> Tags</label>
                             {{-- No name attr — #taskForm's submit sends tags[] itself (plus tags_submitted, so clearing every tag is saved). --}}
                             <select id="task_tags" class="select2-tags w-full" multiple data-placeholder="Pick or type a tag"></select>
                         </div>
-                        <div>
+                        <div id="taskAttachmentField">
                             <label class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400"><i class="fas fa-paperclip text-[10px] text-gray-300 dark:text-gray-500"></i> Attachment</label>
                             <label for="task_attachments" class="group flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-4 py-6 text-center transition hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/[0.06]">
                                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-500 shadow-sm ring-1 ring-gray-100 transition group-hover:scale-105 group-hover:text-indigo-600 dark:bg-white/10 dark:text-indigo-300 dark:ring-white/10">
@@ -1251,6 +1278,7 @@
                 // — the specific Task/Subtask to open once that Team's board
                 // finishes loading (see loadTeamTaskBoard()). Cleared after use.
                 pendingOpenTaskEid: opts.openTaskEid || null,
+                pendingOpenChatTaskId: opts.openChatTaskId || null,
                 teams: [],
                 statuses: [],
                 availableStatuses: [],
@@ -1588,6 +1616,12 @@
                         currentTaskStatuses = res.statuses;
                         this.renderTab();
 
+                        if (this.pendingOpenChatTaskId) {
+                            selectBoardThread('TSK', this.pendingOpenChatTaskId);
+                            showBoardChatPane();
+                            this.pendingOpenChatTaskId = null;
+                        }
+
                         // A /project-task/{eid} deep link — same as the
                         // Team board's handling in loadTeamTaskBoard().
                         if (this.pendingOpenTaskEid) {
@@ -1633,9 +1667,15 @@
                     if (this.tab === 'message' && !scoped) this.tab = 'kanban';
                     if (this.tab === 'message') {
                         $('#messagePanel').removeClass('hidden');
-                        openBoardChat(this.teamId ? 'TEAM' : 'PRJ', this.teamId || this.projectId);
+                        openBoardChat(this.teamId ? 'TEAM' : 'PRJ', this.teamId || this.projectId, this.headerTitle);
                     } else {
                         closeBoardChat();
+                        // Task messages sent from the Message tab change the
+                        // cards' comment counts — reload the board once.
+                        if (boardThreads.cardsStale) {
+                            boardThreads.cardsStale = false;
+                            this.loadMainPanel();
+                        }
                     }
                     if (this.tab === 'kanban') {
                         $('#kanbanPanel').removeClass('hidden');
@@ -3349,6 +3389,8 @@
                 // Projects sections apply). 'task': showing a Task/Team-Task
                 // (openTaskEntityDetail() below) — those sections hide.
                 kind: 'project',
+                // False on a Task whose chat and files the viewer isn't part of.
+                canChat: true,
                 // 'list' drives the Sub Task tab's default flat checklist (see
                 // renderTaskList()); renderKanban()/renderGantt() below are kept
                 // working but currently unreachable from the UI — set taskView
@@ -3365,6 +3407,7 @@
                     loadTagOptions($('#task_tags'));
                     if (this.kind !== 'project') pendingSubtaskParentId = currentDetailTaskId;
                     $('#taskModalTitle').text('New ' + setTaskModalNoun(this.kind !== 'project'));
+                    $('#taskAttachmentField').toggleClass('hidden', !entityCanChat);
                     $('#taskModal').removeClass('hidden');
                 },
 
@@ -4339,9 +4382,11 @@
         let addPeoplePicked = new Set();
 
         function renderAddPeoplePicker(task, eligible) {
-            $('#detailAddPeopleWrap').toggleClass('hidden', !task);
+            // Assigning opens the task's chat, so only its audience may (can_chat).
+            const canAssign = !!task && task.can_chat !== false;
+            $('#detailAddPeopleWrap').toggleClass('hidden', !canAssign);
             $('#detailAddPeopleMenu').addClass('hidden');
-            if (!task) return;
+            if (!canAssign) return;
 
             const onTask = new Set((task.assignees || []).map(u => (u || '').trim().toLowerCase()));
             addPeoplePool = (eligible || []).filter(u => !onTask.has((u.username || '').trim().toLowerCase()));
@@ -4605,6 +4650,7 @@
             // Overview + Sub Task make sense that deep.
             root.kind = taskDetailStack.length > 0 ? 'subtask' : 'task';
             root.tab = 'overview';
+            root.canChat = entityCanChat = task.can_chat !== false;
             // Sub Task panel used to only refresh when its tab was clicked
             // (@click="tab='tasks'; renderTaskTab()"); now that 'subtask'
             // kind shows it unconditionally (side-by-side with Overview),
@@ -4621,7 +4667,7 @@
             $('#detailProjectCancelledBadge').toggleClass('hidden', task.status !== 'C');
             renderTaskLockState(task);
             renderTaskCover(task);
-            $('#detailMoveBtn').removeClass('hidden').addClass('inline-flex');
+            $('#detailMoveBtn').toggleClass('hidden', !entityCanChat).toggleClass('inline-flex', entityCanChat);
 
             // Cancelled children are excluded from the completion math
             // entirely (not counted as done, not counted toward the total)
@@ -4811,7 +4857,8 @@
         function resetTaskForm() {
             $('#taskForm')[0].reset();
             $('#task_id').val('');
-            $('#task_assignees').val(null).trigger('change');
+            $('#task_assignees').prop('disabled', false).val(null).trigger('change');
+            $('#taskAssigneesNote').addClass('hidden');
             $('#task_tags').empty().trigger('change');
             $('#deleteTaskBtn, #toggleCancelTaskBtn').addClass('hidden');
             $('#taskModalTitle').text('New Subtask');
@@ -4842,6 +4889,9 @@
             const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
             fillTaskPicSelect($('#task_assignees'), currentTaskDoctype, eligible, root.projectTeams || [],
                 task.assignees || [], (task.teams || []).map(t => t.team_id));
+            const picsLocked = task.can_chat === false;
+            $('#task_assignees').prop('disabled', picsLocked);
+            $('#taskAssigneesNote').toggleClass('hidden', !picsLocked);
             loadTagOptions($('#task_tags'), (task.tags || []).map(t => t.tag_name));
 
             $('#deleteTaskBtn').removeClass('hidden');
@@ -4855,6 +4905,7 @@
                     .html(`<i class="fas ${cancelled ? 'fa-rotate-left' : 'fa-ban'} text-xs"></i> ${cancelled ? 'Restore Task' : 'Cancel Task'}`);
             }
             $('#taskModalTitle').text('Edit ' + setTaskModalNoun(!!task.parent_task_id) + ' — ' + task.task_name);
+            $('#taskAttachmentField').toggleClass('hidden', !entityCanChat);
             $('#taskModal').removeClass('hidden');
         }
 
@@ -4966,6 +5017,7 @@
                 const root = Alpine.$data(document.getElementById('pmProjectShowRoot'));
                 root.kind = 'project';
                 root.tab = 'overview';
+                root.canChat = entityCanChat = true;
                 root.eligibleUsers = data.eligible_users || [];
                 root.projectTeams = data.teams || [];
 
@@ -4996,6 +5048,7 @@
             PM_ENTITY_ID = null;
             currentDetailTaskId = null;
             taskDetailStack = [];
+            entityCanChat = true;
 
             if (!wasProject && !wasTeamTask) return;
             const url = '{{ route('projects.index') }}';
@@ -5237,9 +5290,12 @@
         // the file's current (renamed) name, or "removed" once deleted.
         let entityAttachmentsById = {};
         let entityCommentsCache = [];
+        // False while the open Task's chat and files are closed to the viewer.
+        let entityCanChat = true;
         const currentEntityKey = () => `${PM_ENTITY_DOCTYPE}/${PM_ENTITY_ID}`;
 
         function refreshEntityAttachments() {
+            if (!entityCanChat) { entityAttachmentsById = {}; $('#projectAttachmentList').empty(); return; }
             const key = currentEntityKey();
             const listUrl = `{{ url('attachments') }}/${key}`;
             $.get(listUrl).done(res => {
@@ -5259,6 +5315,7 @@
 
         let lastCommentsEntityKey = null;
         function loadEntityComments() {
+            if (!entityCanChat) { lastCommentsEntityKey = null; entityCommentsCache = []; $('#projectCommentList').empty(); return; }
             const key = currentEntityKey();
             if (key !== lastCommentsEntityKey) {
                 // Switched to a different Project/Task — drop anything staged for the old one.
@@ -5358,39 +5415,215 @@
             });
         }
 
-        // ── Team / Project "Message" tab (board-wide chat) ─────────────
-        // One thread per scope: doctype 'TEAM' (refnbr = team_id) or 'PRJ'
-        // (refnbr = project_id — the same thread as the Project Detail
-        // modal's Chat tab). Same /comments + /attachments endpoints as a
-        // Task's chat, so @mentions, links and shared files all work the
-        // same; bell notifications come from DocumentNotificationService.
-        // Polled every 10s while the tab is showing.
+        // ── Team / Project "Message" tab ───────────────────────────────
+        // A chat list (left) and the open conversation (right). The board's
+        // own thread is doctype 'TEAM' (refnbr = team_id) or 'PRJ' (refnbr =
+        // project_id — the same thread as the Project Detail modal's Chat
+        // tab); the others are its Tasks' chats ('TTK' / 'TSK', the same ones
+        // their detail popup shows). All use the same /comments +
+        // /attachments endpoints, so @mentions, links and shared files work
+        // alike; bell notifications come from DocumentNotificationService.
+        // Both sides are polled every 10s while the tab is showing.
+        const boardThreads = {
+            scopeDoctype: null, scopeId: null, title: '',
+            general: null, tasks: [], loaded: false, html: '',
+            drafts: {},          // thread key => unsent text + files
+            cardsStale: false,
+        };
+        // The open conversation.
         const boardChat = { doctype: null, id: null, messages: [], attachmentsById: {}, checkedFileIds: new Set(), staged: [], timer: null, sig: '' };
         const boardChatKey = () => boardChat.id ? `${boardChat.doctype}/${boardChat.id}` : null;
+        const isTaskThread = () => !!boardChat.id && boardChat.doctype !== boardThreads.scopeDoctype;
+        const boardTaskDoctype = () => boardThreads.scopeDoctype === 'TEAM' ? 'TTK' : 'TSK';
+        const boardTasksApi = () => boardThreads.scopeDoctype === 'TEAM'
+            ? `{{ url('all-team') }}/${boardThreads.scopeId}/tasks`
+            : `{{ url('projects') }}/${boardThreads.scopeId}/tasks`;
 
         function boardChatMentionUrl() {
             if (!boardChat.id) return null;
+            if (isTaskThread()) return `${boardTasksApi()}/${boardChat.id}/mentionable-users`;
             return boardChat.doctype === 'TEAM'
                 ? `{{ url('all-team') }}/${boardChat.id}/tasks/mentionable-users`
                 : `{{ url('projects') }}/${boardChat.id}/mentionable-users`;
         }
 
-        function openBoardChat(doctype, id) {
-            if (boardChat.doctype !== doctype || boardChat.id !== id) {
-                Object.assign(boardChat, { doctype, id, messages: [], attachmentsById: {}, checkedFileIds: new Set(), staged: [], sig: '' });
-                $('#boardChatInput').val('');
-                autosizeBoardChatInput();
-                renderBoardChatStaged();
-                $('#boardChatPeople').empty();
-                $('#boardChatList').html('<p class="py-10 text-center text-sm italic text-gray-400">Loading messages…</p>');
-                loadBoardChatPeople();
+        // Called on every render of the tab; the open conversation is kept
+        // unless the board itself changed.
+        function openBoardChat(scopeDoctype, scopeId, title) {
+            const newScope = boardThreads.scopeDoctype !== scopeDoctype || boardThreads.scopeId !== scopeId;
+            boardThreads.title = title;
+
+            if (newScope) {
+                Object.assign(boardThreads, { scopeDoctype, scopeId, general: null, tasks: [], loaded: false, html: '' });
+                $('#boardThreadSearch').val('');
+                showBoardThreadPane();
+                selectBoardThread(scopeDoctype, scopeId);
+            } else {
+                renderBoardChatHeader();
+                loadBoardChat(true);
             }
-            loadBoardChat(true);
+            renderBoardThreads();
+            loadBoardThreads();
 
             clearInterval(boardChat.timer);
             boardChat.timer = setInterval(() => {
-                if (document.visibilityState === 'visible') loadBoardChat(false);
+                if (document.visibilityState !== 'visible') return;
+                loadBoardChat(false);
+                loadBoardThreads();
             }, 10000);
+        }
+
+        function selectBoardThread(doctype, id) {
+            if (boardChat.doctype !== doctype || boardChat.id !== id) {
+                // Whatever is typed or attached stays with its own chat.
+                if (boardChatKey()) {
+                    boardThreads.drafts[boardChatKey()] = { text: $('#boardChatInput').val(), staged: boardChat.staged };
+                }
+                const draft = boardThreads.drafts[`${doctype}/${id}`] || { text: '', staged: [] };
+
+                Object.assign(boardChat, { doctype, id, messages: [], attachmentsById: {}, checkedFileIds: new Set(), staged: draft.staged, sig: '' });
+                $('#boardChatInput').val(draft.text);
+                autosizeBoardChatInput();
+                renderBoardChatStaged();
+                $('#boardChatPeople').empty();
+                $('#boardChatNewPill').addClass('hidden').removeClass('inline-flex');
+                $('#boardChatList').data('count', 0).html('<p class="py-10 text-center text-sm italic text-gray-400">Loading messages…</p>');
+                loadBoardChatPeople();
+            }
+            renderBoardChatHeader();
+            renderBoardThreads();
+            loadBoardChat(true);
+        }
+
+        function renderBoardChatHeader() {
+            const task = isTaskThread() ? boardThreads.tasks.find(t => t.task_id === boardChat.id) : null;
+            const isTeam = boardThreads.scopeDoctype === 'TEAM';
+
+            let title = boardThreads.title;
+            let subtitle = isTeam ? 'Everyone in this Team can read and reply here' : 'Everyone on this Project can read and reply here';
+            if (task) {
+                title = task.task_name;
+                subtitle = task.parent_name ? `Subtask of ${task.parent_name}` : 'Task chat';
+                if (task.locked) subtitle += ' · Private, assignees and project admins only';
+                else if (task.restricted) subtitle += ' · Assignees, creator and project admins only';
+            }
+
+            $('#boardChatTitle').text(title);
+            $('#boardChatSubtitle').text(subtitle);
+            $('#boardChatIcon').attr('class', `fas ${task ? 'fa-list-check' : 'fa-comments'} text-sm`);
+            const openable = !!task && task.can_open !== false;
+            $('#boardChatOpenTaskBtn').toggleClass('hidden', !openable).toggleClass('inline-flex', openable);
+        }
+
+        function loadBoardThreads() {
+            const { scopeDoctype, scopeId } = boardThreads;
+            if (!scopeId) return;
+            const stale = () => boardThreads.scopeDoctype !== scopeDoctype || boardThreads.scopeId !== scopeId;
+
+            $.get(`${boardTasksApi()}/chat-threads`).done(res => {
+                if (stale()) return;
+                Object.assign(boardThreads, { general: res.general, tasks: res.tasks || [], loaded: true });
+
+                // The open task was archived, moved or locked meanwhile.
+                if (isTaskThread() && !boardThreads.tasks.some(t => t.task_id === boardChat.id)) {
+                    selectBoardThread(scopeDoctype, scopeId);
+                    showBoardThreadPane();
+                    return;
+                }
+                renderBoardChatHeader();
+                renderBoardThreads();
+            }).fail(() => {
+                if (stale() || boardThreads.loaded) return;
+                $('#boardThreadList').append('<p class="px-4 py-3 text-center text-xs text-red-500">Could not load task chats.</p>');
+                boardThreads.html = '';
+            });
+        }
+
+        function boardThreadTime(date) {
+            const at = dayjs(date);
+            if (at.isSame(dayjs(), 'day')) return at.format('HH:mm');
+            if (at.isSame(dayjs().subtract(1, 'day'), 'day')) return 'Yesterday';
+            return at.format(at.year() === dayjs().year() ? 'DD MMM' : 'DD/MM/YY');
+        }
+
+        function boardThreadRowHtml({ doctype, id, title, avatar, last, parent, locked }) {
+            const esc = s => $('<div>').text(s ?? '').html();
+            const me = (PM_CURRENT_USER.username || '').trim().toLowerCase();
+            const active = boardChat.doctype === doctype && boardChat.id === id;
+            const preview = last
+                ? `${esc((last.username || '').trim().toLowerCase() === me ? 'You' : String(last.name || '').split(' ')[0])}: ${esc(last.text)}`
+                : '<span class="italic">No messages yet</span>';
+
+            return `
+                <button type="button" data-doctype="${doctype}" data-id="${esc(id)}"
+                    class="board-thread flex w-full items-center gap-3 border-b border-gray-50 px-3 py-2.5 text-left transition dark:border-white/[0.04] ${active ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'hover:bg-gray-50 dark:hover:bg-white/[0.04]'}">
+                    ${avatar}
+                    <span class="min-w-0 flex-1">
+                        <span class="flex items-center gap-2">
+                            <span class="min-w-0 flex-1 truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${esc(title)}</span>
+                            ${locked ? '<i class="fas fa-lock shrink-0 text-[10px] text-amber-500"></i>' : ''}
+                            <span class="shrink-0 text-[11px] text-gray-400">${last ? boardThreadTime(last.date) : ''}</span>
+                        </span>
+                        ${parent ? `<span class="block truncate text-[11px] text-gray-400">↳ ${esc(parent)}</span>` : ''}
+                        <span class="block truncate text-xs text-gray-500 dark:text-gray-400">${preview}</span>
+                    </span>
+                </button>`;
+        }
+
+        // The board thread, then every Task the user can open: those with
+        // messages first (newest on top), then the quiet ones.
+        function renderBoardThreads() {
+            if (!boardThreads.scopeId) return;
+            const q = ($('#boardThreadSearch').val() || '').trim().toLowerCase();
+            const matches = (...texts) => !q || texts.some(t => (t || '').toLowerCase().includes(q));
+            const label = text => `<p class="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">${text}</p>`;
+            const hint = text => `<p class="px-4 py-4 text-center text-xs text-gray-400">${text}</p>`;
+            let html = '';
+
+            if (matches(boardThreads.title, 'general')) {
+                html += boardThreadRowHtml({
+                    doctype: boardThreads.scopeDoctype, id: boardThreads.scopeId, title: boardThreads.title, last: boardThreads.general,
+                    avatar: '<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white"><i class="fas fa-comments text-sm"></i></span>',
+                });
+            }
+
+            const rows = boardThreads.tasks.filter(t => matches(t.task_name, t.parent_name));
+
+            if (rows.length) {
+                html += label('Tasks') + rows.map(t => boardThreadRowHtml({
+                    doctype: boardTaskDoctype(), id: t.task_id, title: t.task_name, last: t.last,
+                    parent: t.parent_name, locked: t.locked,
+                    // Brackets and dashes don't make initials: "(SFT) Lift" → "SL".
+                    avatar: initialsAvatar(t.task_name.replace(/[^\p{L}\p{N}\s]/gu, ' '), 40),
+                })).join('');
+            }
+
+            if (!boardThreads.loaded) html += hint('Loading task chats…');
+            else if (q && !rows.length) html += hint('No task matches your search.');
+            else if (!rows.length) html += hint('No tasks on this board yet.');
+
+            // Skip the DOM work (and the scroll jump) when a poll changed nothing.
+            if (html === boardThreads.html) return;
+            boardThreads.html = html;
+            $('#boardThreadList').html(html);
+        }
+
+        // Narrow screens show the list or the conversation, not both.
+        function showBoardThreadPane() {
+            $('#boardThreadPane').removeClass('hidden');
+            $('#boardChatPane').addClass('hidden').removeClass('flex');
+        }
+
+        function showBoardChatPane() {
+            $('#boardThreadPane').addClass('hidden');
+            $('#boardChatPane').removeClass('hidden').addClass('flex');
+        }
+
+        function openBoardChatTask() {
+            const task = findTaskInTree(boardChat.id, currentTasksCache);
+            if (!task) { toastr.warning('This task is no longer on the board.'); return; }
+            taskDetailStack = findAncestorTaskIds(task.eid, currentTasksCache) || [];
+            openTaskEntityDetail(task);
         }
 
         function closeBoardChat() {
@@ -5567,6 +5800,9 @@
                 if (!val && !attachmentIds.length) { $btn.prop('disabled', false); return; }
                 $.post(`/comments/${doctype}/${id}`, { comment: val, attachment_ids: attachmentIds, _token: '{{ csrf_token() }}' })
                     .done(() => {
+                        delete boardThreads.drafts[key];
+                        if (doctype === 'TSK' || doctype === 'TTK') boardThreads.cardsStale = true;
+                        loadBoardThreads(); // moves this chat to the top
                         if (key !== boardChatKey()) return;
                         $('#boardChatInput').val('');
                         autosizeBoardChatInput();
@@ -5600,6 +5836,14 @@
             $(document).on('input', '#boardChatInput', autosizeBoardChatInput);
 
             $('#boardChatSendBtn').on('click', sendBoardChat);
+
+            $('#boardThreadList').on('click', '.board-thread', function () {
+                selectBoardThread($(this).attr('data-doctype'), $(this).attr('data-id'));
+                showBoardChatPane();
+            });
+            $('#boardThreadSearch').on('input', renderBoardThreads);
+            $('#boardChatBackBtn').on('click', showBoardThreadPane);
+            $('#boardChatOpenTaskBtn').on('click', openBoardChatTask);
 
             $('#boardChatMentionBtn').on('click', function () {
                 const $input = $('#boardChatInput');
@@ -5836,7 +6080,7 @@
             });
 
             // ── Task edit form (#taskModal) open/close ──
-            $('#closeTaskModal, #cancelTaskBtn').on('click', () => $('#taskModal').addClass('hidden'));
+            $('#closeTaskModal, #cancelTaskBtn').on('click', () => { $('#taskModal').addClass('hidden'); entityCanChat = true; });
 
             $('#taskForm').on('submit', function (e) {
                 e.preventDefault();
@@ -5850,12 +6094,14 @@
                 const parentId = !taskId ? pendingSubtaskParentId : null;
                 let serialized = $(this).serialize();
                 if (parentId) serialized += `&parent_task_id=${encodeURIComponent(parentId)}`;
-                const pics = splitTaskPicValues($('#task_assignees').val());
-                serialized += '&' + $.param({ assignees: pics.assignees, team_ids: pics.team_ids, tags: $('#task_tags').val() || [] });
+                // A locked picker sends no PIC fields at all, so the server keeps them.
+                const picsLocked = $('#task_assignees').prop('disabled');
+                const pics = picsLocked ? {} : splitTaskPicValues($('#task_assignees').val());
+                serialized += '&' + $.param({ ...pics, tags: $('#task_tags').val() || [] });
                 // Lets the server tell "cleared every tag" apart from "didn't send tags".
                 serialized += '&tags_submitted=1';
                 // Lets the server tell "cleared every PIC" apart from "didn't send PICs".
-                if (currentTaskDoctype === 'TSK') serialized += '&pic_submitted=1';
+                if (currentTaskDoctype === 'TSK' && !picsLocked) serialized += '&pic_submitted=1';
 
                 $.ajax({
                     url, method,

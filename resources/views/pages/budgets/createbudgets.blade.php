@@ -1,16 +1,5 @@
 <x-app-layout>
-    <style>
-        /* Make the Select2 department box match the other fields */
-        #department_select + .select2-container { width: 100% !important; }
-        #department_select + .select2-container .select2-selection--single {
-            height: 42px; border: 1px solid #d1d5db; border-radius: 0.5rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,.05);
-        }
-        #department_select + .select2-container .select2-selection__rendered { line-height: 40px; padding-left: 12px; font-size: 0.875rem; }
-        #department_select + .select2-container .select2-selection__arrow { height: 40px; right: 6px; }
-        #department_select + .select2-container--focus .select2-selection--single,
-        #department_select + .select2-container--open .select2-selection--single { border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
-    </style>
+    <x-spp-form-styles />
     <div class="max-w-9xl mx-auto p-2">
         <div class="gap-4">
             <div class="flex flex-col gap-4">
@@ -21,7 +10,7 @@
                     <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                         <!-- header -->
-                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
                             <div class="flex items-center gap-3">
                                 <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" /></svg>
@@ -46,8 +35,8 @@
                             <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
 
                                 <!-- Company -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                                     <select name="cpny_id" required class="budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="" disabled selected>Select</option>
                                         @foreach ($companies as $p)
@@ -57,23 +46,23 @@
                                 </div>
 
                                 <!-- Business Unit -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Business Unit</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Business Unit</label>
                                     <select name="business_unit_id" required class="budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="">Select</option>
                                     </select>
                                 </div>
 
                                 <!-- Department -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                                     <select name="department_fin_id" id="department_select" required class="select2 budget-field h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     </select>
                                 </div>
 
                                 <!-- File Upload -->
                                 <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Import Excel</label>
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Import Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="block h-[42px] w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
                                 </div>
@@ -95,7 +84,7 @@
                 @if (isset($tempData) && count($tempData) > 0)
                     <div class="flex flex-col gap-4">
                         <div class="flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                            <div class="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
                                 <h2 class="flex items-center gap-3 text-base font-bold text-gray-800 dark:text-gray-100">
                                     <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
@@ -496,7 +485,21 @@
     <script>
         $(function() {
             // Init Select2 sekali
+            // Company and Business Unit get the same look; Business Unit options are rebuilt by AJAX, so watch them
+            $('select[name="cpny_id"], select[name="business_unit_id"]').select2({
+                width: '100%',
+                minimumResultsForSearch: 8,
+                dropdownCssClass: 'sf-s2-dropdown'
+            });
+            const buSelect = document.querySelector('select[name="business_unit_id"]');
+            if (buSelect && window.MutationObserver) {
+                new MutationObserver(function() {
+                    $(buSelect).trigger('change.select2');
+                }).observe(buSelect, { childList: true, subtree: true });
+            }
+
             $('#department_select').select2({
+                dropdownCssClass: 'sf-s2-dropdown',
                 width: '100%',
                 placeholder: 'Select',
                 allowClear: true,

@@ -1,93 +1,92 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
+    <x-bq-table-styles />
+    <div class="max-w-9xl mx-auto w-full p-2">
         <form id="bqForm" class="flex flex-col gap-8" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="bqid" value="{{ $bq->bqid }}">
             <input type="hidden" name="cpny_id" value="{{ $bq->cpny_id }}">
 
             <!-- Header Card -->
-            <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
-                    <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
-                        🆔 {{ $bq->bqid }} - {{ $bq->csid }} - BQ CS Kontrak Edit
-                    </h2>
-                </div>
+            <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">{{ $bq->bqid }} - {{ $bq->csid }} - BQ CS Kontrak Edit</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Bill of quantity for this canvass sheet</p>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="px-6 py-5">
 
                 <div class="flex flex-col gap-4 text-sm">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
                         <div>
-                            <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
-                            <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <span class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</span>
+                            <div class="flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 {{ $cs->cpny_id }}
                             </div>
                         </div>
                         <div>
-                            <span class="block font-medium text-gray-700 dark:text-gray-300">Department</span>
-                            <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <span class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</span>
+                            <div class="flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 {{ $cs->department_id }}
                             </div>
                         </div>
                         <div>
-                            <span class="block font-medium text-gray-700 dark:text-gray-300">BQ ID</span>
-                            <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <span class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">BQ ID</span>
+                            <div class="flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 {{ $cs->bqid }}
                             </div>
                         </div>
                         <div>
-                            <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
-                            <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <span class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">SPPJ/K/T</span>
+                            <div class="flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 {{ $cs->sppbjktid }}
                             </div>
                         </div>
                         <div>
-                            <span class="block font-medium text-gray-700 dark:text-gray-300">Requester</span>
-                            <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <span class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Requester</span>
+                            <div class="flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 {{ $cs->user_peminta }}
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                    </div>
+                </div>
 
             <!-- BQ Details -->
-            <div class="flex w-full flex-col rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                <div class="flex justify-between">
-                    <div
-                        class="justify-center pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
-                        BQ Detail
-                    </div>
-                    {{-- <div class="mb-3 flex justify-end">
-                        <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
-                            + Add Row
-                        </button>
-                    </div> --}}
-                    <div class="mb-3 flex flex-wrap justify-end gap-2">
-                        <a href="{{ route('bqcs.downloadEditTemplate', $hash_id) }}"
-                            class="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+            <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">BQ Detail</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Material and service prices per vendor</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <a href="{{ route('bqcs.downloadEditTemplate', $hash_id) }}"
+                            class="inline-flex h-10 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 text-sm font-semibold text-green-700 transition hover:border-green-600 hover:bg-green-600 hover:text-white dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300">
                             Download Current Excel
                         </a>
 
                         <input type="file" id="bqImportFile" class="hidden" accept=".xlsx,.xls">
 
                         <button type="button" id="btnImportExcel"
-                            class="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            class="inline-flex h-10 items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
                             Import Excel
                         </button>
 
                         <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            class="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">
                             + Add Row
                         </button>
-                    </div>
-                </div>
-
-                <div class="rounded-base relative overflow-x-auto">
+                            </div>
+                        </div>
+                    <div class="px-6 py-5">
+                        <div class="relative overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                     <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
                         <colgroup>
                             <col style="width: 60px;">   {{-- No --}}
@@ -282,16 +281,15 @@
                         </tfoot>
                     </table>
                 </div>
-
-                <div
-                    class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
+                    </div>
+                    <div class="flex flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                     <a href="{{ url()->previous() }}"
-                        class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-300">
+                        class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 mr-auto">
                         Back
                     </a>
 
                     <button type="button" id="btnSaveBQ"
-                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60">
+                        class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60">
                         <svg id="btnSaveBQSpinner" class="hidden h-5 w-5 animate-spin text-white"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -301,7 +299,7 @@
                         <span id="btnSaveBQText">Save</span>
                     </button>
                 </div>
-            </div>
+                </div>
         </form>
     </div>
 

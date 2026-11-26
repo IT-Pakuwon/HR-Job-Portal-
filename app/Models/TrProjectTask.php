@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PmChatAccess;
 use Illuminate\Database\Eloquent\Model;
 
 class TrProjectTask extends Model
@@ -109,22 +110,45 @@ class TrProjectTask extends Model
 
     // A lock covers the task's whole subtree: $user can open this task only
     // if they're assigned to EVERY locked task on the path from the root
-    // down to (and including) this one.
+    // down to (and including) this one. Says nothing about Project
+    // membership — that's MsProject::isAccessibleBy().
     public function isAccessibleBy($user): bool
     {
-        if (self::bypassesLock($user)) {
-            return true;
+        return $this->usersWhoCanOpen(collect([$user]))->isNotEmpty();
+    }
+
+    // The subset of $users who get past this task's locks (all of them when
+    // nothing on the path is locked).
+    public function usersWhoCanOpen($users)
+    {
+        $locked = $this->lockedPathIds();
+
+        if (!$locked) {
+            return $users;
         }
 
-        $username = strtolower(trim((string) $user?->username));
+        $assigned = self::effectiveAssigneeMap($locked);
+
+        return $users->filter(function ($user) use ($assigned) {
+            $username = strtolower(trim((string) $user?->username));
+
+            return $assigned->every(fn ($names) => $names->contains($username))
+                || self::bypassesLock($user);
+        });
+    }
+
+    // task_ids of the locked tasks from this one up to the root.
+    private function lockedPathIds(): array
+    {
         $node = $this;
         $seen = [];
+        $locked = [];
 
         while ($node && !isset($seen[$node->task_id])) {
             $seen[$node->task_id] = true;
 
-            if ($node->is_locked && !self::effectiveAssigneeMap([$node->task_id])->get($node->task_id)->contains($username)) {
-                return false;
+            if ($node->is_locked) {
+                $locked[] = $node->task_id;
             }
 
             $node = $node->parent_task_id
@@ -132,7 +156,7 @@ class TrProjectTask extends Model
                 : null;
         }
 
-        return true;
+        return $locked;
     }
 
     // Bulk isAccessibleBy() over one project's tasks: task_id => bool.
@@ -162,23 +186,74 @@ class TrProjectTask extends Model
         return $byId->keys()->mapWithKeys(fn ($id) => [$id => $resolve($id)])->all();
     }
 
-    // Used by the shared comment/attachment endpoints, which only know a
-    // doctype + refnbr — anything that isn't an existing TSK passes through.
-    // A Team's Message thread ('TEAM', refnbr = team_id) is gated here too,
-    // since every comment/attachment path already funnels through this.
-    public static function abortUnlessAccessible(string $doctype, $taskId): void
+    // Who may read or write a Project module thread (its messages and files),
+    // identified the way tr_project_message / tr_attachment do it: doctype + refnbr.
+    //   TEAM      — an active Team's members
+    //   PRJ       — whoever can open the Project
+    //   TSK       — whoever can open the Project, gets past the locks AND is in
+    //               the Task's chat audience (see PmChatAccess); project
+    //               admins take part regardless of locks and assignees
+    //   TTK       — whoever can open the Team and is in the chat audience
+    //   TSKCOVER  — the card image: whoever can open the Task
+    //   TTKCOVER  — the card image: whoever can open the Team
+    // Other doctypes, and refnbrs that aren't Project module records (the
+    // legacy "Task" document also uses TSK), are not restricted here.
+    public static function canOpenThread(string $doctype, $refnbr, ?User $user): bool
     {
-        if (strtoupper($doctype) === 'TEAM') {
-            MsTeam::abortUnlessChatAccessible((string) $taskId);
-            return;
+        switch (strtoupper($doctype)) {
+            case 'TEAM':
+                $team = MsTeam::where('team_id', $refnbr)->where('status', 'A')->first();
+
+                return (bool) $team?->isAccessibleBy($user);
+
+            case 'PRJ':
+                $project = MsProject::where('project_id', $refnbr)->first();
+
+                return !$project || $project->isAccessibleBy($user);
+
+            case 'TSK':
+            case 'TSKCOVER':
+                $task = self::where('task_id', $refnbr)->first();
+
+                if (!$task) {
+                    return true;
+                }
+                if (!$task->project?->isAccessibleBy($user)) {
+                    return false;
+                }
+                if (strtoupper($doctype) === 'TSKCOVER') {
+                    return $task->isAccessibleBy($user);
+                }
+
+                return PmChatAccess::isAdmin($user)
+                    || ($task->isAccessibleBy($user) && PmChatAccess::includes(PmChatAccess::audience('TSK', $task), $user));
+
+            case 'TTK':
+            case 'TTKCOVER':
+                $task = TrTeamTask::where('task_id', $refnbr)->first();
+
+                if (!$task) {
+                    return true;
+                }
+                if (!MsTeam::where('team_id', $task->team_id)->where('status', 'A')->first()?->isAccessibleBy($user)) {
+                    return false;
+                }
+
+                return strtoupper($doctype) === 'TTKCOVER'
+                    || PmChatAccess::includes(PmChatAccess::audience('TTK', $task), $user);
+
+            default:
+                return true;
         }
+    }
 
-        if (!in_array(strtoupper($doctype), ['TSK', 'TSKCOVER'], true)) {
-            return;
-        }
-
-        $task = self::where('task_id', $taskId)->first();
-
-        abort_if($task && !$task->isAccessibleBy(auth()->user()), 403, 'This task is private.');
+    // The guard on the shared comment/attachment endpoints.
+    public static function abortUnlessAccessible(string $doctype, $refnbr): void
+    {
+        abort_unless(
+            self::canOpenThread($doctype, $refnbr, auth()->user()),
+            403,
+            'You do not have access to these messages and files.'
+        );
     }
 }

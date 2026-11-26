@@ -1,154 +1,36 @@
 <x-app-layout>
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
 
-    @php
-        $user = auth()->user();
-
-        $hasWoAllAccess = $user->isAdmin();
-
-        $xlCols = 6;
-
-        if ($hasWoAllAccess) {
-            $xlCols++; // WO All
-        }
-    @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"> --}}
+        @php
+            $statusCards = [
+                [['data-scope' => 'bastjobs'], 'Bast Jobs', '📦', 'blue', $bastjobs, false, null, 'scope-filter'],
+                [['data-scope' => 'onprogress'], 'On Progress', '⏳', 'yellow', $onProgress, false, null, 'scope-filter'],
+                [['data-scope' => 'rejected'], 'Rejected', '❌', 'red', $rejected, false, null, 'scope-filter'],
+                [['data-scope' => 'revise'], 'Revise', '🛠️', 'blue', $revise, false, null, 'scope-filter'],
+                [['data-scope' => 'completed'], 'Completed', '✅', 'green', $completed, false, null, 'scope-filter'],
+                [['data-scope' => 'all'], 'All', '🧾', 'all', $all, false, null, 'scope-filter'],
+                ...(auth()->user()->isAdmin() ? [[['data-scope' => 'allactive'], 'BAST All', '📊', 'purple', $allActive, false, null, 'scope-filter']] : []),
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
+
         <div
-                class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-
-            {{-- Bast Jobs --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="bastjobs">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Bast Jobs</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $bastjobs }}</p>
+            class="dt-pretty mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <x-list-page-header title="Bast" subtitle="Handover jobs and BAST documents" title-id="pageTitle">
+                <div class="sppb-f relative w-56"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg></span><select id="filter_vendor"><option value="">All Vendor</option></select></div>
+                <div class="sppb-f relative w-52"><span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg></span><select id="filter_terms"><option value="">All Terms</option></select></div>
+                <div class="relative w-40">
+                    <input type="date" id="filter_start" aria-label="Start date" title="Start date" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                 </div>
-            </button>
-
-            {{-- On Progress --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="onprogress">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
+                <div class="relative w-40">
+                    <input type="date" id="filter_end" aria-label="End date" title="End date" class="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                 </div>
-            </button>
+                <button type="button" id="reset_filters" class="inline-flex h-10 items-center rounded-lg border border-gray-200 bg-white px-4 text-sm font-medium text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-md active:translate-y-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"><i class="fas fa-rotate-right mr-2 text-xs"></i>Reset</button>
+            </x-list-page-header>
 
-            {{-- Rejected --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="rejected">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">❌</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Rejected</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $rejected }}</p>
-                </div>
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="revise">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛠️</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                </div>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="completed">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                </div>
-            </button>
-
-            {{-- All --}}
-            <button type="button" class="scope-filter group block h-full" data-scope="all">
-                <div
-                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                </div>
-            </button>
-            @if (auth()->user()->isAdmin())
-                <button type="button" class="scope-filter group block h-full" data-scope="allactive">
-                    <div
-                        class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📊</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col">
-                            <p class="break-words text-sm font-medium leading-tight">BAST All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $allActive }}</p>
-                    </div>
-                </button>
-            @endif
-        </div>
-        <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div
-                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Bast</h1>
-            </div>
-
-            <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
-
-                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
-                    <option value="">All Vendor</option>
-                </select>
-
-                <select id="filter_terms" class="w-full rounded border px-3 py-2 text-sm dark:border-white/6 dark:bg-[#0f172a] dark:text-white">
-                    <option value="">All Terms</option>
-                </select>
-
-                {{-- Start Date --}}
-                <input type="date" id="filter_start" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
-
-                {{-- End Date --}}
-                <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm scheme-light dark:border-white/6 dark:bg-[#0f172a] dark:text-white dark:scheme-dark">
-
-                <button type="button" id="reset_filters" class="rounded bg-gray-500 px-3 py-2 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700">
-                    Reset
-                </button>
-            </div>
-            <div class="relative mt-4 overflow-hidden">
+            <div class="relative overflow-hidden">
                 <table id="bastTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead
                         class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -177,7 +59,7 @@
 
         $(function() {
             let scope = 'bastjobs';
-            const $title = $('h1.text-base.font-extrabold');
+            const $title = $('#pageTitle');
             const $thead = $('#bastTable thead');
             let table;
 
@@ -196,31 +78,31 @@
                     // Disesuaikan ke TrPOterm
                     return `
                     <th>    </th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPK Start</th>
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPK End</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Terms</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Progress %</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Payment %</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left font-medium">Action</th>
+                                <th class="px-4 py-3 text-left font-medium">PO Nbr</th>
+                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                                <th class="px-4 py-3 text-left font-medium">SPK Start</th>
+                                <th class="px-4 py-3 text-left font-medium">SPK End</th>
+                                <th class="px-4 py-3 text-left font-medium">Terms</th>
+                                <th class="px-4 py-3 text-left font-medium">Progress %</th>
+                                <th class="px-4 py-3 text-left font-medium">Payment %</th>
+                                <th class="px-4 py-3 text-left font-medium">Created By</th>
+                                <th class="px-4 py-3 text-left font-medium">Status</th>
                             `;
                 }
                 // TrBast scopes
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Bast ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Bast Date</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Terms</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left font-medium">Bast ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Bast Date</th>
+                            <th class="px-4 py-3 text-left font-medium">PO Nbr</th>
+                            <th class="px-4 py-3 text-left font-medium">SPPB/J/K/T</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                            <th class="px-4 py-3 text-left font-medium">Terms</th>
+                            <th class="px-4 py-3 text-left font-medium">Created By</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         `;
             }
 
@@ -356,7 +238,7 @@
                 // buat ulang thead + tr
                 const theadHtml = `
                         <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b  text-sm ">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                             <tr id="thead-row">${headerFor(sc)}</tr>
                             </thead>`;
                 $table.prepend(theadHtml);
@@ -400,7 +282,7 @@
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
-                            text: '↓ Excel',
+                            text: '<i class="fa-solid fa-file-excel"></i> Excel',
                             title: 'List_BAST',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
@@ -412,7 +294,7 @@
                         },
                         {
                             extend: 'csvHtml5',
-                            text: '↓ CSV',
+                            text: '<i class="fa-solid fa-file-csv"></i> CSV',
                             title: 'List_BAST',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
@@ -458,6 +340,7 @@
                 $el.select2({
                     placeholder: placeholder,
                     allowClear: true,
+                    dropdownCssClass: 'sppb-s2-dropdown',
                     width: '100%'
                 });
             }
@@ -500,15 +383,14 @@
             function renderPlusCreate(row) {
                 // create BAST → kirim hash id PO (hasil mapping di controller)
                 const url = `{{ route('bast.create') }}` + `?term=${encodeURIComponent(row.term_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
-                            <i class="fas fa-plus"></i></a>`;
+                return `<a href="${url}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-sm font-bold text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90" title="Create BAST" aria-label="Create BAST">+</a>`;
             }
 
             function renderPoLink(row) {
                 const text = row.ponbr ?? '';
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" target="_blank" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" target="_blank" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -517,7 +399,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${text}</span></a>`;
                 }
                 return text;
             }
@@ -528,7 +410,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex min-w-[140px] items-center rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-[13px] font-semibold leading-6 text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? '').toString().trim().toUpperCase();
@@ -538,17 +420,22 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editbasts/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-amber-800 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300" title="Edit (Revise)"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${label}</span></a>`;
                 }
 
                 const url = `/showbast/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="fa-regular fa-file-lines"></i></span><span>${label}</span></a>`;
             }
 
             function renderStatusBadge(row) {
-                const label = row.status_label ?? row.status ?? '-';
-                const cls = row.status_class ?? 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
-                return `<span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">${label}</span>`;
+                const label = row.status_label ?? row.status ?? 'Unknown';
+                const L = String(label).toLowerCase();
+                let c = 'bg-slate-50 text-slate-600 ring-slate-200 dark:bg-white/5 dark:text-slate-300 dark:ring-white/10', d = 'bg-slate-400';
+                if (/pending|progress|waiting/.test(L)) { c = 'bg-yellow-50 text-yellow-700 ring-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-300 dark:ring-yellow-500/30'; d = 'bg-yellow-500'; }
+                else if (/complete|received|done|closed/.test(L)) { c = 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30'; d = 'bg-green-500'; }
+                else if (/reject|cancel/.test(L)) { c = 'bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30'; d = 'bg-rose-500'; }
+                else if (/revise|partial/.test(L)) { c = 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30'; d = 'bg-blue-500'; }
+                return `<span class="inline-flex min-w-[116px] items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${c}"><span class="h-1.5 w-1.5 rounded-full ${d}"></span>${label}</span>`;
             }
 
 

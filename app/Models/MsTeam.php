@@ -75,14 +75,4 @@ class MsTeam extends Model
             || $user->hasRole('PROADMINACCESS')
             || $this->members()->whereRaw('lower(trim(username)) = ?', [strtolower(trim($user->username))])->exists();
     }
-
-    // Team-wide Message thread (tr_message / tr_attachment doctype 'TEAM',
-    // refnbr = team_id) — members only. Called via
-    // TrProjectTask::abortUnlessAccessible(), the shared comments/attachments guard.
-    public static function abortUnlessChatAccessible(string $teamId): void
-    {
-        $team = self::where('team_id', $teamId)->where('status', 'A')->first();
-
-        abort_unless($team && $team->isAccessibleBy(auth()->user()), 403, 'Only members of this Team can use its messages.');
-    }
 }

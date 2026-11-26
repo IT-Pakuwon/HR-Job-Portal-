@@ -610,6 +610,11 @@ public function uploadAttachments(Request $request, string $doctype, string $ref
 
     public function removeAttachment($id)
     {
+        // Outside the try, so a refusal stays a 403.
+        if ($row = TrAttachment::find($id)) {
+            TrProjectTask::abortUnlessAccessible((string) $row->doctype, $row->refnbr);
+        }
+
         try {
             $attachment = TrAttachment::findOrFail($id);
             $attachment->update(['status' => 'X']); // Update status ke "D" (Deleted)

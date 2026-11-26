@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-popup-styles />
     <x-spp-form-styles />
     <x-spp-list-styles />
     <x-spp-list-scripts />
@@ -203,19 +204,19 @@
         </div>
 
         {{-- PICK INVENTORY MODAL --}}
-        <div id="pickInventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🔎 Pilih Inventory (MsInventory)</h2>
-                    <button type="button" id="closePickInventoryModal"
-                        class="rounded-lg bg-red-500 px-4 py-2 text-white">Close</button>
+        <div id="pickInventoryModal" class="app-popup fixed inset-0 z-50 hidden items-center justify-center">
+            <div class="app-dialog app-dialog-padded relative w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
+                <div class="app-head flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Pilih Inventory (MsInventory)</h2>
+                    <button aria-label="Close" type="button" id="closePickInventoryModal"
+                        class="app-close"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
 
-                <div class="mb-3 text-sm text-gray-500 dark:text-gray-300">
+                <div class="app-body mb-3 text-sm text-gray-500 dark:text-gray-300">
                     IRID: <span id="pick_irid" class="font-semibold text-gray-700 dark:text-white">-</span>
                 </div>
 
-                <div class="overflow-x-hidden">
+                <div class="app-body overflow-x-hidden">
                     <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">

@@ -87,23 +87,25 @@
         <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <main class="flex flex-col gap-6 xl:col-span-8">
                 <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                    <header class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700">
-                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
-                            <span class="mr-2 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
-                                {{ $pageTitle }}
-                            </span>
-                            {{ $rfp->rfp_id }}
-                        </h2>
-                        <span class="{{ $statusClasses }} rounded-full px-4 py-1 text-sm font-semibold">
-                            {{ $statusText }}
-                        </span>
-                    </header>
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">{{ $pageTitle }}</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Check the payment details before submitting</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">{{ $rfp->rfp_id }}</span>
+                                <span class="{{ $statusClasses }} rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
+                            </div>
+                        </div>
 
                     <div class="p-4">
                         @php
                             $rowClass = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
-                            $labelClass = 'text-gray-500 sm:min-w-36';
-                            $valueClass = 'break-words font-semibold text-gray-900 dark:text-gray-100 sm:flex-1';
+                            $labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 sm:min-w-36';
+                            $valueClass = 'break-words text-sm font-medium text-gray-800 dark:text-gray-100 sm:flex-1';
                         @endphp
 
                         <div class="grid grid-cols-1 gap-x-10 gap-y-1 text-sm md:grid-cols-2">
@@ -134,12 +136,16 @@
             </main>
 
             <aside class="xl:col-span-4">
-                <div class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                    <header class="border-b border-gray-100 px-5 py-4 dark:border-gray-700">
-                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
-                            Attachment
-                        </h2>
-                    </header>
+                <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Attachment</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Files from the vendor portal</p>
+                                </div>
+                            </div>
+                        </div>
 
                     <div class="max-h-[720px] overflow-y-auto p-4">
                         <div class="space-y-3">
@@ -165,12 +171,16 @@
                 <input type="hidden" name="cpnyid" value="{{ $rfp->cpny_id }}">
                 @if ($isKontrak)
                 <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                    <header class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 class="text-base font-bold text-gray-800 dark:text-gray-100">
-                            Detail Kontrak Budget
-                        </h2>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span id="budgetRowCount" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg></span>
+                                <div>
+                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Detail Kontrak Budget</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Budget lines charged for this payment</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="budgetRowCount" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
                                 {{ $budgets->count() }} row
                             </span>
                             <button type="button" id="addKontrakBudget"
@@ -178,8 +188,8 @@
                                 <span class="text-base leading-none">+</span>
                                 Add Budget
                             </button>
+                            </div>
                         </div>
-                    </header>
 
                     <div class="overflow-x-auto p-4"><div class="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
                         <table class="min-w-[1300px] w-full text-left text-sm">
@@ -257,13 +267,13 @@
                         </table>
                     </div></div>
 
-                    <div class="flex items-center justify-between border-t border-gray-100 p-4 dark:border-gray-700">
+                    <div class="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                         <button type="button" id="cancelRfpBtn"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                             Cancel RFP
                         </button>
                         <button type="submit" id="submitBtn"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <span id="btnText">Submit Approval</span>
                             <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -276,13 +286,13 @@
                 </section>
                 @else
                     <section class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <div class="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
+                        <div class="flex flex-row flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                             <button type="button" id="cancelRfpBtn"
-                                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-500 px-5 text-sm font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                 Cancel RFP
                             </button>
                             <button type="submit" id="submitBtn"
-                                class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

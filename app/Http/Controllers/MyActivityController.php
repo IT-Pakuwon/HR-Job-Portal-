@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\TrProjectMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -138,30 +139,45 @@ class MyActivityController extends Controller
         $q      = trim((string) $request->query('q'));
         $others = $request->query('scope') === 'others';
 
-        $query = TrMessage::where('status', 'A')
-            ->where(fn ($w) => $w->whereNull('message_type')
-                ->orWhere('message_type', 'not like', 'S\_%'));  // skip system events
+        // The Project module keeps its chat in its own table (another database).
+        // "others" is about the user's own documents (VIEWS), which never
+        // include Project module records.
+        $sources = $others ? [TrMessage::class] : [TrMessage::class, TrProjectMessage::class];
+        $ownDocIds = $others ? $this->ownDocIds($username) : [];
 
-        if ($others) {
-            $query->whereRaw("lower(trim(coalesce(username,''))) <> ?", [$username])
-                ->whereIn('refnbr', $this->ownDocIds($username));
-            // someone else's Private comment is not for the document owner to see
-            $query->where(fn ($w) => $w->whereNull('message_type')->orWhere('message_type', '!=', 'Private'));
-        } else {
-            $query->whereRaw("lower(trim(coalesce(username,''))) = ?", [$username]);
-        }
+        $queries = collect($sources)->map(function ($model) use ($others, $ownDocIds, $username, $q) {
+            $query = $model::where('status', 'A')
+                ->where(fn ($w) => $w->whereNull('message_type')
+                    ->orWhere('message_type', 'not like', 'S\_%'));  // skip system events
 
-        if ($q !== '') {
-            $query->where(fn ($w) => $w->where('message', 'ilike', "%{$q}%")
-                ->orWhere('refnbr', 'ilike', "%{$q}%"));
-        }
+            if ($others) {
+                $query->whereRaw("lower(trim(coalesce(username,''))) <> ?", [$username])
+                    ->whereIn('refnbr', $ownDocIds);
+                // someone else's Private comment is not for the document owner to see
+                $query->where(fn ($w) => $w->whereNull('message_type')->orWhere('message_type', '!=', 'Private'));
+            } else {
+                $query->whereRaw("lower(trim(coalesce(username,''))) = ?", [$username]);
+            }
 
-        $total = (clone $query)->count();
+            if ($q !== '') {
+                $query->where(fn ($w) => $w->where('message', 'ilike', "%{$q}%")
+                    ->orWhere('refnbr', 'ilike', "%{$q}%"));
+            }
+
+            return $query;
+        });
+
+        $total = $queries->sum(fn ($query) => (clone $query)->count());
         $page  = $this->page($request, $total);
 
-        $messages = $query->orderByDesc('message_date')->orderByDesc('id')
-            ->forPage($page, $this->perPage)
-            ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'message_date', 'message_type', 'message', 'username', 'name']);
+        // Newest page*perPage of each source is enough to cut this page from.
+        $messages = $queries
+            ->flatMap(fn ($query) => $query->orderByDesc('message_date')->orderByDesc('id')
+                ->limit($page * $this->perPage)
+                ->get(['id', 'refnbr', 'doctype', 'cpny_id', 'department_id', 'message_date', 'message_type', 'message', 'username', 'name']))
+            ->sortBy([['message_date', 'desc'], ['id', 'desc']])
+            ->slice(($page - 1) * $this->perPage, $this->perPage)
+            ->values();
 
         // Resolve each commented document's link/type/status in one pass per view.
         $docs = $this->resolveDocuments($messages->pluck('refnbr')->filter()->unique()->values());
@@ -170,7 +186,8 @@ class MyActivityController extends Controller
             $doc = $docs->get($m->refnbr);
 
             return [
-                'id'      => $m->id,
+                // ids repeat between the two tables, and the list keys on them
+                'id'      => $m instanceof TrProjectMessage ? 'pm-' . $m->id : $m->id,
                 'docid'   => $m->refnbr,
                 'company' => $m->cpny_id ?: ($doc['company'] ?? null),
                 'dept'    => $m->department_id ?: ($doc['dept'] ?? null),

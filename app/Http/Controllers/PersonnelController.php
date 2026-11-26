@@ -2942,6 +2942,8 @@ class PersonnelController extends Controller
     public function viewAttachment($id)
     {
         $att = TrAttachment::where('id', $id)->where('status', 'A')->firstOrFail();
+        // Any id can be asked for here, Project module files included.
+        \App\Models\TrProjectTask::abortUnlessAccessible((string) $att->doctype, $att->refnbr);
 
         // Normalisasi object path:
         // 1) Kalau filename sudah mengandung '/', anggap itu full path.

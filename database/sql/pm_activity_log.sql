@@ -3,8 +3,8 @@
 -- Every mutation in PmProjectController / PmTaskController /
 -- TeamController / TeamTaskController writes one row here (see
 -- App\Services\PmActivityLogger). Chat messages and file uploads are NOT
--- copied in — the History/Activity views read them live from pgsql2's
--- tr_message / tr_attachment, so older ones show up as well.
+-- copied in — the History/Activity views read them live from
+-- tr_project_message and pgsql2's tr_attachment, so older ones show up as well.
 --
 -- scope_type/scope_id = the board the event belongs to ('PROJECT' +
 -- project_id, or 'TEAM' + team_id). task_id is set for task-level

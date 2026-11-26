@@ -436,6 +436,7 @@
             const addTile = document.getElementById('addAttachmentTile');
             const picker = document.getElementById('hiddenPicker');
             const hiddenInputs = document.getElementById('hiddenInputs');
+            if (!addTile) return; // photo section is only shown after an import
 
             // optional: batasi ukuran per file (5 MB) dan total foto
             const MAX_SIZE = 5 * 1024 * 1024; // 5MB

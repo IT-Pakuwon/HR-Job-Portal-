@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-popup-styles />
     <x-spp-list-styles />
     <x-spp-list-scripts />
     @php
@@ -105,19 +106,17 @@
         </div>
 
         <!-- ================== TRACKING MODAL ================== -->
-        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div id="trackingModal" class="app-popup fixed inset-0 z-50 hidden items-center justify-center">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="app-dialog app-dialog-padded max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
                 <!-- Header -->
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <div class="app-head flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h3 class="text-[12px] font-semibold text-gray-800 dark:text-white">
                         WO Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
                     </h3>
-                    <button id="closeTracking"
-                        class="text-lg leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                        &times;
-                    </button>
+                    <button aria-label="Close" type="button" id="closeTracking"
+                        class="app-close"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
 
                 {{-- <!-- Controls (opsional) -->

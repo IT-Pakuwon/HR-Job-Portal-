@@ -7,6 +7,7 @@ use App\Models\SysUserRole;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\TrProjectMessage;
 use App\Models\TrProjectTask;
 use App\Models\User;
 use App\Services\DocumentNotificationService;
@@ -185,7 +186,7 @@ class SendCommentController extends Controller
     {
         TrProjectTask::abortUnlessAccessible($doctype, $id);
 
-        $comments = TrMessage::where('doctype', $doctype)
+        $comments = TrProjectMessage::modelFor($doctype)::where('doctype', $doctype)
             ->where('refnbr', $id)
             ->where('status', 'A')
             ->where(function ($q) {
@@ -233,7 +234,7 @@ class SendCommentController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Message is empty.'], 422);
         }
 
-        $comment = TrMessage::create([
+        $comment = TrProjectMessage::modelFor($doctype)::create([
             'refnbr'        => $id,
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
@@ -256,6 +257,8 @@ class SendCommentController extends Controller
     // GET /private-notes/{doctype}/{id}
     public function fetchPrivateNotes(string $doctype, $id)
     {
+        TrProjectTask::abortUnlessAccessible($doctype, $id);
+
         $user = Auth::user();
         $username = $user->username ?? ($user->email ?? null);
 
@@ -266,7 +269,7 @@ class SendCommentController extends Controller
             ], 403);
         }
 
-        $notes = TrMessage::where('doctype', $doctype)
+        $notes = TrProjectMessage::modelFor($doctype)::where('doctype', $doctype)
             ->where('refnbr', $id)
             ->where('message_type', 'Private')
             ->where('username', $username)
@@ -311,7 +314,7 @@ class SendCommentController extends Controller
             ]);
         }
 
-        $counts = TrMessage::where('doctype', $doctype)
+        $counts = TrProjectMessage::modelFor($doctype)::where('doctype', $doctype)
             ->where('message_type', 'Private')
             ->where('username', $username)
             ->whereIn('refnbr', $allowedRefnbrs)
@@ -332,6 +335,8 @@ class SendCommentController extends Controller
             'note' => 'required|string|max:500',
         ]);
 
+        TrProjectTask::abortUnlessAccessible($doctype, $id);
+
         $user = $request->user();
         $username = $user->username ?? ($user->email ?? null);
 
@@ -342,7 +347,7 @@ class SendCommentController extends Controller
             ], 403);
         }
 
-        $note = TrMessage::create([
+        $note = TrProjectMessage::modelFor($doctype)::create([
             'refnbr'        => $id,
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),

@@ -1903,6 +1903,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(TeamTaskController::class)->prefix('all-team/{teamId}/tasks')->name('all-team.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
             Route::get('/history', 'history')->name('history');
+            Route::get('/chat-threads', 'chatThreads')->name('chat-threads');
             Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');
@@ -1969,6 +1970,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::controller(PmTaskController::class)->prefix('projects/{projectId}/tasks')->name('projects.tasks.')->group(function () {
             Route::get('/board-data', 'boardData')->name('board-data');
+            Route::get('/chat-threads', 'chatThreads')->name('chat-threads');
             Route::get('/tags', 'tags')->name('tags');
             Route::post('/', 'store')->name('store');
             Route::put('/{taskId}', 'update')->name('update');

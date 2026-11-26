@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Traits;
 
 use App\Models\TrAttachment;
-use App\Models\TrMessage;
+use App\Models\TrProjectMessage;
+use App\Services\PmChatAccess;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 trait BuildsTaskTree
 {
@@ -44,7 +48,7 @@ trait BuildsTaskTree
             ->selectRaw('refnbr, count(*) as total')
             ->pluck('total', 'refnbr');
 
-        $comments = TrMessage::where('doctype', $doctype)
+        $comments = TrProjectMessage::where('doctype', $doctype)
             ->whereIn('refnbr', $ids)
             ->where('status', 'A')
             ->where(fn ($q) => $q->whereNull('message_type')->orWhere('message_type', '!=', 'Private'))
@@ -53,5 +57,74 @@ trait BuildsTaskTree
             ->pluck('total', 'refnbr');
 
         return [$files, $comments];
+    }
+
+    /**
+     * The chat list on a board's Message tab: the board's own thread plus one
+     * entry per Task / Subtask whose chat the user takes part in
+     * (PmChatAccess), each with its latest message. Tasks with messages come
+     * first (newest on top), then the rest by name, each Task followed by its
+     * Subtasks. Checklist items have no chat.
+     *
+     * @param  Collection  $all      every live task row of the board
+     * @param  array|null  $canOpen  task_id => bool on a board with locks
+     * @return array{general: ?array, tasks: Collection}
+     */
+    protected function buildChatThreads(string $scopeDoctype, string $scopeId, string $taskDoctype, Collection $all, ?array $canOpen = null): array
+    {
+        $byId = $all->keyBy('task_id');
+        $user = Auth::user();
+        $admin = PmChatAccess::isAdmin($user);
+        $audiences = PmChatAccess::audiences($taskDoctype, $all);
+        $opens = fn ($id) => $canOpen === null || ($canOpen[$id] ?? false);
+
+        // A row whose parent also has a parent is a checklist item.
+        $tasks = $all->reject(fn ($t) => $byId->get($t->parent_task_id)?->parent_task_id)
+            ->filter(fn ($t) => $admin
+                || ($opens($t->task_id) && PmChatAccess::includes($audiences->get($t->task_id), $user)));
+
+        $last = $this->latestMessages($taskDoctype, $tasks->pluck('task_id'));
+
+        return [
+            'general' => $this->latestMessages($scopeDoctype, collect([$scopeId]))->get($scopeId),
+            'tasks' => $tasks->map(fn ($t) => [
+                'task_id' => $t->task_id,
+                'task_name' => $t->task_name,
+                'parent_name' => $byId->get($t->parent_task_id)?->task_name,
+                'locked' => (bool) $t->is_locked,
+                'restricted' => $audiences->get($t->task_id) !== null,
+                // False for an admin outside a locked task: chat, but no popup.
+                'can_open' => $opens($t->task_id),
+                'last' => $last->get($t->task_id),
+            ])->sortBy([
+                fn ($a, $b) => strcmp($b['last']['date'] ?? '', $a['last']['date'] ?? ''),
+                fn ($a, $b) => strnatcasecmp($a['parent_name'] ?? $a['task_name'], $b['parent_name'] ?? $b['task_name']),
+                fn ($a, $b) => isset($a['parent_name']) <=> isset($b['parent_name']),
+                fn ($a, $b) => strnatcasecmp($a['task_name'], $b['task_name']),
+            ])->values(),
+        ];
+    }
+
+    // refnbr => the thread's newest message, for those that have one.
+    private function latestMessages(string $doctype, Collection $refnbrs): Collection
+    {
+        if ($refnbrs->isEmpty()) {
+            return collect();
+        }
+
+        return TrProjectMessage::where('doctype', $doctype)
+            ->whereIn('refnbr', $refnbrs->map(fn ($id) => (string) $id)->values()->all())
+            ->where('status', 'A')
+            ->where(fn ($q) => $q->whereNull('message_type')->orWhere('message_type', '!=', 'Private'))
+            ->selectRaw('distinct on (refnbr) refnbr, id, username, name, message, message_date')
+            ->orderBy('refnbr')->orderByDesc('message_date')->orderByDesc('id')
+            ->get()
+            ->mapWithKeys(fn ($m) => [$m->refnbr => [
+                'id' => $m->id,
+                'username' => $m->username,
+                'name' => $m->name ?: $m->username,
+                'text' => Str::limit(TrProjectMessage::plainText($m->message), 120),
+                'date' => Carbon::parse($m->message_date)->format('Y-m-d H:i:s'),
+            ]]);
     }
 }

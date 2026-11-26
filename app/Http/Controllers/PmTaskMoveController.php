@@ -9,8 +9,8 @@ use App\Models\MsProjectTaskStatus;
 use App\Models\MsTeam;
 use App\Models\MsTeamTaskStatus;
 use App\Models\TrAttachment;
-use App\Models\TrMessage;
 use App\Models\TrPmActivity;
+use App\Models\TrProjectMessage;
 use App\Models\TrProjectPic;
 use App\Models\TrProjectTask;
 use App\Models\TrProjectTaskAssignee;
@@ -22,6 +22,7 @@ use App\Models\TrTeamTask;
 use App\Models\TrTeamTaskAssignee;
 use App\Models\TrTeamTaskTag;
 use App\Services\PmActivityLogger;
+use App\Services\PmChatAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -215,6 +216,15 @@ class PmTaskMoveController extends Controller
                 'This task has private subtasks you can\'t open, so it can\'t be moved.');
         }
 
+        // A move drops assignees who aren't on the destination board, which
+        // would open their chats — so only someone in every chat may move it.
+        $audiences = PmChatAccess::audiences($from['doctype'], $boardRows);
+        abort_if(
+            $ids->contains(fn ($id) => !PmChatAccess::includes($audiences->get($id), Auth::user())),
+            403,
+            'This task or one of its subtasks has a chat you are not part of, so you can\'t move it.'
+        );
+
         // Root lands in the picked column; subtasks keep a same-named
         // column if the destination has one, else follow the root.
         $byName = $destStatuses->keyBy(fn ($s) => strtolower(trim($s->status_name)));
@@ -363,14 +373,14 @@ class PmTaskMoveController extends Controller
             foreach ($idMap as $old => $new) {
                 TrPmActivity::where('scope_type', $fromType)->where('scope_id', $fromId)->where('task_id', $old)
                     ->update(['scope_type' => $toType, 'scope_id' => $toId, 'task_id' => $new]);
+                TrProjectMessage::where('doctype', $from['doctype'])->where('refnbr', $old)
+                    ->update(['doctype' => $to['doctype'], 'refnbr' => $new]);
             }
         });
 
-        // Chat, files and the cover image live on pgsql2, keyed by doctype + refnbr.
+        // Files and the cover image live on pgsql2, keyed by doctype + refnbr.
         DB::connection('pgsql2')->transaction(function () use ($from, $to, $idMap) {
             foreach ($idMap as $old => $new) {
-                TrMessage::where('doctype', $from['doctype'])->where('refnbr', $old)
-                    ->update(['doctype' => $to['doctype'], 'refnbr' => $new]);
                 TrAttachment::where('doctype', $from['doctype'])->where('refnbr', $old)
                     ->update(['doctype' => $to['doctype'], 'refnbr' => $new]);
                 TrAttachment::where('doctype', $from['doctype'] . 'COVER')->where('refnbr', $old)

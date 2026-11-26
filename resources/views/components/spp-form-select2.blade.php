@@ -5,7 +5,7 @@
      must add .trigger('change.select2'). --}}
 <script>
     $(function() {
-        $('#cpnyid, #business_unit_id, select[name="departementid"], #perpost, #bqtype, #condition_unit, #beban').each(function() {
+        $('#cpnyid, #business_unit_id, select[name="departementid"], #perpost, #bqtype, #condition_unit, #beban, #rfpnonpurchase_type').each(function() {
             $(this).parent().addClass('sf-field');
             $(this).select2({
                 width: '100%',

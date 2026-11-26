@@ -597,7 +597,7 @@ class DocumentNotificationService
             $commentHolidays = self::commentExpiryHolidays();
 
             foreach ($commentDocTypes as $commentDoctype => $cfg) {
-                $rows = TrMessage::where(function ($q) use ($commentDoctype) {
+                $rows = \App\Models\TrProjectMessage::modelFor($commentDoctype)::where(function ($q) use ($commentDoctype) {
                         $q->where('doctype', $commentDoctype);
                         if ($commentDoctype === 'JAP') {
                             $q->orWhere(fn ($legacy) => $legacy->where('doctype', 'PRF')->where('refnbr', 'like', 'JAP%'));
@@ -648,11 +648,20 @@ class DocumentNotificationService
                         ->groupBy('refnbr');
                 }
 
+                $canOpenThread = []; // refnbr => bool, Project module threads only
+
                 foreach ($rows as $row) {
                     $key = 'CMT_' . $commentDoctype . '_' . $row->id;
 
                     $doc = $docsByKey->get($row->refnbr);
                     if (!$doc) {
+                        continue;
+                    }
+
+                    // The notification carries the message text, so a Project module
+                    // thread only notifies people who can open it — mentioned or not.
+                    if (in_array($commentDoctype, ['PRJ', 'TEAM', 'TSK', 'TTK'], true)
+                        && !($canOpenThread[$row->refnbr] ??= \App\Models\TrProjectTask::canOpenThread($commentDoctype, $row->refnbr, $notificationUser))) {
                         continue;
                     }
 
@@ -1419,28 +1428,27 @@ class DocumentNotificationService
                 ->unique();
         }
 
-        // A Task's chat: its creator, the Project's creator, and its
-        // effective assignees (PIC people + members of its PIC Teams).
+        // A Task's chat: its creator, the Project's creator, and its chat
+        // audience — the assignees, or a parent's when it has none (see
+        // PmChatAccess). Whoever can't open the chat is dropped by the caller.
         if ($doctype === 'TSK') {
             $project = \App\Models\MsProject::where('project_id', $doc->project_id)->first();
 
             return collect([$doc->created_by, $project?->created_by])
-                ->merge(\App\Models\TrProjectTask::effectiveAssigneeMap([$doc->task_id])->get($doc->task_id))
+                ->merge(PmChatAccess::audience('TSK', $doc) ?? [])
                 ->filter()
                 ->map(fn($u) => strtolower(trim($u)))
                 ->unique();
         }
 
-        // A Team Task's chat: its creator, the Team's Captain, and its PICs.
+        // A Team Task's chat: its creator, the Team's Captain, and its chat
+        // audience (PICs, or a parent's when it has none).
         if ($doctype === 'TTK') {
             $captain = \App\Models\TrTeamMember::where('team_id', $doc->team_id)
                 ->where('member_role', 'CAPTAIN')->where('status', 'A')->value('username');
 
             return collect([$doc->created_by, $captain])
-                ->merge(
-                    \App\Models\TrTeamTaskAssignee::where('task_id', $doc->task_id)
-                        ->where('status', 'A')->pluck('username')
-                )
+                ->merge(PmChatAccess::audience('TTK', $doc) ?? [])
                 ->filter()
                 ->map(fn($u) => strtolower(trim($u)))
                 ->unique();

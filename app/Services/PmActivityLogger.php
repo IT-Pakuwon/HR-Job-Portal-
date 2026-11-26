@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\MsTeam;
 use App\Models\TrAttachment;
-use App\Models\TrMessage;
 use App\Models\TrPmActivity;
+use App\Models\TrProjectMessage;
 use App\Models\TrProjectTask;
 use App\Models\TrTeamTask;
 use App\Models\User;
@@ -154,6 +154,28 @@ class PmActivityLogger
         return $ids;
     }
 
+    // Which of $taskIds have a chat the current user takes part in. Locks are
+    // already applied by the caller's choice of $taskIds.
+    private static function chatTaskIds(string $scopeType, string $scopeId, string $taskDoctype, array $taskIds): array
+    {
+        $user = Auth::user();
+
+        if (!$taskIds || PmChatAccess::isAdmin($user)) {
+            return $taskIds;
+        }
+
+        [$model, $scopeColumn] = $scopeType === 'PROJECT'
+            ? [TrProjectTask::class, 'project_id']
+            : [TrTeamTask::class, 'team_id'];
+
+        // The whole board, so every task's parents are at hand.
+        $audiences = PmChatAccess::audiences($taskDoctype,
+            $model::where($scopeColumn, $scopeId)->get(['task_id', 'parent_task_id', 'created_by']));
+
+        return array_values(array_filter($taskIds,
+            fn ($id) => PmChatAccess::includes($audiences->get($id), $user)));
+    }
+
     // Merged, newest-first feed: logged events + chat messages + file
     // uploads. $tasks = task_id => ['name' => …, 'parent' => bool] of the
     // tasks the viewer may see; $scopeDoctype ('PRJ' or null) pulls in the
@@ -164,7 +186,16 @@ class PmActivityLogger
         $limit = self::FEED_LIMIT;
         $items = collect();
 
+        // Messages and files only show for the Task chats the viewer takes part
+        // in (PmChatAccess); the other events show for every task they see.
+        $chatIds = self::chatTaskIds($scopeType, $scopeId, $taskDoctype, $taskIds);
+        $noChat = array_values(array_diff($taskIds, $chatIds));
+
         $logs = TrPmActivity::where('scope_type', $scopeType)->where('scope_id', $scopeId)
+            // File events name the file.
+            ->when($noChat, fn ($q) => $q->where(fn ($w) => $w->whereNull('task_id')
+                ->orWhereNotIn('task_id', $noChat)
+                ->orWhere('action', 'not like', 'file\_%')))
             ->where(function ($q) use ($taskIds, $withScopeEvents) {
                 $q->whereIn('task_id', $taskIds ?: ['']);
                 if ($withScopeEvents) {
@@ -186,8 +217,9 @@ class PmActivityLogger
             ]);
         }
 
-        // Comments/files live on pgsql2, keyed by doctype + refnbr.
-        $refs = [[$taskDoctype, $taskIds]];
+        // Comments (tr_project_message) and files (pgsql2 tr_attachment) are
+        // both keyed by doctype + refnbr.
+        $refs = [[$taskDoctype, $chatIds]];
         if ($withScopeEvents && $scopeDoctype) {
             $refs[] = [$scopeDoctype, [$scopeId]];
         }
@@ -197,7 +229,7 @@ class PmActivityLogger
                 continue;
             }
 
-            $messages = TrMessage::where('doctype', $doctype)->whereIn('refnbr', $refnbrs)->where('status', 'A')
+            $messages = TrProjectMessage::where('doctype', $doctype)->whereIn('refnbr', $refnbrs)->where('status', 'A')
                 ->where(fn ($q) => $q->whereNull('message_type')->orWhere('message_type', '!=', 'Private'))
                 ->orderByDesc('message_date')->limit($limit)->get();
 
@@ -210,7 +242,7 @@ class PmActivityLogger
                     'username' => $m->username,
                     'text' => 'sent a message',
                     'task_id' => $doctype === $taskDoctype ? $m->refnbr : null,
-                    'message' => TrMessage::plainText($m->message),
+                    'message' => TrProjectMessage::plainText($m->message),
                     'changes' => [],
                 ]);
             }

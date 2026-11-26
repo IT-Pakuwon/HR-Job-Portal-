@@ -1,12 +1,5 @@
 <x-app-layout>
-    <style>
-        #department_select + .select2-container { width: 100% !important; }
-        #department_select + .select2-container .select2-selection--single {
-            height: 42px; border: 1px solid #d1d5db; border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,.05);
-        }
-        #department_select + .select2-container .select2-selection__rendered { line-height: 40px; padding-left: 12px; font-size: 0.875rem; }
-        #department_select + .select2-container .select2-selection__arrow { height: 40px; right: 6px; }
-    </style>
+    <x-spp-form-styles />
     <div class="max-w-9xl mx-auto p-2">
         <div class="max-w-9xl mx-auto w-full px-4">
             <div class="gap-4">
@@ -20,7 +13,7 @@
                         <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                             <!-- Header -->
-                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
                                 <div class="flex items-center gap-3">
                                     <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" /></svg>
@@ -47,8 +40,8 @@
                             <!-- Form Inputs -->
                             <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
                                 <!-- Company -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company</label>
                                     <select name="cpny_id" required
                                         class="h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         {{-- @foreach ($companies as $p)
@@ -64,8 +57,8 @@
                                 </div>
 
                                 <!-- Business Unit -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Business Unit</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Business Unit</label>
                                     <select name="business_unit_id" required
                                         class="h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         @foreach ($businessUnits as $bu)
@@ -78,8 +71,8 @@
                                 </div>
 
                                 <!-- Department -->
-                                <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</label>
+                                <div class="sf-field">
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department</label>
                                     <select name="department_fin_id" id="department_select" required
                                         class="h-[42px] w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         @foreach ($departements as $d)
@@ -93,7 +86,7 @@
 
                                 <!-- File Upload -->
                                 <div>
-                                    <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Import Excel</label>
+                                    <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Import Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="block h-[42px] w-full cursor-pointer rounded-lg border border-gray-300 bg-white text-sm text-gray-600 shadow-sm transition file:mr-3 file:h-full file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200" />
                                 </div>
@@ -118,7 +111,7 @@
                             $rows = isset($tempData) && count($tempData) > 0 ? $tempData : $budget_detail;
                         @endphp
                         <div class="flex-1 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                            <div class="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
+                            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-700 dark:from-gray-800 dark:to-gray-800">
                                 <h2 class="flex items-center gap-3 text-base font-bold text-gray-800 dark:text-gray-100">
                                     <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
@@ -187,25 +180,29 @@
                             </div>
                         </div>
 
-                        <div class="flex-1 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <div class="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                             <form id="submitApprovalForm" method="POST" enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="flex w-full flex-col gap-4">
                                     <div class="flex w-full flex-col">
-                                        <details class="group mb-4" open>
+                                        <details class="group" open>
                                             <summary
-                                                class="mb-4 flex cursor-pointer list-none items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">
-                                                <span class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                                    Attachments
-                                                </span>
-                                                <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
-                                                <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
-                                            </summary>
+                                class="flex cursor-pointer list-none items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
+                                <span class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg></span>
+                                    <span>
+                                        <span class="block text-base font-bold text-gray-800 dark:text-white">Attachments</span>
+                                        <span class="block text-xs text-gray-500 dark:text-gray-400">Supporting documents for this request</span>
+                                    </span>
+                                </span>
+                                <span class="text-sm font-medium text-blue-600 transition-all group-open:hidden">See details &rarr;</span>
+                                <span class="hidden text-sm font-medium text-blue-600 transition-all group-open:inline">Hide details &darr;</span>
+                            </summary>
+                            <div class="flex flex-col gap-3 px-6 py-5">
 
                                             {{-- Existing attachments (signed URL) --}}
-                                            <div id="attachmentsList" class="mt-2 flex flex-col gap-2">
+                                            <div id="attachmentsList" class="flex flex-col gap-3">
                                                 @forelse ($attachments as $att)
                                                     <div class="attachment-row flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/40"
                                                         data-id="{{ $att->id }}">
@@ -252,48 +249,38 @@
                                             </div>
 
                                             {{-- Upload baru --}}
-                                            <div id="attachmentsContainer" class="mt-4">
+                                            <div id="attachmentsContainer" class="flex flex-col gap-3">
                                                 <div class="attachment-row mb-2 flex items-center gap-2">
                                                     <input type="file" name="attachments[]"
                                                         class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                                     <button type="button"
-                                                        class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                                                        class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 hidden"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                                                 </div>
                                             </div>
 
                                             <button type="button" id="addAttachment"
-                                                class="mb-2 mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                                Add Attachment
-                                            </button>
-                                        </details>
+                                                class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                    Add Attachment
+                                </button>
+                            </div>
+                        </details>
                                     </div>
                                     <div
-                                        class="mt-2 flex flex-col gap-4 border-t border-gray-100 pt-5 dark:border-gray-700 md:flex-row md:items-center md:justify-between">
+                                        class="flex flex-row flex-wrap items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-700 dark:bg-white/[0.02]">
                                         <button id="backBtn" onclick="history.back()"
-                                            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-
-                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 19l-7-7 7-7" />
-                                            </svg>
-
-                                            <span>Back</span>
-                                        </button>
+                                            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 mr-auto mr-auto">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                <span>Back</span>
+                            </button>
 
                                         <!-- Cancel + Submit -->
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                        <div class="flex flex-row flex-wrap items-center gap-3">
                                             <input type="hidden" name="temp_id" value="{{ $temp_id }}">
 
                                             <!-- Cancel -->
                                             <button id="cancelBtn"
-                                                class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300">
+                                                class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
 
                                                 <span id="cancelText">Cancel</span>
                                                 <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -455,13 +442,9 @@
             const rowTemplate = `
             <div class="attachment-row flex items-center gap-2">
                 <input type="file" name="attachments[]"
-                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700
-                        file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2
-                        file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300
-                        dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                 <button type="button"
-                class="removeAttachment h-[42px] w-[42px] inline-flex shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-600 hover:bg-red-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
             </div>`;
 
             // Tambah baris baru
@@ -606,7 +589,21 @@
     <script>
         $(function() {
             // Init Select2 sekali
+            // Company and Business Unit get the same look; Business Unit options are rebuilt by AJAX, so watch them
+            $('select[name="cpny_id"], select[name="business_unit_id"]').select2({
+                width: '100%',
+                minimumResultsForSearch: 8,
+                dropdownCssClass: 'sf-s2-dropdown'
+            });
+            const buSelect = document.querySelector('select[name="business_unit_id"]');
+            if (buSelect && window.MutationObserver) {
+                new MutationObserver(function() {
+                    $(buSelect).trigger('change.select2');
+                }).observe(buSelect, { childList: true, subtree: true });
+            }
+
             $('#department_select').select2({
+                dropdownCssClass: 'sf-s2-dropdown',
                 width: '100%',
                 placeholder: 'Select',
                 allowClear: true,

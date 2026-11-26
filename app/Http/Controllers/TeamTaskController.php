@@ -12,11 +12,13 @@ use App\Http\Controllers\Traits\TagsCompleteTasks;
 use App\Models\MsTeam;
 use App\Models\MsTeamTaskStatus;
 use App\Models\MsTaskTag;
+use App\Models\TrProjectTask;
 use App\Models\TrTeamTask;
 use App\Models\TrTeamTaskAssignee;
 use App\Models\TrTeamTaskTag;
 use App\Models\User;
 use App\Services\PmActivityLogger;
+use App\Services\PmChatAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -291,8 +293,15 @@ class TeamTaskController extends Controller
 
         [$fileCounts, $commentCounts] = $this->taskCardCounts('TTK', $tasks->pluck('task_id'));
 
-        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $fileCounts, $commentCounts) {
+        // Chat and files are narrower than the card: see PmChatAccess.
+        $audiences = PmChatAccess::audiences('TTK', $tasks,
+            $assignees->map(fn ($rows) => $rows->map(fn ($a) => strtolower(trim($a->username)))));
+
+        $flat = $tasks->map(function ($t) use ($assignees, $taskTags, $tagMaster, $withPeople, $fileCounts, $commentCounts, $audiences) {
+            $canChat = PmChatAccess::includes($audiences->get($t->task_id), Auth::user());
+
             return [
+                'can_chat' => $canChat,
                 'task_id' => $t->task_id,
                 // Hashids-encoded ms id (not the task_id business key) — the
                 // /task/{eid} deep-link URL, same convention as Projects.
@@ -306,8 +315,8 @@ class TeamTaskController extends Controller
                 'status_id' => $t->status_id,
                 'status' => $t->status,
                 'progress_percent' => (float) $t->progress_percent,
-                'file_count' => (int) ($fileCounts[$t->task_id] ?? 0),
-                'comment_count' => (int) ($commentCounts[$t->task_id] ?? 0),
+                'file_count' => $canChat ? (int) ($fileCounts[$t->task_id] ?? 0) : null,
+                'comment_count' => $canChat ? (int) ($commentCounts[$t->task_id] ?? 0) : null,
                 'created_by' => $t->created_by,
                 'created_at' => optional($t->created_at)->toDateTimeString(),
                 'assignees' => ($assignees->get($t->task_id) ?? collect())->pluck('username'),
@@ -510,6 +519,15 @@ class TeamTaskController extends Controller
             );
         }
 
+        // Saving the form with the assignees untouched stays open to every
+        // task editor.
+        if ($request->has('assignees') && PmChatAccess::listChanged(
+            TrTeamTaskAssignee::where('task_id', $task->task_id)->where('status', 'A')->pluck('username'),
+            $request->input('assignees', [])
+        )) {
+            PmChatAccess::abortUnlessCanAssign('TTK', $task);
+        }
+
         $username = Auth::user()->username;
         $now = now();
         $before = $this->taskSnapshot($task);
@@ -604,6 +622,14 @@ class TeamTaskController extends Controller
         $this->assertCanMoveUnder($this->parentMap($teamId), $taskId, $parentId);
         $oldParentId = $task->parent_task_id;
 
+        abort_if(
+            PmChatAccess::moveWouldOpen('TTK',
+                TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])->get(['task_id', 'parent_task_id', 'created_by']),
+                $taskId, $parentId, Auth::user()),
+            403,
+            'This move would open a task chat you are not part of. Ask an assignee, the creator or a project admin.'
+        );
+
         $values = ['parent_task_id' => $parentId];
         if (!$parentId && $request->filled('status_id')) {
             abort_unless(MsTeamTaskStatus::where('team_id', $teamId)->where('status_id', $request->status_id)->where('status', 'A')->exists(), 422, 'Unknown status.');
@@ -640,6 +666,7 @@ class TeamTaskController extends Controller
         $task = $this->liveTask($teamId, $taskId);
 
         $this->abortIfChecklistItem($this->parentMap($teamId), $taskId, 'assignees');
+        PmChatAccess::abortUnlessCanAssign('TTK', $task);
         $request->validate(['usernames' => ['required', 'array', 'min:1'], 'usernames.*' => ['string']]);
 
         $members =$team->memberUsers()->pluck('username')->map(fn ($u) => strtolower(trim($u)));
@@ -846,15 +873,35 @@ class TeamTaskController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // Chat list of the Team board's Message tab.
+    public function chatThreads(string $teamId)
+    {
+        $this->team($teamId);
+
+        // Cancelled ('C') tasks stay on the board, so their chats stay listed.
+        $all = TrTeamTask::where('team_id', $teamId)->whereIn('status', ['A', 'C'])
+            ->get(['task_id', 'parent_task_id', 'task_name', 'created_by']);
+
+        return response()->json($this->buildChatThreads('TEAM', $teamId, 'TTK', $all));
+    }
+
     // @mention autocomplete for a Team Task's chat — eligible members of the Team.
-    // Same people for a Task's chat and the Team-wide Message tab (which
-    // has no task — routed without {taskId}).
+    // The Team-wide Message tab (no task — routed without {taskId}) offers
+    // every member; a Task's chat only those who take part in it.
     public function mentionableUsers(string $teamId, ?string $taskId = null)
     {
         $team = $this->team($teamId);
 
+        $audience = null;
+        if ($taskId) {
+            $task = TrTeamTask::where('team_id', $teamId)->where('task_id', $taskId)->firstOrFail();
+            TrProjectTask::abortUnlessAccessible('TTK', $taskId);
+            $audience = PmChatAccess::audience('TTK', $task);
+        }
+
         $users = $team->memberUsers()
             ->reject(fn ($u) => strtolower(trim($u->username)) === strtolower(Auth::user()->username))
+            ->filter(fn ($u) => PmChatAccess::includes($audience, $u))
             ->values();
 
         return response()->json($users->map(fn ($u) => ['username' => $u->username, 'name' => $u->name]));

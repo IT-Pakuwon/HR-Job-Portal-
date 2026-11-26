@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-popup-styles />
     <x-spp-list-styles />
     <x-spp-list-scripts />
     @php
@@ -49,25 +50,23 @@
 
         <!-- Tracking Modal -->
         <!-- ================== TRACKING DETAIL MODAL (TABS) ================== -->
-        <div id="trackingModal" class="fixed inset-0 z-50 hidden bg-black/50">
+        <div id="trackingModal" class="app-popup fixed inset-0 z-50 hidden">
             <div class="flex min-h-screen items-center justify-center p-4">
                 <div
-                    class="max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                    class="app-dialog max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
 
                     <!-- Header -->
                     <div
-                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        class="app-head flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
                         <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
                             Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
                         </h3>
-                        <button type="button" id="closeTracking"
-                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                            ✕
-                        </button>
+                        <button aria-label="Close" type="button" id="closeTracking"
+                            class="app-close"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
 
                     <!-- Tabs -->
-                    <div class="border-b border-gray-200 px-4 dark:border-gray-700">
+                    <div class="app-tabs border-b border-gray-200 px-4 dark:border-gray-700">
                         <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
                             <button class="track-tab active" data-tab="tab-sppb">SPPB</button>
                             <button class="track-tab" data-tab="tab-cs">CS</button>
@@ -77,7 +76,7 @@
                     </div>
 
                     <!-- Body -->
-                    <div class="max-h-[calc(90vh-110px)] overflow-y-auto p-4">
+                    <div class="app-body max-h-[calc(90vh-110px)] overflow-y-auto p-4">
                         <div id="tlLoading"
                             class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
                             <span

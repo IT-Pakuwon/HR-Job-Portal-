@@ -75,6 +75,34 @@ class MsProject extends Model
             ->values();
     }
 
+    // Who may open this Project's Tasks and chats: admin / PROADMINACCESS,
+    // its creator, a picked PIC person, or a member of a linked Team.
+    // Answered with at most two EXISTS queries — it runs on every task,
+    // comment and attachment request.
+    public function isAccessibleBy(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $me = strtolower(trim((string) $user->username));
+
+        if ($user->isPrimaryAdmin()
+            || strtolower(trim((string) $this->created_by)) === $me
+            || $user->hasRole('PROADMINACCESS')) {
+            return true;
+        }
+
+        return TrProjectPic::where('project_id', $this->project_id)
+                ->where('status', 'A')->where('pic_type', 'USER')
+                ->whereRaw('lower(trim(ref_id)) = ?', [$me])->exists()
+            || TrTeamMember::where('status', 'A')
+                ->whereRaw('lower(trim(username)) = ?', [$me])
+                ->whereIn('team_id', TrProjectTeam::where('project_id', $this->project_id)
+                    ->where('status', 'A')->select('team_id'))
+                ->exists();
+    }
+
     // Links out (this project -> others it points to)
     public function links()
     {
