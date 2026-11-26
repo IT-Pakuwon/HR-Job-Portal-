@@ -5,6 +5,28 @@
         #masterKontrakBq .master-bq-category-filter { flex: 1 1 150px; min-width: 130px; max-width: 240px; }
         #masterKontrakBq .master-bq-type-filter { flex: 1 1 110px; min-width: 100px; max-width: 160px; }
         #masterKontrakBq .master-bq-filter-select { width: 100%; height: 42px; }
+        #masterCategoryTable tbody tr { cursor: pointer; }
+        #masterCategoryTable tbody tr.category-selected > td { background-color: #e0e7ff !important; }
+        .dark #masterCategoryTable tbody tr.category-selected > td { background-color: #373b68 !important; }
+        #masterKontrakBq .select2-container--default .select2-selection--single {
+            height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+        }
+        #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 40px;
+            padding-left: 12px;
+        }
+        #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+        .dark #masterKontrakBq .select2-container--default .select2-selection--single {
+            background-color: #111827;
+            border-color: #4b5563;
+        }
+        .dark #masterKontrakBq .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #f3f4f6;
+        }
     </style>
     <div id="masterKontrakBq" class="mx-auto w-full space-y-4 p-2"
         data-json="{{ route('kontrak.master-bq.json') }}" data-store="{{ route('kontrak.master-bq.store') }}"
@@ -14,18 +36,29 @@
             <a href="{{ route('kontrak') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-200">Kontrak</a>
             <span aria-current="page" class="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Master Kontrak</span>
         </nav>
-        <div role="tablist" aria-label="Master Kontrak" class="flex flex-wrap justify-end gap-2">
-            <button type="button" role="tab" id="masterBqTab" data-master-tab="bq" aria-controls="masterBqPanel" aria-selected="true" class="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Master Kontrak BQ</button>
-            <button type="button" role="tab" id="masterCategoryTab" data-master-tab="category" aria-controls="masterCategoryPanel" aria-selected="false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm">Kategori Kontrak BQ</button>
-        </div>
-        </div>
-        <section id="masterBqPanel" role="tabpanel" aria-labelledby="masterBqTab" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <header class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
-                <h1 class="self-center text-base font-semibold text-gray-800 dark:text-gray-100">Master Kontrak BQ</h1>
-                <div class="ml-auto flex min-w-0 flex-nowrap items-center justify-end gap-3 max-sm:w-full">
-                    <div class="master-bq-category-filter sppb-f relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg></span>
-                        <select id="masterBqCategoryFilter" aria-label="Category">
+        <section id="masterCategoryPanel" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Kategori Kontrak BQ</h2>
+                <button id="masterCategoryAdd" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Add Kategori</button>
+            </header>
+            <div id="masterCategoryNotice" role="status" class="hidden px-4 py-3 text-sm text-emerald-700"></div>
+            <div class="overflow-x-auto p-4">
+                <table id="masterCategoryTable" class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <thead><tr>
+                        @foreach (['Edit', 'Category', 'Description', 'Status'] as $heading)
+                            <th class="px-3 py-3 text-left">{{ $heading }}</th>
+                        @endforeach
+                    </tr></thead>
+                </table>
+            </div>
+        </section>
+        <section id="masterBqPanel" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <header class="flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
+                <div class="flex min-w-0 flex-1 flex-wrap items-end gap-3">
+                    <h1 class="self-center text-base font-semibold text-gray-800 dark:text-gray-100">Master Kontrak BQ</h1>
+                    <div class="master-bq-category-filter">
+                        <label for="masterBqCategoryFilter" class="mb-1 block text-xs text-gray-500">Category</label>
+                        <select id="masterBqCategoryFilter" class="master-bq-filter-select block rounded-lg border-gray-300 text-sm dark:bg-gray-900 dark:text-gray-100">
                             <option value="">All Category</option>
                             @foreach ($categories as $category)
                                 <option value="{{ $category->kontrakcategory }}">{{ $category->kontrakcategory }} - {{ $category->kontrakcategory_descr }}</option>
@@ -56,23 +89,7 @@
                 </table>
             </div>
         </section>
-        <section id="masterCategoryPanel" role="tabpanel" aria-labelledby="masterCategoryTab" class="hidden border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
-                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Kategori Kontrak BQ</h2>
-                <button id="masterCategoryAdd" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Add Kategori</button>
-            </header>
-            <div id="masterCategoryNotice" role="status" class="hidden px-4 py-3 text-sm text-emerald-700"></div>
-            <div class="overflow-x-auto p-4">
-                <table id="masterCategoryTable" class="w-full text-sm text-gray-700 dark:text-gray-200">
-                    <thead><tr>
-                        @foreach (['Edit', 'Category', 'Description', 'Status'] as $heading)
-                            <th class="px-3 py-3 text-left">{{ $heading }}</th>
-                        @endforeach
-                    </tr></thead>
-                </table>
-            </div>
-        </section>
-        <dialog id="masterBqDialog" aria-labelledby="masterBqModalTitle" class="w-full max-w-2xl rounded-2xl border border-gray-100 bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-slate-900/40 backdrop:backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" style="position:fixed;inset:0;margin:auto;max-width:min(42rem,calc(100vw - 2rem));max-height:90vh;overflow-y:auto;">
+        <dialog id="masterBqDialog" aria-labelledby="masterBqModalTitle" class="w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-0 text-gray-800 backdrop:bg-black/50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" style="position:fixed;inset:0;margin:auto;max-width:min(42rem,calc(100vw - 2rem));max-height:90vh;overflow-y:auto;">
             <form id="masterBqForm">
                 <header class="flex items-center justify-between gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                     <div class="flex items-center gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span><div><h2 id="masterBqModalTitle" class="text-base font-bold text-gray-800 dark:text-white">Add Kontrak Bq</h2><p class="text-xs text-gray-500 dark:text-gray-400">Define a bill-of-quantity line for kontrak</p></div></div>
