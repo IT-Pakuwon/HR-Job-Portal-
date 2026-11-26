@@ -1555,6 +1555,7 @@ class CanvassController extends Controller
             // 8) DETAIL TrCSdetail + akumulasi header vendor selected
             $lineNo = 0;
             $docSelectedGrand = 0.0;
+            [$inventories, $businessUnits, $defaultSiteId] = $this->csInventoryContext($details, (string) $cpnyId);
             // $selectedByVendor = [];
             // for ($i = 1; $i <= 6; $i++) {
             //     $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
@@ -1602,6 +1603,12 @@ class CanvassController extends Controller
                             strtoupper(trim($d['inventory_descr'] ?? ''));
 
                 $src = $srcIndex[$matchKey] ?? null;
+                $reuse = $reuseIndex[$matchKey] ?? null;
+                $prevLoc = $prevLocIndex[$matchKey] ?? null;
+                $finalInventoryId = $d['inventoryid'] ?? ($src->inventoryid ?? ($reuse->inventoryid ?? null));
+                $inventoryFields = $this->resolveCsInventoryFields((string) $finalInventoryId, $d,
+                    [$src, $reuse, $prevLoc], $inventories->get(strtoupper(trim((string) $finalInventoryId))),
+                    $businessUnits, (string) $cpnyId, $defaultSiteId, $lineNo);
 
                 if ($src) {
                     if (!empty($srcLineKey) && isset($src->{$srcLineKey})) {
@@ -1623,18 +1630,16 @@ class CanvassController extends Controller
                 $det->cs_no = $lineNo;
                 $det->sppbjkt_no = $requestRefNo ?? $srcRefNo;
 
-                // inventory fields (payload > sumber)
-                $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? null);
-                $det->inventoryid = $d['inventoryid'] ?? ($src->inventoryid ?? null);
+                $det->inventory_type = $inventoryFields['inventory_type'];
+                $det->inventoryid = $finalInventoryId;
                 $det->inventory_descr = $d['inventory_descr'] ?? ($src->inventory_descr ?? null);
 
-                // >>> tambah ini supaya tidak null <<<
-                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? null);
-                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? null);
+                $det->inventory_sub_type = $inventoryFields['inventory_sub_type'];
+                $det->inventory_category = $inventoryFields['inventory_category'];
 
                 $det->qty = $round2($d['qty'] ?? ($src->qty ?? 0));
                 $det->uom = $d['uom'] ?? ($src->uom ?? null);
-                $det->siteid = $d['siteid'] ?? ($src->siteid ?? null);
+                $det->siteid = $inventoryFields['siteid'];
 
                 // konversi dari sumber (jika ada)
                 $det->type_multiplier = $src->type_multiplier ?? null;
@@ -1815,6 +1820,10 @@ class CanvassController extends Controller
                 'status' => $cs->status,
                 'submitdate' => optional($cs->submitdate)->toDateTimeString(),
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \DB::connection('pgsql')->rollBack();
+
+            return response()->json(['ok' => false, 'message' => $e->getMessage(), 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             \DB::connection('pgsql')->rollBack();
             report($e);

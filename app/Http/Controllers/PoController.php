@@ -2518,7 +2518,13 @@ class PoController extends Controller
 
         $data = $request->validate([
             'reason' => ['required', 'string', 'min:3'],
+            'po_hash' => ['required', 'string'],
         ]);
+
+        $poId = Hashids::decode($data['po_hash'])[0] ?? null;
+        if (!$poId) {
+            return response()->json(['success' => false, 'message' => 'Identitas PO tidak valid.'], 422);
+        }
 
         // ✅ inject reason supaya bisa dibaca SendCommentController lewat $request->input('message') / 'comment'
         // sesuaikan key yang dipakai di SendCommentController (lihat catatan di bawah)
@@ -2529,10 +2535,11 @@ class PoController extends Controller
             'refnbr'  => $ponbr,
         ]);
 
-        return DB::transaction(function () use ($ponbr, $data, $user, $request) {
+        return DB::transaction(function () use ($ponbr, $poId, $user, $request) {
 
-            $po = TrPO::where('ponbr', $ponbr)
-                ->where('cpny_id', $user->cpny_id)
+            $po = TrPO::where('id', $poId)
+                ->where('ponbr', $ponbr)
+                ->whereIn('cpny_id', $user->scopedCompanyIds())
                 ->lockForUpdate()->firstOrFail();
 
             // guard status
@@ -2545,7 +2552,7 @@ class PoController extends Controller
 
             // lock all details
             $details = TrPOdetail::where('ponbr', $ponbr)
-                ->where('budget_cpny_id', $user->cpny_id)
+                ->where('budget_cpny_id', $po->cpny_id)
                 ->lockForUpdate()
                 ->orderBy('id')
                 ->get();
