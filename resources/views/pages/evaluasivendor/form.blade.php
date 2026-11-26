@@ -89,12 +89,11 @@
                             <col style="width:22%">
                             <col style="width:8%">
                         </colgroup>
-                        <thead class="border-b border-gray-200 bg-white text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-900"><tr><th class="px-4 py-3">Aspek / Subaspek</th><th class="px-3 py-3 text-center">Bobot %</th><th class="px-3 py-3">Kriteria Penilaian</th><th class="px-3 py-3">Skor</th><th class="px-3 py-3 text-center">Nilai Terbobot</th><th class="px-3 py-3">Catatan / Bukti Lapangan</th><th class="px-3 py-3 text-center">Attachment</th></tr></thead>
+                        <thead class="border-b border-gray-200 bg-white text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-700 dark:bg-gray-900"><tr><th class="px-4 py-3">Aspek / Subaspek</th><th class="px-3 py-3 text-center">Bobot %</th><th class="px-3 py-3">Kriteria Penilaian</th><th class="px-3 py-3">Skor</th><th class="px-3 py-3 text-center">Nilai Terbobot</th><th class="px-3 py-3">Catatan</th><th class="px-3 py-3 text-center">Attachment</th></tr></thead>
                         <tbody id="rating-body"></tbody>
                     </table></div>
-                    <div class="grid grid-cols-1 gap-4 border-t border-gray-100 px-5 py-5 dark:border-gray-700 md:grid-cols-2">
-                        <label class="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"><span>Catatan Evaluasi</span><textarea name="vendor_perfomance_note" rows="3" maxlength="10000" placeholder="Tulis catatan umum hasil evaluasi…" class="kpi-text" style="min-height:5.5rem;text-transform:none;letter-spacing:normal;font-weight:400">{{ old('vendor_perfomance_note', $evaluation->vendor_perfomance_note) }}</textarea></label>
-                        <label class="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"><span>Komentar / Rekomendasi</span><textarea name="template_vpe_aspect_comment" rows="3" maxlength="10000" placeholder="Tulis komentar atau rekomendasi untuk vendor…" class="kpi-text" style="min-height:5.5rem;text-transform:none;letter-spacing:normal;font-weight:400">{{ old('template_vpe_aspect_comment', $evaluation->template_vpe_aspect_comment) }}</textarea></label>
+                    <div class="border-t border-gray-100 px-5 py-5 dark:border-gray-700">
+                        <label class="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"><span>Catatan Evaluasi <span class="text-red-500">*</span></span><textarea name="vendor_perfomance_note" rows="3" maxlength="10000" required placeholder="Tulis catatan umum hasil evaluasi…" class="kpi-text" style="min-height:5.5rem;text-transform:none;letter-spacing:normal;font-weight:400">{{ old('vendor_perfomance_note', $evaluation->vendor_perfomance_note) }}</textarea></label>
                     </div>
                     <div class="flex flex-wrap items-center justify-between gap-4 border-t border-indigo-100 bg-linear-to-r from-indigo-50 to-white px-5 py-4 text-indigo-900 dark:border-gray-700 dark:from-indigo-500/10 dark:to-transparent dark:text-indigo-200">
                         <span class="text-sm font-semibold uppercase tracking-wide">Total Nilai KPI</span>
@@ -211,7 +210,6 @@
             const creating = @json($creating);
             const oldRatings = @json(old('ratings', []));
             const oldNotes = @json(old('notes', []));
-            const oldCriteria = @json(old('criteria', []));
             const recorded = @json($details);
             const existingAttachments = @json($attachments ?? []);
             const selectedFiles = new Map(), removedAttachments = new Set();
@@ -334,15 +332,15 @@
                     const id = detail.template_vpe_subaspect_id;
                     const selected = oldRatings[id] ?? detail.template_vpe_subaspect_score ?? '';
                     const labels = {1: 'Sangat Kurang', 2: 'Kurang', 3: 'Cukup', 4: 'Baik', 5: 'Sangat Baik'};
-                    const criteriaText = oldCriteria[id] ?? detail.template_vpe_subaspect_kriteria ?? '';
+                    const criteriaText = detail.template_vpe_subaspect_kriteria ?? '';
                     const options = [1,2,3,4,5].map(score => `<option value="${score}" ${Number(selected) === score ? 'selected' : ''}>${score} — ${labels[score]}</option>`).join('');
                     body.insertAdjacentHTML('beforeend', `<tr data-group="${escape(detail.template_vpe_aspect_id)}" class="kpi-row border-b border-gray-100 align-top transition-colors hover:bg-indigo-50/30 dark:border-gray-700 dark:hover:bg-indigo-500/5">
                         <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">${escape(detail.template_vpe_subaspect_descr)}</td>
                         <td class="px-3 py-3 text-center"><span class="kpi-weight">${Number(detail.template_vpe_subaspect_bobot).toFixed(2)}</span></td>
-                        <td class="px-3 py-3"><textarea name="criteria[${escape(id)}]" rows="3" maxlength="10000" aria-label="Kriteria penilaian ${escape(id)}" class="kpi-text" ${editable ? '' : 'disabled'}>${escape(criteriaText)}</textarea></td>
+                        <td class="whitespace-pre-line px-3 py-3">${escape(criteriaText)}</td>
                         <td class="px-3 py-3"><div class="kpi-score" data-score="${escape(selected)}">${[1,2,3,4,5].map(n => `<button type="button" class="kpi-score-btn" data-value="${n}" title="${n} — ${labels[n]}" aria-label="Skor ${n} — ${labels[n]}" ${editable ? '' : 'disabled'}>${n}</button>`).join('')}</div><div class="kpi-score-label mt-1 text-center text-[11px] font-medium text-gray-500">${selected ? labels[selected] : 'Belum dinilai'}</div><select class="rating-input kpi-select-hidden" tabindex="-1" aria-label="Skor ${escape(id)}" name="ratings[${escape(id)}]" data-aspect="${escape(detail.template_vpe_aspect_id)}" data-weight="${Number(detail.template_vpe_subaspect_bobot)}" required ${editable ? '' : 'disabled'}><option value="">—</option>${options}</select></td>
                         <td class="weighted-score px-3 py-3 text-center text-base font-bold text-indigo-700 dark:text-indigo-300">${detail.template_vpe_subaspect_nilai ?? '—'}</td>
-                        <td class="px-3 py-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan atau bukti lapangan ${escape(id)}" class="kpi-text" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td>
+                        <td class="px-3 py-3"><textarea name="notes[${escape(id)}]" rows="3" maxlength="10000" aria-label="Catatan ${escape(id)}" class="kpi-text" ${editable ? '' : 'disabled'}>${escape(oldNotes[id] ?? detail.template_vpe_subaspect_note)}</textarea></td>
                         <td class="px-3 py-3 text-center"><button type="button" class="kpi-attachment-open kpi-clip" data-subaspect="${escape(id)}" data-detail="${escape(detail.id ?? '')}" data-label="${escape(detail.template_vpe_subaspect_descr)}" aria-label="Attachment ${escape(detail.template_vpe_subaspect_descr)}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l9-9a3.7 3.7 0 015.2 5.2l-9 9a1.8 1.8 0 01-2.6-2.6l8.3-8.3"/></svg><span class="kpi-attachment-count"></span></button></td></tr>`);
                 });
                 body.querySelectorAll('.rating-input').forEach(input => {
