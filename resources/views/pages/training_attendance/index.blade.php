@@ -610,7 +610,7 @@
 
                 $body.append(`
                     <tr class="rosterRow cursor-pointer transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.03]" data-id="${r.id}">
-                        <td class="px-4 py-3"><span class="inline-flex min-w-[130px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-regular fa-file-lines text-xs opacity-80"></i>${r.docid}</span></td>
+                        <td class="px-4 py-3"><span class="group/doc inline-flex min-w-[130px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide text-blue-700 tabular-nums dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span>${r.docid}</span></td>
                         <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">${r.name}</td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.cpny_name ?? '-'}</td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-300">${r.department_name ?? '-'}</td>

@@ -67,7 +67,7 @@
             </x-list-page-header>
 
             <div class="relative overflow-hidden">
-                <table id="kontrakTable" class="w-full min-w-full table-fixed border-separate border-spacing-0 text-sm">
+                <table id="kontrakTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead>
                         <tr
                             class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
@@ -77,7 +77,7 @@
                             <th class="w-24 px-4 py-3 text-center! font-medium">Company</th>
                             <th class="w-24 px-4 py-3 text-center! font-medium">Type</th>
                             <th class="w-28 px-4 py-3 text-center! font-medium">Category</th>
-                            <th class="min-w-[240px] px-4 py-3 text-left font-medium">Vendor</th>
+                            <th class="w-1/5 px-4 py-3 text-left font-medium">Vendor</th>
                             <th class="w-32 px-4 py-3 text-center! font-medium">Start Date</th>
                             <th class="w-32 px-4 py-3 text-center! font-medium">End Date</th>
                             <th class="w-44 px-4 py-3 text-left font-medium">Created By</th>
@@ -186,7 +186,7 @@
                     : 'border-blue-100 bg-blue-50 text-blue-700 hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white';
                 const icon = isEdit ? 'fa-solid fa-pen text-[10px]' : 'fa-regular fa-file-lines';
 
-                return `<a href="${url}" rel="noopener" class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 ${tone}" title="${isEdit ? 'Edit draft' : 'Open'}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="${icon}"></i></span><span>${text}</span></a>`;
+                return `<a href="${url}" rel="noopener" class="group/doc inline-flex min-w-[140px] items-center gap-2 whitespace-nowrap rounded-md border px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 ${tone}" title="${isEdit ? 'Edit draft' : 'Open'}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 ${String(icon).includes('fa-pen') ? 'group-hover/doc:rotate-12' : 'group-hover/doc:-rotate-6'}"><i class="${icon}"></i></span><span>${text}</span></a>`;
             }
 
             function renderStatusBadge(row) {

@@ -577,72 +577,11 @@
         })();
     </script>
 
-    <script>
-        (function() {
-            function allowOnlyDecimal(el) {
-                el.addEventListener('keypress', function(e) {
-                    const char = String.fromCharCode(e.which);
-                    if (!/[0-9.]/.test(char)) {
-                        e.preventDefault();
-                    }
-                });
-
-                el.addEventListener('input', function() {
-                    this.value = this.value.replace(/[^0-9.]/g, '');
-                    const parts = this.value.split('.');
-                    if (parts.length > 2) {
-                        this.value = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                });
-            }
-
-            document.querySelectorAll('.bq-qty,.bq-price-mat,.bq-price-jsa').forEach(el => {
-                allowOnlyDecimal(el);
-            });
-        })();
-    </script>
+    <x-bq-number-input />
 
     <script>
         (function() {
             const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-
-            document.addEventListener('keydown', function(e) {
-                if (!e.target.matches(selector)) return;
-
-                const key = e.key;
-
-                if (CTRL_KEYS.has(key)) return;
-
-                if (key === 'e' || key === 'E' || key === '+' || key === '-') {
-                    e.preventDefault();
-                    return;
-                }
-
-                if (key >= '0' && key <= '9') return;
-
-                if (key === '.') {
-                    const v = e.target.value || '';
-                    if (v.includes('.')) e.preventDefault();
-                    return;
-                }
-
-                e.preventDefault();
-            });
-
-            document.addEventListener('input', function(e) {
-                if (!e.target.matches(selector)) return;
-
-                let v = e.target.value || '';
-                v = v.replace(/,/g, '.');
-                v = v.replace(/[^0-9.]/g, '');
-
-                const parts = v.split('.');
-                if (parts.length > 2) {
-                    v = parts[0] + '.' + parts.slice(1).join('');
-                }
-                e.target.value = v;
-            });
 
             document.addEventListener('blur', function(e) {
                 if (!e.target.matches(selector)) return;

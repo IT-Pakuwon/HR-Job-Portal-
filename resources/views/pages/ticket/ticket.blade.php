@@ -1,5 +1,8 @@
 <x-app-layout>
     @include('pages.ticket.partial.style')
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
+    <x-spp-form-styles />
 
     <div class="max-w-9xl mx-auto w-full overflow-x-hidden p-2">
         @php
@@ -17,388 +20,42 @@
         @endphp
 
         {{-- Status Filter --}}
-        <div
-            class="{{ $isIT ? '2xl:grid-cols-12' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        @php
+            // [status sent to the list, label, icon, colour, count key, count]
+            $ticketCards = array_values(array_filter([
+                ['', 'All', '🎫', 'all', 'all', $counts['all'] ?? 0],
+                $isIT ? ['MY_TICKET', 'My Ticket', '👤', 'purple', 'my_ticket', $counts['my_ticket'] ?? 0] : null,
+                $isIT ? ['CREATED', 'Created', '🆕', 'blue', 'created', $counts['created'] ?? 0] : null,
+                $isIT ? ['RESPONSE', 'Response', '📩', 'sky', 'response', $counts['response'] ?? 0] : null,
+                ['PROCESS', 'Process', '⚙️', 'blue', 'process', $counts['process'] ?? 0],
+                ['PENDING', 'Pending', '⏳', 'yellow', 'pending', $counts['pending'] ?? 0],
+                $isIT ? ['ENVISION', 'Envision', '🛠️', 'purple', 'envision', $counts['envision'] ?? 0] : null,
+                $isIT ? ['ENVISION CHECKED / SOLVED', 'Envision Solved', '✅', 'green', 'envision_solved', $counts['ENVISION CHECKED / SOLVED'] ?? 0] : null,
+                $isIT ? ['TRANSFER', 'Transfer', '🔄', 'pink', 'transfer', $counts['transfer'] ?? 0] : null,
+                ['COMPLETED', 'Completed', '✅', 'green', 'completed', $counts['completed'] ?? 0],
+                ['REOPEN', 'Reopen', '♻️', 'red', 'reopen', $counts['reopen'] ?? 0],
+                ['CANCEL', 'Cancel', '❌', 'all', 'cancel', $counts['cancel'] ?? 0],
+            ]));
+            // the number keeps its data-count so the page script can refresh it
+            $statusCards = array_map(fn ($c) => [
+                ['data-status' => $c[0]], $c[1], $c[2], $c[3],
+                new \Illuminate\Support\HtmlString('<span data-count="' . e($c[4]) . '">' . e($c[5]) . '</span>'),
+                false, null, 'ticket-status-filter',
+            ], $ticketCards);
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- All --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700 dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:hover:bg-slate-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            🎫
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                All
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="all">
-                            {{ $counts['all'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            @if ($isIT)
-                {{-- My Ticket --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="MY_TICKET">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                👤
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    My Ticket
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="my_ticket">
-                                {{ $counts['my_ticket'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            @if ($isIT)
-                {{-- Created --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="CREATED">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                🆕
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Created
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="created">
-                                {{ $counts['created'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-
-                {{-- Response --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="RESPONSE">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-cyan-700 bg-cyan-200/20 p-3 text-cyan-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-cyan-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                📩
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Response
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="response">
-                                {{ $counts['response'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            {{-- Process --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="PROCESS">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ⚙️
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Process
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="process">
-                            {{ $counts['process'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Pending --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="PENDING">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ⏳
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Pending
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="pending">
-                            {{ $counts['pending'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            @if ($isIT)
-                {{-- Envision --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="ENVISION">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                🛠️
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Envision
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="envision">
-                                {{ $counts['envision'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-
-                {{-- Envision Solved --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full"
-                        data-status="ENVISION CHECKED / SOLVED">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                ✅
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Envision Solved
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="envision_solved">
-                                {{ $counts['ENVISION CHECKED / SOLVED'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-
-                {{-- Transfer --}}
-                <button type="button" class="text-left">
-
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="TRANSFER">
-
-                        <div
-                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
-
-                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                                🔄
-                            </div>
-
-                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                                <p class="whitespace-normal break-words text-sm font-medium">
-                                    Transfer
-                                </p>
-
-                            </div>
-
-                            <p class="shrink-0 text-base font-bold" data-count="transfer">
-                                {{ $counts['transfer'] ?? 0 }}
-                            </p>
-
-                        </div>
-
-                    </a>
-
-                </button>
-            @endif
-
-            {{-- Completed --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="COMPLETED">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ✅
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Completed
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="completed">
-                            {{ $counts['completed'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Reopen --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="REOPEN">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ♻️
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Reopen
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="reopen">
-                            {{ $counts['reopen'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-            {{-- Cancel --}}
-            <button type="button" class="text-left">
-
-                <a href="#" class="ticket-status-filter group block h-full" data-status="CANCEL">
-
-                    <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-zinc-700 bg-zinc-200/20 p-3 text-zinc-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-zinc-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                            ❌
-                        </div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-
-                            <p class="whitespace-normal break-words text-sm font-medium">
-                                Cancel
-                            </p>
-
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold" data-count="cancel">
-                            {{ $counts['cancel'] ?? 0 }}
-                        </p>
-
-                    </div>
-
-                </a>
-
-            </button>
-
-        </div>
         {{-- Filter Toolbar --}}
         @if ($isIT)
             <div
-                class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                class="sf-field mt-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
 
                     {{-- Status --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Status
 
@@ -419,7 +76,7 @@
                     {{-- Workflow --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Workflow
 
@@ -447,14 +104,14 @@
                     {{-- Category --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Category
 
                         </label>
 
                         <select id="filter_category_id"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
                             <option value="">
                                 All Category
@@ -473,14 +130,14 @@
                     {{-- Company --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Company
 
                         </label>
 
                         <select id="filter_company_id"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
                             <option value="">
                                 All Company
@@ -499,38 +156,38 @@
                     {{-- Date From --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Date From
 
                         </label>
 
                         <input type="date" id="filter_date_from"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
 
                     </div>
 
                     {{-- Date To --}}
                     <div>
 
-                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <label class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
 
                             Date To
 
                         </label>
 
                         <input type="date" id="filter_date_to"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
 
                     </div>
 
                 </div>
 
                 {{-- Filter Action Buttons --}}
-                <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
+                <div class="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
 
                     <button type="button" id="btn_reset_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -541,7 +198,7 @@
                     </button>
 
                     <button type="button" id="btn_apply_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
@@ -552,7 +209,7 @@
                     </button>
 
                     <button type="button" id="btn_export_filter"
-                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-4 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
+                        class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-4 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
@@ -568,21 +225,9 @@
         @endif
         {{-- Table Wrapper --}}
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="dt-pretty mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
-
-                <div>
-
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        Ticket Support
-                    </h2>
-
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-
+            <x-list-page-header title="Ticket Support" subtitle="Report issues and follow their progress">
                     @if ($isITRole)
                         <button type="button" id="btn_open_so_list"
                             class="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
@@ -642,10 +287,7 @@
                         Create Ticket
 
                     </button>
-
-                </div>
-
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
 
@@ -1796,7 +1438,7 @@
 
     <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
-    <script src="{{ asset('assets/js/ticket/datatable.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/datatable.js') }}?v={{ filemtime(public_path('assets/js/ticket/datatable.js')) }}"></script>
     <script src="{{ asset('assets/js/ticket/detail-modal.js') }}"></script>
 
     <script src="{{ asset('assets/js/ticket/select.js') }}"></script>

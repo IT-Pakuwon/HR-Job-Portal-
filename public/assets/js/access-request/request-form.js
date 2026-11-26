@@ -56,7 +56,7 @@ function resetRequestForm() {
 
 function initRequestForm() {
 
-    $(".select2").select2({
+    $("select.select2").select2({
 
         width: "100%",
 

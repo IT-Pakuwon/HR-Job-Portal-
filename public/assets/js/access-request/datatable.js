@@ -23,6 +23,13 @@ function initDataTable() {
 
         autoWidth: false,
 
+        dom: '<"dt-toolbar"lf>rtip',
+
+        language: {
+            search: "",
+            searchPlaceholder: "Search...",
+        },
+
         pageLength: 10,
 
         lengthMenu: [
@@ -56,136 +63,25 @@ function initDataTable() {
 
                 render: function (data, type, row) {
 
-                    let url = `/showaccessrequest/${row.eid}`;
-
-                    let cls = `
-                        inline-flex items-center justify-center
-                        w-[150px]
-
-                        rounded-lg
-
-                        bg-slate-800
-                        dark:bg-slate-100
-
-                        px-3 py-1.5
-
-                        text-sm font-semibold
-
-                        text-white
-                        dark:text-slate-900
-
-                        transition-all duration-200
-
-                        hover:bg-slate-700
-                        dark:hover:bg-white
-                    `;
-
                     const canEdit =
                         row.status === "D" &&
                         row.created_by === currentUser;
 
-                    if (canEdit) {
-
-                        url = `/editaccessrequest/${row.eid}`;
-
-                        cls = `
-                            inline-flex items-center justify-center
-                            w-[150px]
-
-                            rounded-lg
-
-                            bg-amber-500
-                            dark:bg-amber-400
-
-                            px-3 py-1.5
-
-                            text-sm font-semibold
-
-                            text-white
-                            dark:text-slate-900
-
-                            transition-all duration-200
-
-                            hover:bg-amber-600
-                            dark:hover:bg-amber-300
-                        `;
-                    }
+                    const url = canEdit
+                        ? `/editaccessrequest/${row.eid}`
+                        : `/showaccessrequest/${row.eid}`;
 
                     return `
-                        <div class="flex items-center gap-2 whitespace-nowrap">
-
-                            <a href="${url}" class="${cls}">
-                                ${row.docid ?? "-"}
-                            </a>
-
+                        <div class="flex items-center justify-start! gap-2 whitespace-nowrap">
+                            <a href="${url}" class="${canEdit ? listCls.docEdit : listCls.doc}">${listDocText(row.docid ?? "-", canEdit)}</a>
                             ${
                                 canEdit
                                     ? `
-                                        <button
-                                            type="button"
-                                            class="
-                                                btn-detail
-
-                                                inline-flex h-9 w-9
-                                                items-center justify-center
-
-                                                rounded-lg
-
-                                                border border-slate-200
-                                                dark:border-white/[0.06]
-
-                                                bg-white
-                                                dark:bg-white/[0.04]
-
-                                                text-slate-600
-                                                dark:text-slate-300
-
-                                                transition-all duration-200
-
-                                                hover:bg-slate-100
-                                                dark:hover:bg-white/[0.08]
-                                            "
-                                            data-id="${row.eid}"
-                                            title="View Detail">
-
-                                            <i class="fa-regular fa-eye"></i>
-
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            class="
-                                                btn-cancel-document
-
-                                                inline-flex h-9 w-9
-                                                items-center justify-center
-
-                                                rounded-lg
-
-                                                border border-red-200
-                                                dark:border-red-500/20
-
-                                                bg-red-50
-                                                dark:bg-red-500/10
-
-                                                text-red-600
-                                                dark:text-red-300
-
-                                                transition-all duration-200
-
-                                                hover:bg-red-100
-                                                dark:hover:bg-red-500/20
-                                            "
-                                            data-id="${row.eid}"
-                                            title="Cancel Document">
-
-                                            <i class="fa-solid fa-ban"></i>
-
-                                        </button>
+                                        <button type="button" class="btn-detail ${listCls.view}" data-id="${row.eid}" title="View Detail"><i class="fa-solid fa-eye"></i></button>
+                                        <button type="button" class="btn-cancel-document ${listCls.cancel}" data-id="${row.eid}" title="Cancel Document"><i class="fa-solid fa-ban"></i></button>
                                     `
                                     : ""
                             }
-
                         </div>
                     `;
                 },
@@ -242,19 +138,7 @@ function initDataTable() {
 
                     return `
                         <span class="
-                            inline-flex items-center
-
-                            rounded-lg
-
-                            bg-slate-100
-                            dark:bg-white/[0.06]
-
-                            px-3 py-1
-
-                            text-xs font-medium
-
-                            text-slate-700
-                            dark:text-slate-200
+                            inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-white/10 dark:text-slate-200
                         ">
                             ${data ?? "-"}
                         </span>
@@ -319,15 +203,7 @@ function initDataTable() {
 
                         html += `
                             <span class="
-                                inline-flex items-center
-
-                                rounded-lg
-
-                                px-3 py-1
-
-                                text-xs font-semibold
-
-                                ${badgeClass}
+                                inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeClass}
                             ">
                                 ${item}
                             </span>
@@ -362,7 +238,15 @@ function initDataTable() {
                 className: "text-left",
 
                 render: function (data) {
-                    return renderStatusBadge(data);
+                    const state = {
+                        P: ["yellow", "On Progress"],
+                        C: ["sky", "Approved"],
+                        F: ["green", "Completed"],
+                        D: ["blue", "Revise"],
+                        R: ["red", "Reject"],
+                        X: ["slate", "Cancel"],
+                    }[data] || ["slate", data ?? "-"];
+                    return listBadge(state[0], state[1], true);
                 },
             },
 
@@ -400,28 +284,7 @@ function initDataTable() {
                         actions += `
                             <button
                                 type="button"
-                                class="
-                                    btn-process-hardware
-
-                                    inline-flex h-9
-                                    items-center justify-center
-
-                                    rounded-lg
-
-                                    bg-blue-600
-                                    dark:bg-blue-500
-
-                                    px-3
-
-                                    text-xs font-semibold
-
-                                    text-white
-
-                                    transition-all duration-200
-
-                                    hover:bg-blue-700
-                                    dark:hover:bg-blue-400
-                                "
+                                class="btn-process-hardware ${listCls.action.blue}"
                                 data-id="${row.eid}"
                             >
                                 Hardware
@@ -434,28 +297,7 @@ function initDataTable() {
                         actions += `
                             <button
                                 type="button"
-                                class="
-                                    btn-process-software
-
-                                    inline-flex h-9
-                                    items-center justify-center
-
-                                    rounded-lg
-
-                                    bg-emerald-600
-                                    dark:bg-emerald-500
-
-                                    px-3
-
-                                    text-xs font-semibold
-
-                                    text-white
-
-                                    transition-all duration-200
-
-                                    hover:bg-emerald-700
-                                    dark:hover:bg-emerald-400
-                                "
+                                class="btn-process-software ${listCls.action.green}"
                                 data-id="${row.eid}"
                             >
                                 Software
@@ -481,6 +323,12 @@ function initDataTable() {
 
 function initFilters() {
 
+    $("#approvedGroupFilter").select2({
+        width: "100%",
+        minimumResultsForSearch: Infinity,
+        dropdownCssClass: "sppb-s2-dropdown",
+    });
+
     $(document).on(
         "click",
         ".status-filter",
@@ -498,7 +346,7 @@ function initFilters() {
                 $(this).data("status");
 
             currentGroup = "";
-            $("#approvedGroupFilter").val("");
+            $("#approvedGroupFilter").val("").trigger("change.select2");
 
             table.ajax.reload();
 

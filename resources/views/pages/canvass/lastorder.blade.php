@@ -1,5 +1,6 @@
 <x-app-layout>
     <x-spp-list-styles />
+    <x-spp-list-scripts />
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
@@ -133,7 +134,7 @@
                         render: function(data, type, row) {
                             const url = poUrl(row);
                             if (url === '#') return data ?? '';
-                            return `<a href="${url}" target="_blank" class="link-underline">${data ?? ''}</a>`;
+                            return `<a href="${url}" target="_blank" class="${listCls.doc}">${listDocText(data ?? '')}</a>`;
                         }
                     },
                     {
@@ -146,7 +147,7 @@
                         render: function(data, type, row) {
                             const url = csUrl(row);
                             if (url === '#') return data ?? '';
-                            return `<a href="${url}" target="_blank" class="link-underline">${data ?? ''}</a>`;
+                            return `<a href="${url}" target="_blank" class="${listCls.doc}">${listDocText(data ?? '')}</a>`;
                         }
                     },
                     {
@@ -189,7 +190,7 @@
                         render: function(data, type, row) {
                             const url = bqUrl(row);
                             if (url === '#') return data ?? '';
-                            return `<a href="${url}" target="_blank" class="link-underline">${data ?? ''}</a>`;
+                            return `<a href="${url}" target="_blank" class="${listCls.doc}">${listDocText(data ?? '')}</a>`;
                         }
                     },
 
@@ -198,7 +199,7 @@
                         render: function(data, type, row) {
                             const url = csUrl(row);
                             if (url === '#') return data ?? '';
-                            return `<a href="${url}" target="_blank" class="link-underline">${data ?? ''}</a>`;
+                            return `<a href="${url}" target="_blank" class="${listCls.doc}">${listDocText(data ?? '')}</a>`;
                         }
                     },
                     {
@@ -211,7 +212,7 @@
                             if (type !== 'display') return data ?? '';
                             const text = $('<span>').text(data ?? '').html();
                             const url = poUrl(row);
-                            return url === '#' ? text : `<a href="${url}" target="_blank" rel="noopener" class="link-underline">${text}</a>`;
+                            return url === '#' ? text : `<a href="${url}" target="_blank" rel="noopener" class="${listCls.doc}">${listDocText(text)}</a>`;
                         }
                     },
                     {

@@ -1,112 +1,28 @@
 <x-app-layout>
     @include('pages.it_recommendation.partial.style')
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
         {{-- Status Card --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'W,I'], 'Waiting IT', '🛠️', 'purple', $waitingIT, false],
+                [['data-status' => 'P'], 'Waiting Approval', '⏳', 'yellow', $waitingApproval, false],
+                [['data-status' => 'D'], 'Revise', '✏️', 'blue', $revise, false],
+                [['data-status' => 'R'], 'Rejected', '⛔', 'red', $reject, false],
+                [['data-status' => 'C'], 'Completed', '✅', 'green', $completed, false],
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
-            {{-- All --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Waiting IT --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="W,I">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-600 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/20">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Waiting IT</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $waitingIT }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Waiting Approval --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-600 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95 dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500/20">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Waiting Approval</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $waitingApproval }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-600 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95 dark:border-amber-500 dark:text-amber-400 dark:hover:bg-amber-500/20">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Rejected --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-600 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Rejected</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Completed --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-600 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
-                        </div>
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </button>
-
-        </div>
         {{-- Table --}}
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="dt-pretty mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-
-                <div>
-
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        IT Recommendation
-                    </h2>
-                </div>
-
-                <div class="flex items-center gap-3">
-
+            <x-list-page-header title="IT Recommendation" subtitle="Request and track IT purchase recommendations">
                     <a href="{{ url('/createitrecommendation') }}"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
@@ -115,10 +31,7 @@
                         Create Request
 
                     </a>
-
-                </div>
-
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
 
@@ -1478,7 +1391,7 @@
 
     <script src="{{ asset('assets/js/it-recommendation/inventory.js') }}"></script>
 
-    <script src="{{ asset('assets/js/it-recommendation/datatable.js') }}"></script>
+    <script src="{{ asset('assets/js/it-recommendation/datatable.js') }}?v={{ filemtime(public_path('assets/js/it-recommendation/datatable.js')) }}"></script>
 
     <script src="{{ asset('assets/js/it-recommendation/request-form.js') }}"></script>
 

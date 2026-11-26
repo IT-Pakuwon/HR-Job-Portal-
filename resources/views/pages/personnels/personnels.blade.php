@@ -413,7 +413,7 @@
                             if (isReviseOwner) {
                                 return `
                                     <div class="flex items-center gap-2">
-                                        <a href="${mainUrl}" class="${buttonClass}" title="${isReviseOwner ? 'Edit' : 'Open'}"><span class="text-xs opacity-80"><i class="${isReviseOwner ? 'fa-solid fa-pen text-[10px]' : 'fa-regular fa-file-lines'}"></i></span><span>${buttonText}</span></a>
+                                        <a href="${mainUrl}" class="${buttonClass}" title="${isReviseOwner ? 'Edit' : 'Open'}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 ${String(isReviseOwner ? 'fa-solid fa-pen text-[10px]' : 'fa-regular fa-file-lines').includes('fa-pen') ? 'group-hover/doc:rotate-12' : 'group-hover/doc:-rotate-6'}"><i class="${isReviseOwner ? 'fa-solid fa-pen text-[10px]' : 'fa-regular fa-file-lines'}"></i></span><span>${buttonText}</span></a>
 
                                         <a href="${showUrl}"
                                         class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-blue-100 bg-blue-50 text-blue-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:translate-y-0 active:scale-90"
@@ -427,7 +427,7 @@
 
                             return `
                                 <div class="flex items-center gap-2">
-                                    <a href="${mainUrl}" class="${buttonClass}" title="Open"><span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${buttonText}</span></a>
+                                    <a href="${mainUrl}" class="${buttonClass}" title="Open"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span><span>${buttonText}</span></a>
                                     ${copyBtnHtml}
                                 </div>
                             `;

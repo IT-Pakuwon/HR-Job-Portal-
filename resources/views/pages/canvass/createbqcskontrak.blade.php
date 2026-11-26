@@ -251,7 +251,7 @@
                         <!-- FOOTER -->
                         <tfoot class="hidden bg-gray-100 md:table-footer-group dark:bg-gray-700">
                             <tr>
-                                <td colspan="6" class="border px-4 py-4 text-right font-bold">Grand Total per Vendor
+                                <td colspan="7" class="border px-4 py-4 text-right font-bold">Grand Total per Vendor
                                 </td>
                                 @foreach ($vendors as $i => $v)
                                     <td class="border px-4 py-4 text-left">
@@ -520,89 +520,12 @@
         })();
     </script>
 
-    <script>
-        (function() {
-            // Batasi input hanya angka + titik
-            function allowOnlyDecimal(el) {
-                el.addEventListener('keypress', function(e) {
-                    const char = String.fromCharCode(e.which);
-                    // hanya izinkan angka (0-9) dan titik (.)
-                    if (!/[0-9.]/.test(char)) {
-                        e.preventDefault();
-                    }
-                });
-                el.addEventListener('input', function(e) {
-                    // hapus semua karakter non-angka/non-titik
-                    this.value = this.value.replace(/[^0-9.]/g, '');
-                    // hanya boleh 1 titik
-                    const parts = this.value.split('.');
-                    if (parts.length > 2) {
-                        this.value = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                });
-            }
-
-            // pasang ke semua field qty & price
-            document.querySelectorAll('.bq-qty,.bq-price-mat,.bq-price-jsa').forEach(el => {
-                allowOnlyDecimal(el);
-            });
-        })();
-    </script>
+    <x-bq-number-input />
 
     <script>
         (function() {
-            // const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const selector = '.bq-qty,.bq-duration-input,.bq-price-mat,.bq-price-jsa';
+            const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
 
-            // Izinkan tombol kontrol
-            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-
-            // Cegah input tidak valid di keydown
-            document.addEventListener('keydown', function(e) {
-                if (!e.target.matches(selector)) return;
-
-                const key = e.key;
-
-                // izinkan tombol kontrol
-                if (CTRL_KEYS.has(key)) return;
-
-                // blokir e/E/+/- (notasi scientific & tanda)
-                if (key === 'e' || key === 'E' || key === '+' || key === '-') {
-                    e.preventDefault();
-                    return;
-                }
-
-                // angka OK
-                if (key >= '0' && key <= '9') return;
-
-                // titik desimal: hanya boleh satu
-                if (key === '.') {
-                    const v = e.target.value || '';
-                    if (v.includes('.')) e.preventDefault();
-                    return;
-                }
-
-                // selain itu -> blok
-                e.preventDefault();
-            });
-
-            // Sanitasi saat input (hapus selain digit/titik, merge >1 titik jadi satu)
-            document.addEventListener('input', function(e) {
-                if (!e.target.matches(selector)) return;
-
-                let v = e.target.value || '';
-                // ganti koma → titik (kalau ada)
-                v = v.replace(/,/g, '.');
-                // buang karakter non angka/titik
-                v = v.replace(/[^0-9.]/g, '');
-
-                // pastikan hanya 1 titik
-                const parts = v.split('.');
-                if (parts.length > 2) {
-                    v = parts[0] + '.' + parts.slice(1).join('');
-                }
-                e.target.value = v;
-            });
 
             // Format ke 2 desimal saat blur; kosong → 0.00
             document.addEventListener('blur', function(e) {

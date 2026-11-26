@@ -694,8 +694,8 @@
 
                 return `
                     <a href="${url}" target="_blank"
-                        class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
-                        <span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
+                        class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                        <span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
                     </a>
                 `;
             }
@@ -738,9 +738,9 @@
                     return `
                         <div class="inline-flex items-center gap-2">
                             <a href="${editUrl}" target="_blank" rel="noopener noreferrer"
-                                class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-amber-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:scale-95"
+                                class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-amber-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-500 hover:text-white hover:shadow-md active:scale-95"
                                 title="Edit Revise">
-                                <span class="text-xs opacity-80"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${escapeHtml(label)}</span>
+                                <span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:rotate-12"><i class="fa-solid fa-pen text-[10px]"></i></span><span>${escapeHtml(label)}</span>
                             </a>
 
                             <a href="${showUrl}" target="_blank" rel="noopener noreferrer"
@@ -756,8 +756,8 @@
 
                 return `
                     <a href="${url}" target="_blank" rel="noopener noreferrer"
-                        class="inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
-                        <span class="text-xs opacity-80"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
+                        class="group/doc inline-flex min-w-[140px] items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold leading-6 tracking-wide tabular-nums text-blue-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md active:scale-95 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+                        <span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span><span>${escapeHtml(label)}</span>
                     </a>
                 `;
             }

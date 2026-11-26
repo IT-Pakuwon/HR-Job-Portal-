@@ -518,7 +518,7 @@
                         { data: 'description', className: 'whitespace-normal break-words min-w-[220px]', render: v => esc(v) },
                         { data: 'transferred_at', render: (v, t, r) => esc(v) + `<div class="text-xs text-gray-500">${esc(r.transferred_by)}</div>` },
                         { data: 'woid', render: (v, t, r) => !v ? '-' : (r.wo_eid
-                            ? `<a href="/showwos/${r.wo_eid}" class="inline-flex min-w-[130px] items-center gap-2 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold tabular-nums text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"><i class="fa-regular fa-file-lines text-xs"></i>${esc(v)}</a>`
+                            ? `<a href="/showwos/${r.wo_eid}" class="group/doc inline-flex min-w-[130px] items-center gap-2 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-3 py-1 text-[13px] font-semibold tabular-nums text-blue-700 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 group-hover/doc:-rotate-6"><i class="fa-regular fa-file-lines"></i></span>${esc(v)}</a>`
                             : esc(v)) },
                         { data: 'wo_status', render: v => badge(woStatus, v) },
                         { data: 'wo_job_status', render: v => badge(jobStatus, v) },

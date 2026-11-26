@@ -188,6 +188,12 @@
     [x-cloak] { display: none !important; }
 }
 
+/* Scripts hide things by adding "hidden". It must win over "inline-flex" on the same element:
+   in the built CSS inline-flex comes later, so those buttons (e.g. the delete on the only row) stayed visible. */
+.hidden.inline-flex {
+    display: none;
+}
+
 /* Select2 — push the clear × to the far right */
 .select2-container--default .select2-selection--single {
     position: relative !important;

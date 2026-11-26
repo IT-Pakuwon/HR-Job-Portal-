@@ -257,7 +257,7 @@
 
                         <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
                             <tr>
-                                <td colspan="6" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
+                                <td colspan="7" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
                                 @foreach ($vendors as $i => $v)
                                     <td class="border px-4 py-4 text-left">
                                         <div class="flex flex-row justify-between gap-6">
@@ -657,44 +657,6 @@
 
     <script>
         (function() {
-            // const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const decimalSelector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const integerSelector = '.bq-duration-input';
-            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-            // const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-
-            document.addEventListener('keydown', e => {
-                if (!e.target.matches(selector)) return;
-                const k = e.key;
-                if (CTRL_KEYS.has(k)) return;
-                if (k === 'e' || k === 'E' || k === '+' || k === '-') {
-                    e.preventDefault();
-                    return;
-                }
-                if (k >= '0' && k <= '9') return;
-                if (k === '.') {
-                    const v = e.target.value || '';
-                    if (v.includes('.')) e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-            });
-
-            document.addEventListener('input', e => {
-                if (!e.target.matches(selector)) return;
-                let v = e.target.value || '';
-                v = v.replace(/,/g, '.').replace(/[^0-9.]/g, '');
-                const parts = v.split('.');
-                if (parts.length > 2) {
-                    v = parts[0] + '.' + parts.slice(1).join('');
-                }
-                e.target.value = v;
-            });
-        })();
-    </script>
-
-    <script>
-        (function() {
             const vendors = @json($vendors);
             const tbody = document.querySelector('#bqTable tbody');
             const btnAdd = document.getElementById('btnAddRow');
@@ -829,66 +791,7 @@
             });
         })();
     </script>
-    <script>
-        (function() {
-            const decimalSelector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const integerSelector = '.bq-duration-input';
-            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-
-            document.addEventListener('keydown', e => {
-                // field decimal
-                if (e.target.matches(decimalSelector)) {
-                    const k = e.key;
-                    if (CTRL_KEYS.has(k)) return;
-                    if (k === 'e' || k === 'E' || k === '+' || k === '-') {
-                        e.preventDefault();
-                        return;
-                    }
-                    if (k >= '0' && k <= '9') return;
-                    if (k === '.') {
-                        const v = e.target.value || '';
-                        if (v.includes('.')) e.preventDefault();
-                        return;
-                    }
-                    e.preventDefault();
-                    return;
-                }
-
-                // field integer only
-                if (e.target.matches(integerSelector)) {
-                    const k = e.key;
-                    if (CTRL_KEYS.has(k)) return;
-                    if (k >= '0' && k <= '9') return;
-                    e.preventDefault();
-                }
-            });
-
-            document.addEventListener('input', e => {
-                if (e.target.matches(decimalSelector)) {
-                    let v = e.target.value || '';
-                    v = v.replace(/,/g, '.').replace(/[^0-9.]/g, '');
-                    const parts = v.split('.');
-                    if (parts.length > 2) {
-                        v = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                    e.target.value = v;
-                    return;
-                }
-
-                if (e.target.matches(integerSelector)) {
-                    e.target.value = (e.target.value || '').replace(/[^0-9]/g, '');
-                }
-            });
-
-            document.addEventListener('paste', e => {
-                if (!e.target.matches(integerSelector)) return;
-                const pasted = (e.clipboardData || window.clipboardData).getData('text');
-                if (!/^\d+$/.test(pasted)) {
-                    e.preventDefault();
-                }
-            });
-        })();
-    </script>
+    <x-bq-number-input />
     <script>
         (function() {
             const vendors = @json($vendors);

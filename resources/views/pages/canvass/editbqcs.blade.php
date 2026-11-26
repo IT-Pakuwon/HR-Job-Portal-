@@ -616,40 +616,7 @@
         })();
     </script>
 
-    <script>
-        (function() {
-            const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
-            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
-
-            document.addEventListener('keydown', e => {
-                if (!e.target.matches(selector)) return;
-                const k = e.key;
-                if (CTRL_KEYS.has(k)) return;
-                if (k === 'e' || k === 'E' || k === '+' || k === '-') {
-                    e.preventDefault();
-                    return;
-                }
-                if (k >= '0' && k <= '9') return;
-                if (k === '.') {
-                    const v = e.target.value || '';
-                    if (v.includes('.')) e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-            });
-
-            document.addEventListener('input', e => {
-                if (!e.target.matches(selector)) return;
-                let v = e.target.value || '';
-                v = v.replace(/,/g, '.').replace(/[^0-9.]/g, '');
-                const parts = v.split('.');
-                if (parts.length > 2) {
-                    v = parts[0] + '.' + parts.slice(1).join('');
-                }
-                e.target.value = v;
-            });
-        })();
-    </script>
+    <x-bq-number-input />
 
     <script>
         (function() {

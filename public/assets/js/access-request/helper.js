@@ -261,24 +261,15 @@ function renderProgressBar(completed, total) {
             );
     }
 
-    let progressColor = `
-        bg-slate-800
-        dark:bg-slate-200
-    `;
+    let progressColor = "bg-blue-500";
 
     if (percent >= 100) {
 
-        progressColor = `
-            bg-emerald-600
-            dark:bg-emerald-400
-        `;
+        progressColor = "bg-green-500";
     }
     else if (percent >= 50) {
 
-        progressColor = `
-            bg-blue-600
-            dark:bg-blue-400
-        `;
+        progressColor = "bg-blue-600";
     }
 
     return `
@@ -315,7 +306,7 @@ function renderProgressBar(completed, total) {
             </div>
 
             <div class="
-                h-2 overflow-hidden rounded-lg
+                h-2 overflow-hidden rounded-full
 
                 bg-slate-100
                 dark:bg-white/10
@@ -323,7 +314,7 @@ function renderProgressBar(completed, total) {
 
                 <div
                     class="
-                        h-full rounded-lg
+                        h-full rounded-full
                         transition-all duration-500
 
                         ${progressColor}

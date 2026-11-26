@@ -684,10 +684,7 @@ error: function(err) {
                                 return `
             <div class="flex gap-2 items-center">
 
-                <a href="/showsppbs/${row.eid_sppb}"
-                    class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-green-600 hover:bg-green-700">
-                   ${data}
-                </a>
+                <a href="/showsppbs/${row.eid_sppb}" class="${listCls.doc}">${listDocText(data)}</a>
 
                 <button
                     class="tracking-btn-sppb inline-flex items-center justify-center rounded-full p-2

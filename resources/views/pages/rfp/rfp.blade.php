@@ -308,7 +308,7 @@
                                 <a href="${url}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="${cls}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:-rotate-6 group-hover/doc:scale-125 group-hover/doc:opacity-100"><i class="${ico}"></i></span><span>${data}</span></a>
+                                class="${cls}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 ${String(ico).includes('fa-pen') ? 'group-hover/doc:rotate-12' : 'group-hover/doc:-rotate-6'}"><i class="${ico}"></i></span><span>${data}</span></a>
                             `;
                         }
                     },

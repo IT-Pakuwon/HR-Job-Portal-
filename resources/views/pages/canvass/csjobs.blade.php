@@ -1336,7 +1336,7 @@
                 base + "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-500 hover:text-white dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500 dark:hover:text-white" :
                 base + "border-blue-100 bg-blue-50 text-blue-700 hover:border-blue-600 hover:bg-blue-600 hover:text-white dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white";
             const icon = o.edit ? "fa-solid fa-pen text-[10px]" : "fa-regular fa-file-lines";
-            return `<a href="${href}"${o.self ? "" : ' target="_blank"'} title="${o.edit ? "Edit" : "Open"}" class="${cls} ${o.extra || ""}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:-rotate-6 group-hover/doc:opacity-100"><i class="${icon}"></i></span><span>${text}</span></a>`;
+            return `<a href="${href}"${o.self ? "" : ' target="_blank"'} title="${o.edit ? "Edit" : "Open"}" class="${cls} ${o.extra || ""}"><span class="text-xs opacity-80 transition-transform duration-300 group-hover/doc:scale-125 group-hover/doc:opacity-100 ${String(icon).includes('fa-pen') ? 'group-hover/doc:rotate-12' : 'group-hover/doc:-rotate-6'}"><i class="${icon}"></i></span><span>${text}</span></a>`;
         };
     </script>
 </x-app-layout>

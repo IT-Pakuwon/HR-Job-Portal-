@@ -1,227 +1,40 @@
 function renderITRStatusBadge(status) {
     const map = {
-        S: {
-            text: "Submitted",
-
-            cls: "bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300",
-        },
-
-        IT: {
-            text: "Processed",
-
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
-        },
-
-        A: {
-            text: "Approved",
-
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
-        },
-
-        W: {
-            text: "Waiting IT",
-
-            cls: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300",
-        },
-
-        I: {
-            text: "Waiting IT Revision",
-
-            cls: "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20 dark:text-orange-300",
-        },
-
-        P: {
-            text: "Waiting Approval",
-
-            cls: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300",
-        },
-
-        C: {
-            text: "Completed",
-
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
-        },
-
-        R: {
-            text: "Rejected",
-
-            cls: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300",
-        },
-
-        D: {
-            text: "Revise",
-
-            cls: "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-white/10 dark:border-white/10 dark:text-gray-300",
-        },
-
-        X: {
-            text: "Cancelled",
-
-            cls: "bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300",
-        },
+        S: ["sky", "Submitted"],
+        IT: ["green", "Processed"],
+        A: ["green", "Approved"],
+        W: ["purple", "Waiting IT"],
+        I: ["orange", "Waiting IT Revision"],
+        P: ["yellow", "Waiting Approval"],
+        C: ["green", "Completed"],
+        R: ["red", "Rejected"],
+        D: ["blue", "Revise"],
+        X: ["slate", "Cancelled"],
     };
 
-    const item = map[status] || {
-        text: status || "-",
+    const item = map[status] || ["slate", status || "-"];
 
-        cls: "bg-gray-100 text-gray-700 border border-gray-200",
-    };
-
-    return `
-        <span class="
-            inline-flex
-            items-center
-            justify-center
-
-            min-w-[150px]
-
-            rounded-full
-
-            px-3 py-1.5
-
-            text-xs
-            font-semibold
-
-            ${item.cls}
-        ">
-            ${item.text}
-        </span>
-    `;
+    return listBadge(item[0], item[1], true);
 }
 
 function renderITRDocButton(row) {
-    let url = `/showitrecommendation/${row.eid}`;
-
-    let cls = `
-        inline-flex
-        items-center
-        justify-center
-
-        min-w-[150px]
-
-        rounded-lg
-
-        bg-slate-800
-        dark:bg-slate-100
-
-        px-3 py-1.5
-
-        text-sm
-        font-semibold
-
-        text-white
-        dark:text-slate-900
-
-        transition-all
-        duration-200
-
-        hover:bg-slate-700
-        dark:hover:bg-white
-    `;
-
-    if (row.can_edit) {
-        url = `/edititrecommendation/${row.eid}`;
-
-        cls = `
-            inline-flex
-            items-center
-            justify-center
-
-            min-w-[150px]
-
-            rounded-lg
-
-            bg-amber-500
-            dark:bg-amber-400
-
-            px-3 py-1.5
-
-            text-sm
-            font-semibold
-
-            text-white
-            dark:text-slate-900
-
-            transition-all
-            duration-200
-
-            hover:bg-amber-600
-            dark:hover:bg-amber-300
-        `;
-    }
+    const url = row.can_edit
+        ? `/edititrecommendation/${row.eid}`
+        : `/showitrecommendation/${row.eid}`;
 
     const eyeIcon = row.can_edit
-        ? `
-            <a
-                href="/showitrecommendation/${row.eid}"
-                class="
-                    inline-flex
-                    h-8 w-8
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border border-slate-200
-                    bg-white
-                    text-slate-500
-                    transition
-                    hover:bg-slate-100
-                    hover:text-slate-700
-                    dark:border-white/10
-                    dark:bg-white/[0.03]
-                    dark:text-slate-400
-                    dark:hover:bg-white/[0.07]
-                "
-                title="View Detail"
-            >
-                <i class="fa-solid fa-eye text-xs"></i>
-            </a>
-        `
+        ? `<a href="/showitrecommendation/${row.eid}" class="${listCls.view}" title="View Detail"><i class="fa-solid fa-eye"></i></a>`
         : '';
 
     const cancelIcon = row.can_cancel
-        ? `
-            <button
-                type="button"
-                class="
-                    cancel-btn
-                    inline-flex
-                    h-8 w-8
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border border-red-200
-                    bg-white
-                    text-red-500
-                    transition
-                    hover:bg-red-50
-                    hover:text-red-700
-                    dark:border-red-500/20
-                    dark:bg-white/[0.03]
-                    dark:text-red-400
-                    dark:hover:bg-red-500/10
-                "
-                data-id="${row.eid}"
-                title="Cancel Request"
-            >
-                <i class="fa-solid fa-ban text-xs"></i>
-            </button>
-        `
+        ? `<button type="button" class="cancel-btn ${listCls.cancel}" data-id="${row.eid}" title="Cancel Request"><i class="fa-solid fa-ban"></i></button>`
         : '';
 
     return `
-        <div class="flex items-center gap-2 whitespace-nowrap">
-
-            <a
-                href="${url}"
-                class="${cls}"
-            >
-                ${row.docid}
-            </a>
-
+        <div class="flex items-center justify-start! gap-2 whitespace-nowrap">
+            <a href="${url}" class="${row.can_edit ? listCls.docEdit : listCls.doc}">${listDocText(row.docid, row.can_edit)}</a>
             ${eyeIcon}
-
             ${cancelIcon}
-
         </div>
     `;
 }
@@ -239,31 +52,7 @@ function renderITRProcessButton(row)
             <button
                 type="button"
 
-                class="
-                    ${
-                        isRevision
-                            ? 'edit-recommendation-btn bg-orange-500 hover:bg-orange-600'
-                            : 'process-btn bg-indigo-600 hover:bg-indigo-700'
-                    }
-
-                    inline-flex
-                    items-center
-                    gap-2
-
-                    rounded-lg
-
-                    px-3 py-1.5
-
-                    text-sm
-                    font-semibold
-
-                    text-white
-
-                    shadow-sm
-
-                    transition-all
-                    duration-200
-                "
+                class="${isRevision ? 'edit-recommendation-btn ' + listCls.action.amber : 'process-btn ' + listCls.action.blue}"
 
                 data-id="${row.eid}"
             >
@@ -290,28 +79,7 @@ function renderITRProcessButton(row)
             <button
                 type="button"
 
-                class="
-                    attachment-btn
-
-                    inline-flex
-                    items-center
-                    gap-2
-
-                    rounded-lg
-
-                    bg-slate-600
-                    hover:bg-slate-700
-
-                    px-3 py-1.5
-
-                    text-sm
-                    font-semibold
-
-                    text-white
-
-                    transition-all
-                    duration-200
-                "
+                class="attachment-btn ${listCls.action.slate}"
 
                 data-id="${row.eid}"
             >
@@ -374,7 +142,12 @@ table = $("#itrTable").DataTable({
 
     ordering: true,
 
-    dom: "flrtip",
+    dom: '<"dt-toolbar"lf>rtip',
+
+    language: {
+        search: "",
+        searchPlaceholder: "Search...",
+    },
 
     ajax: {
         url: window.ITRecommendationRoutes.json,
@@ -398,7 +171,7 @@ table = $("#itrTable").DataTable({
 
             searchable: false,
 
-            className: "dtr-control px-5 py-4 text-center align-top",
+            className: "dtr-control px-5 py-4 text-center align-middle",
 
             width: "20px",
         },
@@ -406,7 +179,7 @@ table = $("#itrTable").DataTable({
         {
             data: "docid",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
 
             render: function (data, type, row) {
                 return renderITRDocButton(row);
@@ -416,7 +189,7 @@ table = $("#itrTable").DataTable({
         {
             data: "itrecommend_date",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 if (!data) {
@@ -436,31 +209,31 @@ table = $("#itrTable").DataTable({
 
             defaultContent: "-",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
         },
 
         {
             data: "cpny_id",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
         },
 
         {
             data: "department_id",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
         },
 
         {
             data: "user_peminta",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
         },
 
         {
             data: "keperluan",
 
-            className: "min-w-[260px] px-5 py-4 align-top",
+            className: "min-w-[260px] px-5 py-4 align-middle",
         },
 
         {
@@ -468,13 +241,13 @@ table = $("#itrTable").DataTable({
 
             defaultContent: "-",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
         },
 
         {
             data: "status",
 
-            className: "px-5 py-4 whitespace-nowrap align-top",
+            className: "px-5 py-4 whitespace-nowrap align-middle",
 
             render: function (data) {
                 return renderITRStatusBadge(data);
@@ -499,17 +272,6 @@ table = $("#itrTable").DataTable({
             "transition duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/40",
         );
 
-        $(".dataTables_paginate > .pagination").addClass(
-            "flex items-center gap-2",
-        );
-
-        $(".paginate_button").addClass(
-            "rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
-        );
-
-        $(".paginate_button.current").addClass(
-            "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black",
-        );
     },
 
     searchDelay: 400,

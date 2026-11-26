@@ -14,17 +14,17 @@
 
     <div class="mx-auto w-full max-w-9xl p-2">
 
-        <form id="personnelForm" enctype="multipart/form-data" method="POST">
+        <form id="personnelForm" class="sf-field" enctype="multipart/form-data" method="POST">
             @csrf
             <input type="hidden" name="is_draft" id="isDraftField" value="{{ old('is_draft', '0') }}">
 
             <div class="mb-5">
-                <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-bold {{ $statusInfo['classes'] }}">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold {{ $statusInfo['classes'] }}">
                             {{ $statusInfo['label'] }}
                         </span>
-                        <span class="text-xs text-gray-400 dark:text-gray-500">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
                             Doc ID {{ $personnel->docid }}
                             @if ($personnel->created_at)
                                 &middot; Submitted {{ \Illuminate\Support\Carbon::parse($personnel->created_at)->format('M d, Y') }}
@@ -41,7 +41,7 @@
                 </div>
 
                 @if (in_array($personnel->status, ['R', 'D'], true) && $rejectionMessage)
-                    <div class="mt-3 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                    <div class="mt-3 flex gap-3 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 dark:border-red-500/30 dark:bg-red-500/10">
                         <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-red-600 dark:bg-gray-800 dark:text-red-400">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path stroke-linecap="round" d="M12 10v4"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/></svg>
                         </div>
@@ -64,24 +64,25 @@
             <div class="flex flex-col gap-6">
 
                     {{-- 1. POSITION --}}
-                    <details id="sec-position" open class="group scroll-mt-4 rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700">
+                    <details id="sec-position" open class="group scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">1</span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm">1</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Position</div>
-                                    <div class="text-xs text-gray-400 dark:text-gray-500">Where this role sits in the organization</div>
+                                    <div class="text-base font-bold text-gray-800 dark:text-white">Position</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Where this role sits in the organization</div>
                                 </div>
                             </div>
-                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            <span class="shrink-0 text-sm font-medium text-blue-600 group-open:hidden dark:text-blue-400">See details &rarr;</span>
+                            <span class="hidden shrink-0 text-sm font-medium text-blue-600 group-open:inline dark:text-blue-400">Hide details &darr;</span>
                         </summary>
-                        <div class="p-4 pt-3">
+                        <div class="p-6">
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 {{ !empty($isSby) ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }}">
                                 {{-- Company --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company <span class="text-red-500">*</span></label>
                                     <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         name="cpnyid" id="cpnyid" required>
                                         @foreach (!empty($isSby) ? $companies : $usercpny as $p)
                                             <option value="{{ $p->cpny_id }}"
@@ -94,9 +95,9 @@
 
                                 @if (!empty($isSby))
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget Company <span class="text-red-500">*</span></label>
+                                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Budget Company <span class="text-red-500">*</span></label>
                                         <select
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                             name="budget_entity_id" id="budget_entity_id" required>
                                             <option value="">Select Budget Company</option>
                                         </select>
@@ -105,9 +106,9 @@
 
                                 {{-- Division --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Division <span class="text-red-500">*</span></label>
                                     <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         name="division_id" id="division_id" required>
                                         <option value="" disabled>Select Division</option>
                                         @foreach ($division as $p)
@@ -121,9 +122,9 @@
 
                                 {{-- Department (AJAX loaded like create) --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Department <span class="text-red-500">*</span></label>
                                     <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         name="departementid" id="departementid" required>
                                         <option value="" disabled {{ old('departementid', $personnel->departementid ?? '') ? '' : 'selected' }}>
                                             Select Department
@@ -139,9 +140,9 @@
 
                                 {{-- Site (AJAX loaded like create) --}}
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Placement Location <span class="text-red-500">*</span></label>
                                     <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         name="siteid" id="siteid" required>
                                         <option value="">Select Site </option>
                                     </select>
@@ -151,24 +152,25 @@
                     </details>
 
                     {{-- 2. JOB DETAIL --}}
-                    <details id="sec-jobdetail" open class="group scroll-mt-4 rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700">
+                    <details id="sec-jobdetail" open class="group scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">2</span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm">2</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Job Detail</div>
-                                    <div class="text-xs text-gray-400 dark:text-gray-500">Role, level and reporting line</div>
+                                    <div class="text-base font-bold text-gray-800 dark:text-white">Job Detail</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Role, level and reporting line</div>
                                 </div>
                             </div>
-                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            <span class="shrink-0 text-sm font-medium text-blue-600 group-open:hidden dark:text-blue-400">See details &rarr;</span>
+                            <span class="hidden shrink-0 text-sm font-medium text-blue-600 group-open:inline dark:text-blue-400">Hide details &darr;</span>
                         </summary>
-                        <div class="p-4 pt-3">
+                        <div class="p-6">
 
                             <div id="jobTypeRow" class="mb-6 grid grid-cols-1 gap-6 @if(old('job_type', $personnel->job_type) === 'Replacement') md:grid-cols-2 @endif">
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Job Type <span class="text-red-500">*</span></label>
                                     <select name="job_type" id="job_type"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         required>
                                         <option value="" disabled>Select Job Type</option>
                                         <option value="New" @selected(old('job_type', $personnel->job_type) === 'New')>New</option>
@@ -176,28 +178,28 @@
                                     </select>
                                 </div>
                                 <div id="replacementField" class="@if(old('job_type', $personnel->job_type) === 'Replacement') flex @else hidden @endif flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Replacement Name</label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Replacement Name</label>
                                     <input type="text" name="immediate_replacement" id="immediate_replacement"
                                         value="{{ old('immediate_replacement', $personnel->immediate_replacement ?? '') }}"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         placeholder="Enter employee name to be replaced">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Job Title <span class="text-red-500">*</span></label>
                                     <input type="text" name="job_title" id="job_title"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ old('job_title', $personnel->job_title) }}" required>
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Level <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Job Level <span class="text-red-500">*</span></label>
                                     <input type="hidden" name="group_grade" id="group_grade"
                                         value="{{ old('group_grade', $personnel->group_grade ?? '') }}">
                                     <select
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         name="subgrade_id" id="subgrade_id" required>
                                         @foreach ($subgradings as $sg)
                                             <option value="{{ $sg->subgrade_id }}"
@@ -210,9 +212,9 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate Superior</label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Immediate Superior</label>
                                     <select name="immediate_superior" id="immediate_superior"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="">Select User</option>
                                         @foreach ($activeUsers as $u)
                                             <option value="{{ $u->username }}"
@@ -224,44 +226,44 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Superior Position</label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Superior Position</label>
                                     <input type="text" name="state_position" id="state_position"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ old('state_position', $personnel->state_position) }}">
                                 </div>
 
                                 <div class="flex flex-col gap-2 md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reason for Vacancy <span class="text-red-500">*</span></label>
                                     <textarea name="reason_vacancy" id="reason_vacancy"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="min-h-[80px] w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         required>{{ old('reason_vacancy', $personnel->reason_vacancy) }}</textarea>
                                 </div>
                             </div>
 
                             <div class="mt-6 grid grid-cols-1 gap-4 border-t border-dashed border-gray-200 pt-6 dark:border-gray-700 sm:grid-cols-3">
-                                <div class="flex min-w-0 flex-col gap-1.5 rounded-lg border border-gray-200 bg-gray-50 p-3.5 dark:border-gray-700 dark:bg-gray-900/30">
-                                    <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actual</label>
+                                <div class="flex min-w-0 flex-col gap-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-gray-900/30">
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Actual</label>
                                     <input type="number" name="actual" id="actual" min="0"
-                                        class="number-only w-full rounded-md border border-gray-300 bg-white p-2 text-base font-bold text-gray-800 focus:ring focus:ring-indigo-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                        class="number-only h-10 w-full px-3 font-bold rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ old('actual', $personnel->actual) }}">
                                     <span class="text-[11px] text-gray-400 dark:text-gray-500">Current headcount</span>
                                 </div>
-                                <div class="flex min-w-0 flex-col gap-1.5 rounded-lg border border-gray-200 bg-gray-50 p-3.5 dark:border-gray-700 dark:bg-gray-900/30">
-                                    <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Number Required</label>
+                                <div class="flex min-w-0 flex-col gap-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-gray-900/30">
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Number Required</label>
                                     <input type="number" name="required" id="required" min="0"
-                                        class="number-only w-full rounded-md border border-gray-300 bg-white p-2 text-base font-bold text-gray-800 focus:ring focus:ring-indigo-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                        class="number-only h-10 w-full px-3 font-bold rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ old('required', $personnel->required) }}">
                                     <span class="text-[11px] text-gray-400 dark:text-gray-500">Positions being requested</span>
                                 </div>
-                                <div class="flex min-w-0 flex-col gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 p-3.5 dark:border-indigo-800 dark:bg-indigo-900/20">
-                                    <label class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                                <div class="flex min-w-0 flex-col gap-1.5 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-500/30 dark:bg-blue-500/10">
+                                    <label class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
                                         <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h3"/></svg>
                                         Total Actual Number
                                     </label>
                                     <input type="number" name="total_actual" id="total_actual" min="0"
-                                        class="number-only w-full rounded-md border border-indigo-200 bg-white p-2 text-base font-bold text-indigo-700 focus:ring focus:ring-indigo-300 dark:border-indigo-800 dark:bg-gray-800 dark:text-indigo-300"
+                                        class="number-only h-10 w-full rounded-lg border border-blue-200 bg-white px-3 text-sm font-bold text-blue-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-blue-500/30 dark:bg-gray-800 dark:text-blue-300"
                                         value="{{ old('total_actual', $personnel->total_actual) }}" readonly>
-                                    <span class="flex items-center gap-1 text-[11px] text-indigo-600/80 dark:text-indigo-400/80">
+                                    <span class="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-300">
                                         <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="9" rx="1.5"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
                                         Auto-calculated
                                     </span>
@@ -271,45 +273,46 @@
                     </details>
 
                     {{-- 3. RESPONSIBILITIES --}}
-                    <details id="sec-responsibilities" open class="group scroll-mt-4 rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700">
+                    <details id="sec-responsibilities" open class="group scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">3</span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm">3</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Job Responsibilities <span class="text-red-500">*</span></div>
-                                    <div class="text-xs text-gray-400 dark:text-gray-500">List the key duties of this role</div>
+                                    <div class="text-base font-bold text-gray-800 dark:text-white">Job Responsibilities <span class="text-red-500">*</span></div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">List the key duties of this role</div>
                                 </div>
                             </div>
-                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            <span class="shrink-0 text-sm font-medium text-blue-600 group-open:hidden dark:text-blue-400">See details &rarr;</span>
+                            <span class="hidden shrink-0 text-sm font-medium text-blue-600 group-open:inline dark:text-blue-400">Hide details &darr;</span>
                         </summary>
-                        <div class="p-4 pt-3">
+                        <div class="p-6">
                             <div id="responsibilitiesTable" class="flex flex-col gap-2">
                                 @php $res = collect($jobres ?? []); @endphp
                                 @if ($res->isEmpty())
-                                    <div class="responsibilities-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                                    <div class="responsibilities-row flex items-center gap-3">
                                         <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                         </span>
-                                        <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">1</span>
+                                        <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">1</span>
                                         <input type="text" name="responsibilities[]" required placeholder="Type here..."
-                                            class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
+                                            class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <button type="button"
-                                            class="removeResponsibilities hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                            class="removeResponsibilities hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                         </button>
                                     </div>
                                 @else
                                     @foreach ($res as $i => $resp)
-                                        <div class="responsibilities-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                                        <div class="responsibilities-row flex items-center gap-3">
                                             <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                             </span>
-                                            <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">{{ $i + 1 }}</span>
+                                            <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">{{ $i + 1 }}</span>
                                             <input type="text" name="responsibilities[]" required placeholder="Type here..."
-                                                class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200"
+                                                class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                                 value="{{ $resp->job_responsibilities_descr }}">
                                             <button type="button"
-                                                class="removeResponsibilities hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                                class="removeResponsibilities hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                             </button>
                                         </div>
@@ -317,7 +320,7 @@
                                 @endif
                             </div>
                             <button type="button" id="addResponsibilities"
-                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
@@ -327,27 +330,28 @@
                     </details>
 
                     {{-- 4. JOB QUALIFICATION --}}
-                    <details id="sec-qualifications" open class="group scroll-mt-4 rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700">
+                    <details id="sec-qualifications" open class="group scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">4</span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm">4</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Job Qualification</div>
-                                    <div class="text-xs text-gray-400 dark:text-gray-500">Education, experience and skills required</div>
+                                    <div class="text-base font-bold text-gray-800 dark:text-white">Job Qualification</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Education, experience and skills required</div>
                                 </div>
                             </div>
-                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            <span class="shrink-0 text-sm font-medium text-blue-600 group-open:hidden dark:text-blue-400">See details &rarr;</span>
+                            <span class="hidden shrink-0 text-sm font-medium text-blue-600 group-open:inline dark:text-blue-400">Hide details &darr;</span>
                         </summary>
-                        <div class="p-4 pt-3">
+                        <div class="p-6">
 
-                            <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Education &amp; Experience <span class="text-red-500">*</span>
+                            <div class="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Education &amp; Experience <span class="text-red-500">*</span>
                             </div>
-                            <div class="{{ !empty($isSby) ? 'prf-select2 ' : '' }}mb-6 grid grid-cols-1 gap-4 {{ !empty($isSby) ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3' }}">
+                            <div class="mb-6 grid grid-cols-1 gap-4 {{ !empty($isSby) ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-3' }}">
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Education <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Education <span class="text-red-500">*</span></label>
                                     <select name="education" id="education" required
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="" disabled
                                             {{ old('education', $personnel->education) ? '' : 'selected' }}>Select
                                         </option>
@@ -359,60 +363,60 @@
                                 </div>
                                 @if (!empty($isSby))
                                     <div class="flex flex-col gap-2">
-                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Jurusan <span class="text-red-500">*</span></label>
+                                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jurusan <span class="text-red-500">*</span></label>
                                         <select name="education_jurusan[]" id="jurusan" multiple required
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                            class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         </select>
                                     </div>
                                 @endif
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — Start <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Experience — Start <span class="text-red-500">*</span></label>
                                     <input type="number" name="experience_start" id="experience_start" required
                                         min="0"
                                         value="{{ old('experience_start', $personnel->experience_start) }}"
                                         placeholder="0"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                 </div>
                                 <div class="flex flex-col gap-2">
-                                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Experience — End <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Experience — End <span class="text-red-500">*</span></label>
                                     <input type="number" name="experience_end" id="experience_end" required
                                         min="0"
                                         value="{{ old('experience_end', $personnel->experience_end) }}"
                                         placeholder="0"
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        class="h-10 w-full px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                 </div>
                             </div>
 
-                            <div class="mb-2 flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Skills <span class="text-red-500">*</span>
+                            <div class="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Skills <span class="text-red-500">*</span>
                             </div>
                             <div id="qualificationTable" class="flex flex-col gap-2">
                                 @php $qua = collect($jobqua ?? []); @endphp
                                 @if ($qua->isEmpty())
-                                    <div class="qualification-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                                    <div class="qualification-row flex items-center gap-3">
                                         <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                         </span>
-                                        <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">1</span>
+                                        <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">1</span>
                                         <input type="text" name="qualification[]" required placeholder="Type here..."
-                                            class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
+                                            class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <button type="button"
-                                            class="removeQualification hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                            class="removeQualification hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                         </button>
                                     </div>
                                 @else
                                     @foreach ($qua as $i => $q)
-                                        <div class="qualification-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                                        <div class="qualification-row flex items-center gap-3">
                                             <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                                             </span>
-                                            <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">{{ $i + 1 }}</span>
+                                            <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">{{ $i + 1 }}</span>
                                             <input type="text" name="qualification[]" required placeholder="Type here..."
-                                                class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200"
+                                                class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                                 value="{{ $q->job_qualification_descr }}">
                                             <button type="button"
-                                                class="removeQualification hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                                class="removeQualification hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                             </button>
                                         </div>
@@ -420,14 +424,14 @@
                                 @endif
                             </div>
                             <button type="button" id="addQualification"
-                                class="mb-6 mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mb-6 mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg> Add Skill
                             </button>
 
-                            <div class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200">
-                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Tags
+                            <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span> Tags
                             </div>
                             <div class="mt-2 w-full min-w-0">
                                 @php
@@ -447,7 +451,7 @@
                                 @endphp
 
                                 <select name="tags[]" id="tags" multiple
-                                    class="tags-input block w-full min-w-0 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                    class="tags-input block w-full min-w-0 p-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     @foreach ($allTags as $tag)
                                         <option value="{{ $tag }}"
                                             {{ in_array($tag, $selected, true) ? 'selected' : '' }}>
@@ -460,33 +464,34 @@
                     </details>
 
                     {{-- 5. ATTACHMENTS --}}
-                    <details id="sec-attachments" open class="group scroll-mt-4 rounded-xl bg-white shadow-sm dark:bg-gray-800">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700">
+                    <details id="sec-attachments" open class="group scroll-mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-xs font-extrabold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">5</span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm">5</span>
                                 <div>
-                                    <div class="text-sm font-bold text-gray-800 dark:text-white">Attachments</div>
-                                    <div class="text-xs text-gray-400 dark:text-gray-500">Supporting documents (optional)</div>
+                                    <div class="text-base font-bold text-gray-800 dark:text-white">Attachments</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Supporting documents (optional)</div>
                                 </div>
                             </div>
-                            <svg class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+                            <span class="shrink-0 text-sm font-medium text-blue-600 group-open:hidden dark:text-blue-400">See details &rarr;</span>
+                            <span class="hidden shrink-0 text-sm font-medium text-blue-600 group-open:inline dark:text-blue-400">Hide details &darr;</span>
                         </summary>
-                        <div class="p-4 pt-3">
-                            <div class="flex max-h-[260px] flex-col gap-2 overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex flex-col gap-3">
                                 <div id="attachmentsContainer" class="flex flex-col gap-2">
                                     @foreach ($attachment as $attach)
                                         @php $fileUrl = route('attachments.view', ['id' => $attach->id]); @endphp
-                                        <div class="attachment-row flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/30"
+                                        <div class="attachment-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/70 p-2 dark:border-gray-700 dark:bg-gray-900/30"
                                             data-attachid="{{ $attach->id }}">
-                                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
                                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg>
                                             </div>
                                             <a href="{{ $fileUrl }}" target="_blank"
-                                                class="flex-1 truncate text-sm text-gray-700 hover:text-indigo-600 hover:underline dark:text-gray-200">
+                                                class="min-w-0 flex-1 truncate text-sm font-medium text-gray-700 hover:text-blue-600 hover:underline dark:text-gray-200">
                                                 {{ $attach->attachment_name ?? basename($attach->filename) }}
                                             </a>
                                             <button type="button"
-                                                class="removeAttachment2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                                                class="removeAttachment2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
                                                 data-id="{{ $attach->id }}">
                                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                             </button>
@@ -494,11 +499,11 @@
                                     @endforeach
 
                                     {{-- baris upload baru minimal 1 --}}
-                                    <div class="attachment-row flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-900/30">
+                                    <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
                                         <button type="button"
-                                            class="removeAttachment hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                            class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 hidden">
                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                                         </button>
                                     </div>
@@ -506,7 +511,7 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg> Add Attachment
@@ -515,20 +520,20 @@
                     </details>
 
                     {{-- FOOTER ACTIONS --}}
-                    <div class="sticky bottom-2 z-10 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
+                    <div class="sticky bottom-2 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white/95 px-6 py-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
                         <button id="backBtn" type="button" onclick="history.back()"
-                            class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 mr-auto">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
                             <span>Back</span>
                         </button>
 
-                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                        <div class="flex flex-row flex-wrap items-center gap-3">
                             <button type="button" id="cancelBtn"
-                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                class="flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                                 <span id="cancelText">{{ $personnel->status === 'D' && $personnel->created_user === auth()->user()->username ? 'Cancel Document' : 'Cancel' }}</span>
-                                <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-current"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
@@ -536,14 +541,14 @@
                             </button>
                             @if ($personnel->status === 'H')
                                 <button type="button" id="saveDraftBtn"
-                                    class="flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-transparent dark:text-gray-300 dark:hover:bg-gray-700">
+                                    class="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     <span id="draftBtnText">Save as Draft</span>
                                 </button>
                             @endif
                             <button type="submit" id="submitBtn"
-                                class="flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                class="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Submit Approval</span>
-                                <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
+                                <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
@@ -769,11 +774,6 @@
                     closeOnSelect: false
                 });
 
-                // the dropdown is appended to <body>, so tag it for the .prf-select2-dropdown styles
-                $education.add($jurusan).on('select2:open', function() {
-                    $('.select2-dropdown').last().addClass('prf-select2-dropdown');
-                });
-
                 function loadJurusan(education, selected) {
                     selected = selected || [];
                     const options = (jurusanMap[education] || []).slice();
@@ -942,10 +942,10 @@
             // ========= ATTACHMENT (add/remove) =========
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
-                    <div class="attachment-row flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-900/30">
+                    <div class="attachment-row flex items-center gap-2">
                         <input type="file" name="attachments[]"
-                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                        <button type="button" class="removeAttachment flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                            class="flex-grow cursor-pointer rounded-lg border border-gray-300 bg-white py-0 pr-3 text-sm text-gray-600 shadow-sm transition file:mr-4 file:h-[42px] file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-gray-600 dark:file:text-gray-100">
+                        <button type="button" class="removeAttachment inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                         </button>
                     </div>
@@ -1048,13 +1048,13 @@
             $('#addResponsibilities').click(function() {
                 responsibilityCount++;
                 $('#responsibilitiesTable').append(`
-                    <div class="responsibilities-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="responsibilities-row flex items-center gap-3">
                         <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                         </span>
-                        <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">${responsibilityCount}</span>
-                        <input type="text" name="responsibilities[]" required placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
-                        <button type="button" class="removeResponsibilities hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                        <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">${responsibilityCount}</span>
+                        <input type="text" name="responsibilities[]" required placeholder="Type here..." class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                        <button type="button" class="removeResponsibilities hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                         </button>
                     </div>
@@ -1087,13 +1087,13 @@
             $('#addQualification').click(function() {
                 qualificationCount++;
                 $('#qualificationTable').append(`
-                    <div class="qualification-row flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-900/30">
+                    <div class="qualification-row flex items-center gap-3">
                         <span class="row-grip shrink-0 text-gray-300 dark:text-gray-600">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
                         </span>
-                        <span class="row-num flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-xs font-bold text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">${qualificationCount}</span>
-                        <input type="text" name="qualification[]" required placeholder="Type here..." class="flex-1 border-none bg-transparent p-1 text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-gray-200">
-                        <button type="button" class="removeQualification hidden flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                        <span class="row-num flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">${qualificationCount}</span>
+                        <input type="text" name="qualification[]" required placeholder="Type here..." class="h-10 min-w-0 flex-1 px-3 rounded-lg border border-gray-300 bg-white text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
+                        <button type="button" class="removeQualification hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-600 hover:bg-red-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-300 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/></svg>
                         </button>
                     </div>
@@ -1131,4 +1131,7 @@
             calculateTotalActual();
         });
     </script>
+
+    <x-spp-form-styles />
+    <x-prf-form-select2 />
 </x-app-layout>

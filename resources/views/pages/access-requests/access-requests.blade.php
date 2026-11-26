@@ -1,139 +1,35 @@
 <x-app-layout>
 
     @include('pages.access-requests.partials.styles')
+    <x-spp-list-styles />
+    <x-spp-list-scripts />
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
-
-            {{-- All Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- On Progress Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="P">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">On Progress</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $pending }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Reject Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="R">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Reject</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Revise / Draft Status --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="D">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
-                    </div>
-                </a>
-            </button>
-
-            {{-- Approved Status (management approved, IT processing) --}}
-            <div class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="C">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Approved</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
-                    </div>
-                </a>
-            </div>
-
-            {{-- Finished Status (IT completed all access items) --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-status="F">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏁</div>
-
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Finished</p>
-                        </div>
-
-                        <p class="shrink-0 text-base font-bold">{{ $finished }}</p>
-                    </div>
-                </a>
-            </button>
-        </div>
+        @php
+            $statusCards = [
+                [['data-status' => ''], 'All', '📦', 'all', $all, false],
+                [['data-status' => 'P'], 'On Progress', '⏳', 'yellow', $pending, false],
+                [['data-status' => 'R'], 'Reject', '⛔', 'red', $reject, false],
+                [['data-status' => 'D'], 'Revise / Draft', '✏️', 'blue', $revise, false],
+                [['data-status' => 'C'], 'Approved', '✅', 'sky', $completed, false], // approved by management, IT processing
+                [['data-status' => 'F'], 'Finished', '🏁', 'green', $finished, false], // IT completed all access items
+            ];
+        @endphp
+        <x-status-filter-cards :custom="$statusCards" />
 
         {{-- Init Datatble --}}
         <div
-            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="dt-pretty mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
-
-                <div class="flex flex-wrap items-center gap-3">
-
-                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        Access Request
-                    </h2>
-
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="group relative">
-                        <i class="fa-solid fa-layer-group pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-blue-500 dark:text-blue-400"></i>
-                        <select id="approvedGroupFilter" aria-label="Filter Approved request category"
-                            class="h-10 min-w-52 cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-10 text-sm font-medium text-gray-700 shadow-sm outline-none transition hover:border-blue-300 hover:bg-white focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/15 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-blue-500/60 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+            <x-list-page-header title="Access Request" subtitle="Request software and hardware access">
+                    <div class="sppb-f relative w-60">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-9 items-center justify-center text-gray-400"><i class="fa-solid fa-layer-group text-xs"></i></span>
+                        <select id="approvedGroupFilter" aria-label="Filter Approved request category">
                             <option value="">All Software / Hardware</option>
                             <option value="SOFTWARE">Software</option>
                             <option value="HARDWARE">Hardware</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 transition group-focus-within:text-blue-500"></i>
                     </div>
 
                     <button id="btnCreate" type="button"
@@ -144,10 +40,7 @@
                         Create Request
 
                     </button>
-
-                </div>
-
-            </div>
+            </x-list-page-header>
 
             <div class="relative overflow-hidden">
 
