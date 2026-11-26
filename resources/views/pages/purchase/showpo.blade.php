@@ -2908,7 +2908,8 @@
                     },
                     contentType: 'application/json',
                     data: JSON.stringify({
-                        reason: result.value
+                        reason: result.value,
+                        po_hash: @json($hash)
                     }),
                     success: function(res) {
                         if (res && res.success) {
