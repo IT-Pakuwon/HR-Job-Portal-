@@ -12,6 +12,13 @@
         const formCategory = $(form.elements.kontrakcategory);
         const searchableCategories = typeof $.fn.select2 === 'function';
 
+        $('#masterCategoryForm [name="kontrakcategory"], #masterBqForm [name="kontrak_bq_id"], #masterBqForm [name="kontrak_bq_type"], #masterBqForm [name="kontrak_bq_uom"]').on('input', function () {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            if (start !== null && end !== null) this.setSelectionRange(start, end);
+        });
+
         if (searchableCategories) {
             categoryFilter.select2({ width: '100%' });
             $('#masterBqTypeFilter').select2({ width: '100%', minimumResultsForSearch: Infinity });
@@ -55,7 +62,10 @@
                 } }
             ]
         });
-        $('#masterBqCategoryFilter, #masterBqTypeFilter').on('change', function () { table.ajax.reload(); });
+        $('#masterBqCategoryFilter, #masterBqTypeFilter').on('change', function () {
+            if (categoryTable) highlightCategory();
+            table.ajax.reload();
+        });
 
         function openForm(row) {
             form.reset();
@@ -165,18 +175,20 @@
             });
         }
 
-        $('[data-master-tab]').on('click', function () {
-            const isCategory = this.dataset.masterTab === 'category';
-            $('#masterBqPanel').toggleClass('hidden', isCategory);
-            $('#masterCategoryPanel').toggleClass('hidden', !isCategory);
-            $('[data-master-tab]').each(function () {
-                const selected = this.dataset.masterTab === (isCategory ? 'category' : 'bq');
-                $(this).attr('aria-selected', String(selected))
-                    .toggleClass('border-indigo-600 bg-indigo-600 font-semibold text-white', selected)
-                    .toggleClass('border-gray-300', !selected);
+        function highlightCategory() {
+            const selected = categoryFilter.val();
+            categoryTable.rows({ page: 'current' }).every(function () {
+                $(this.node()).toggleClass('category-selected', !!selected && this.data().kontrakcategory === selected);
             });
-            if (isCategory) initializeCategories();
-            else table.columns.adjust().responsive.recalc();
+        }
+
+        initializeCategories();
+        categoryTable.on('draw', highlightCategory);
+        $('#masterCategoryTable tbody').on('click', 'tr', function (event) {
+            if ($(event.target).closest('button, a').length) return;
+            const row = categoryTable.row(this).data();
+            if (!row) return;
+            categoryFilter.val(row.kontrakcategory).trigger('change');
         });
 
         function openCategory(row) {

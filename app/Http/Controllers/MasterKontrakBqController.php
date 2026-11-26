@@ -65,6 +65,7 @@ class MasterKontrakBqController extends Controller
     public function store(Request $request)
     {
         $this->authorizeAccess($request);
+        $this->uppercaseBqFields($request);
         $data = $request->validate($this->rules());
         $row = MsKontrakBQ::create($data + ['created_by' => $request->user()->username]);
 
@@ -75,6 +76,7 @@ class MasterKontrakBqController extends Controller
     {
         $this->authorizeAccess($request);
         $row = MsKontrakBQ::whereNull('deleted_at')->findOrFail($id);
+        $this->uppercaseBqFields($request);
         $data = $request->validate($this->rules());
         $row->fill($data);
         $row->updated_by = $request->user()->username;
@@ -104,6 +106,9 @@ class MasterKontrakBqController extends Controller
     public function storeCategory(Request $request)
     {
         $this->authorizeAccess($request);
+        if (is_string($request->input('kontrakcategory'))) {
+            $request->merge(['kontrakcategory' => mb_strtoupper($request->input('kontrakcategory'))]);
+        }
         $data = $request->validate($this->categoryRules());
         $row = MsKontrakCategory::create($data + ['created_by' => $request->user()->username]);
         return response()->json(['message' => 'Kategori berhasil ditambahkan.', 'data' => $row], 201);
@@ -119,5 +124,14 @@ class MasterKontrakBqController extends Controller
         $row->updated_by = $request->user()->username;
         $row->save();
         return response()->json(['message' => 'Kategori berhasil diperbarui.', 'data' => $row]);
+    }
+
+    private function uppercaseBqFields(Request $request): void
+    {
+        foreach (['kontrak_bq_id', 'kontrak_bq_type', 'kontrak_bq_uom'] as $field) {
+            if (is_string($request->input($field))) {
+                $request->merge([$field => mb_strtoupper($request->input($field))]);
+            }
+        }
     }
 }

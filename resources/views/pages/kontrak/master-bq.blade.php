@@ -3,6 +3,9 @@
         #masterKontrakBq .master-bq-category-filter { width: min(240px, 100%); }
         #masterKontrakBq .master-bq-type-filter { width: min(160px, 100%); }
         #masterKontrakBq .master-bq-filter-select { width: 100%; height: 42px; }
+        #masterCategoryTable tbody tr { cursor: pointer; }
+        #masterCategoryTable tbody tr.category-selected > td { background-color: #e0e7ff !important; }
+        .dark #masterCategoryTable tbody tr.category-selected > td { background-color: #373b68 !important; }
         #masterKontrakBq .select2-container--default .select2-selection--single {
             height: 42px;
             border: 1px solid #d1d5db;
@@ -30,11 +33,23 @@
             <a href="{{ route('kontrak') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-200">Kontrak</a>
             <span aria-current="page" class="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Master Kontrak</span>
         </nav>
-        <div role="tablist" aria-label="Master Kontrak" class="flex flex-wrap gap-2">
-            <button type="button" role="tab" id="masterBqTab" data-master-tab="bq" aria-controls="masterBqPanel" aria-selected="true" class="rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Master Kontrak BQ</button>
-            <button type="button" role="tab" id="masterCategoryTab" data-master-tab="category" aria-controls="masterCategoryPanel" aria-selected="false" class="rounded-lg border border-gray-300 px-4 py-2 text-sm">Kategori Kontrak BQ</button>
-        </div>
-        <section id="masterBqPanel" role="tabpanel" aria-labelledby="masterBqTab" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <section id="masterCategoryPanel" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Kategori Kontrak BQ</h2>
+                <button id="masterCategoryAdd" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Add Kategori</button>
+            </header>
+            <div id="masterCategoryNotice" role="status" class="hidden px-4 py-3 text-sm text-emerald-700"></div>
+            <div class="overflow-x-auto p-4">
+                <table id="masterCategoryTable" class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <thead><tr>
+                        @foreach (['Edit', 'Category', 'Description', 'Status'] as $heading)
+                            <th class="px-3 py-3 text-left">{{ $heading }}</th>
+                        @endforeach
+                    </tr></thead>
+                </table>
+            </div>
+        </section>
+        <section id="masterBqPanel" class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <header class="flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
                 <div class="flex min-w-0 flex-1 flex-wrap items-end gap-3">
                     <h1 class="self-center text-base font-semibold text-gray-800 dark:text-gray-100">Master Kontrak BQ</h1>
@@ -64,22 +79,6 @@
                 <table id="masterBqTable" class="w-full text-sm text-gray-700 dark:text-gray-200">
                     <thead><tr>
                         @foreach (['Edit', 'BQ ID', 'Category', 'Type', 'Line No', 'Description', 'UoM', 'Duration Qty', 'Status'] as $heading)
-                            <th class="px-3 py-3 text-left">{{ $heading }}</th>
-                        @endforeach
-                    </tr></thead>
-                </table>
-            </div>
-        </section>
-        <section id="masterCategoryPanel" role="tabpanel" aria-labelledby="masterCategoryTab" class="hidden border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-700">
-                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Kategori Kontrak BQ</h2>
-                <button id="masterCategoryAdd" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus mr-1" aria-hidden="true"></i> Add Kategori</button>
-            </header>
-            <div id="masterCategoryNotice" role="status" class="hidden px-4 py-3 text-sm text-emerald-700"></div>
-            <div class="overflow-x-auto p-4">
-                <table id="masterCategoryTable" class="w-full text-sm text-gray-700 dark:text-gray-200">
-                    <thead><tr>
-                        @foreach (['Edit', 'Category', 'Description', 'Status'] as $heading)
                             <th class="px-3 py-3 text-left">{{ $heading }}</th>
                         @endforeach
                     </tr></thead>
