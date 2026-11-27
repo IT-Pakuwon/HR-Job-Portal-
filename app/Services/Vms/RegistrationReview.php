@@ -83,6 +83,15 @@ class RegistrationReview
                     }
                 }
             }
+            if ($approved) {
+                // Activate only the account belonging to this registration, never other vendor users.
+                $accounts = $db->table('users')->where('parent_id', $id)
+                    ->where('username', $vendor->username)->lockForUpdate()->get(['id']);
+                if ($accounts->count() !== 1) {
+                    throw ValidationException::withMessages(['account' => 'Akun login vendor tidak ditemukan atau tidak unik. Periksa username dan vendor ID sebelum menyetujui.']);
+                }
+                $db->table('users')->where('id', $accounts->first()->id)->update(['status' => 'A']);
+            }
             $db->table('vendor')->where('vendor_id', $id)->update($changes);
             $db->table('vendor_internal_activity')->insert(['vendor_id' => $id, 'activity' => $approved ? 'Registration Account Approved' : 'Registration Account Rejected', 'notes' => 'Pelaku: '.$actor->username.(empty($data['notes']) ? '' : "\n".$data['notes']), 'created_by' => $legacyActor, 'created_at' => now()]);
             $vendorName = $approved ? $data['vendor_name'] : $vendor->vendor_nama;
