@@ -2518,12 +2518,23 @@ class PoController extends Controller
 
         $data = $request->validate([
             'reason' => ['required', 'string', 'min:3'],
-            'po_hash' => ['required', 'string'],
+            'po_hash' => ['nullable', 'string'],
         ]);
 
-        $poId = Hashids::decode($data['po_hash'])[0] ?? null;
+        $poHash = $data['po_hash'] ?? '';
+        if ($poHash === '') {
+            $referer = $request->headers->get('referer', '');
+            $refererHost = parse_url($referer, PHP_URL_HOST);
+            $refererPath = parse_url($referer, PHP_URL_PATH);
+            if (is_string($refererHost) && strcasecmp($refererHost, $request->getHost()) === 0
+                && is_string($refererPath) && preg_match('~/showpo/([A-Za-z0-9]+)/?$~', $refererPath, $matches)) {
+                $poHash = $matches[1];
+            }
+        }
+
+        $poId = Hashids::decode($poHash)[0] ?? null;
         if (!$poId) {
-            return response()->json(['success' => false, 'message' => 'Identitas PO tidak valid.'], 422);
+            return response()->json(['success' => false, 'message' => 'Identitas PO tidak ditemukan. Muat ulang halaman PO dan coba kembali.'], 422);
         }
 
         // ✅ inject reason supaya bisa dibaca SendCommentController lewat $request->input('message') / 'comment'
