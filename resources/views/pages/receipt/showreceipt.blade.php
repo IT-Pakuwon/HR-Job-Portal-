@@ -259,7 +259,7 @@
 
                             {{-- Note (if exists) --}}
                             @if (!empty($rcp->receiptnote))
-                                <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="text-base col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                         <span>Note</span>
@@ -508,7 +508,7 @@
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}
                                         <br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        <span class="text-base text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->receiptnote_detail }}
                                         </span>
                                     </td>

@@ -186,6 +186,9 @@
     }
 
     [x-cloak] { display: none !important; }
+
+    /* Text with no size class would otherwise fall back to the browser's 16px. */
+    body { font-size: var(--text-base); }
 }
 
 /* Scripts hide things by adding "hidden". It must win over "inline-flex" on the same element:

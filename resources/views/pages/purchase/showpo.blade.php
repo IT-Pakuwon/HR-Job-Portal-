@@ -443,9 +443,9 @@
                                     class="mt-4 flex items-start gap-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Purpose</p>
                                         <p
-                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            class="whitespace-pre-line break-words text-base font-medium text-gray-900 dark:text-gray-100">
                                             {{ $po->keperluan }}
                                         </p>
                                     </div>
@@ -548,12 +548,12 @@
 
                                             @if (!empty($po->vendornote))
                                                 <div class="mt-4">
-                                                    <p class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                    <p class="text-base uppercase tracking-wide text-gray-400">
                                                         Vendor Note
                                                     </p>
 
                                                     <p
-                                                        class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-sm text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
+                                                        class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-base text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
                                                         {{ $po->vendornote }}
                                                     </p>
                                                 </div>
@@ -1110,12 +1110,12 @@
                                                         @if (!empty($po->vendornote))
                                                             <div class="mt-4">
                                                                 <p
-                                                                    class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                    class="text-base uppercase tracking-wide text-gray-400">
                                                                     Vendor Note
                                                                 </p>
 
                                                                 <p
-                                                                    class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-sm text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-base text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->vendornote }}
                                                                 </p>
                                                             </div>
@@ -1279,7 +1279,7 @@
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="whitespace-preline break-words px-4 py-2">{{ $item->inventory_descr }}
                                     </td>
-                                    <td class="whitespace-pre-line break-words px-4 py-2">{{ $item->ponote_detail }}
+                                    <td class="text-base whitespace-pre-line break-words px-4 py-2">{{ $item->ponote_detail }}
                                     </td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
                                         {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
@@ -1414,7 +1414,7 @@
                                         {{ $r->receipttype === 'PR' ? 'Purchase Receipt' : 'Return Receipt' }}
                                     </td>
 
-                                    <td class="whitespace-normal break-words px-4 py-2">
+                                    <td class="text-base whitespace-normal break-words px-4 py-2">
                                         {{ $r->receiptnote ?? '-' }}
                                     </td>
                                     <td class="px-4 py-2 text-right">
@@ -1494,7 +1494,7 @@
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->ponote_detail }}</td>
+                                    <td class="text-base px-4 py-2">{{ $item->ponote_detail }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qty) }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right"> {{ $nf2($item->unitcost) }}</td>

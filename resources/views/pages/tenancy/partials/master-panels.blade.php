@@ -69,6 +69,7 @@
                         <option value="">All Status</option>
                         <option value="A">Active</option>
                         <option value="X">Inactive</option>
+                        <option value="V">Vacant</option>
                     </select>
                 </x-ts-filter>
                 <button id="addTenantBtn" type="button"
@@ -77,16 +78,25 @@
                 </button>
             </x-ts-list-header>
                 <div class="relative overflow-x-auto">
-                    <table id="tenantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <table id="tenantsTable" class="w-full min-w-full whitespace-nowrap border-separate border-spacing-0 text-sm">
                         <thead>
                             <tr
                                 class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Type</th>
+                                <th class="px-4 py-3 text-left font-medium">Type Status</th>
+                                <th class="px-4 py-3 text-left font-medium">Store Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Periode</th>
                                 <th class="px-4 py-3 text-left font-medium">Location</th>
                                 <th class="px-4 py-3 text-left font-medium">Floor</th>
-                                <th class="px-4 py-3 text-left font-medium">Tenant Company</th>
-                                <th class="px-4 py-3 text-left font-medium">Store Name</th>
                                 <th class="px-4 py-3 text-left font-medium">Unit</th>
+                                <th class="px-4 py-3 text-left font-medium">Size (m&sup2;)</th>
+                                <th class="px-4 py-3 text-left font-medium">Category</th>
+                                <th class="px-4 py-3 text-left font-medium">Brand Origin</th>
+                                <th class="px-4 py-3 text-left font-medium">Brand Type</th>
+                                <th class="px-4 py-3 text-left font-medium">Tenant Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Contract Status</th>
+                                <th class="px-4 py-3 text-left font-medium">Perusahaan</th>
                                 <th class="px-4 py-3 text-left font-medium">PIC Name</th>
                                 <th class="px-4 py-3 text-left font-medium">PIC Phone</th>
                                 <th class="w-28 px-4 py-3 text-left font-medium">Status</th>

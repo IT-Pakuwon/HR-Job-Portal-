@@ -1271,13 +1271,19 @@
                     confirmButtonColor: '#3193da',
                 }).then(result => {
                     if (!result.isConfirmed) return;
+                    // The request also sends an email, so block the screen until it returns.
+                    Swal.fire({ title: 'Remapping...', allowOutsideClick: false, allowEscapeKey: false, didOpen: () => Swal.showLoading() });
                     $.post("{{ route('jobapplicant.remap') }}", {
                         apply_id:  applyId,
                         new_jobid: newJobId,
                         _token: '{{ csrf_token() }}'
-                    }).done(function() {
+                    }).done(function(res) {
                         closeRemapModal();
-                        Swal.fire({ icon: 'success', title: 'Remapped!', timer: 1200, showConfirmButton: false });
+                        if (res.warning) {
+                            Swal.fire('Remapped!', res.warning, 'warning');
+                        } else {
+                            Swal.fire({ icon: 'success', title: 'Remapped!', timer: 1200, showConfirmButton: false });
+                        }
                         applicantTable.ajax.reload(null, false);
                     }).fail(function(xhr) {
                         Swal.fire('Error', xhr.responseJSON?.error || 'Remap failed.', 'error');

@@ -18,14 +18,13 @@
         };
     @endphp
     <div class="mx-auto w-full space-y-4 p-2">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-gray-500">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600">Home</a><span>/</span>
-                <a href="{{ route('evaluasivendor') }}" class="hover:text-indigo-600">Penilaian Vendor</a><span>/</span>
-                <span class="font-semibold text-gray-800 dark:text-gray-100">Show Details</span>
-            </nav>
+        <x-breadcrumb :items="[
+            ['label' => 'Home', 'url' => route('dashboard')],
+            ['label' => 'Penilaian Vendor', 'url' => route('evaluasivendor')],
+            ['label' => 'Show Details'],
+        ]">
             <x-approval-actions :status="$evaluation->status" :is-approver="$isApprover" />
-        </div>
+        </x-breadcrumb>
         @if(session('success'))<div role="status" class="rounded-lg bg-green-50 p-3 text-green-800">{{ session('success') }}</div>@endif
         <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
             <section class="overflow-hidden rounded-xl bg-white dark:bg-gray-800" style="min-height:360px">
@@ -142,7 +141,7 @@
                                         <span class="vendor-detail-score"><strong>{{ $detailScore ?? '—' }}</strong>@if($predicate)<span class="vendor-detail-predicate" style="color:{{ $predicateColor }};background:{{ $predicateBackground }}">{{ $predicate }}</span>@endif</span>
                                     </td>
                                     <td class="p-3 font-semibold">{{ number_format((float) $detail->template_vpe_subaspect_nilai, 2) }}</td>
-                                    <td class="whitespace-pre-line p-3">{{ $detail->template_vpe_subaspect_note ?: '—' }}</td>
+                                    <td class="whitespace-pre-line p-3 text-base">{{ $detail->template_vpe_subaspect_note ?: '—' }}</td>
                                     <td class="p-3">
                                         @php($detailAttachments = $attachments[$detail->id] ?? [])
                                         @if(count($detailAttachments))
@@ -171,8 +170,8 @@
         .vendor-detail-predicate{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:600;line-height:1.3}
         .vendor-note-box{border:1px solid #e2e8f0;border-left:3px solid #56b1f3;border-radius:8px;padding:14px 16px;background:#f8fafc}
         .vendor-note-recommendation{border-left-color:#0d9488;background:#f0fdfa}
-        .vendor-note-heading{margin:0;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#334155}
-        .vendor-note-content{margin:10px 0 0;white-space:pre-line;overflow-wrap:anywhere;line-height:1.65;color:#0f172a}
+        .vendor-note-heading{margin:0;padding-bottom:8px;border-bottom:1px solid #e2e8f0;font-size:14px;font-weight:700;color:#334155}
+        .vendor-note-content{margin:10px 0 0;font-size:14px;white-space:pre-line;overflow-wrap:anywhere;line-height:1.65;color:#0f172a}
         .dark .vendor-note-box{background:#1f2937;border-color:#475569;border-left-color:#7bc8ff}.dark .vendor-note-recommendation{border-left-color:#2dd4bf}
         .dark .vendor-note-heading{color:#e2e8f0;border-bottom-color:#475569}.dark .vendor-note-content{color:#f1f5f9}
         .vendor-kpi-summary{display:flex;align-items:center;gap:12px;min-width:210px;padding:6px 12px;border:1px solid color-mix(in srgb,var(--kpi-accent) 18%,transparent);border-left:4px solid var(--kpi-accent);border-radius:10px;background:linear-gradient(120deg,var(--kpi-tint),#fff);box-shadow:0 4px 16px color-mix(in srgb,var(--kpi-accent) 8%,transparent)}

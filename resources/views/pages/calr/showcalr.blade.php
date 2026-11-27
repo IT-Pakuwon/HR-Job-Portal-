@@ -264,7 +264,7 @@
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             @foreach ($fields as $f)
-                                <div class="{{ $row }}">
+                                <div class="{{ $row }} {{ $f['label'] === 'Purpose' ? 'text-base' : '' }}">
                                     <div class="{{ $label }}">
                                         <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                         <span>{{ $f['label'] }}</span>
@@ -282,7 +282,7 @@
 
                                 <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                                     @foreach ($prevRfcaFields as $f)
-                                        <div class="{{ $row }}">
+                                        <div class="{{ $row }} {{ $f['label'] === 'Purpose' ? 'text-base' : '' }}">
                                             <div class="{{ $label }}">
                                                 <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                                 <span>{{ $f['label'] }}</span>

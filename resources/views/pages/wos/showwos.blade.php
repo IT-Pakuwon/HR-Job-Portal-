@@ -217,7 +217,7 @@
                         </div>
 
                         {{-- PURPOSE --}}
-                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 text-base dark:bg-gray-700">
                             <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                 <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                 <span>Purpose</span>
@@ -410,14 +410,14 @@
                             <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4 text-sm">
                                         <p class="py-4 text-center italic text-gray-500 dark:text-gray-400">Loading comments...</p>
                                     </div>
                                     <div
                                         class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                         <input id="commentInput" x-model="newComment" type="text"
                                             placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-sm text-gray-800focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
                                             class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
@@ -443,7 +443,7 @@
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span>
                             <div>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <h2 class="text-base font-bold text-gray-800 dark:text-white">Process Work Order</h2>
+                                    <h2 class="text-sm font-bold text-gray-800 dark:text-white">Process Work Order</h2>
 
                                     <span id="jobStatusBadge"
                                         class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 transition-all duration-300 dark:bg-gray-700 dark:text-gray-300">
@@ -583,7 +583,7 @@
                         <div class="flex items-center gap-3">
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></span>
                             <div>
-                                <h2 class="text-base font-bold text-gray-800 dark:text-white">WO Detail</h2>
+                                <h2 class="text-sm font-bold text-gray-800 dark:text-white">WO Detail</h2>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Job status and notes for this work order</p>
                             </div>
                         </div>
@@ -665,8 +665,8 @@
 
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
+        <div class="w-full max-w-md rounded-lg bg-white p-4 text-sm dark:bg-gray-700">
+            <h2 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
 
@@ -681,8 +681,8 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
-            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+        <div class="w-full max-w-md rounded-lg bg-white p-4 text-sm dark:bg-gray-700">
+            <h2 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
 

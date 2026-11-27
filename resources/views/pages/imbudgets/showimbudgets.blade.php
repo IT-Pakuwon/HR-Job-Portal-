@@ -289,7 +289,7 @@
                                 <div class="col-span-2">
                                     <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                         <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
-                                        <div class="flex flex-col">
+                                        <div class="text-base flex flex-col">
                                             <span class="text-gray-500 dark:text-gray-400">Purpose</span>
                                             <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                                 {{ $imbudget->keperluan }}
@@ -302,7 +302,7 @@
                                 <div class="col-span-2">
                                     <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                         <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
-                                        <div class="flex flex-col">
+                                        <div class="text-base flex flex-col">
                                             <span class="text-gray-500 dark:text-gray-400">Reason for unbudgeted/over budget</span>
                                             <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                                 {{ $imbudget->imbudgetnote }}
@@ -484,7 +484,7 @@
                                     <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_remain, 2) }}</td>
                                     <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_needed, 2) }}</td>
                                     <td class="px-4 py-2 text-left">{{ number_format((float) $item->budget_requested, 2) }}</td>
-                                    <td class="px-4 py-2">{{ $item->note }}</td>
+                                    <td class="text-base px-4 py-2">{{ $item->note }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

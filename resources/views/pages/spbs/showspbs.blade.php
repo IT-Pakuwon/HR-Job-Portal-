@@ -160,7 +160,7 @@
 
                                     <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
 
-                                    <div class="flex flex-col">
+                                    <div class="text-base flex flex-col">
 
                                         <span class="text-gray-500 dark:text-gray-400">Description</span>
 
@@ -181,7 +181,7 @@
 
                                         <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
 
-                                        <div class="flex flex-col">
+                                        <div class="text-base flex flex-col">
 
                                             <span class="text-gray-500 dark:text-gray-400">WO Purpose</span>
 
@@ -415,7 +415,7 @@
                                         </div>
 
                                         @if ($item->note)
-                                            <div class="mt-1 text-xs text-gray-400">
+                                            <div class="mt-1 text-base text-gray-400">
                                                 Note: {{ $item->note }}
                                             </div>
                                         @endif

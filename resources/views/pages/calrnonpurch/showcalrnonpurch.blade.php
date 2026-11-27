@@ -249,7 +249,7 @@
 
                         <div class="grid grid-cols-1 gap-x-8 gap-y-1 text-sm md:grid-cols-2">
                             @foreach ($fields as $f)
-                                <div class="{{ $row }}">
+                                <div class="{{ $row }} {{ $f['label'] === 'Purpose' ? 'text-base' : '' }}">
                                     <div class="{{ $label }}">
                                         <span>{{ $f['label'] }}</span>
                                     </div>
@@ -301,7 +301,7 @@
                                     <tbody class="divide-y dark:divide-gray-600">
                                         @forelse ($details as $d)
                                             <tr>
-                                                <td class="p-2">
+                                                <td class="p-2 text-base">
                                                     {{ $d->keperluan_detail ?: '-' }}
                                                 </td>
 

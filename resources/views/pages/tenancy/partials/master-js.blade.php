@@ -281,12 +281,67 @@
             /* =========================================================
              * TENANT
              * ========================================================= */
+            // PIC phone as a "start WhatsApp chat" link. wa.me needs digits with
+            // country code; local numbers (08.. / 8..) are treated as Indonesian.
+            function waPhoneLink(phone) {
+                if (!phone) return '-';
+                let text = $('<div>').text(phone).html();
+                let raw = String(phone).trim();
+                let number = raw.replace(/\D/g, '');
+                if (!raw.startsWith('+')) {
+                    if (number.startsWith('00')) number = number.slice(2);
+                    else if (number.startsWith('0')) number = '62' + number.slice(1);
+                    else if (number.startsWith('8')) number = '62' + number;
+                }
+                // Not a usable single number: show it as plain text
+                if (number.length < 9 || number.length > 15) return text;
+
+                return `<a href="https://wa.me/${number}" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp"
+                           class="inline-flex items-center gap-1.5 whitespace-nowrap text-green-600 hover:underline dark:text-green-400">
+                            <i class="fab fa-whatsapp"></i><span>${text}</span>
+                        </a>`;
+            }
+
+            // Free-text values go into the cell as HTML, so escape them
+            const tntText = d => d ? $('<div>').text(d).html() : '-';
+            const tntBadge = colors => d => d ? window.listBadge(colors[d] || 'gray', tntText(d)) : '-';
+
+            // The table is grouped by Type: these first, other types next, tenants without a type last
+            const tntTypeOrder = ['Fit Out', 'Vacant', 'Occupied'];
+            const tntTypeBadge = tntBadge({ 'Occupied': 'green', 'Fit Out': 'yellow', 'Vacant': 'orange' });
+            const tntTypeSortKey = type => {
+                if (!type) return '2';
+                let i = tntTypeOrder.indexOf(type);
+                return i >= 0 ? `0${i}` : `1${type}`;
+            };
+
+            function tntGroupRows() {
+                let api = this.api();
+                let counts = {};
+                api.rows({ search: 'applied' }).data().each(r => counts[r.unittype || ''] = (counts[r.unittype || ''] || 0) + 1);
+
+                let previous = null;
+                api.rows({ page: 'current' }).every(function() {
+                    let type = this.data().unittype || '';
+                    if (type === previous) return;
+                    previous = type;
+                    $(this.node()).before(`<tr class="tnt-group"><td colspan="${api.columns(':visible').count()}">
+                            <div>${tntTypeBadge(type) === '-' ? window.listBadge('slate', 'No Type') : tntTypeBadge(type)}
+                            <span>${counts[type].toLocaleString('en-US')} tenant${counts[type] > 1 ? 's' : ''}</span></div>
+                        </td></tr>`);
+                });
+            }
+
             let tenantTable = $('#tenantsTable').DataTable({
                 ajax: "{{ route('tenancy.master.tenants.json') }}",
                 processing: true,
                 serverSide: false,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-                dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                // only the table scrolls sideways; search and paging stay in place
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>r<"overflow-x-auto"t>ip',
+                // always sorted by Type first, so each group stays together whatever column is sorted
+                orderFixed: { pre: [[1, 'asc']] },
+                drawCallback: tntGroupRows,
                 columns: [{
                         data: 'id',
                         orderable: false,
@@ -299,19 +354,31 @@
                                         <span class="slider round"></span>
                                     </label>
                                     <button type="button" class="viewTenantBtn ${window.listCls.view}" title="View" data-id="${data}"><i class="fas fa-eye"></i></button>
-                                    <button type="button" class="editTenantBtn ${window.tsEditCls}" title="Edit" data-id="${data}"><i class="fas fa-edit"></i></button>
-                                </div>
+                                    <button type="button" class="editTenantBtn ${window.tsEditCls}" title="Edit" data-id="${data}"><i class="fas fa-edit"></i></button>                                </div>
                             `;
                         }
                     },
+                    {
+                        data: 'unittype',
+                        orderable: false,
+                        render: (d, type) => type === 'display' ? tntTypeBadge(d) : (type === 'filter' ? (d || '') : tntTypeSortKey(d))
+                    },
+                    { data: 'typestatus', render: tntText },
+                    { data: 'storename' },
+                    { data: 'periode', render: tntText },
                     { data: 'location.locationname', defaultContent: '-' },
                     { data: 'floor.floor', defaultContent: '-' },
-                    { data: 'tenant_company.tenantcompanyname', defaultContent: '-' },
-                    { data: 'storename' },
                     { data: 'unit', render: d => d ?? '-' },
+                    { data: 'unitsize', render: (d, type) => d === null ? (type === 'sort' ? -1 : '-') : (type === 'display' ? Number(d).toLocaleString('en-US') : Number(d)) },
+                    { data: 'categories', render: d => tntText((d || []).map(c => c.name).join(', ')) },
+                    { data: 'brandorigin', render: tntText },
+                    { data: 'brandtype', render: tntText },
+                    { data: 'tenant_company.tenantcompanyname', defaultContent: '-' },
+                    { data: 'contractstatus', render: tntBadge({ 'Active': 'green', 'Pending': 'red', 'Expired': 'orange' }) },
+                    { data: 'perusahaan', render: tntText },
                     { data: 'picname', render: d => d || '-' },
-                    { data: 'picphone', render: d => d || '-' },
-                    { data: 'status', render: statusBadge },
+                    { data: 'picphone', render: (d, type) => type === 'display' ? waPhoneLink(d) : (d || '-') },
+                    { data: 'status', render: d => d === 'V' ? window.listBadge('orange', 'Vacant') : statusBadge(d) },
                 ]
             });
             window.tsTables.tenant = tenantTable;
@@ -333,11 +400,13 @@
             });
             $('#filterTenantFloor, #filterTenantStatus').on('change', function() { tenantTable.draw(); });
 
-            $('#tnt_location_id, #tnt_floor_id, #tnt_tenantcompanyid').each(function() {
+            const tenantSelects = '#tnt_location_id, #tnt_floor_id, #tnt_tenantcompanyid, #tnt_categoryids, #tnt_unittype, #tnt_brandtype, #tnt_contractstatus';
+
+            $(tenantSelects).each(function() {
                 $(this).select2({
                     width: '100%',
                     dropdownParent: $('#tenantModal'),
-                    placeholder: $(this).find('option:first').text(),
+                    placeholder: $(this).data('placeholder') || $(this).find('option:first').text(),
                     allowClear: true,
                     containerCssClass: 'ts-select2-container',
                     dropdownCssClass: 'ts-select2-dropdown',
@@ -366,20 +435,101 @@
                 });
             }
 
+            // Category choices + suggestions for the free-text fields
+            function loadTenantFormOptions(data) {
+                let $category = $('#tnt_categoryids').empty().trigger('change');
+                let $type = $('#tnt_unittype');
+                $type.find('option:not(:first)').remove();
+                $type.val('').trigger('change');
+                // saving before the choices arrive would clear the tenant's Type and categories
+                $('#tenantSaveBtn').prop('disabled', true);
+                return $.get("{{ route('tenancy.master.tenants.form-options') }}", function(res) {
+                    // keep categories the tenant already has, even if they were deactivated since
+                    let current = (data && data.categories) || [];
+                    let all = res.categories.concat(current.filter(c => !res.categories.some(r => r.id === c.id)));
+                    all.forEach(c => $category.append(new Option(c.name, c.id)));
+                    $category.val(current.map(c => String(c.id))).trigger('change');
+
+                    let type = (data && data.unittype) || '';
+                    let types = res.unittypes.concat(type && !res.unittypes.includes(type) ? [type] : []);
+                    types.forEach(t => $type.append(new Option(t, t)));
+                    $type.val(type).trigger('change');
+
+                    let fill = (id, values) => $(id).empty().append(values.map(v => new Option(v, v)));
+                    fill('#tntTypeStatusList', res.typestatuses);
+                    fill('#tntBrandOriginList', res.brandorigins);
+                    $('#tenantSaveBtn').prop('disabled', false);
+                }).fail(function() {
+                    toastError('Failed to load tenant types and categories');
+                });
+            }
+
+            // Periode month picker: keeps "YYYY-MM" in the hidden input
+            const $mp = $('#tntPeriodePicker');
+            const mpMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const mpKey = (year, month) => `${year}-${String(month + 1).padStart(2, '0')}`;
+            const mpNow = () => { let d = new Date(); return mpKey(d.getFullYear(), d.getMonth()); };
+            let mpYear = new Date().getFullYear();
+
+            function mpRender() {
+                let selected = $('#tnt_periode').val(), now = mpNow();
+                $mp.find('.mp-year strong').text(mpYear);
+                $mp.find('.mp-grid').html(mpMonths.map((name, i) => {
+                    let key = mpKey(mpYear, i);
+                    return `<button type="button" data-value="${key}" class="${key === selected ? 'is-selected' : (key === now ? 'is-now' : '')}">${name.slice(0, 3)}</button>`;
+                }).join(''));
+            }
+
+            function mpToggle(open) {
+                $mp.toggleClass('is-open', open).find('.mp-pop').prop('hidden', !open);
+                $mp.find('.mp-field').attr('aria-expanded', open);
+            }
+
+            function mpSet(value) {
+                value = value || '';
+                $('#tnt_periode').val(value);
+                let [year, month] = value.split('-');
+                $mp.find('.mp-text').text(value ? `${mpMonths[month - 1]} ${year}` : '-- Select Periode --').toggleClass('is-empty', !value);
+                mpToggle(false);
+            }
+
+            $mp.on('click', '.mp-field', function() {
+                let open = !$mp.hasClass('is-open');
+                if (open) {
+                    mpYear = Number(($('#tnt_periode').val() || mpNow()).slice(0, 4));
+                    mpRender();
+                }
+                mpToggle(open);
+                if (open) $mp.find('.mp-pop')[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            });
+            $mp.on('click', '.mp-year button', function() { mpYear += Number($(this).data('step')); mpRender(); });
+            $mp.on('click', '.mp-grid button', function() { mpSet($(this).data('value')); });
+            $mp.on('click', '.mp-clear', () => mpSet(''));
+            $mp.on('click', '.mp-now', () => mpSet(mpNow()));
+            $mp.on('keydown', function(e) { if (e.key === 'Escape') { mpToggle(false); $mp.find('.mp-field').trigger('focus'); } });
+            // close when pressing anywhere outside the picker
+            $(document).on('mousedown', function(e) { if (!$(e.target).closest($mp).length) mpToggle(false); });
+
             function openTenantModal(mode, data) {
                 let readOnly = mode === 'view';
                 $('#tenantForm')[0].reset();
                 $('#tnt_id').val('');
                 $('#tenantModalTitle').text(mode === 'add' ? 'Add Tenant' : (mode === 'view' ? 'View Tenant' : 'Edit Tenant'));
                 $('#tenantForm input, #tenantForm select').prop('disabled', readOnly);
-                $('#tnt_location_id, #tnt_floor_id, #tnt_tenantcompanyid').prop('disabled', readOnly).trigger('change');
+                $(tenantSelects).prop('disabled', readOnly).trigger('change');
                 $('#tenantSaveBtn').toggle(!readOnly);
 
                 loadLocationOptions($('#tnt_location_id'), data ? data.locationid : null);
                 loadFloorOptions($('#tnt_floor_id'), data ? data.floorid : null);
                 loadTenantCompanyOptions($('#tnt_tenantcompanyid'), data ? data.tenantcompanyid : null);
+                loadTenantFormOptions(data);
+                // a form reset leaves hidden inputs as they are, so always set it
+                mpSet(data && data.periode);
+                $mp.find('.mp-field').prop('disabled', readOnly);
 
                 if (data) {
+                    ['brandtype', 'contractstatus'].forEach(f => $('#tnt_' + f).val(data[f] || '').trigger('change'));
+                    ['typestatus', 'unitsize', 'brandorigin', 'perusahaan'].forEach(f => $('#tnt_' + f).val(data[f]));
                     $('#tnt_id').val(data.id);
                     $('#tnt_storename').val(data.storename);
                     $('#tnt_unit').val(data.unit);

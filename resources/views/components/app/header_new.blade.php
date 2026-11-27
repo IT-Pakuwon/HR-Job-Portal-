@@ -154,24 +154,26 @@
         }
     @endphp
 
-    <div class="hidden min-w-0 flex-1 items-center pl-2 lg:flex">
+    {{-- Page titles need a large screen; breadcrumbs start at sm (phones keep the one in <x-breadcrumb>). --}}
+    <div class="hidden min-w-0 flex-1 items-center overflow-hidden pl-2 {{ $headerTitle !== '' ? 'lg:flex' : 'sm:flex' }}">
         @if ($headerTitle !== '')
             {!! $headerTitle !!}
         @elseif (!empty($crumbs))
             <nav class="min-w-0" aria-label="Breadcrumb">
-                <ol class="flex flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <ol class="flex min-w-0 flex-nowrap items-center gap-1.5 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     @foreach ($crumbs as $i => $crumb)
-                        <li class="flex items-center gap-1.5">
+                        {{-- below lg only the last two levels fit beside the header icons --}}
+                        <li class="{{ $i < count($crumbs) - 2 ? 'hidden lg:flex' : 'flex' }} min-w-0 items-center gap-1.5">
                             @if ($i > 0)
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                    stroke="currentColor" class="h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-gray-600">
+                                    stroke="currentColor" class="{{ $i === count($crumbs) - 2 ? 'hidden lg:block' : '' }} h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-gray-600">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                 </svg>
                             @endif
                             @if (!$loop->last && !empty($crumb['url']))
-                                <a href="{{ $crumb['url'] }}" class="font-medium hover:text-indigo-600 dark:hover:text-indigo-400">{{ $crumb['label'] }}</a>
+                                <a href="{{ $crumb['url'] }}" class="truncate font-medium hover:text-indigo-600 dark:hover:text-indigo-400">{{ $crumb['label'] }}</a>
                             @else
-                                <span class="{{ $loop->last ? 'font-semibold text-gray-800 dark:text-gray-100' : 'font-medium' }}">{{ $crumb['label'] }}</span>
+                                <span class="{{ $loop->last ? 'font-semibold text-gray-800 dark:text-gray-100' : 'font-medium' }} truncate">{{ $crumb['label'] }}</span>
                             @endif
                         </li>
                     @endforeach

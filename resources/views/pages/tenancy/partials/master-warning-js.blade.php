@@ -71,16 +71,25 @@ function renderWarning(d) {
     $('#doc_sik, #doc_sia, #doc_simkb_in, #doc_simkb_out, #doc_simkb_inout').prop('disabled', !d.can_documents);
     $('#docSaveBtn').toggle(!!d.can_documents);
     $('#docReadOnly').toggleClass('hidden', !!d.can_documents);
+    countDocs();
+    // timeline, newest first as sent by the server
     $('#warnHistory').html((d.history || []).map(h => `
-        <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
-            <div class="flex items-center justify-between gap-2">
-                <span class="font-medium ${h.status === 'A' ? 'text-red-600' : 'text-gray-500'}">${h.status === 'A' ? 'Active' : 'Cleared'}</span>
+        <div class="relative pb-4 pl-6 last:pb-0 before:absolute before:bottom-0 before:left-[5px] before:top-4 before:w-px before:bg-gray-200 last:before:hidden dark:before:bg-white/10">
+            <span class="absolute left-0 top-1 h-[11px] w-[11px] rounded-full ring-4 ${h.status === 'A' ? 'bg-red-500 ring-red-100 dark:ring-red-500/20' : 'bg-gray-300 ring-gray-100 dark:bg-gray-500 dark:ring-white/5'}"></span>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider ${h.status === 'A' ? 'text-red-600' : 'text-gray-500'}">${h.status === 'A' ? 'Active' : 'Cleared'}</span>
                 <span class="text-xs text-gray-400">${esc(h.issued_user)} · ${esc(h.issued_datetime)}</span>
             </div>
-            <p class="mt-1 whitespace-pre-line text-gray-700 dark:text-gray-300">${esc(h.reason)}</p>
-            ${h.status === 'C' ? `<p class="mt-2 border-t border-gray-100 pt-2 text-xs text-gray-500 dark:border-white/10">Cleared by ${esc(h.cleared_user)} · ${esc(h.cleared_datetime)}: ${esc(h.clear_reason)}</p>` : ''}
-        </div>`).join('') || '<p class="text-gray-400">No warning history.</p>');
+            <p class="mt-1 whitespace-pre-line break-words text-gray-700 dark:text-gray-300">${esc(h.reason)}</p>
+            ${h.status === 'C' ? `<div class="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-gray-600 dark:bg-emerald-500/10 dark:text-gray-300"><p class="font-semibold text-emerald-700 dark:text-emerald-300"><i class="fas fa-check mr-1"></i>Cleared by ${esc(h.cleared_user)} · ${esc(h.cleared_datetime)}</p><p class="mt-0.5 whitespace-pre-line break-words">${esc(h.clear_reason)}</p></div>` : ''}
+        </div>`).join('') || '<div class="flex flex-col items-center gap-2 py-3 text-gray-400"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-white/[0.06]"><i class="fas fa-history"></i></span><p class="text-xs">No warning history.</p></div>');
 }
+
+// "3 of 5 allowed" badge on the checklist
+function countDocs() {
+    $('#docCount').text(`${$('#warningModal .doc-check:checked').length} of ${$('#warningModal .doc-check').length} allowed`);
+}
+$(document).on('change', '#warningModal .doc-check', countDocs);
 
 function loadWarning(id, open) {
     showLoading();

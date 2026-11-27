@@ -503,7 +503,7 @@
                                 rows += `
                             <tr>
                                 <td class="border   px-2 py-1">${i + 1}</td>
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
+                                <td class="border   px-2 py-1 text-base">${p.job_purpose || ''}</td>
                             </tr>
                         `;
                             });

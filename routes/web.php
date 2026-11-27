@@ -1785,6 +1785,7 @@ Route::middleware(['auth'])->group(function () {
             Route::controller(TsTenantController::class)->prefix('tenants')->name('tenants.')->group(function () {
                 Route::get('/json', 'json')->name('json');
                 Route::get('/options', 'options')->name('options');
+                Route::get('/form-options', 'formOptions')->name('form-options');
                 Route::post('/', 'store')->name('store');
                 Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::put('/{id}', 'update')->name('update');

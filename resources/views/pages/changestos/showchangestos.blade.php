@@ -150,7 +150,7 @@
                             </div>
 
                             {{-- Note --}}
-                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="text-base col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                     <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                     <span>Note</span>

@@ -82,7 +82,7 @@
 .vms-purchase-modal .vms-order-detail-amounts{grid-template-columns:repeat(3,minmax(0,1fr))}
 .vms-purchase-modal .vms-order-detail-amounts>div:last-child{background:var(--detail-soft);border-color:var(--detail-line)}
 .vms-purchase-modal .vms-order-detail-amounts>div:last-child dd{color:var(--detail-accent);font-size:15px}
-.vms-purchase-modal .vms-order-detail-note{margin-top:12px;padding:13px 15px;border:1px solid var(--detail-line);border-radius:9px;background:var(--detail-soft);font-size:12px;color:#536782}
+.vms-purchase-modal .vms-order-detail-note{margin-top:12px;padding:13px 15px;border:1px solid var(--detail-line);border-radius:9px;background:var(--detail-soft);font-size:14px;color:#536782}
 .vms-purchase-modal .vms-order-detail-note strong{color:var(--detail-accent)}
 .vms-purchase-modal .vms-order-detail-note p{margin:6px 0 0}
 .vms-purchase-modal .vms-order-detail-lines .vms-order-table{border:1px solid #e3eaf5;border-radius:9px}

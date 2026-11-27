@@ -131,7 +131,7 @@
                             </div>
 
                             <div class="col-span-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex flex-col">
+                                <div class="text-base flex flex-col">
                                     <span class="text-gray-500 dark:text-gray-400">Purpose / Description</span>
                                     <span class="font-medium text-gray-900 dark:text-gray-300">
                                         {{ $header->imbudgetkeperluan ?? '-' }}
@@ -426,7 +426,7 @@
                                         </div>
 
                                         @if ($item->imnonpurchase_note)
-                                            <div class="mt-1 text-xs text-gray-400">
+                                            <div class="mt-1 text-base text-gray-400">
                                                 Note: {{ $item->imnonpurchase_note }}
                                             </div>
                                         @endif

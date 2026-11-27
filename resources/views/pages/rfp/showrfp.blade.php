@@ -193,9 +193,9 @@
 
                         <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                             <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                                <span class="text-sm font-medium">{{ $noteLabel }}</span>
+                                <span class="text-base font-medium">{{ $noteLabel }}</span>
                             </div>
-                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
+                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-base">
                                 {{ $noteValue ?: '-' }}
                             </span>
                         </div>
@@ -646,7 +646,7 @@
 
                 <div class="space-y-2 rounded-xl border border-gray-100 bg-gray-50/60 p-4 text-sm text-gray-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200 [&_strong]:mr-1 [&_strong]:text-[11px] [&_strong]:font-semibold [&_strong]:uppercase [&_strong]:tracking-wider [&_strong]:text-gray-500">
                     <div><strong>RFP ID:</strong> {{ $rfp->rfp_id }}</div>
-                    <div><strong>Keperluan:</strong> {{ $rfp->keperluan ?: '-' }}</div>
+                    <div class="text-base"><strong>Keperluan:</strong> {{ $rfp->keperluan ?: '-' }}</div>
                     <div><strong>Amount:</strong> Rp {{ number_format((float) $rfp->rfp_amount, 2, ',', '.') }}</div>
                     <div><strong id="progressModalUserLabel">User:</strong> <span id="progressModalUserValue">-</span></div>
                     <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>

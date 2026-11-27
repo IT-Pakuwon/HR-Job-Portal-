@@ -236,8 +236,8 @@
                                 <div class="flex items-start gap-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="min-w-0">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100 break-words">
                                             {{ $kontrak->keperluan ?: '-' }}
                                         </p>
                                     </div>
@@ -247,8 +247,8 @@
                                 <div class="flex items-start gap-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
                                     <div class="min-w-0">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Note</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Note</p>
+                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100 break-words">
                                             {{ $kontrak->kontaknote ?: '-' }}
                                         </p>
                                     </div>
@@ -397,7 +397,7 @@
                                             </a>
                                         </td>
                                         <td class="whitespace-nowrap p-2">{{ $payment->rfp_date ? \Carbon\Carbon::parse($payment->rfp_date)->format('d M Y') : '-' }}</td>
-                                        <td class="min-w-[200px] max-w-sm whitespace-pre-line break-words p-2">{{ $payment->ir_note ?? '-' }}</td>
+                                        <td class="text-base min-w-[200px] max-w-sm whitespace-pre-line break-words p-2">{{ $payment->ir_note ?? '-' }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_base_amount, 2, ',', '.') }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_tax_amount, 2, ',', '.') }}</td>
                                         <td class="whitespace-nowrap p-2 text-right">{{ number_format((float) $payment->rfp_amount, 2, ',', '.') }}</td>

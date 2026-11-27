@@ -346,7 +346,7 @@
                     data: 'purchase_user'
                 },
                 {
-                    data: 'keperluan'
+                    data: 'keperluan', className: 'text-base'
                 },
                 {
                     data: 'inventoryid'

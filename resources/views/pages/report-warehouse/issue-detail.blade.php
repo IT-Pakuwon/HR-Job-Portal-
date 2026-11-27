@@ -217,7 +217,7 @@
                 },
 
                 {
-                    data: 'keperluan'
+                    data: 'keperluan', className: 'text-base'
                 }
 
             ],

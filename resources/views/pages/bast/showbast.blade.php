@@ -253,7 +253,7 @@
                                 <div class="col-span-2">
                                     <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                         <x-heroicon-o-clipboard-document-list class="mt-0.5 h-5 w-5 text-gray-400" />
-                                        <div class="flex flex-col">
+                                        <div class="text-base flex flex-col">
                                             <span class="text-gray-500 dark:text-gray-400">Note</span>
                                             <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                                 {{ $bast->bastnote }}

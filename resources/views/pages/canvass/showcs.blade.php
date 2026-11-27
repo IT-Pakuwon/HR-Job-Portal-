@@ -237,9 +237,9 @@
                                 <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Purpose</p>
                                         <p
-                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            class="whitespace-pre-line break-words text-base font-medium text-gray-900 dark:text-gray-100">
                                             {{ $srcHeader->keperluan }}
                                         </p>
                                     </div>
@@ -248,9 +248,9 @@
                                 <div class="flex flex-1 items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Note CS</p>
+                                        <p class="text-base text-gray-500 dark:text-gray-400">Note CS</p>
                                         <p
-                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            class="whitespace-pre-line break-words text-base font-medium text-gray-900 dark:text-gray-100">
                                             {{ $cs->csnote }}
                                         </p>
                                     </div>
@@ -439,7 +439,7 @@
                                                 @endif
 
                                                 @if (!empty($v['vendornote']))
-                                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                    <div class="text-base text-gray-500 dark:text-gray-400">
                                                         Note:
                                                         <span class="italic">{{ $v['vendornote'] }}</span>
                                                     </div>
@@ -500,7 +500,7 @@
                                                                 {{-- Note --}}
                                                                 @if (!empty($row->csnote_detail))
                                                                     <span
-                                                                        class="text-sm italic text-gray-500 dark:text-gray-400">
+                                                                        class="text-base italic text-gray-500 dark:text-gray-400">
                                                                         Note: {{ $row->csnote_detail }}
                                                                     </span>
                                                                 @endif
@@ -851,7 +851,7 @@
                                         data-perpost="{{ $row->budget_perpost }}">
 
                                         <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $row->csnote_detail }}</span>
+                                            <span class="text-base text-gray-500 dark:text-gray-400">{{ $row->csnote_detail }}</span>
                                         </td>
 
                                         <td class="text-center">

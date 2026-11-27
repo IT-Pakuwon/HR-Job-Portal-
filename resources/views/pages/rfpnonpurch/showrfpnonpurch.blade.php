@@ -157,9 +157,9 @@
                         @if (!$isRCA)
                             <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                                    <span class="text-sm font-medium">Keperluan</span>
+                                    <span class="text-base font-medium">Keperluan</span>
                                 </div>
-                                <span class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-300">
+                                <span class="whitespace-pre-line break-words text-base font-medium text-gray-900 dark:text-gray-300">
                                     {{ $rfpnonpurch->keperluan ?: '-' }}
                                 </span>
                             </div>
@@ -262,7 +262,7 @@
                                                         <td class="p-2 text-center">{{ $i + 1 }}</td>
                                                     @endif
 
-                                                    <td class="p-2">
+                                                    <td class="p-2 text-base">
                                                         {{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}
                                                     </td>
 
@@ -684,7 +684,7 @@
 
                 <div class="space-y-3 text-sm">
                     <div><strong>RFP ID:</strong> {{ $rfpnonpurch->rfpnonpurchaseid }}</div>
-                    <div><strong>Keperluan:</strong> {{ $rfpnonpurch->keperluan ?: '-' }}</div>
+                    <div class="text-base"><strong>Keperluan:</strong> {{ $rfpnonpurch->keperluan ?: '-' }}</div>
                     <div><strong>Amount:</strong> Rp {{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}</div>
                     <div><strong id="progressModalUserLabel">User:</strong> <span id="progressModalUserValue">-</span></div>
                     <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>
