@@ -23,6 +23,17 @@
         .dark .legend-dot-unchecked { background-color: #22d3ee; }
         .dark .legend-dot-reject { background-color: #f87171; }
 
+        /* PRF Information: the blocks themselves were still centred with only the cell aligned left,
+           so each one is stretched to the full cell width and aligned too. */
+        #applicantsTable tbody td.prf-col,
+        #applicantsTable tbody td.prf-col div {
+            text-align: left !important;
+        }
+        #applicantsTable tbody td.prf-col div {
+            display: block !important; width: 100% !important;
+            margin-left: 0 !important; margin-right: 0 !important;
+        }
+
         table#applicantsTable td.step-col,
         table#applicantsTable th.step-col {
             width: 150px !important;
@@ -266,6 +277,11 @@
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Job Applied
                             </th>
+                            @if($showPrf)
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
+                                PRF Information
+                            </th>
+                            @endif
                             <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
@@ -673,6 +689,29 @@
 
             // $thead.append($filterRow);
 
+            // PRF Information exists only for SBY users, right after Job Applied, so every column
+            // behind it moves one position when it is there.
+            const showPrf = {{ $showPrf ? 'true' : 'false' }};
+            const prfShift = showPrf ? 1 : 0;
+
+            const prfColumn = {
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: 'prf-col whitespace-normal break-words',
+                render: function(data, type, row) {
+                    if (!row.prf_docid) return '<span class="text-gray-400">—</span>';
+
+                    const esc = s => $('<div>').text(s || '—').html();
+                    const prfNo = row.prf_eid ?
+                        `<a href="/showpersonnels/${row.prf_eid}" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:underline dark:text-indigo-400" title="Open PRF">${esc(row.prf_docid)}</a>` :
+                        `<span class="font-semibold">${esc(row.prf_docid)}</span>`;
+
+                    // The spaces between the blocks keep the Excel/CSV text readable.
+                    return `<div>${prfNo}</div> <div class="text-xs"><span class="opacity-80">Created by:</span> ${esc(row.prf_created_name)}</div> <div class="text-xs"><span class="opacity-80">Superior:</span> ${esc(row.prf_superior_name)}</div>`;
+                }
+            };
+
             const columnFilters = [{
                     index: 1,
                     type: 'text',
@@ -695,20 +734,20 @@
                     span: 'flex-1 min-w-[140px]'
                 },
                 {
-                    index: 5,
+                    index: 5 + prfShift,
                     type: 'text',
                     placeholder: 'Education',
                     className: 'whitespace-normal break-words',
                     span: 'flex-1 min-w-[140px]'
                 },
                 {
-                    index: 6,
+                    index: 6 + prfShift,
                     type: 'text',
                     placeholder: 'Religion',
                     span: 'w-36 shrink-0'
                 },
                 {
-                    index: 7,
+                    index: 7 + prfShift,
                     type: 'text',
                     placeholder: 'Height',
                     title: 'Type a value, a range like 160-180, or >=170',
@@ -716,7 +755,7 @@
                     span: 'w-24 shrink-0'
                 },
                 {
-                    index: 8,
+                    index: 8 + prfShift,
                     type: 'text',
                     placeholder: 'Weight',
                     title: 'Type a value, a range like 60-80, or >=70',
@@ -724,14 +763,14 @@
                     span: 'w-24 shrink-0'
                 },
                 {
-                    index: 9,
+                    index: 9 + prfShift,
                     type: 'select2tags',
                     placeholder: 'Company',
                     className: 'whitespace-normal break-words',
                     span: 'flex-1 min-w-[140px]'
                 },
                 {
-                    index: 10,
+                    index: 10 + prfShift,
                     type: 'text',
                     placeholder: 'Score',
                     title: 'Type a value, a range like 70-90, or >=80',
@@ -739,7 +778,7 @@
                     span: 'w-24 shrink-0'
                 },
                 {
-                    index: 11,
+                    index: 11 + prfShift,
                     type: 'select',
                     placeholder: 'Step',
                     span: 'w-36 shrink-0'
@@ -855,11 +894,11 @@
                         responsivePriority: 1
                     },
                     {
-                        targets: [1, 2], // DocID, Date (important)
+                        targets: [1, 2, 13 + prfShift], // DocID, Date, Action (important)
                         responsivePriority: 2
                     },
                     {
-                        targets: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // less important columns
+                        targets: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, ...(showPrf ? [13] : [])], // less important columns
                         responsivePriority: 100
                     }
                 ],
@@ -948,6 +987,7 @@
                             return jobTL || '<span class="text-gray-400">—</span>';
                         }
                     },
+                    ...(showPrf ? [prfColumn] : []),
                     {
                         data: 'education_name',
                         name: 'education_name'
@@ -1095,13 +1135,13 @@
 
 
             // kecilkan tiga header kolom numerik
-            $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
-            $('#applicantsTable thead tr:eq(0) th').eq(7).addClass('small-col');
-            $('#applicantsTable thead tr:eq(0) th').eq(9).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(6 + prfShift).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(7 + prfShift).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(9 + prfShift).addClass('small-col');
 
             if ($('#filterJobTL').length) {
                 $('#filterJobTL').select2({
-                    placeholder: 'Filter by Job Title — Job Level',
+                    placeholder: 'Filter by Job Title — Job Level — Company',
                     allowClear: true,
                     width: 'resolve',
                     dropdownCssClass: 'jobapp-select2-dropdown',

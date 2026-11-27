@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Jobposting;
 use App\Models\MsCompany;
+use App\Models\Personnel;
 use App\Models\SysUserRole;
 use App\Models\User;
 use App\Models\Usercpny;
@@ -329,6 +330,7 @@ class JobapplicantController extends Controller
         }
 
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
+        $showPrf = $groupCompanyId === 'SBY';
 
         $base = ViewCareer::query()
             ->where('group_cpny_id', $groupCompanyId)
@@ -372,7 +374,8 @@ class JobapplicantController extends Controller
             'reject',
             'approved',
             'transferred',
-            'canFilterJobTL'
+            'canFilterJobTL',
+            'showPrf'
         ));
     }
 
@@ -573,12 +576,13 @@ class JobapplicantController extends Controller
                 }
             }
 
-            // exact filter job title + level
+            // exact filter job title + level + company
             if ($jobTLExact !== '') {
-                [$exactTitle, $exactLevel] = array_pad(explode('|||', $jobTLExact, 2), 2, '');
+                [$exactTitle, $exactLevel, $exactCpny] = array_pad(explode('|||', $jobTLExact, 3), 3, '');
                 if ($exactTitle !== '' && $exactLevel !== '') {
                     $query->where('vc.job_title', $exactTitle)
-                        ->where('vc.job_level', $exactLevel);
+                        ->where('vc.job_level', $exactLevel)
+                        ->when($exactCpny !== '', fn ($q) => $q->where('vc.cpnyid', $exactCpny));
                 }
             }
 
@@ -618,9 +622,21 @@ class JobapplicantController extends Controller
                 DB::raw('IFNULL(div.division_name, "") as division_name'),
                 DB::raw('IFNULL(dept.department_name, "") as department_name'),
                 DB::raw('IFNULL(jp.cpnyid, "") as posting_cpnyid'),
+                DB::raw('IFNULL(jp.refid, "") as prf_docid'),
             ])
                 ->orderBy($orderBy, $orderDir)
                 ->get();
+
+            // PRF (pgsql3) and user names (pgsql2) are looked up for the visible page only.
+            // PRF numbers repeat across groups, so both lookups are group-scoped.
+            // Only SBY users have the PRF Information column.
+            $prfs = $groupCompanyId !== 'SBY' ? collect() : Personnel::where('group_cpny_id', $groupCompanyId)
+                ->whereIn('docid', $rows->pluck('prf_docid')->filter()->unique()->values())
+                ->get(['id', 'docid', 'created_user', 'immediate_superior'])
+                ->keyBy('docid');
+            $prfUserNames = User::where('group_cpny_id', $groupCompanyId)
+                ->whereIn('username', $prfs->pluck('created_user')->merge($prfs->pluck('immediate_superior'))->filter()->unique()->values())
+                ->pluck('name', 'username');
 
             $workflowSteps = DB::connection('mysql3')->table('hr_trx_job_apply_step')
                 ->where('group_cpny_id', $groupCompanyId)
@@ -635,11 +651,12 @@ class JobapplicantController extends Controller
                 'jobapp_dup_clusters_'.$groupCompanyId, 120,
                 fn () => $this->buildApplicantDuplicateClusters($groupCompanyId)
             );
-            $data = $rows->map(function ($r) use ($workflowSteps, $durationNow, $dupApplicantToGroup) {
+            $data = $rows->map(function ($r) use ($workflowSteps, $durationNow, $dupApplicantToGroup, $prfs, $prfUserNames) {
                 $duration = \App\Services\RecruitmentStepDuration::cumulative(
                     $workflowSteps->get(json_encode([$r->docid, $r->docidposting]), collect()),
                     $r->apply_step, $r->created_at, $r->status, $durationNow
                 );
+                $prf = $prfs->get($r->prf_docid);
                 return [
                     'eid' => Hashids::encode($r->_id),
                     'docid' => $r->docid,
@@ -669,6 +686,11 @@ class JobapplicantController extends Controller
                     'division_name' => $r->division_name,
                     'department_name' => $r->department_name,
                     'posting_cpnyid' => $r->posting_cpnyid,
+                    'prf_docid' => $r->prf_docid,
+                    'prf_eid' => $prf ? Hashids::encode($prf->id) : null,
+                    // Falls back to the stored value when it doesn't match a user.
+                    'prf_created_name' => $prf ? ($prfUserNames[$prf->created_user] ?? $prf->created_user) : null,
+                    'prf_superior_name' => $prf ? ($prfUserNames[$prf->immediate_superior] ?? $prf->immediate_superior) : null,
                 ];
             });
 
@@ -994,12 +1016,20 @@ class JobapplicantController extends Controller
         $groupCompanyId = strtoupper(trim((string) $user->group_cpny_id));
         $q = trim((string) $request->query('q', ''));
 
+        // Company names live on pgsql2, so they can't be joined to the mysql3 view.
+        $companyNames = MsCompany::where('group_cpny_id', $groupCompanyId)->pluck('cpny_name', 'cpny_id');
+        $matchedCpnyIds = $q === ''
+            ? []
+            : $companyNames->filter(fn ($name) => mb_stripos((string) $name, $q) !== false)->keys()->all();
+
         $rows = DB::connection('mysql3')->table('viewtrxcareer as vc')
             ->where('vc.group_cpny_id', $groupCompanyId)
-            ->when($q !== '', function ($qq) use ($q) {
-                $qq->where(function ($w) use ($q) {
+            ->when($q !== '', function ($qq) use ($q, $matchedCpnyIds) {
+                $qq->where(function ($w) use ($q, $matchedCpnyIds) {
                     $w->where('vc.job_title', 'like', "%{$q}%")
-                    ->orWhere('vc.job_level', 'like', "%{$q}%");
+                    ->orWhere('vc.job_level', 'like', "%{$q}%")
+                    ->orWhere('vc.cpnyid', 'like', "%{$q}%")
+                    ->orWhereIn('vc.cpnyid', $matchedCpnyIds);
                 });
             })
             ->whereNotNull('vc.job_title')->where('vc.job_title', '!=', '')
@@ -1007,14 +1037,17 @@ class JobapplicantController extends Controller
             ->distinct()
             ->orderBy('vc.job_title')
             ->orderBy('vc.job_level')
+            ->orderBy('vc.cpnyid')
             ->limit(50)
-            ->get(['vc.job_title', 'vc.job_level']);
+            ->get(['vc.job_title', 'vc.job_level', 'vc.cpnyid']);
 
-        // Select2 butuh {id, text}. id berisi "title|||level" (delimiter aman)
-        $data = $rows->map(function ($r) {
+        // Select2 butuh {id, text}. id berisi "title|||level|||cpnyid" (delimiter aman)
+        $data = $rows->map(function ($r) use ($companyNames) {
+            $company = $companyNames[$r->cpnyid] ?? $r->cpnyid;
+
             return [
-                'id' => $r->job_title.'|||'.$r->job_level,
-                'text' => $r->job_title.' — '.$r->job_level,
+                'id' => $r->job_title.'|||'.$r->job_level.'|||'.$r->cpnyid,
+                'text' => mb_strtoupper(implode(' — ', array_filter([$r->job_title, $r->job_level, $company]))),
             ];
         });
 
