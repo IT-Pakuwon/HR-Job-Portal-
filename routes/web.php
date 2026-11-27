@@ -3596,6 +3596,13 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/locations/{id}', [LocationController::class, 'updateLocation'])->name('locations.update');
         Route::put('/locations/{id}/toggle-status', [LocationController::class, 'toggleLocationStatus'])->name('locations.toggle-status');
 
+        // Sub Locations that exist in the tenancy tenant master but not yet here
+        Route::get('/sub-locations/from-tenant', [\App\Http\Controllers\TenantSubLocationController::class, 'index'])->name('sub_locations.from_tenant');
+        Route::get('/sub-locations/from-tenant/json', [\App\Http\Controllers\TenantSubLocationController::class, 'json'])->name('sub_locations.from_tenant.json');
+        Route::post('/sub-locations/from-tenant', [\App\Http\Controllers\TenantSubLocationController::class, 'store'])->name('sub_locations.from_tenant.store');
+        Route::post('/sub-locations/from-tenant/link', [\App\Http\Controllers\TenantSubLocationController::class, 'link'])->name('sub_locations.from_tenant.link');
+        Route::delete('/sub-locations/from-tenant/link', [\App\Http\Controllers\TenantSubLocationController::class, 'unlink'])->name('sub_locations.from_tenant.unlink');
+
         Route::get('/sub-locations/json', [LocationController::class, 'subLocationJson'])->name('sub_locations.json');
         Route::post('/sub-locations', [LocationController::class, 'storeSubLocation'])->name('sub_locations.store');
         Route::get('/sub-locations/{id}/edit', [LocationController::class, 'editSubLocation'])->name('sub_locations.edit');

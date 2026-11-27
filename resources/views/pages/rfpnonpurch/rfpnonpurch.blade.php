@@ -60,41 +60,6 @@
                             <option value="X">Cancelled</option>
                         </select>
                     </div>
-
-                    {{-- RFP All: Status Filter --}}
-                    <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                                <i class="fas fa-filter text-xs"></i>
-                            </span>
-                            <select id="rfpAllStatusFilter"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <option value="">All Status</option>
-                                <option value="P">On Progress</option>
-                                <option value="D">Revise</option>
-                                <option value="C">Completed</option>
-                                <option value="R">Rejected</option>
-                                <option value="X">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {{-- RFP Finance: Status Filter --}}
-                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-3">
-                        <div class="relative">
-                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
-                                <i class="fas fa-check-circle text-xs"></i>
-                            </span>
-                            <select id="rfpFinanceStatusFilter"
-                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <option value="">All Finance Status</option>
-                                <option value="waiting_user">Waiting User</option>
-                                <option value="finance_received">Finance Received</option>
-                                <option value="treasury_received">Treasury Received</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- RFP Finance: Status Filter --}}
@@ -106,6 +71,7 @@
                             <option value="waiting_user">Waiting User</option>
                             <option value="finance_received">Finance Received</option>
                             <option value="treasury_received">Treasury Received</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
                 </div>

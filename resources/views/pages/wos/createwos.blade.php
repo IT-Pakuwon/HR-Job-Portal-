@@ -110,15 +110,27 @@
                                 <div class="flex items-stretch">
                                     <input id="lokasi_display" readonly
                                         class="h-10 min-w-0 flex-1 rounded-l-lg border border-gray-300 bg-gray-50 px-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                        placeholder="Pilih Location & Sub Location">
+                                        placeholder="Pilih Location & Sub Location"
+                                        value="{{ $complaint['location']['label'] ?? '' }}">
                                     {{-- <button id="btnLokasi" type="button"
                                         class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">Pilih</button> --}}
                                     <button type="button" id="btnLokasi"
                                         class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-r-lg border border-l-0 border-gray-300 bg-white text-gray-500 transition hover:bg-blue-600 hover:text-white dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         title="Lookup"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg></button>
                                 </div>
-                                <input type="hidden" name="location_id" id="location_id">
-                                <input type="hidden" name="sub_location_id" id="sub_location_id">
+                                <input type="hidden" name="location_id" id="location_id"
+                                    value="{{ $complaint['location']['location_id'] ?? '' }}">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id"
+                                    value="{{ $complaint['location']['sub_location_id'] ?? '' }}">
+                                @if (!empty($complaint['location']))
+                                    <small id="lokasi_auto_hint" class="text-xs text-gray-500 dark:text-gray-400">
+                                        @if (!empty($complaint['location']['sub_location_id']))
+                                            Auto-filled from the tenant's data - please check, and change it if the problem is somewhere else.
+                                        @else
+                                            Location filled from the tenant's floor - click the search button to pick the Sub Location.
+                                        @endif
+                                    </small>
+                                @endif
                             </div>
 
                         </div>
@@ -571,12 +583,13 @@
                 if ($sel.hasClass('select2-hidden-accessible')) $sel.trigger('change.select2');
             }
 
-            function loadSubLocations(loc) {
+            function loadSubLocations(loc, selected = null) {
                 const cpny = $cpny.val();
                 fillSelect($selSub, [], null);
                 if (!cpny || !loc) return;
                 $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list) {
-                    fillSelect($selSub, list, null);
+                    fillSelect($selSub, list, selected);
+                    if (!selected) setTimeout(() => $selSub.select2('open'), 100);
                 }).fail(() => toastr.error('Gagal memuat Sub Location.'));
             }
 
@@ -591,8 +604,11 @@
                 fillSelect($selSub, [], null);
 
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
-                    fillSelect($selLoc, list, null);
-                    setTimeout(() => $selLoc.select2('open'), 100);
+                    // keep what is already filled (saved earlier, or prefilled from a complaint)
+                    const current = $('#location_id').val();
+                    fillSelect($selLoc, list, current);
+                    if (current) loadSubLocations(current, $('#sub_location_id').val() || null);
+                    else setTimeout(() => $selLoc.select2('open'), 100);
                 }).fail(() => toastr.error('Gagal memuat Location.'));
             }
 
@@ -620,11 +636,13 @@
                 $('#location_id').val(locVal);
                 $('#sub_location_id').val(subVal);
                 $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
+                $('#lokasi_auto_hint').remove();
                 closeLokasiModal();
             });
 
             $cpny.on('change', function() {
                 $('#location_id, #sub_location_id, #lokasi_display').val('');
+                $('#lokasi_auto_hint').remove();
             });
         });
     </script>

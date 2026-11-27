@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
+use App\Support\TenantLocationMatcher;
 
 class LocationController extends Controller
 {
@@ -169,6 +170,10 @@ class LocationController extends Controller
             'sub_location_name'  => 'required|string|max:200',
         ]);
 
+        if ($duplicate = $this->duplicateSubName($request->location_id, $request->sub_location_name)) {
+            return response()->json(['message' => $duplicate], 422);
+        }
+
         DB::beginTransaction();
         try {
             $loginUser = Auth::user();
@@ -219,6 +224,13 @@ class LocationController extends Controller
             'sub_location_name'  => 'required|string|max:200',
         ]);
 
+        // Only a changed name / Location is checked, so older doubles can still be edited.
+        $renamed = $request->location_id !== $sub->location_id
+            || TenantLocationMatcher::name($request->sub_location_name) !== TenantLocationMatcher::name($sub->sub_location_name);
+        if ($renamed && ($duplicate = $this->duplicateSubName($request->location_id, $request->sub_location_name, $sub->id))) {
+            return response()->json(['message' => $duplicate], 422);
+        }
+
         DB::beginTransaction();
         try {
             $loginUser = Auth::user();
@@ -241,6 +253,22 @@ class LocationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /** Error text when the Location already has this name (ignoring case, spaces and punctuation), else null. */
+    private function duplicateSubName(string $locationId, string $name, ?int $exceptId = null): ?string
+    {
+        $key = TenantLocationMatcher::name($name);
+        if ($key === '') return null;
+
+        $same = MsSubLocation::where('location_id', $locationId)
+            ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
+            ->get(['sub_location_id', 'sub_location_name', 'status'])
+            ->first(fn ($s) => TenantLocationMatcher::name($s->sub_location_name) === $key);
+
+        return $same
+            ? "Sub Location sudah ada di Location ini: {$same->sub_location_id} - {$same->sub_location_name}" . ($same->status === 'A' ? '' : ' (Inactive)')
+            : null;
     }
 
     public function toggleSubLocationStatus($id)

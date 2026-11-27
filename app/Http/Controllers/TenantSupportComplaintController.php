@@ -355,13 +355,15 @@ class TenantSupportComplaintController extends Controller
 
         $c = (new self)->base()->where('c.id', $id)->whereIn('c.status', ['C', 'P'])
             ->whereNotExists(fn ($q) => $q->from('tr_complaint_activity as a')->whereColumn('a.complaintnbr', 'c.complaintnbr')->where('a.status', 'W'))
-            ->first(['c.complaintnbr', 'c.siteid', 'c.description', 'k.name as category', 't.storename', 's.sitename']);
+            ->first(['c.complaintnbr', 'c.siteid', 'c.description', 'k.name as category', 't.storename', 't.unit', 'f.floor', 's.sitename']);
         if (! $c) return null;
 
         $text = "Complaint {$c->complaintnbr}" . ($c->category ? " ({$c->category})" : '') . "\n"
             . trim(implode(' - ', array_filter([$c->sitename, $c->storename]))) . "\n" . $c->description;
+        $cpny = self::woCompany($c->siteid, $user->username);
 
-        return ['eid' => $eid, 'nbr' => $c->complaintnbr, 'text' => trim($text), 'cpny' => self::woCompany($c->siteid, $user->username),
+        return ['eid' => $eid, 'nbr' => $c->complaintnbr, 'text' => trim($text), 'cpny' => $cpny,
+            'location' => $cpny ? \App\Support\TenantLocationMatcher::match($c->siteid, $cpny,$c->storename, $c->unit, $c->floor) : null,
             'files' => (new self)->attachments($c)->map(fn ($a) => ['name' => self::baseName($a->name, $a->fileextension) . '.' . $a->fileextension, 'url' => $a->url])->all()];
     }
 

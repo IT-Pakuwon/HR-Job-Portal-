@@ -45,10 +45,16 @@
                 <div>
                     <h2 class="set-title"><span class="set-ico"><i class="fa-solid fa-map-pin"></i></span><span>Sub Location<span class="set-hint">Selected Location: <span id="selectedLocationText" class="font-semibold">-</span></span></span></h2>
                 </div>
-                <button id="addSubLocationBtn"
-                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    + Add Sub Location
-                </button>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('sub_locations.from_tenant') }}"
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/5">
+                        <i class="fa-solid fa-store text-xs"></i> From Tenant
+                    </a>
+                    <button id="addSubLocationBtn"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        + Add Sub Location
+                    </button>
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -447,7 +453,7 @@
                         },
                         error: function(xhr) {
                             console.error(xhr.responseText);
-                            alert('Gagal menyimpan sub location');
+                            alert(xhr.responseJSON?.message || 'Gagal menyimpan sub location');
                         }
                     });
                 });
