@@ -792,7 +792,12 @@
             if (!newJobid) { toastr.error('Please select a job posting.'); return; }
             $(this).prop('disabled', true).text('Saving...');
             $.post("{{ route('jobapplicant.remap') }}", { apply_id: @json($hash), new_jobid: newJobid, _token: "{{ csrf_token() }}" })
-                .done(function() { toastr.success('Remapped!'); closeRemapModal(); setTimeout(() => location.reload(), 800); })
+                .done(function(res) {
+                    toastr.success('Remapped!');
+                    if (res.warning) toastr.warning(res.warning);
+                    closeRemapModal();
+                    setTimeout(() => location.reload(), res.warning ? 4000 : 800);
+                })
                 .fail(function(xhr) { toastr.error(xhr.responseJSON?.error || 'Failed to remap.'); })
                 .always(function() { $('#saveRemap').prop('disabled', false).text('Save Remap'); });
         });

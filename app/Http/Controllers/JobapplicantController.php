@@ -1467,12 +1467,62 @@ class JobapplicantController extends Controller
                 'to_jobid' => $request->new_jobid,
                 'by' => $user,
             ]);
-
-            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             DB::connection('mysql3')->rollBack();
 
             return response()->json(['error' => $e->getMessage()], 500);
         }
+
+        // Sent only after the commit, so a mail problem can never undo the remap.
+        $warning = $this->sendRemapNotice($sourceApplicant, $newJobposting, $groupCompanyId);
+
+        return response()->json(['success' => true, 'warning' => $warning]);
+    }
+
+    // Tells the applicant about the new position as soon as they are remapped. The form link
+    // follows later, when step 2 of the new apply is approved (CareerController::sendemail_applicant).
+    // Returns a warning for HR when the email did not go out, otherwise null.
+    private function sendRemapNotice(object $applicant, object $jobposting, string $groupCompanyId): ?string
+    {
+        if (empty($applicant->email_address)) {
+            return 'The applicant has no email address, so no notification was sent.';
+        }
+
+        try {
+            $org = DB::connection('mysql3')
+                ->table('hr_ms_department as dept')
+                ->leftJoin('hr_ms_division as div', function ($join) {
+                    $join->on('div.division_id', '=', 'dept.division_id')
+                        ->on('div.group_cpny_id', '=', 'dept.group_cpny_id');
+                })
+                ->where('dept.department_id', $jobposting->departementid)
+                ->where('dept.group_cpny_id', $groupCompanyId)
+                ->select('dept.department_name', 'div.division_name')
+                ->first();
+
+            $data = [
+                'name' => $applicant->full_name ?: 'Pelamar',
+                'job_title' => $jobposting->job_title ?: '-',
+                'division' => $org->division_name ?? null,
+                'department' => $org->department_name ?? null,
+            ];
+            $fromEmail = $groupCompanyId === 'SBY' ? 'hrd@pakuwon.com' : 'recruitment@pakuwon.com';
+
+            \Mail::send('emails.mailapplicant_remap_notice', $data, function ($message) use ($applicant, $fromEmail) {
+                $message->to($applicant->email_address)
+                    ->subject('📩 Perubahan Posisi Lamaran Anda di Pakuwon Career');
+                $message->from($fromEmail, 'Pakuwon Career');
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Remap notice email failed', [
+                'applicant_id' => $applicant->applicant_id,
+                'jobid' => $jobposting->docid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return 'The notification email to the applicant could not be sent.';
+        }
+
+        return null;
     }
 }
